@@ -3,7 +3,7 @@ module github.com/pact-im/go-pkg
 go 1.16
 
 require (
-	github.com/aws/aws-sdk-go v1.38.63
+	github.com/aws/aws-sdk-go v1.38.65
 	github.com/go-pg/migrations/v8 v8.1.0
 	github.com/stretchr/testify v1.7.0
 	go.uber.org/multierr v1.7.0
