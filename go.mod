@@ -7,7 +7,7 @@ require (
 	github.com/go-pg/migrations/v8 v8.1.0
 	github.com/stretchr/testify v1.7.0
 	go.uber.org/multierr v1.7.0
-	go.uber.org/zap v1.17.0
+	go.uber.org/zap v1.18.1
 	golang.org/x/crypto v0.0.0-20210616213533-5ff15b29337e
 	golang.org/x/tools v0.1.3
 )
