@@ -7,7 +7,7 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/pact-im/go-pkg/zaplog"
+	"go.pact.im/x/zaplog"
 )
 
 func ExampleTee() {

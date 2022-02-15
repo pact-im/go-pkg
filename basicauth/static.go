@@ -11,6 +11,8 @@ const hashSize = 64
 
 var _ http.Handler = (*StaticHandler)(nil)
 
+// StaticHandler is a handler that authenticates requests using static
+// credentials.
 type StaticHandler struct {
 	// Handler is the handler protected by HTTP basic authentication.
 	Handler http.Handler
@@ -33,6 +35,7 @@ func Static(handler http.Handler, user, pass string) *StaticHandler {
 	return h
 }
 
+// ServeHTTP implements the http.Handler interface.
 func (h *StaticHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	u, p, ok := r.BasicAuth()
 
