@@ -6,8 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"gotest.tools/v3/assert"
 )
 
 func TestStatic(t *testing.T) {
@@ -17,23 +16,22 @@ func TestStatic(t *testing.T) {
 
 	handler := Static(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		n, err := io.WriteString(w, sentinel)
-		assert.NoError(t, err)
+		assert.NilError(t, err)
 		assert.Equal(t, len(sentinel), n)
 	}), user, pass)
 
 	testCases := []struct {
-		Name string
-		Code int
-		Body string
-		Auth bool
-		User string
-		Pass string
+		Name   string
+		Code   int
+		Body   string
+		User   string
+		Pass   string
+		NoAuth bool
 	}{
 		{
 			Name: "AcceptsValidCreds",
 			Code: http.StatusOK,
 			Body: sentinel,
-			Auth: true,
 			User: user,
 			Pass: pass,
 		},
@@ -44,18 +42,15 @@ func TestStatic(t *testing.T) {
 		{
 			Name: "RejectsInvalidCreds",
 			Code: http.StatusUnauthorized,
-			Auth: true,
 		},
 		{
 			Name: "RejectsInvalidUser",
 			Code: http.StatusUnauthorized,
-			Auth: true,
 			Pass: pass,
 		},
 		{
 			Name: "RejectsInvalidPass",
 			Code: http.StatusUnauthorized,
-			Auth: true,
 			User: user,
 		},
 	}
@@ -63,10 +58,8 @@ func TestStatic(t *testing.T) {
 	for _, tc := range testCases {
 		tc := tc
 		t.Run(tc.Name, func(t *testing.T) {
-			r, err := http.NewRequest("GET", "/", nil)
-			require.NoError(t, err)
-
-			if tc.Auth {
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			if !tc.NoAuth {
 				r.SetBasicAuth(tc.User, tc.Pass)
 			}
 
@@ -75,7 +68,7 @@ func TestStatic(t *testing.T) {
 
 			resp := w.Result()
 			body, err := io.ReadAll(resp.Body)
-			require.NoError(t, err)
+			assert.NilError(t, err)
 
 			assert.Equal(t, tc.Code, resp.StatusCode)
 			assert.Equal(t, tc.Body, string(body))

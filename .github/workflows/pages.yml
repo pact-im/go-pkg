@@ -1,0 +1,68 @@
+name: Pages
+on:
+  push:
+    paths:
+      - vangen.json
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2.4.0
+      - name: Install Go
+        uses: actions/setup-go@v2.2.0
+        with:
+          go-version: 1.18.0-rc1
+          stable: false
+      - name: Get Go cache paths
+        id: go-env
+        run: |
+          echo "::set-output name=cache::$(go env GOCACHE)"
+          echo "::set-output name=modcache::$(go env GOMODCACHE)"
+      - name: Set up Go cache
+        uses: actions/cache@v2.1.7
+        with:
+          key: gocache-${{ runner.os }}
+          restore-keys: gocache-
+          path: |
+            ${{ steps.go-env.outputs.cache }}
+            ${{ steps.go-env.outputs.modcache }}
+      - name: Install vangen
+        run: go install 4d63.com/vangen@v1.2.0
+      - name: Build pages
+        run: |
+          vangen -out build
+          touch build/.nojekyll
+          echo go.pact.im >build/CNAME
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2.3.1
+        with:
+          name: build
+          path: build
+
+  push:
+    runs-on: ubuntu-latest
+    needs:
+      - build
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2.4.0
+        with:
+          path: source
+      - name: Download artifact
+        uses: actions/download-artifact@v2.1.0
+        with:
+          name: build
+          path: build
+      - name: Push to GitHub Pages branch
+        run: |
+          git config --global user.name actions-user
+          git config --global user.email actions@github.com
+          git -C source fetch origin gh-pages || true
+          if ! git -C source checkout -b gh-pages origin/gh-pages; then
+            git -C source checkout --orphan gh-pages
+          fi
+          git --git-dir=source/.git --work-tree=build add -A
+          git -C source commit -m "${GITHUB_SHA}" && git -C source push origin gh-pages || git -C source status
