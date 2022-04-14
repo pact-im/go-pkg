@@ -49,7 +49,8 @@ func randomJitter(v JitterInterval, f func(n int64) int64) time.Duration {
 }
 
 // JitterInterval describes a closed jitter interval. The final jitter value
-// for random number N is computed as N - L/Q.
+// for random number N is computed as N - L/Q where N ∈ (0; L] for L > 0 and
+// N ∈ [L; 0) for L < 0. If L = 0 then the final jitter value is always zero.
 type JitterInterval struct {
 	// L is the length of the jitter interval.
 	L time.Duration
