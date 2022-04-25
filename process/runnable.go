@@ -12,7 +12,7 @@ import (
 // Runnable performs graceful shutdown when the callback returns. In this case,
 // the context is not canceled and the process may access external resources,
 // e.g. perform some network requests and persist state to database. Otherwise
-// a context cancellation may be used to force shutdown.
+// a context cancellation is used to force shutdown.
 type Runnable interface {
 	// Run executes the process. The given callback f is called when the
 	// process has been initialized and began execution. The process is
@@ -33,50 +33,111 @@ func (r RunnableFunc) Run(ctx context.Context, f func(ctx context.Context) error
 	return r(ctx, f)
 }
 
-// Leaf converts a “leaf” function to a runnable processs function that accepts
-// callback. Note that the resulting Runnable does not support graceful shutdown
-// and is terminated by context cancellation. It returns an error from the first
-// function to return. If the first error is nil, the returned error is nil even
-// if the second error is non-nil. The order in which run and callback functions
-// return is not determenistic when the parent context is canceled.
-func Leaf(run func(ctx context.Context) error) RunnableFunc {
-	return func(ctx context.Context, f func(ctx context.Context) error) error {
-		ctx, cancel := context.WithCancel(ctx)
-
-		var once sync.Once
-		var err error
+// Leaf converts a “leaf” function to a runnable process function that accepts
+// callback. It accepts an optional gracefulStop function to perform graceful
+// shutdown. If the function is nil, the process will be terminated by context
+// cancellation instead.
+//
+// The resulting Runnable returns first non-nil error from functions in the
+// following order: callback, gracefulStop, runInForeground. That is, if both
+// callback and gracefulStop return a non-nil error, the latter is ignored.
+//
+// Example (HTTP):
+//
+//  var lis net.Listener
+//  var srv *http.Server
+//
+//  process.Leaf(
+//    func(_ context.Context) error {
+//      err := srv.Serve(lis)
+//      if errors.Is(err, http.ErrServerClosed) {
+//        return nil
+//      }
+//      return err
+//    },
+//    func(ctx context.Context) error {
+//      err := srv.Shutdown(ctx)
+//      if err != nil {
+//        return srv.Close()
+//      }
+//      return nil
+//    },
+//  )
+//
+// Example (gRPC):
+//
+//  var lis net.Listener
+//  var srv *grpc.Server
+//
+//  process.Leaf(
+//    func(ctx context.Context) error {
+//      return srv.Serve(lis)
+//    },
+//    func(_ context.Context) error {
+//      done := make(chan struct{})
+//      go func() {
+//        srv.GracefulStop()
+//        close(done)
+//      }()
+//      select {
+//      case <-ctx.Done():
+//        srv.Stop()
+//        <-done
+//      case <-done:
+//      }
+//      return nil
+//    },
+//  )
+//
+func Leaf(runInForeground, gracefulStop func(ctx context.Context) error) RunnableFunc {
+	return func(ctx context.Context, callback func(ctx context.Context) error) error {
+		bgctx, cancel := context.WithCancel(ctx)
+		defer cancel()
 
 		var wg sync.WaitGroup
 		wg.Add(1)
 
+		var runError error
 		go func() {
-			runError := run(ctx)
-			once.Do(func() { err = runError })
-			cancel()
-			wg.Done()
+			defer wg.Done()
+			runError = runInForeground(bgctx)
+			cancel() // cancel callback
 		}()
 
-		callbackError := f(ctx)
-		once.Do(func() { err = callbackError })
+		callbackError := callback(bgctx)
+
+		var stopError error
+		if gracefulStop != nil {
+			stopError = gracefulStop(ctx)
+		}
+
 		cancel()
 		wg.Wait()
 
-		return err
+		switch {
+		case callbackError != nil:
+			return callbackError
+		case stopError != nil:
+			return stopError
+		}
+		return runError
 	}
 }
 
 // StartStop returns a Runnable instance for the pair of start/stop functions.
+// The stop function should perform a graceful shutdown until a context expires,
+// then proceed with a forced shutdown.
 //
 // The resulting Runnable returns either start error or the first non-nil error
 // from callback and stop functions. If both callback and stop return a non-nil
 // error, the latter is ignored.
-func StartStop(start, stop func(ctx context.Context) error) RunnableFunc {
-	return func(ctx context.Context, f func(ctx context.Context) error) error {
-		if err := start(ctx); err != nil {
+func StartStop(startInBackground, gracefulStop func(ctx context.Context) error) RunnableFunc {
+	return func(ctx context.Context, callback func(ctx context.Context) error) error {
+		if err := startInBackground(ctx); err != nil {
 			return err
 		}
-		callbackError := f(ctx)
-		if err := stop(ctx); err != nil && callbackError == nil {
+		callbackError := callback(ctx)
+		if err := gracefulStop(ctx); err != nil && callbackError == nil {
 			return err
 		}
 		return callbackError

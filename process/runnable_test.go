@@ -76,14 +76,15 @@ func TestObserveRunnable(t *testing.T) {
 }
 
 func TestLeafCallbackReturns(t *testing.T) {
+	oops := errors.New("oops")
 	leaf := Leaf(func(ctx context.Context) error {
 		<-ctx.Done()
-		return errors.New("ignored")
-	})
+		return oops
+	}, nil)
 	err := leaf.Run(context.Background(), func(ctx context.Context) error {
 		return nil
 	})
-	assert.NilError(t, err)
+	assert.ErrorIs(t, err, oops)
 }
 
 func TestLeafCallbackError(t *testing.T) {
@@ -91,7 +92,7 @@ func TestLeafCallbackError(t *testing.T) {
 	leaf := Leaf(func(ctx context.Context) error {
 		<-ctx.Done()
 		return nil
-	})
+	}, nil)
 	err := leaf.Run(context.Background(), func(ctx context.Context) error {
 		return oops
 	})
@@ -99,21 +100,22 @@ func TestLeafCallbackError(t *testing.T) {
 }
 
 func TestLeafRunReturns(t *testing.T) {
+	oops := errors.New("oops")
 	leaf := Leaf(func(ctx context.Context) error {
 		return nil
-	})
+	}, nil)
 	err := leaf.Run(context.Background(), func(ctx context.Context) error {
 		<-ctx.Done()
-		return errors.New("ignored")
+		return oops
 	})
-	assert.NilError(t, err)
+	assert.ErrorIs(t, err, oops)
 }
 
 func TestLeafRunError(t *testing.T) {
 	oops := errors.New("oops")
 	leaf := Leaf(func(ctx context.Context) error {
 		return oops
-	})
+	}, nil)
 	err := leaf.Run(context.Background(), func(ctx context.Context) error {
 		<-ctx.Done()
 		return nil
@@ -122,12 +124,19 @@ func TestLeafRunError(t *testing.T) {
 }
 
 func TestStartStopLeafProcess(t *testing.T) {
-	started := make(chan struct{})
-	p := NewProcess(context.Background(), Leaf(func(ctx context.Context) error {
-		close(started)
-		<-ctx.Done()
-		return nil
-	}))
+	started, stopped := make(chan struct{}), make(chan struct{})
+	p := NewProcess(
+		context.Background(),
+		Leaf(func(ctx context.Context) error {
+			close(started)
+			<-ctx.Done()
+			<-stopped
+			return nil
+		}, func(ctx context.Context) error {
+			close(stopped)
+			return nil
+		}),
+	)
 	proc := StartStop(p.Start, p.Stop)
 	err := proc.Run(context.Background(), func(ctx context.Context) error {
 		<-started

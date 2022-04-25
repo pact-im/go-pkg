@@ -9,41 +9,54 @@ import (
 	"go.uber.org/atomic"
 )
 
-// ProcessState represents the current state of the process.
-type ProcessState int
+// State represents the current state of the process.
+type State int
 
 const (
-	ProcessStateInitial ProcessState = iota
-	ProcessStateStarting
-	ProcessStateRunning
-	ProcessStateStopped
+	// StateInitial is the initial state of the process. If Stop is called
+	// in initial state, it prevents subsequent Start calls from succeeding,
+	// thus entering StateStopped. Otherwise the transition on Start call
+	// is to the StateStarting.
+	StateInitial State = iota
+	// StateStarting is the starting state that process enters when Start
+	// is called from initial state. It transitions to either StateRunning
+	// on success or StateStopped on failure (or premature shutdown observed
+	// during startup).
+	StateStarting
+	// StateRunning is the state process enters after a successful startup.
+	// The only possible transition is to the StateStopped if either Stop
+	// is called or a process terminates.
+	StateRunning
+	// StateStopped is the final state of the process. There are no
+	// transitions from this state.
+	StateStopped
 )
 
 // Process represents a stateful process that is running in the background.
 // It exposes Start and Stop methods that use an underlying state machine to
 // prevent operations in invalid states. Process is safe for concurrent use.
-type Process[P Runnable] struct {
-	proc   P
+//
+// Unlike some implementations of the underlying Runnable interface that allow
+// multiple consecutive Run invocations on the same instance, a Process may not
+// be reset and started after being stopped.
+type Process struct {
+	proc   Runnable
 	parent context.Context
 
 	stateMu sync.Mutex
-	state   ProcessState
+	state   State
 
 	cancel context.CancelFunc
 
 	stop chan struct{}
 	done chan struct{}
 	err  atomic.Error
-
-	// stopped is used by Manager to remove the process instance from
-	// internal map at most once.
-	stopped atomic.Bool
 }
 
 // NewProcess returns a new stateful process instance for the given Runnable
 // type parameter that would run with the ctx context.
-func NewProcess[P Runnable](ctx context.Context, proc P) *Process[P] {
-	return &Process[P]{
+func NewProcess(ctx context.Context, proc Runnable) *Process {
+	return &Process{
 		proc:   proc,
 		parent: ctx,
 		stop:   make(chan struct{}),
@@ -52,31 +65,33 @@ func NewProcess[P Runnable](ctx context.Context, proc P) *Process[P] {
 }
 
 // Done returns a channel that is closed when process terminates.
-func (p *Process[P]) Done() <-chan struct{} {
+func (p *Process) Done() <-chan struct{} {
 	return p.done
 }
 
 // Err returns the error from running the process.
-func (p *Process[P]) Err() error {
+func (p *Process) Err() error {
 	return p.err.Load()
 }
 
 // State returns the current process state.
-func (p *Process[P]) State() ProcessState {
+func (p *Process) State() State {
 	p.stateMu.Lock()
 	defer p.stateMu.Unlock()
 	return p.state
 }
 
 // Start starts the process or cancels the underlying process context on error.
-// The startup deadline may be set using the given ctx context. It would not
-// be used by process.
+//
+// The startup deadline may be set using the given ctx context. Note that the
+// context would not be used by process directly so the associated values are
+// not propagated.
 //
 // It returns ErrProcessInvalidState if the process is not in the initial state.
-func (p *Process[P]) Start(ctx context.Context) error {
+func (p *Process) Start(ctx context.Context) error {
 	var bgctx context.Context
 	var cancel context.CancelFunc
-	if !p.transition(ProcessStateStarting, func() {
+	if !p.transition(StateStarting, func() {
 		bgctx, p.cancel = context.WithCancel(p.parent)
 		p.parent, cancel = nil, p.cancel
 	}) {
@@ -86,7 +101,7 @@ func (p *Process[P]) Start(ctx context.Context) error {
 	init := make(chan struct{})
 	go func() {
 		err := p.proc.Run(bgctx, func(bgctx context.Context) error {
-			_ = p.transition(ProcessStateRunning, nil)
+			_ = p.transition(StateRunning, nil)
 
 			close(init)
 
@@ -96,7 +111,7 @@ func (p *Process[P]) Start(ctx context.Context) error {
 			}
 			return nil
 		})
-		_ = p.transition(ProcessStateStopped, func() {
+		_ = p.transition(StateStopped, func() {
 			p.cancel = nil
 		})
 		cancel()
@@ -120,23 +135,27 @@ func (p *Process[P]) Start(ctx context.Context) error {
 	return nil
 }
 
-// Stop stops the process by canceling the underlying context and waiting for
-// the termination.
+// Stop stops the process by returning from the Run method callback and waiting
+// for the termination.
+//
+// The shutdown deadline may be set using the given ctx context. If the deadline
+// is exceeded, underlying context is canceled, signaling a forced shutdown to
+// the process.
 //
 // It returns ErrProcessInvalidState if the process was not started or has
 // already been stopped.
-func (p *Process[P]) Stop(ctx context.Context) error {
+func (p *Process) Stop(ctx context.Context) error {
 	var initial bool
 	var cancel context.CancelFunc
-	if !p.transition(ProcessStateStopped, func() {
+	if !p.transition(StateStopped, func() {
 		switch p.state {
-		case ProcessStateInitial:
+		case StateInitial:
 			initial = true
-		case ProcessStateStarting:
+		case StateStarting:
 			p.cancel()
 			cancel = p.cancel
 			p.cancel = nil
-		case ProcessStateRunning:
+		case StateRunning:
 			close(p.stop)
 			cancel = p.cancel
 			p.cancel = nil
@@ -164,24 +183,24 @@ func (p *Process[P]) Stop(ctx context.Context) error {
 
 // transition advances to the next process state. It returns false if there is
 // not transition from the current to the given next state.
-func (p *Process[P]) transition(next ProcessState, advance func()) bool {
+func (p *Process) transition(next State, advance func()) bool {
 	p.stateMu.Lock()
 	defer p.stateMu.Unlock()
 
 	switch p.state {
-	case ProcessStateInitial:
-		if next != ProcessStateStarting && next != ProcessStateStopped {
+	case StateInitial:
+		if next != StateStarting && next != StateStopped {
 			return false
 		}
-	case ProcessStateStarting:
-		if next != ProcessStateRunning && next != ProcessStateStopped {
+	case StateStarting:
+		if next != StateRunning && next != StateStopped {
 			return false
 		}
-	case ProcessStateRunning:
-		if next != ProcessStateStopped {
+	case StateRunning:
+		if next != StateStopped {
 			return false
 		}
-	case ProcessStateStopped:
+	case StateStopped:
 		return false
 	}
 
