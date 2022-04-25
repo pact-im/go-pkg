@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"sync"
 
+	"go.uber.org/atomic"
+
 	"go.pact.im/x/clock"
 	"go.pact.im/x/syncx"
 )
@@ -17,7 +19,7 @@ type Manager[K comparable, P Runnable] struct {
 	// processes is a map of managed processes. It is used to track process
 	// state and allows returning an ErrProcessExists error to guarantee
 	// that at most one processes is active per key.
-	processes syncx.Map[K, *Process[P]]
+	processes syncx.Map[K, *managedProcess[P]]
 
 	// runLock ensures that at most one Run method is executing at a time.
 	runLock syncx.Lock
@@ -37,7 +39,33 @@ type Manager[K comparable, P Runnable] struct {
 	wg sync.WaitGroup
 }
 
-// NewManager returns a new Manager instance.
+// managedProcess contains a Process and associated Runnable managed by Manager.
+type managedProcess[P Runnable] struct {
+	*Process
+
+	// proc is the underlying process instance with parametrized P type.
+	proc P
+
+	// stopped is used by Manager to remove the process instance from
+	// internal map at most once.
+	stopped atomic.Bool
+}
+
+// NewManager returns a new Manager instance. The given table is used to lookup
+// managed processes and periodically restart failed units (or processes that
+// were added externally). Managed processes are uniquely identifiable by key.
+//
+// A managed process may remove itself from Manager by deleting the associated
+// entry in table before terminating. Likewise, to stop a process, it must be
+// removed from the table prior to Stop call. That is, processes must be aware
+// of being managed and the removal is tighly coupled with the table.
+//
+// As a rule of thumb, to keep the underlying table consistent, processes should
+// not be re-added to table after being removed from the table. It is possible
+// to implement re-adding on top of Manager but that requires handling possible
+// orderings of table removal, addition, re-addition and process startup,
+// shutdown and self-removal (or a subset of these operations depending on the
+// use cases).
 func NewManager[K comparable, P Runnable](t Table[K, P], o Options) *Manager[K, P] {
 	o.setDefaults()
 
@@ -91,7 +119,7 @@ func (m *Manager[K, P]) Run(ctx context.Context, f func(ctx context.Context) err
 
 // startProcessForKey starts the process for the given key. An error is returned
 // if Manager’s Run method is not currently running.
-func (m *Manager[K, P]) startProcessForKey(ctx context.Context, pk K) (*Process[P], error) {
+func (m *Manager[K, P]) startProcessForKey(ctx context.Context, pk K) (*managedProcess[P], error) {
 	m.startMu.RLock()
 	defer m.startMu.RUnlock()
 	if !m.start {
@@ -111,7 +139,7 @@ func (m *Manager[K, P]) startProcessForKey(ctx context.Context, pk K) (*Process[
 
 // startProcess starts the process for the given key. Unlike startProcessForKey,
 // it uses the given r Runnable instance instead of getting it from the table.
-func (m *Manager[K, P]) startProcess(ctx context.Context, pk K, r P) (*Process[P], error) {
+func (m *Manager[K, P]) startProcess(ctx context.Context, pk K, r P) (*managedProcess[P], error) {
 	m.startMu.RLock()
 	defer m.startMu.RUnlock()
 	if !m.start {
@@ -126,8 +154,11 @@ func (m *Manager[K, P]) startProcess(ctx context.Context, pk K, r P) (*Process[P
 // startProcessUnlocked starts the given process assuming that the start lock
 // was acquired and an entry in the processes map exists. It removes this entry
 // on error.
-func (m *Manager[K, P]) startProcessUnlocked(ctx context.Context, pk K, r P) (*Process[P], error) {
-	p := NewProcess(m.parent, r)
+func (m *Manager[K, P]) startProcessUnlocked(ctx context.Context, pk K, r P) (*managedProcess[P], error) {
+	p := &managedProcess[P]{
+		Process: NewProcess(m.parent, r),
+		proc:    r,
+	}
 	m.processes.Store(pk, p)
 	if err := p.Start(ctx); err != nil {
 		m.processes.Delete(pk)
@@ -140,7 +171,7 @@ func (m *Manager[K, P]) startProcessUnlocked(ctx context.Context, pk K, r P) (*P
 
 // watchdog waits for process shutdown and removes it from processes map on such
 // event.
-func (m *Manager[K, P]) watchdog(pk K, p *Process[P]) {
+func (m *Manager[K, P]) watchdog(pk K, p *managedProcess[P]) {
 	defer m.wg.Done()
 
 	<-p.Done()
@@ -175,7 +206,7 @@ func (m *Manager[K, P]) stopProcess(ctx context.Context, pk K) error {
 // stopAll stops all the processes in the underlying map. It does not wait for
 // processes to complete the termination.
 func (m *Manager[K, P]) stopAll(ctx context.Context) {
-	m.processes.Range(func(pk K, _ *Process[P]) bool {
+	m.processes.Range(func(pk K, _ *managedProcess[P]) bool {
 		m.wg.Add(1)
 		go func() {
 			defer m.wg.Done()

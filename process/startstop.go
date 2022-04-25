@@ -32,7 +32,7 @@ func (m *Manager[K, P]) Get(ctx context.Context, pk K) (P, error) {
 		var zero P
 		return zero, ErrProcessNotFound
 	}
-	if p.State() != ProcessStateRunning {
+	if p.State() != StateRunning {
 		return p.proc, ErrProcessNotRunning
 	}
 	return p.proc, nil

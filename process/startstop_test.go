@@ -28,7 +28,7 @@ func TestManagerStartConflict(t *testing.T) {
 		tab.m.Store(pk, r)
 
 		g, ctx := errgroup.WithContext(ctx)
-		defer g.Wait()
+		defer func() { _ = g.Wait() }()
 		ctx, cancel := context.WithCancel(ctx)
 		defer cancel()
 
