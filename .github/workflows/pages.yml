@@ -3,6 +3,9 @@ on:
   push:
     paths:
       - vangen.json
+  schedule:
+    # At 06:00 UTC on Monday.
+    - cron: '0 6 * * 1'
   workflow_dispatch:
 
 jobs:
@@ -30,38 +33,25 @@ jobs:
             ${{ steps.go-env.outputs.modcache }}
       - name: Install vangen
         run: go install 4d63.com/vangen@v1.2.0
+      - name: Install golds
+        run: go install go101.org/golds@v0.4.8
+      # See https://github.com/go101/golds/issues/28
+      - name: Warm up Go modules cache
+        run: go work sync
       - name: Build pages
         run: |
           vangen -out build
+          golds -dir=build/doc -gen -silent -footer=simple -wdpkgs-listing=solo all
           touch build/.nojekyll
           echo go.pact.im >build/CNAME
-      - name: Upload artifact
-        uses: actions/upload-artifact@v3.0.0
-        with:
-          name: build
-          path: build
-
-  push:
-    runs-on: ubuntu-latest
-    needs:
-      - build
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3.0.2
-        with:
-          path: source
-      - name: Download artifact
-        uses: actions/download-artifact@v3.0.0
-        with:
-          name: build
-          path: build
-      - name: Push to GitHub Pages branch
+      - name: Push branch
+        working-directory: build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git config --global user.name actions-user
-          git config --global user.email actions@github.com
-          git -C source fetch origin gh-pages || true
-          if ! git -C source checkout -b gh-pages origin/gh-pages; then
-            git -C source checkout --orphan gh-pages
-          fi
-          git --git-dir=source/.git --work-tree=build add -A
-          git -C source commit -m "${GITHUB_SHA}" && git -C source push origin gh-pages || git -C source status
+          git init -q -b gh-pages
+          git config user.name actions-user
+          git config user.email actions@github.com
+          git add -A
+          git commit -q -m "${GITHUB_SHA}"
+          git push -f "https://${GITHUB_ACTOR}:${GITHUB_TOKEN}@${GITHUB_SERVER_URL#https://}/${GITHUB_REPOSITORY}.git"
