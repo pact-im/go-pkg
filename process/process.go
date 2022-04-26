@@ -92,8 +92,8 @@ func (p *Process) Start(ctx context.Context) error {
 	var bgctx context.Context
 	var cancel context.CancelFunc
 	if !p.transition(StateStarting, func() {
-		bgctx, p.cancel = context.WithCancel(p.parent)
-		p.parent, cancel = nil, p.cancel
+		bgctx, cancel = context.WithCancel(p.parent)
+		p.parent, p.cancel = nil, cancel
 	}) {
 		return ErrProcessInvalidState
 	}
@@ -151,6 +151,7 @@ func (p *Process) Stop(ctx context.Context) error {
 		switch p.state {
 		case StateInitial:
 			initial = true
+			p.parent = nil
 		case StateStarting:
 			p.cancel()
 			cancel = p.cancel
