@@ -150,6 +150,7 @@ func (p *Process) Stop(ctx context.Context) error {
 	if !p.transition(StateStopped, func() {
 		switch p.state {
 		case StateInitial:
+			close(p.done)
 			initial = true
 			p.parent = nil
 		case StateStarting:
