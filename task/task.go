@@ -31,30 +31,37 @@ func Named(name string, run Task) Task {
 	}
 }
 
-// ErrorGroup returns a function that executes a group of tasks until the first
-// non-nil error.
-//
-// If a task exits, a context is canceled iff error is not nil. This is the same
-// behavior as the errgroup package.
-//
-// The resulting function returns errors for all failed tasks.
-func ErrorGroup(tasks ...Task) Task {
-	const cancelOnNilError = false
-	return group(cancelOnNilError, tasks...)
+// Sequential returns a function that executes a group of tasks sequentially
+// using the given cancellation condition. The resulting Task returns combined
+// errors for all failed subtasks.
+func Sequential(cond CancelCondition, tasks ...Task) Task {
+	return func(ctx context.Context) error {
+		var errs []error
+
+		ctx, cancel := context.WithCancel(ctx)
+		defer cancel()
+
+		for i, task := range tasks {
+			err := task.Run(ctx)
+			if err != nil {
+				if errs == nil {
+					errs = make([]error, len(tasks))
+				}
+				errs[i] = err
+			}
+			if cond(err) {
+				cancel()
+			}
+		}
+
+		return multierr.Combine(errs...)
+	}
 }
 
-// ExitGroup returns a function that executes a group of tasks until any task
-// exits.
-//
-// If a task exits, a context is canceled and all other tasks are terminated.
-//
-// The resulting function returns errors for all failed tasks.
-func ExitGroup(tasks ...Task) Task {
-	const cancelOnNilError = true
-	return group(cancelOnNilError, tasks...)
-}
-
-func group(cancelOnNilError bool, tasks ...Task) Task {
+// Parallel returns a function that executes a group of tasks in parallel using
+// the given cancellation condition. The resulting Task returns combined errors
+// for all failed subtasks.
+func Parallel(cond CancelCondition, tasks ...Task) Task {
 	return func(ctx context.Context) error {
 		var once sync.Once
 		var errs []error
@@ -68,13 +75,14 @@ func group(cancelOnNilError bool, tasks ...Task) Task {
 			i, task := i, task
 			go func() {
 				defer wg.Done()
-				if err := task.Run(ctx); err != nil {
+				err := task.Run(ctx)
+				if err != nil {
 					once.Do(func() { errs = make([]error, len(tasks)) })
 					errs[i] = err
-				} else if !cancelOnNilError {
-					return
 				}
-				cancel()
+				if cond(err) {
+					cancel()
+				}
 			}()
 		}
 		wg.Wait()
