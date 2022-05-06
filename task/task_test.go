@@ -17,9 +17,9 @@ func TestNamed(t *testing.T) {
 	assert.Equal(t, err.Error(), "test: oops")
 }
 
-func TestErrorGroup(t *testing.T) {
+func TestParallelCancelOnError(t *testing.T) {
 	oops := errors.New("oops")
-	g := ErrorGroup(
+	g := Parallel(CancelOnError(),
 		func(ctx context.Context) error {
 			return oops
 		},
@@ -32,8 +32,8 @@ func TestErrorGroup(t *testing.T) {
 	assert.ErrorIs(t, err, oops)
 }
 
-func TestExitGroup(t *testing.T) {
-	g := ExitGroup(
+func TestParallelCancelOnReturn(t *testing.T) {
+	g := Parallel(CancelOnReturn(),
 		func(ctx context.Context) error {
 			return nil
 		},

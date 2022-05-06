@@ -11,9 +11,6 @@ import (
 func TestContextifyCancel(t *testing.T) {
 	oops := errors.New("oops")
 
-	ctx, cancel := context.WithCancel(context.Background())
-	cancel()
-
 	stop := make(chan struct{})
 	c := Contextify(func() error {
 		<-stop
@@ -22,7 +19,9 @@ func TestContextifyCancel(t *testing.T) {
 		close(stop)
 	})
 
-	err := c.Run(ctx)
+	canceledContext, cancel := context.WithCancel(context.Background())
+	cancel()
+	err := c.Run(canceledContext)
 	assert.ErrorIs(t, err, oops)
 }
 
