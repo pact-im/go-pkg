@@ -11,10 +11,14 @@ import (
 func TestTailReader(t *testing.T) {
 	testCases := []struct {
 		Data []byte
-		Size uint64
+		Size uint
 	}{
 		{
 			Data: nil,
+			Size: 0,
+		},
+		{
+			Data: []byte{1},
 			Size: 0,
 		},
 		{
@@ -22,7 +26,11 @@ func TestTailReader(t *testing.T) {
 			Size: 1,
 		},
 		{
-			Data: []byte{0},
+			Data: []byte{1},
+			Size: 1,
+		},
+		{
+			Data: []byte{1, 2},
 			Size: 1,
 		},
 		{
@@ -39,15 +47,15 @@ func TestTailReader(t *testing.T) {
 	}
 }
 
-func runTestTailReader(t testing.TB, data []byte, n uint64) {
+func runTestTailReader(t testing.TB, data []byte, n uint) {
 	var head, tail []byte
 	switch {
 	case n == 0:
 		head, tail = data, nil
-	case n >= uint64(len(data)):
+	case n >= uint(len(data)):
 		head, tail = nil, data
 	default:
-		i := uint64(len(data)) - n
+		i := uint(len(data)) - n
 		head, tail = data[:i], data[i:]
 	}
 

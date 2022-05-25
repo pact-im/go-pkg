@@ -18,10 +18,14 @@ type UnpadReader struct {
 // If blockSize is zero, UnpadReader is a no-op, i.e. it does not attempt to
 // remove padding from the underlying reader.
 func NewUnpadReader(r io.Reader, blockSize uint8) *UnpadReader {
+	var buf []byte
+	if blockSize != 0 {
+		buf = make([]byte, 0, blockSize)
+	}
 	return &UnpadReader{
 		reader: TailReader{
-			r: r,
-			n: uint64(blockSize),
+			r:   r,
+			buf: buf,
 		},
 		blockSize: blockSize,
 	}

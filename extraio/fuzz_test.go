@@ -36,7 +36,7 @@ func FuzzUnpadReader(f *testing.F) {
 }
 
 func FuzzTailReader(f *testing.F) {
-	f.Fuzz(func(t *testing.T, data []byte, n uint64) {
+	f.Fuzz(func(t *testing.T, data []byte, n uint) {
 		runTestTailReader(t, data, n)
 	})
 }
