@@ -2,8 +2,8 @@ package extraio
 
 import (
 	"bytes"
-	"io"
 	"testing"
+	"testing/iotest"
 
 	"gotest.tools/v3/assert"
 )
@@ -61,9 +61,6 @@ func runTestTailReader(t testing.TB, data []byte, n uint) {
 
 	tr := NewTailReader(bytes.NewReader(data), n)
 
-	buf, err := io.ReadAll(tr)
-	assert.NilError(t, err)
-
-	assert.Check(t, bytes.Equal(head, buf))
-	assert.Check(t, bytes.Equal(tail, tr.Tail()))
+	assert.NilError(t, iotest.TestReader(tr, head))
+	assert.DeepEqual(t, tail, tr.Tail())
 }
