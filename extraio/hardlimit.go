@@ -32,7 +32,9 @@ func (r *HardLimitedReader) Reset() {
 	r.readCount = 0
 }
 
-// Read implements io.Reader interface. It reads from the underlying io.Reader.
+// Read implements the io.Reader interface. If the limit has been reached, it
+// returns ErrExceededReadLimit error. Otherwise it reads from the underlying
+// io.Reader.
 func (r *HardLimitedReader) Read(p []byte) (int, error) {
 	if r.readCount == r.limit {
 		return 0, ErrExceededReadLimit

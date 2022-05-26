@@ -23,8 +23,8 @@ func NewHashReader(h hash.Hash) *HashReader {
 	return &HashReader{h: h}
 }
 
-// Read implements io.Reader interface. It computes the hash on the first call
-// and advances through the hash buffer on subsequent calls to Read.
+// Read implements the io.Reader interface. It computes the hash on the first
+// call and advances through the hash buffer on subsequent calls to Read.
 func (h *HashReader) Read(p []byte) (int, error) {
 	if h.p == nil {
 		h.p = h.h.Sum(nil)

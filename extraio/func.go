@@ -5,7 +5,7 @@ package extraio
 // that calls f.
 type ReaderFunc func(p []byte) (n int, err error)
 
-// Read implements io.Reader interface. It calls f(p).
+// Read implements the io.Reader interface. It calls f(p).
 func (f ReaderFunc) Read(p []byte) (n int, err error) {
 	return f(p)
 }

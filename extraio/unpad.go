@@ -38,7 +38,9 @@ func (r *UnpadReader) Reset() {
 	r.reader.Reset()
 }
 
-// Read implements io.Reader interface. It reads from the underlying io.Reader.
+// Read implements the io.Reader interface. It reads from the underlying
+// io.Reader until EOF and then validates and removes padding from the last
+// block.
 func (r *UnpadReader) Read(p []byte) (int, error) {
 	if r.lastBlock != nil {
 		return r.unpad(p)

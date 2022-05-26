@@ -51,7 +51,8 @@ func (r *TailReader) Tail() []byte {
 	return r.buf
 }
 
-// Read implements io.Reader interface. It reads from the underlying io.Reader.
+// Read implements the io.Reader interface. It reads from the underlying
+// io.Reader but keeps the last n read bytes in the internal ring buffer.
 func (r *TailReader) Read(p []byte) (int, error) {
 	n, err := r.reader.Read(p)
 	if n <= 0 || r.buf == nil {

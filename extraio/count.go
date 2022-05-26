@@ -24,7 +24,8 @@ func (r *CountReader) Count() (uint64, bool) {
 	return r.count, !r.overflow
 }
 
-// Read implements io.Reader interface. It reads from the underlying io.Reader.
+// Read implements the io.Reader interface. It reads from the underlying
+// io.Reader and increments read bytes counter.
 func (r *CountReader) Read(p []byte) (int, error) {
 	n, err := r.reader.Read(p)
 	if n > 0 && !r.overflow {

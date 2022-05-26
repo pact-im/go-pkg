@@ -32,7 +32,8 @@ func (r *PadReader) Reset() {
 	r.fillByte = 0
 }
 
-// Read implements io.Reader interface. It reads from the underlying io.Reader.
+// Read implements the io.Reader interface. It reads from the underlying
+// io.Reader until EOF and then writes padding into the read buffer.
 func (r *PadReader) Read(p []byte) (int, error) {
 	if r.fillByte != 0 {
 		return r.pad(p)
