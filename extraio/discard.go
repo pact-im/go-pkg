@@ -4,9 +4,14 @@ import (
 	"io"
 )
 
-// DiscardReader is an io.Reader that discard all reads from the underlying reader.
+// DiscardReader is an io.Reader that discard all read bytes from the underlying
+// reader.
+//
+// Note that its Read method returns zero byte count. Some io.Reader client
+// implementations return io.ErrNoProgress error when many calls to Read have
+// failed to return any data or error.
 type DiscardReader struct {
-	R io.Reader // underlying reader
+	r io.Reader // underlying reader
 }
 
 // NewDiscardReader returns a new reader that discard all reads from r.
@@ -16,9 +21,6 @@ func NewDiscardReader(r io.Reader) *DiscardReader {
 
 // Read implements io.Reader interface. It reads from the underlying io.Reader.
 func (d *DiscardReader) Read(p []byte) (int, error) {
-	_, err := io.Copy(io.Discard, d.R)
-	if err == nil {
-		err = io.EOF
-	}
+	_, err := d.r.Read(p)
 	return 0, err
 }
