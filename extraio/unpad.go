@@ -7,10 +7,11 @@ import (
 // UnpadReader is an io.Reader that unpads padding from PadReader. It validates
 // the padding on EOF and returns an error if it is invalid.
 type UnpadReader struct {
-	reader     TailReader
-	blockSize  uint8
-	incomplete int
-	lastBlock  []byte
+	reader    TailReader
+	blockSize uint8
+
+	incomplete int    // mutable
+	lastBlock  []byte // mutable
 }
 
 // NewUnpadReader returns a new reader that unpads r using the given block size.
@@ -23,8 +24,8 @@ func NewUnpadReader(r io.Reader, blockSize uint8) *UnpadReader {
 	}
 	return &UnpadReader{
 		reader: TailReader{
-			r:   r,
-			buf: buf,
+			reader: r,
+			buf:    buf,
 		},
 		blockSize: blockSize,
 	}

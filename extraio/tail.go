@@ -13,10 +13,10 @@ import (
 // return io.ErrNoProgress error when many calls to Read have failed to return
 // any data or error.
 type TailReader struct {
-	r io.Reader // underlying reader
+	reader io.Reader
 
-	cur int
-	buf []byte
+	cur int    // mutable
+	buf []byte // mutable
 }
 
 // NewTailReader returns a new reader that buffers last n bytes read from r.
@@ -26,8 +26,8 @@ func NewTailReader(r io.Reader, n uint) *TailReader {
 		buf = make([]byte, 0, n)
 	}
 	return &TailReader{
-		r:   r,
-		buf: buf,
+		reader: r,
+		buf:    buf,
 	}
 }
 
@@ -53,7 +53,7 @@ func (r *TailReader) Tail() []byte {
 
 // Read implements io.Reader interface. It reads from the underlying io.Reader.
 func (r *TailReader) Read(p []byte) (int, error) {
-	n, err := r.r.Read(p)
+	n, err := r.reader.Read(p)
 	if n <= 0 || r.buf == nil {
 		return n, err
 	}
