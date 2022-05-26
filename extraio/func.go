@@ -1,7 +1,7 @@
 package extraio
 
 // ReaderFunc is an adapter to allow the use of ordinary function as io.Reader.
-// If f is a function with appropriate signature, readerFunc(f) is an io.Reader
+// If f is a function with appropriate signature, ReaderFunc(f) is an io.Reader
 // that calls f.
 type ReaderFunc func(p []byte) (n int, err error)
 
