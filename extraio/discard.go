@@ -11,7 +11,7 @@ import (
 // implementations return io.ErrNoProgress error when many calls to Read have
 // failed to return any data or error.
 type DiscardReader struct {
-	r io.Reader // underlying reader
+	reader io.Reader
 }
 
 // NewDiscardReader returns a new reader that discard all reads from r.
@@ -21,6 +21,6 @@ func NewDiscardReader(r io.Reader) *DiscardReader {
 
 // Read implements io.Reader interface. It reads from the underlying io.Reader.
 func (d *DiscardReader) Read(p []byte) (int, error) {
-	_, err := d.r.Read(p)
+	_, err := d.reader.Read(p)
 	return 0, err
 }
