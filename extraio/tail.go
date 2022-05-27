@@ -77,8 +77,9 @@ func (r *TailReader) Read(p []byte) (int, error) {
 			swap(p[len(head):], tail)
 			swap(p, head)
 		} else {
+			swap(r.buf, p[n-size:])
 			r.buf = r.buf[:size]
-			swap(r.buf, p[n-size:n])
+			copy(r.buf[used:], p[n-free:])
 			n -= free
 			rotate(p[:n], -used)
 		}
