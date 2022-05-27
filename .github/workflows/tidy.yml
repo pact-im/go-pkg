@@ -1,0 +1,24 @@
+name: Tidy
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3.0.2
+      - name: Install Go
+        uses: actions/setup-go@v3.2.0
+        with:
+          go-version-file: .go-version
+          cache: true
+          cache-dependency-path: '**/go.sum'
+      - name: Update go.sum
+        run: eval "$(go list -m -f '(cd {{printf "%q" .Dir}} && go mod tidy)')"
+      - name: Update go.work.sum
+        run: go work sync
+      - name: Check git diff
+        run: git diff --exit-code
