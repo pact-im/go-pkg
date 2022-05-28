@@ -23,7 +23,7 @@ func TestClockNow(t *testing.T) {
 }
 
 func TestClockNext(t *testing.T) {
-	sim := Y2038(time.Nanosecond)
+	sim := Y2038(time.Second)
 	now := sim.Now()
 	next, ok := sim.Next()
 	if !next.Equal(now) {
