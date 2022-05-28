@@ -41,17 +41,22 @@ type Clock struct {
 	sched map[moment]time.Time
 }
 
-// Unix returns a clock set to the Unix epoch time.
+// Unix returns a clock set to the Unix epoch time. That is, it is set to
+// 1970-01-01 00:00:00 UTC.
 func Unix() *Clock {
 	return Time(time.Unix(0, 0))
 }
 
-// Go returns a clock set to the Go initial release date.
+// Go returns a clock set to the Go initial release date. That is, it is set to
+// 2009-11-10 23:00:00 UTC.
 func Go() *Clock {
 	return Time(time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC))
 }
 
 // Y2038 returns a clock set to d duration after the Year 2038 problem time.
+// That is, it is set to the given duration after 2038-01-19 03:14:07 UTC, the
+// latest time that can be properly encoded as a 32-bit integer that is a number
+// of seconds after the Unix epoch.
 func Y2038(d time.Duration) *Clock {
 	t := time.Unix(math.MaxInt32, 0)
 	return Time(t.Add(d))
