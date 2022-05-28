@@ -1,7 +1,6 @@
 package extraio
 
 import (
-	"errors"
 	"io"
 )
 
@@ -10,18 +9,23 @@ import (
 type UnpadReader struct {
 	reader    TailReader
 	blockSize uint8
-	readCount uint64
-	tail      []byte
+
+	incomplete int    // mutable
+	lastBlock  []byte // mutable
 }
 
 // NewUnpadReader returns a new reader that unpads r using the given block size.
 // If blockSize is zero, UnpadReader is a no-op, i.e. it does not attempt to
 // remove padding from the underlying reader.
 func NewUnpadReader(r io.Reader, blockSize uint8) *UnpadReader {
+	var buf []byte
+	if blockSize != 0 {
+		buf = make([]byte, 0, blockSize)
+	}
 	return &UnpadReader{
 		reader: TailReader{
-			r: r,
-			n: uint64(blockSize),
+			reader: r,
+			buf:    buf,
 		},
 		blockSize: blockSize,
 	}
@@ -29,14 +33,16 @@ func NewUnpadReader(r io.Reader, blockSize uint8) *UnpadReader {
 
 // Reset resets the reader’s state.
 func (r *UnpadReader) Reset() {
-	r.readCount = 0
-	r.tail = nil
+	r.incomplete = 0
+	r.lastBlock = nil
 	r.reader.Reset()
 }
 
-// Read implements io.Reader interface. It reads from the underlying io.Reader.
+// Read implements the io.Reader interface. It reads from the underlying
+// io.Reader until EOF and then validates and removes padding from the last
+// block.
 func (r *UnpadReader) Read(p []byte) (int, error) {
-	if r.tail != nil {
+	if r.lastBlock != nil {
 		return r.unpad(p)
 	}
 
@@ -45,50 +51,64 @@ func (r *UnpadReader) Read(p []byte) (int, error) {
 		return n, err
 	}
 	if n > 0 {
-		r.readCount += uint64(n)
+		bs := int(r.blockSize)
+		r.incomplete += n % bs
+		r.incomplete %= bs
 	}
-	if !errors.Is(err, io.EOF) {
+	if err != io.EOF {
 		return n, err
 	}
 
-	tail := r.reader.Tail()
-	blockSize := uint64(r.blockSize)
-
-	// Check that stream is divisible into blocks and we have at least one block.
-	if r.readCount%blockSize != 0 || uint64(len(tail))%blockSize != 0 || len(tail) == 0 {
-		return 0, io.ErrUnexpectedEOF
+	// Check that all read bytes are divisible into blocks (i.e. we are not
+	// at the incomplete block).
+	if r.incomplete != 0 {
+		return n, io.ErrUnexpectedEOF
 	}
 
-	// Check that padding is within block size.
-	fillByte := tail[len(tail)-1]
+	// We call Tail after checking for incomplete blocks in previously read
+	// bytes since it may linearize the underlying bufffer before returning
+	// it. This saves us a few CPU cycles needed to rotate the ring buffer
+	// that would otherwise be unused.
+	//
+	// Note that 0 <= len(lastBlock) <= r.blockSize <= math.MaxUint8.
+	lastBlock := r.reader.Tail()
+
+	// Check that the last block is also complete. If not, we have an
+	// unexpected EOF.
+	if uint8(len(lastBlock)) != r.blockSize {
+		return n, io.ErrUnexpectedEOF
+	}
+
+	// Check that padding fill byte is within the block size.
+	fillByte := lastBlock[len(lastBlock)-1]
 	if fillByte > r.blockSize || fillByte == 0 {
-		return 0, io.ErrUnexpectedEOF
+		return n, io.ErrUnexpectedEOF
 	}
 
 	// Check that padding is filled with same bytes.
-	payload, ok := unpadPayload(tail, fillByte)
+	payload, ok := unpadPayload(lastBlock, fillByte)
 	if !ok {
-		return 0, io.ErrUnexpectedEOF
+		return n, io.ErrUnexpectedEOF
 	}
 
-	r.tail = payload
+	r.lastBlock = payload
 	nn, err := r.unpad(p[n:])
 	return n + nn, err
 }
 
 // unpad writes remaining payload to p.
 func (r *UnpadReader) unpad(p []byte) (int, error) {
-	n := copy(p, r.tail)
-	r.tail = r.tail[n:]
-	if len(r.tail) == 0 {
+	n := copy(p, r.lastBlock)
+	r.lastBlock = r.lastBlock[n:]
+	if len(r.lastBlock) == 0 {
 		r.Reset()
 		return n, io.EOF
 	}
 	return n, nil
 }
 
-// unpadPayload validates that buf’s padding is consists of fillByte bytes an
-// returns the unpadded payload.
+// unpadPayload validates that buf is padded with fillByte bytes and returns the
+// unpadded payload.
 func unpadPayload(buf []byte, fillByte byte) ([]byte, bool) {
 	n := int(fillByte)
 	if len(buf) < n {

@@ -9,21 +9,21 @@ import (
 // exceeds read limit.
 var ErrExceededReadLimit = errors.New("extraio: exceeded read limit")
 
-// HardLimitedReader reads from R but limits the amount of data returned to just
-// N bytes.
+// HardLimitedReader reads at most n bytes from the underlying reader and
+// returns ErrExceededReadLimit if io.EOF is not reached once the limit is
+// exceeded.
 type HardLimitedReader struct {
-	R io.Reader // underlying reader
-	N uint64    // read limit
-
-	readCount uint64
+	reader    io.Reader
+	limit     uint64
+	readCount uint64 // mutable
 }
 
 // HardLimitReader returns a Reader that reads from r but stops with an error
 // after n bytes.
 func HardLimitReader(r io.Reader, n uint64) *HardLimitedReader {
 	return &HardLimitedReader{
-		R: r,
-		N: n,
+		reader: r,
+		limit:  n,
 	}
 }
 
@@ -32,18 +32,27 @@ func (r *HardLimitedReader) Reset() {
 	r.readCount = 0
 }
 
-// Read implements io.Reader interface. It reads from the underlying io.Reader.
+// Read implements the io.Reader interface. If the limit has been reached, it
+// returns ErrExceededReadLimit error. Otherwise it reads from the underlying
+// io.Reader.
 func (r *HardLimitedReader) Read(p []byte) (int, error) {
-	n, err := r.R.Read(p)
-	if n <= 0 {
+	if r.readCount == r.limit {
+		return 0, ErrExceededReadLimit
+	}
+
+	// Do not read more than the remaining limit. This also guarantees that
+	// n will not overflow or exceed limit on addition to readCount.
+	limit := r.limit - r.readCount
+	if uint64(len(p)) > limit {
+		p = p[:limit]
+	}
+
+	n, err := r.reader.Read(p)
+	if n > 0 {
+		r.readCount += uint64(n)
+	}
+	if err == io.EOF {
 		return n, err
 	}
-
-	nn := uint64(n)
-	if r.N-r.readCount < nn {
-		return n, ErrExceededReadLimit
-	}
-	r.readCount += nn
-
 	return n, err
 }

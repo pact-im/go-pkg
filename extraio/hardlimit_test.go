@@ -40,10 +40,17 @@ func TestHardLimitReader(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		data, err := io.ReadAll(HardLimitReader(bytes.NewReader(tc.Data), tc.Limit))
-		if uint64(len(tc.Data)) <= tc.Limit {
+		switch {
+		// Special case: read returns (n, io.EOF) and together with
+		// previous reads we reach read limit but stop reading due to
+		// the explicit EOF.
+		case len(data) == len(tc.Data) && err == nil:
+			fallthrough
+		// Must succeed if data does not exceed the limit.
+		case uint64(len(tc.Data)) < tc.Limit:
 			assert.NilError(t, err)
 			assert.DeepEqual(t, tc.Data, data)
-		} else {
+		default:
 			assert.ErrorIs(t, err, ErrExceededReadLimit)
 		}
 	}

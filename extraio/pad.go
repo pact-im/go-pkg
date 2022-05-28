@@ -1,7 +1,6 @@
 package extraio
 
 import (
-	"errors"
 	"io"
 )
 
@@ -11,9 +10,9 @@ type PadReader struct {
 	reader    io.Reader
 	blockSize uint8
 
-	readCount uint64
-	padding   uint8
-	fillByte  byte
+	incomplete int   // mutable
+	padding    uint8 // mutable
+	fillByte   byte  // mutable
 }
 
 // NewPadReader returns a new reader that pads r with the given block size.
@@ -26,7 +25,15 @@ func NewPadReader(r io.Reader, blockSize uint8) *PadReader {
 	}
 }
 
-// Read implements io.Reader interface. It reads from the underlying io.Reader.
+// Reset resets the reader’s state.
+func (r *PadReader) Reset() {
+	r.incomplete = 0
+	r.padding = 0
+	r.fillByte = 0
+}
+
+// Read implements the io.Reader interface. It reads from the underlying
+// io.Reader until EOF and then writes padding into the read buffer.
 func (r *PadReader) Read(p []byte) (int, error) {
 	if r.fillByte != 0 {
 		return r.pad(p)
@@ -37,13 +44,15 @@ func (r *PadReader) Read(p []byte) (int, error) {
 		return n, err
 	}
 	if n > 0 {
-		r.readCount += uint64(n)
+		bs := int(r.blockSize)
+		r.incomplete += n % bs
+		r.incomplete %= bs
 	}
-	if !errors.Is(err, io.EOF) {
+	if err != io.EOF {
 		return n, err
 	}
 
-	r.padding = r.blockSize - uint8(r.readCount%uint64(r.blockSize))
+	r.padding = r.blockSize - uint8(r.incomplete)
 	r.fillByte = byte(r.padding)
 
 	nn, err := r.pad(p[n:])
@@ -59,16 +68,21 @@ func (r *PadReader) pad(p []byte) (int, error) {
 	var err error
 
 	n := len(p)
-	if int(r.padding) <= n {
-		n = int(r.padding)
+	if k := int(r.padding); k <= n {
+		n = k
 		r.padding = 0
 		err = io.EOF
 	} else {
+		// Note that !(k <= n) means that n < k <= math.MaxUint8.
 		r.padding -= uint8(n)
 	}
 
 	for i := 0; i < n; i++ {
 		p[i] = r.fillByte
+	}
+
+	if r.padding == 0 {
+		r.Reset()
 	}
 
 	return n, err
