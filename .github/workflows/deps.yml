@@ -41,10 +41,12 @@ jobs:
             exit $rc
           }
           eval "$(go list -m -f '(goget {{printf "%q" .Dir}})')"
-          rm -f go.work.sum
-          eval "$(go list -m -f '(cd {{printf "%q" .Dir}} && go mod tidy)')"
-          rm -f go.work.sum
-          go work sync
+          for i in $(seq 2); do
+            rm -f go.work.sum
+            eval "$(go list -m -f '(cd {{printf "%q" .Dir}} && go mod tidy)')"
+            rm -f go.work.sum
+            go work sync
+          done
       - name: Create PR
         uses: peter-evans/create-pull-request@v4.0.3
         with:
