@@ -3,11 +3,11 @@ module go.pact.im/x/basicauth
 go 1.18
 
 require (
-	golang.org/x/crypto v0.0.0-20220321153916-2c7772ba3064
+	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e
 	gotest.tools/v3 v3.2.0
 )
 
 require (
-	github.com/google/go-cmp v0.5.7 // indirect
-	golang.org/x/sys v0.0.0-20220319134239-a9b59b0215f8 // indirect
+	github.com/google/go-cmp v0.5.8 // indirect
+	golang.org/x/sys v0.0.0-20220520151302-bc2c85ada10a // indirect
 )
