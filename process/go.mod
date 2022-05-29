@@ -3,7 +3,7 @@ module go.pact.im/x/process
 go 1.18
 
 require (
-	go.pact.im/x/clock v0.0.2
+	go.pact.im/x/clock v0.0.3
 	go.pact.im/x/syncx v0.0.3
 	go.pact.im/x/task v0.0.2
 	go.uber.org/atomic v1.9.0
