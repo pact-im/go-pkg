@@ -5,7 +5,7 @@ go 1.18
 require (
 	go.pact.im/x/clock v0.0.3
 	go.pact.im/x/syncx v0.0.3
-	go.pact.im/x/task v0.0.3
+	go.pact.im/x/task v0.0.4
 	go.uber.org/atomic v1.9.0
 	golang.org/x/sync v0.0.0-20220513210516-0976fa681c29
 	gotest.tools/v3 v3.2.0
