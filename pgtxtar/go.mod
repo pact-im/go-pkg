@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/go-pg/migrations/v8 v8.1.0
 	go.uber.org/multierr v1.8.0
-	golang.org/x/tools v0.1.10
+	golang.org/x/tools v0.1.11
 )
 
 require (
