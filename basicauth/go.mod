@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e
-	gotest.tools/v3 v3.2.0
+	gotest.tools/v3 v3.3.0
 )
 
 require (
