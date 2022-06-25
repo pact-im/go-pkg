@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	go.uber.org/multierr v1.8.0
-	gotest.tools/v3 v3.2.0
+	gotest.tools/v3 v3.3.0
 )
 
 require (
