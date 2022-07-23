@@ -2,4 +2,4 @@ module go.pact.im/x/httpdebug
 
 go 1.18
 
-require golang.org/x/net v0.0.0-20220706163947-c90051bbdb60
+require golang.org/x/net v0.0.0-20220722155237-a158d28d115b
