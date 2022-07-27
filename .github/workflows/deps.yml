@@ -6,15 +6,6 @@ on:
     - cron: '0 6 * * *'
 
 jobs:
-  # Due to the https://github.com/dependabot/dependabot-core/issues/3017 we have
-  # to manually update dependencies that use pseudo-versions, e.g. modules like
-  # golang.org/x/crypto.
-  #
-  # In addition to that, it looks like dependabot is more like go get -u rather
-  # than go get -t -u, i.e. it does not update dependencies used in tests.
-  #
-  # TODO(tie): tee update logs to job/step summary file.
-  # See https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#adding-a-job-summary
   update:
     runs-on: ubuntu-latest
     steps:
@@ -22,27 +13,19 @@ jobs:
         uses: actions/checkout@v3.0.2
       - name: Set up Go
         uses: ./.github/actions/setup-go-with-cache
+      - name: Install gorelease
+        run: go install golang.org/x/exp/cmd/gorelease@v0.0.0-20220722155223-a9213eeb770e
       - name: Update dependencies
-        run: |-
-          goget() {
-            title=$(realpath --relative-to="${PWD}" "$1")
-            cd "$1"
-            echo "::group::$title"
-            if go get -t -u ./...; then
-              rc=0
-            else
-              rc=$?
-            fi
-            echo "::endgroup::"
-            exit $rc
-          }
-          eval "$(go list -m -f '(goget {{printf "%q" .Dir}})')"
-          for i in $(seq 2); do
-            rm -f go.work.sum
-            eval "$(go list -m -f '(cd {{printf "%q" .Dir}} && go mod tidy)')"
-            rm -f go.work.sum
-            go work sync
-          done
+        run: go run ./goupdate -o report.html
+      - name: Read report
+        uses: ./.github/actions/read-file
+        id: report
+        with:
+          path: report.html
+      - name: Remove report
+        run: rm report.html
+      - name: Run tests
+        run: go test -short go.pact.im/x/...
       - name: Create PR
         uses: peter-evans/create-pull-request@v4.0.4
         with:
@@ -54,6 +37,8 @@ jobs:
           title: 'chore(deps): bump dependencies'
           body: |-
             Bumps all dependencies to the latest versions.
+
+            ${{ steps.report.outputs.content }}
           labels: |-
             dependencies
             go
