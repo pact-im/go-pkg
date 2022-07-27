@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/go-pg/migrations/v8 v8.1.0
 	go.uber.org/multierr v1.8.0
-	golang.org/x/tools v0.1.11
+	golang.org/x/tools v0.1.12
 )
 
 require (
@@ -19,7 +19,6 @@ require (
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d // indirect
-	golang.org/x/net v0.0.0-20220706163947-c90051bbdb60 // indirect
 	golang.org/x/sys v0.0.0-20220722155257-8c9f86f7a55f // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	mellium.im/sasl v0.2.1 // indirect
