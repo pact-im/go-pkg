@@ -13,19 +13,14 @@ jobs:
         uses: actions/checkout@v3.0.2
       - name: Set up Go
         uses: ./.github/actions/setup-go-with-cache
-      - name: Install gorelease
-        run: go install golang.org/x/exp/cmd/gorelease@v0.0.0-20220722155223-a9213eeb770e
       - name: Update dependencies
-        run: go run ./goupdate -o report.html
+        run: go run ./goupdate -test-short -o report.html
       - name: Read report
         uses: ./.github/actions/read-file
         id: report
         with:
           path: report.html
-      - name: Remove report
-        run: rm report.html
-      - name: Run tests
-        run: go test -short go.pact.im/x/...
+          delete: true
       - name: Create PR
         uses: peter-evans/create-pull-request@v4.0.4
         with:
