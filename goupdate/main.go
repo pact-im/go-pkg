@@ -229,7 +229,6 @@ func run(goVersion string, s *state) error {
 
 func gomodtidy(dir string) error {
 	c := verboseCommand("go", "mod", "tidy")
-	c.Stdout = os.Stderr
 	c.Dir = dir
 	return c.Run()
 }
@@ -247,6 +246,7 @@ func system(name string, args ...string) (*bytes.Buffer, error) {
 func verboseCommand(name string, args ...string) *exec.Cmd {
 	fmt.Fprintln(os.Stderr, "$ "+name+" "+shellescape.QuoteCommand(args))
 	c := exec.Command(name, args...)
+	c.Stderr = os.Stderr
 	return c
 }
 
