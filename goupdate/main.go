@@ -19,6 +19,9 @@
 // Integrating goupdate with GitHub Actions or other CI solutions that support
 // scheduled pipelines should be straightforward and requires Go and gorelease
 // tool to be installed (see golang.org/x/exp/cmd/gorelease).
+//
+// Goupdate uses gorelease, if installed, to generate Markdown reports with
+// mixed HTML for expandable details section that contains module API changes.
 package main
 
 import (
@@ -45,7 +48,7 @@ type update struct {
 }
 
 type state struct {
-	// gowork is either Go workspace directory or an empty string.
+	// gowork is either a Go workspace directory or an empty string.
 	gowork string
 	// workspace is a list of module disk path in the current workspace.
 	workspace []string
@@ -59,30 +62,30 @@ func main() {
 		chdir     string
 		limit     uint
 		outPath   string
-		apidiff   bool
 		goVersion string
 	)
 	flag.StringVar(&chdir, "chdir", "", "change working directory")
 	flag.UintVar(&limit, "limit", 30, "loop iterations limit; set to 0 for unlimited")
-	flag.BoolVar(&apidiff, "apidiff", true, "enable gorelease reports")
 	flag.StringVar(&outPath, "o", "", "report output path")
 	flag.StringVar(&goVersion, "go", "", "update Go version")
 	flag.Parse()
-
-	if !apidiff && outPath != "" {
-		must(fmt.Errorf("fatal: report output was requested (-o=%q flag) but is disabled due to the -apidiff=false flag", outPath))
-	}
 
 	if chdir != "" {
 		must(os.Chdir(chdir))
 	}
 
-	// Ensure that required tools are available.
-	requiredTools := []string{"go"}
-	if apidiff {
-		requiredTools = append(requiredTools, "gorelease")
+	if _, err := exec.LookPath("go"); err != nil {
+		must(err)
 	}
-	must(checkPath(requiredTools...))
+
+	var apidiff bool
+	if _, err := exec.LookPath("gorelease"); err != nil && !errors.Is(err, exec.ErrNotFound) {
+		must(err)
+	}
+
+	if !apidiff && outPath != "" {
+		must(fmt.Errorf("fatal: report output was requested (-o=%q flag) but gorelease tool was not found not in PATH", outPath))
+	}
 
 	s := state{
 		updates: make(map[string]update),
@@ -248,15 +251,6 @@ func verboseCommand(name string, args ...string) *exec.Cmd {
 	c := exec.Command(name, args...)
 	c.Stderr = os.Stderr
 	return c
-}
-
-func checkPath(names ...string) error {
-	for _, name := range names {
-		if _, err := exec.LookPath(name); err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 func must(err error) {
