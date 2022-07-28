@@ -84,7 +84,11 @@ func gorelease(out string, updates []update) error {
 		moduleURL := htmlAnchor(pkggodev+u.ModulePath, u.ModulePath)
 		oldVersion := htmlAnchor(pkggodev+u.ModulePath+"@"+u.OldVersion, u.OldVersion)
 		newVersion := htmlAnchor(pkggodev+u.ModulePath+"@"+u.NewVersion, u.NewVersion)
-		summary := moduleURL + "@" + oldVersion + " \u27F9 " + newVersion
+		var warning string
+		if len(apidiff) > 0 || suffix != "" {
+			warning = " \u26A0"
+		}
+		summary := moduleURL + "@" + oldVersion + " \u27F9 " + newVersion + warning
 		report += `<details><summary>` + summary + `</summary>`
 		if len(apidiff) > 0 {
 			indent := "\n\t"
