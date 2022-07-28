@@ -8,6 +8,11 @@ inputs:
     description: 'File encoding'
     required: false
     default: 'utf8'
+  delete:
+    description: 'Remove file after reading it'
+    type: boolean
+    required: false
+    default: false
 outputs:
   content:
     description: 'File contents'
@@ -21,5 +26,9 @@ runs:
       with:
         script: |-
           const { promises: fs } = require('fs')
-          const content = await fs.readFile(${{ toJSON(inputs.path) }}, ${{ toJSON(inputs.encoding) }})
+          const filePath = ${{ toJSON(inputs.path) }}
+          const content = await fs.readFile(filePath, ${{ toJSON(inputs.encoding) }})
           core.setOutput('content', content)
+          if (${{ toJSON(inputs.delete) }}) {
+            await fs.unlink(filePath)
+          }
