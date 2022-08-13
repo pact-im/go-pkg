@@ -1,8 +1,20 @@
 package phcformat
 
 import (
+	"fmt"
 	"strings"
+
+	"go.pact.im/x/phcformat/option"
 )
+
+// MustParse is like Parse but panics on parse error.
+func MustParse(s string) Hash {
+	h, ok := Parse(s)
+	if !ok {
+		panic(fmt.Sprintf("phcformat.MustParse(%q)", s))
+	}
+	return h
+}
 
 // Parse parses PHC formatted string s. It returns the parsed hash and a boolean
 // value indicating either success or parse error.
@@ -42,7 +54,7 @@ func Parse(s string) (Hash, bool) {
 	}
 	sep = false
 
-	var version, params, salt OptionalString
+	var version, params, salt option.Of[string]
 	var maybeSalt bool
 
 	var cur int
@@ -51,7 +63,7 @@ func Parse(s string) (Hash, bool) {
 		for cur = n; cur < len(s); cur++ {
 			c := s[cur]
 			if c == '$' {
-				version, s = String(s[n:cur]), s[cur+1:]
+				version, s = option.Value(s[n:cur]), s[cur+1:]
 				sep = true
 				cur = 0
 				break
@@ -70,7 +82,7 @@ func Parse(s string) (Hash, bool) {
 			return Hash{}, false
 		}
 		if !sep {
-			version = String(s[n:])
+			version = option.Value(s[n:])
 			return Hash{
 				ID:      hashID,
 				Version: version,
@@ -95,7 +107,7 @@ paramName:
 		}
 		if maybeSalt {
 			if c == '$' {
-				salt, s = String(s[:cur]), s[cur+1:]
+				salt, s = option.Value(s[:cur]), s[cur+1:]
 				goto hash
 			}
 			if validSalt(c) {
@@ -112,7 +124,7 @@ paramName:
 	// parameter value (either from version or paramValue states), that is,
 	// when maybeSalt is false.
 	if maybeSalt {
-		salt = String(s)
+		salt = option.Value(s)
 		return Hash{
 			ID:      hashID,
 			Version: version,
@@ -132,7 +144,7 @@ paramValue:
 			goto paramName
 		}
 		if c == '$' {
-			params, s = String(s[:cur]), s[cur+1:]
+			params, s = option.Value(s[:cur]), s[cur+1:]
 			sep = true
 			cur = 0
 			break
@@ -140,7 +152,7 @@ paramValue:
 		return Hash{}, false
 	}
 	if !sep {
-		params = String(s)
+		params = option.Value(s)
 		return Hash{
 			ID:      hashID,
 			Version: version,
@@ -157,14 +169,14 @@ salt:
 			continue
 		}
 		if c == '$' {
-			salt, s = String(s[:cur]), s[cur+1:]
+			salt, s = option.Value(s[:cur]), s[cur+1:]
 			sep = true
 			break
 		}
 		return Hash{}, false
 	}
 	if !sep {
-		salt = String(s)
+		salt = option.Value(s)
 		return Hash{
 			ID:      hashID,
 			Version: version,
@@ -188,7 +200,7 @@ hash:
 		Version: version,
 		Params:  params,
 		Salt:    salt,
-		Output:  String(s),
+		Output:  option.Value(s),
 		Raw:     raw,
 	}, true
 }
