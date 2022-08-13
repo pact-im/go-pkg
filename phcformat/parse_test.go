@@ -1,10 +1,41 @@
 package phcformat
 
 import (
-	"reflect"
 	"strings"
 	"testing"
+
+	"go.pact.im/x/phcformat/option"
 )
+
+func TestMustParse(t *testing.T) {
+	testCases := []struct {
+		Name   string
+		Input  string
+		Panics bool
+	}{{
+		"PanicsOnEmptyInput",
+		"",
+		true,
+	}, {
+		"AcceptsGoodInput",
+		"$",
+		false,
+	}}
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			defer func() {
+				e := recover()
+				switch {
+				case e == nil && tc.Panics:
+					t.Fatal("expected panic")
+				case e != nil && !tc.Panics:
+					t.Fatal("unexpected panic")
+				}
+			}()
+			_ = MustParse(tc.Input)
+		})
+	}
+}
 
 func TestParse(t *testing.T) {
 	testCases := []struct {
@@ -45,27 +76,27 @@ func TestParse(t *testing.T) {
 	}, {
 		"AcceptsEmptyVersion",
 		"$$v=",
-		Hash{Version: String("")},
+		Hash{Version: option.Value("")},
 		true,
 	}, {
 		"AcceptsNumericVersion",
 		"$$v=42",
-		Hash{Version: String("42")},
+		Hash{Version: option.Value("42")},
 		true,
 	}, {
 		"AcceptsVersionAndParams",
 		"$$v=$k=v",
-		Hash{Version: String(""), Params: String("k=v")},
+		Hash{Version: option.Value(""), Params: option.Value("k=v")},
 		true,
 	}, {
 		"AcceptsParamV",
 		"$$v=param",
-		Hash{Params: String("v=param")},
+		Hash{Params: option.Value("v=param")},
 		true,
 	}, {
 		"AcceptsMultipleParamsWithV",
 		"$$v=,k=v",
-		Hash{Params: String("v=,k=v")},
+		Hash{Params: option.Value("v=,k=v")},
 		true,
 	}, {
 		"RejectsInvalidVersion",
@@ -75,22 +106,22 @@ func TestParse(t *testing.T) {
 	}, {
 		"AcceptsEmptyParamName",
 		"$$=value",
-		Hash{Params: String("=value")},
+		Hash{Params: option.Value("=value")},
 		true,
 	}, {
 		"AcceptsEmptyParamValue",
 		"$$name=",
-		Hash{Params: String("name=")},
+		Hash{Params: option.Value("name=")},
 		true,
 	}, {
 		"AcceptsEmptyParam",
 		"$$=",
-		Hash{Params: String("=")},
+		Hash{Params: option.Value("=")},
 		true,
 	}, {
 		"AcceptsMultipleEmptyParams",
 		"$$=,name=,=value",
-		Hash{Params: String("=,name=,=value")},
+		Hash{Params: option.Value("=,name=,=value")},
 		true,
 	}, {
 		"RejectsInvalidParamName",
@@ -110,32 +141,32 @@ func TestParse(t *testing.T) {
 	}, {
 		"AcceptsSalt",
 		"$$salt",
-		Hash{Salt: String("salt")},
+		Hash{Salt: option.Value("salt")},
 		true,
 	}, {
 		"AcceptsParamsAndSalt",
 		"$$k=v$salt",
-		Hash{Params: String("k=v"), Salt: String("salt")},
+		Hash{Params: option.Value("k=v"), Salt: option.Value("salt")},
 		true,
 	}, {
 		"AcceptsSaltBase64",
 		"$$gZiV/M1gPc22ElAH/Jh1Hw",
-		Hash{Salt: String("gZiV/M1gPc22ElAH/Jh1Hw")},
+		Hash{Salt: option.Value("gZiV/M1gPc22ElAH/Jh1Hw")},
 		true,
 	}, {
 		"AcceptsSaltAndHash",
 		"$$salt$out",
-		Hash{Salt: String("salt"), Output: String("out")},
+		Hash{Salt: option.Value("salt"), Output: option.Value("out")},
 		true,
 	}, {
 		"AcceptsEmptySaltAndHash",
 		"$$$",
-		Hash{Salt: String(""), Output: String("")},
+		Hash{Salt: option.Value(""), Output: option.Value("")},
 		true,
 	}, {
 		"AcceptsParamsAndSaltAndHash",
 		"$$k=v$salt$out",
-		Hash{Params: String("k=v"), Salt: String("salt"), Output: String("out")},
+		Hash{Params: option.Value("k=v"), Salt: option.Value("salt"), Output: option.Value("out")},
 		true,
 	}, {
 		"RejectsParamsAndInvalidSalt",
@@ -149,20 +180,24 @@ func TestParse(t *testing.T) {
 		false,
 	}}
 	for _, tc := range testCases {
-		if tc.Good {
-			tc.Hash.Raw = tc.Input
-		}
 		t.Run(tc.Name, func(t *testing.T) {
-			h, ok := Parse(tc.Input)
-			switch {
-			case ok && !tc.Good:
-				t.Fatal("expected parse error")
-			case !ok && tc.Good:
-				t.Fatal("unexpected parse error")
-			}
-			if !reflect.DeepEqual(h, tc.Hash) {
-				t.Fatal("invalid parsed hash")
-			}
+			testParse(t, tc.Input, tc.Hash, tc.Good)
 		})
+	}
+}
+
+func testParse(t *testing.T, input string, expected Hash, good bool) {
+	if good {
+		expected.Raw = input
+	}
+	h, ok := Parse(input)
+	switch {
+	case ok && !good:
+		t.Fatal("expected parse error")
+	case !ok && good:
+		t.Fatal("unexpected parse error")
+	}
+	if h != expected {
+		t.Fatal("invalid parsed hash")
 	}
 }
