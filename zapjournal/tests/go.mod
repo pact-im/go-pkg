@@ -5,8 +5,8 @@ go 1.18
 require (
 	github.com/valyala/fastjson v1.6.3
 	go.pact.im/x/zapjournal v0.0.0-00010101000000-000000000000
-	go.uber.org/zap v1.22.0
-	golang.org/x/sys v0.0.0-20220811171246-fbc7d0a398ab
+	go.uber.org/zap v1.23.0
+	golang.org/x/sys v0.1.0
 )
 
 require (
