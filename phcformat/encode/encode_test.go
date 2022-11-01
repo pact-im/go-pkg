@@ -4,7 +4,7 @@ import (
 	"encoding/base64"
 	"testing"
 
-	"go.pact.im/x/phcformat/option"
+	"go.pact.im/x/option"
 )
 
 func TestNil(t *testing.T) {

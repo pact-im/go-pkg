@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
+	"go.pact.im/x/option"
 	"go.pact.im/x/phcformat/encode"
-	"go.pact.im/x/phcformat/option"
 )
 
 func TestAppend(t *testing.T) {

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"go.pact.im/x/phcformat/option"
+	"go.pact.im/x/option"
 )
 
 // MustParse is like Parse but panics on parse error.

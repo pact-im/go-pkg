@@ -5,7 +5,7 @@ import (
 	"encoding/base64"
 	"strconv"
 
-	"go.pact.im/x/phcformat/option"
+	"go.pact.im/x/option"
 )
 
 // Appender represents an encodable value that uses append-style API.

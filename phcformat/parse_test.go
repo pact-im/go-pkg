@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"go.pact.im/x/phcformat/option"
+	"go.pact.im/x/option"
 )
 
 func TestMustParse(t *testing.T) {
