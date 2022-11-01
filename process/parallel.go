@@ -32,9 +32,8 @@ func Parallel(deps ...Runnable) Runnable {
 	}
 }
 
-// Sequential returns a Runnable instance that provides the same guarantees as
-// returned by Parallel function, but starts and stops processes in sequential
-// order.
+// Sequential returns a Runnable instance with the same guarantees as the
+// Parallel function, but starts and stops processes in sequential order.
 func Sequential(deps ...Runnable) Runnable {
 	switch len(deps) {
 	case 0:
