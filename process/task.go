@@ -42,10 +42,10 @@ import (
 //  var srv *grpc.Server
 //
 //  process.Leaf(
-//    func(ctx context.Context) error {
+//    func(_ context.Context) error {
 //      return srv.Serve(lis)
 //    },
-//    func(_ context.Context) error {
+//    func(ctx context.Context) error {
 //      done := make(chan struct{})
 //      go func() {
 //        srv.GracefulStop()
@@ -60,6 +60,8 @@ import (
 //      return nil
 //    },
 //  )
+//
+// Alternatively, use [go.pact.im/x/grpcprocess] package for gRPC.
 //
 func Leaf(runInForeground, gracefulStop func(ctx context.Context) error) Runnable {
 	return &leafRunnable{runInForeground, gracefulStop}
