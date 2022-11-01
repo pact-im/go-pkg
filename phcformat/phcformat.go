@@ -4,7 +4,7 @@
 package phcformat
 
 import (
-	"go.pact.im/x/phcformat/option"
+	"go.pact.im/x/option"
 )
 
 // Hash represents a hash function in PHC string format.

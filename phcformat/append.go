@@ -1,8 +1,8 @@
 package phcformat
 
 import (
+	"go.pact.im/x/option"
 	"go.pact.im/x/phcformat/encode"
-	"go.pact.im/x/phcformat/option"
 )
 
 // Append appends the given parameters in a PHC string format to dst and returns

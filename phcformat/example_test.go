@@ -3,9 +3,9 @@ package phcformat_test
 import (
 	"fmt"
 
+	"go.pact.im/x/option"
 	"go.pact.im/x/phcformat"
 	"go.pact.im/x/phcformat/encode"
-	"go.pact.im/x/phcformat/option"
 )
 
 func ExampleIterParams() {
