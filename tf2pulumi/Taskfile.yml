@@ -1,0 +1,121 @@
+version: '3'
+
+output: prefixed
+
+tasks:
+  default:
+    cmds:
+      - task: tfgen-yandex-schema
+      - task: tfgen-yandex-go
+
+  tfgen-yandex-schema:
+    cmds:
+      - task: tfgen-yandex
+        vars:
+          taskName: '{{ .TASK }}'
+          language: schema
+          output: schema.json
+          destination: cmd/pulumi-resource-yandex/schema.json
+  tfgen-yandex-go:
+    cmds:
+      - task: tfgen-yandex
+        vars:
+          taskName: '{{ .TASK }}'
+          language: go
+          output: yandex
+          destination: yandex
+          moduleName: go.pact.im/x/tf2pulumi/yandex
+
+  tfgen-yandex:
+    internal: true
+    cmds:
+      - task: tfgen
+        vars:
+          taskName: '{{ .taskName }}'
+          generator: go.pact.im/x/tf2pulumi/cmd/pulumi-tfgen-yandex
+          language: '{{ .language }}'
+          output: '{{ .output }}'
+          destination: '{{ .destination }}'
+          moduleName: '{{ index . "moduleName" }}'
+
+  tfgen:
+    internal: true
+    label: '{{ .taskName }}'
+    prefix: '{{ .taskName }}'
+    cmds:
+      - cmd: mkdir -p provider
+      - defer: rm -r provider
+      - cmd: >
+          GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore
+          go run {{ shellQuote .generator }} --out provider {{ shellQuote .language }}
+      - task: refactor-tfgen-errors
+        vars:
+          taskName: '{{ .taskName }}'
+      - task: make-tfgen-submodule
+        vars:
+          taskName: '{{ .taskName }}'
+          out: '{{ .out }}'
+          moduleName: '{{ index . "moduleName" }}'
+      - cmd: rm -r -f {{ shellQuote .dest }}
+      - cmd: mv {{ shellQuote .out }} {{ shellQuote .dest }}
+    vars:
+      out: '{{ printf "provider/%s" .output | fromSlash }}'
+      dest: '{{ fromSlash .destination }}'
+  # Rewrite github.com/pkg/errors imports to errors packages from standard
+  # library. Note that this uses rsc.io/rf tool.
+  #
+  # See also https://github.com/pulumi/pulumi/issues/10854
+  refactor-tfgen-errors:
+    internal: true
+    silent: true
+    label: '{{ .taskName }}'
+    prefix: '{{ .taskName }}'
+    cmds:
+      - cmd: |
+          set -o errexit
+          shopt -s nullglob globstar
+          refactor() {
+            rf '
+              ex {
+                import "fmt"
+                import "github.com/pkg/errors"
+                var s string
+                errors.New(s) -> fmt.Errorf("%s", s)
+              }
+              ex {
+                import "fmt"
+                import "errors"
+                var s string
+                fmt.Errorf("%s", s) -> errors.New(s)
+              }
+            '
+          }
+          for dir in {{ fromSlash "provider/" | shellQuote }}**{{ fromSlash "/" | shellQuote }}; do
+            hasgofiles=
+            for _ in "$dir"*.go; do
+              hasgofiles=yes
+              break
+            done
+            if test -z "$hasgofiles"; then
+              continue
+            fi
+            echo "Refactoring $dir"
+            (cd "$dir" && refactor)
+          done
+  make-tfgen-submodule:
+    internal: true
+    silent: true
+    label: '{{ .taskName }}'
+    prefix: '{{ .taskName }}'
+    cmds:
+      - cmd: |
+          set -o errexit
+          dir={{ shellQuote .out }}{{ fromSlash "/" | shellQuote }}
+          name={{ shellQuote .moduleName }}
+          if test -z "$name"; then
+            exit 0
+          fi
+          cp go.mod go.sum "$dir"
+          cd "$dir"
+          go mod edit -module="$name"
+          go mod tidy
