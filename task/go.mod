@@ -3,7 +3,7 @@ module go.pact.im/x/task
 go 1.18
 
 require (
-	go.uber.org/multierr v1.8.0
+	go.uber.org/multierr v1.9.0
 	gotest.tools/v3 v3.4.0
 )
 

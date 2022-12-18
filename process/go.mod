@@ -14,5 +14,5 @@ require (
 require (
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/stretchr/testify v1.8.1 // indirect
-	go.uber.org/multierr v1.8.0 // indirect
+	go.uber.org/multierr v1.9.0 // indirect
 )
