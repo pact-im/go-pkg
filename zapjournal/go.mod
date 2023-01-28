@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	go.uber.org/zap v1.24.0
-	golang.org/x/sys v0.3.0
+	golang.org/x/sys v0.4.0
 )
 
 require (

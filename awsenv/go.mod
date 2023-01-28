@@ -2,7 +2,7 @@ module go.pact.im/x/awsenv
 
 go 1.18
 
-require github.com/aws/aws-sdk-go-v2/service/s3 v1.29.6
+require github.com/aws/aws-sdk-go-v2/service/s3 v1.30.1
 
 require (
 	github.com/aws/aws-sdk-go-v2 v1.17.3 // indirect
