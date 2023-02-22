@@ -20,7 +20,7 @@ type chainRunnable struct {
 	deps []Runnable
 }
 
-func (r *chainRunnable) Run(ctx context.Context, callback func(ctx context.Context) error) error {
+func (r *chainRunnable) Run(ctx context.Context, callback Callback) error {
 	s := chainState{deps: r.deps}
 	return s.Run(ctx, callback)
 }
@@ -31,7 +31,7 @@ type chainState struct {
 	main  func(ctx context.Context) error
 }
 
-func (r *chainState) Run(ctx context.Context, callback func(ctx context.Context) error) error {
+func (r *chainState) Run(ctx context.Context, callback Callback) error {
 	switch r.index {
 	case 0:
 		r.main = callback

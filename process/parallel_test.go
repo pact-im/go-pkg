@@ -3,8 +3,6 @@ package process
 import (
 	"context"
 	"testing"
-
-	"gotest.tools/v3/assert"
 )
 
 func TestParallel(t *testing.T) {
@@ -24,7 +22,7 @@ func testParallel(t *testing.T, count int) {
 	deps := make([]Runnable, count)
 	for i := range deps {
 		i := i
-		deps[i] = RunnableFunc(func(ctx context.Context, callback func(ctx context.Context) error) error {
+		deps[i] = RunnableFunc(func(ctx context.Context, callback Callback) error {
 			values[i] = i
 			return callback(ctx)
 		})
@@ -34,6 +32,15 @@ func testParallel(t *testing.T, count int) {
 	err := par.Run(context.Background(), func(ctx context.Context) error {
 		return nil
 	})
-	assert.NilError(t, err)
-	assert.DeepEqual(t, expected, values)
+	if err != nil {
+		t.FailNow()
+	}
+	if len(expected) != len(values) {
+		t.FailNow()
+	}
+	for i := range expected {
+		if expected[i] != values[i] {
+			t.FailNow()
+		}
+	}
 }

@@ -52,7 +52,7 @@ type groupRunnable struct {
 	exec task.Executor
 }
 
-func (r *groupRunnable) Run(ctx context.Context, callback func(ctx context.Context) error) error {
+func (r *groupRunnable) Run(ctx context.Context, callback Callback) error {
 	var once sync.Once
 	var wg sync.WaitGroup
 	wg.Add(1)
@@ -62,7 +62,7 @@ func (r *groupRunnable) Run(ctx context.Context, callback func(ctx context.Conte
 	fgctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	child := func(ctx context.Context, callback func(ctx context.Context) error) error {
+	child := func(ctx context.Context, callback Callback) error {
 		err := callback(ctx)
 
 		// Propagate process shutdown to main callback and wait

@@ -1,4 +1,4 @@
-package process
+package supervisor
 
 import (
 	"context"
@@ -12,16 +12,16 @@ import (
 	"go.pact.im/x/clock/observeclock"
 )
 
-func TestManagerRestartInitial(t *testing.T) {
+func TestSupervisorRestartInitial(t *testing.T) {
 	t.Run("Timeout", func(t *testing.T) {
-		testManagerRestartInitial(t, true)
+		testSupervisorRestartInitial(t, true)
 	})
 	t.Run("Alive", func(t *testing.T) {
-		testManagerRestartInitial(t, false)
+		testSupervisorRestartInitial(t, false)
 	})
 }
 
-func testManagerRestartInitial(t *testing.T, timeout bool) {
+func testSupervisorRestartInitial(t *testing.T, timeout bool) {
 	ctx := context.Background()
 	initc := make(chan struct{})
 	stopc := make(chan struct{})
@@ -38,17 +38,17 @@ func testManagerRestartInitial(t *testing.T, timeout bool) {
 	tab.m.Store(pk, r)
 	runObserver := r.Observe()
 
-	m := NewManager[struct{}, *observeRunnable](&tab, Options{
+	m := NewSupervisor[struct{}, *observeRunnable](&tab, Options{
 		Clock: clock.NewClock(observeClock),
 	})
 
-	// Run process manager in the background.
+	// Run process supervisor in the background.
 	ctx, cancel := context.WithCancel(ctx)
 	t.Cleanup(cancel)
 	g, ctx := errgroup.WithContext(ctx)
 	g.Go(func() error {
 		return m.Run(ctx, func(ctx context.Context) error {
-			t.Log("manager is running")
+			t.Log("supervisor is running")
 			close(initc)
 			select {
 			case <-ctx.Done():
@@ -94,7 +94,7 @@ func testManagerRestartInitial(t *testing.T, timeout bool) {
 	_, err := m.Start(ctx, pk)
 	assert.ErrorIs(t, err, ErrProcessExists)
 
-	// Wait for manager (and thus our process) to complete initialization
+	// Wait for Supervisor (and thus our process) to complete initialization
 	// before checking the state.
 	if !timeout {
 		t.Log("waiting for process to reach running state")
@@ -110,7 +110,7 @@ func testManagerRestartInitial(t *testing.T, timeout bool) {
 		assert.NilError(t, err)
 	}
 
-	// Stop manager and wait for the result. Force shutdown if we are
+	// Stop supervisor and wait for the result. Force shutdown if we are
 	// simulating process that is stuck in starting state.
 	t.Log("shutting down")
 	if !timeout {
@@ -121,7 +121,7 @@ func testManagerRestartInitial(t *testing.T, timeout bool) {
 	assert.NilError(t, g.Wait())
 }
 
-func TestManagerRestartTimeoutShutdown(t *testing.T) {
+func TestSupervisorRestartTimeoutShutdown(t *testing.T) {
 	ctx := context.Background()
 
 	var pk struct{}
@@ -131,7 +131,7 @@ func TestManagerRestartTimeoutShutdown(t *testing.T) {
 	observeClock := observeclock.New(fakeClock)
 	clockObserver := observeClock.Observe()
 
-	m := NewManager[struct{}, *observeRunnable](&tab, Options{
+	m := NewSupervisor[struct{}, *observeRunnable](&tab, Options{
 		Clock: clock.NewClock(observeClock),
 	})
 

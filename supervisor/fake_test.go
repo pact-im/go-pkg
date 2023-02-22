@@ -1,12 +1,14 @@
-package process
+package supervisor
 
 import (
 	"context"
 	"sync"
 	"testing"
+
+	"go.pact.im/x/process"
 )
 
-// fakeRunnable is a fake Runnable interface implementation.
+// fakeRunnable is a fake process.Runnable interface implementation.
 type fakeRunnable struct{}
 
 // newFakeRunnable returns a new fakeRunnable instance.
@@ -14,19 +16,21 @@ func newFakeRunnable() *fakeRunnable {
 	return (*fakeRunnable)(nil)
 }
 
-// Run implements the Runnable interface.
-func (r *fakeRunnable) Run(ctx context.Context, f func(ctx context.Context) error) error {
-	return f(ctx)
+// Run implements the process.Runnable interface.
+func (*fakeRunnable) Run(ctx context.Context, callback process.Callback) error {
+	return callback(ctx)
 }
 
-// observeRunnable allows simulating cases in tests where Run blocks indefenitely.
+// observeRunnable allows simulating cases in tests where Run blocks
+// indefenitely.
 type observeRunnable struct {
-	proc Runnable
+	proc process.Runnable
 	runc chan chan<- struct{}
 }
 
-// newRunObserver returns a new observeRunnable instance that wraps proc Runnable.
-func newObserveRunnable(proc Runnable) *observeRunnable {
+// newRunObserver returns a new observeRunnable instance that wraps proc
+// process.Runnable.
+func newObserveRunnable(proc process.Runnable) *observeRunnable {
 	return &observeRunnable{
 		proc: proc,
 		runc: make(chan chan<- struct{}),
@@ -39,8 +43,8 @@ func (r *observeRunnable) Observe() <-chan chan<- struct{} {
 	return r.runc
 }
 
-// Run implements the Runnable interface.
-func (r *observeRunnable) Run(ctx context.Context, f func(ctx context.Context) error) error {
+// Run implements the process.Runnable interface.
+func (r *observeRunnable) Run(ctx context.Context, callback process.Callback) error {
 	unblock := make(chan struct{})
 	select {
 	case <-ctx.Done():
@@ -52,7 +56,7 @@ func (r *observeRunnable) Run(ctx context.Context, f func(ctx context.Context) e
 		return ctx.Err()
 	case <-unblock:
 	}
-	return r.proc.Run(ctx, f)
+	return r.proc.Run(ctx, callback)
 }
 
 func TestObserveRunnable(t *testing.T) {

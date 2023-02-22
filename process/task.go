@@ -72,7 +72,7 @@ type leafRunnable struct {
 	gracefulStop    func(ctx context.Context) error
 }
 
-func (r *leafRunnable) Run(ctx context.Context, callback func(ctx context.Context) error) error {
+func (r *leafRunnable) Run(ctx context.Context, callback Callback) error {
 	bgctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
@@ -121,7 +121,7 @@ type startStopRunnable struct {
 	gracefulStop      func(ctx context.Context) error
 }
 
-func (r *startStopRunnable) Run(ctx context.Context, callback func(ctx context.Context) error) error {
+func (r *startStopRunnable) Run(ctx context.Context, callback Callback) error {
 	if err := r.startInBackground(ctx); err != nil {
 		return err
 	}
