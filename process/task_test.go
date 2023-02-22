@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 	"testing"
-
-	"gotest.tools/v3/assert"
 )
 
 func TestLeafCallbackReturns(t *testing.T) {
@@ -17,7 +15,9 @@ func TestLeafCallbackReturns(t *testing.T) {
 	err := leaf.Run(context.Background(), func(ctx context.Context) error {
 		return nil
 	})
-	assert.ErrorIs(t, err, oops)
+	if !errors.Is(err, oops) {
+		t.FailNow()
+	}
 }
 
 func TestLeafCallbackError(t *testing.T) {
@@ -29,7 +29,9 @@ func TestLeafCallbackError(t *testing.T) {
 	err := leaf.Run(context.Background(), func(ctx context.Context) error {
 		return oops
 	})
-	assert.ErrorIs(t, err, oops)
+	if !errors.Is(err, oops) {
+		t.FailNow()
+	}
 }
 
 func TestLeafRunReturns(t *testing.T) {
@@ -41,7 +43,9 @@ func TestLeafRunReturns(t *testing.T) {
 		<-ctx.Done()
 		return oops
 	})
-	assert.ErrorIs(t, err, oops)
+	if !errors.Is(err, oops) {
+		t.FailNow()
+	}
 }
 
 func TestLeafRunError(t *testing.T) {
@@ -53,7 +57,9 @@ func TestLeafRunError(t *testing.T) {
 		<-ctx.Done()
 		return nil
 	})
-	assert.ErrorIs(t, err, oops)
+	if !errors.Is(err, oops) {
+		t.FailNow()
+	}
 }
 
 func TestStartStopLeafProcess(t *testing.T) {
@@ -75,7 +81,9 @@ func TestStartStopLeafProcess(t *testing.T) {
 		<-started
 		return nil
 	})
-	assert.NilError(t, err)
+	if err != nil {
+		t.FailNow()
+	}
 }
 
 func TestStartStopErrorOnStart(t *testing.T) {
@@ -87,7 +95,9 @@ func TestStartStopErrorOnStart(t *testing.T) {
 	err := proc.Run(context.Background(), func(ctx context.Context) error {
 		return nil
 	})
-	assert.ErrorIs(t, err, oops)
+	if !errors.Is(err, oops) {
+		t.FailNow()
+	}
 }
 
 func TestStartStopErrorOnCallback(t *testing.T) {
@@ -99,7 +109,9 @@ func TestStartStopErrorOnCallback(t *testing.T) {
 	err := proc.Run(context.Background(), func(ctx context.Context) error {
 		return oops
 	})
-	assert.ErrorIs(t, err, oops)
+	if !errors.Is(err, oops) {
+		t.FailNow()
+	}
 }
 
 func TestStartStopErrorOnCallbackAndStop(t *testing.T) {
@@ -111,7 +123,9 @@ func TestStartStopErrorOnCallbackAndStop(t *testing.T) {
 	err := proc.Run(context.Background(), func(ctx context.Context) error {
 		return oops
 	})
-	assert.ErrorIs(t, err, oops)
+	if !errors.Is(err, oops) {
+		t.FailNow()
+	}
 }
 
 func TestStartStopErrorOnStop(t *testing.T) {
@@ -123,5 +137,7 @@ func TestStartStopErrorOnStop(t *testing.T) {
 	err := proc.Run(context.Background(), func(ctx context.Context) error {
 		return nil
 	})
-	assert.ErrorIs(t, err, oops)
+	if !errors.Is(err, oops) {
+		t.FailNow()
+	}
 }

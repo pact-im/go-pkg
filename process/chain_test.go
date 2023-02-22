@@ -3,8 +3,6 @@ package process
 import (
 	"context"
 	"testing"
-
-	"gotest.tools/v3/assert"
 )
 
 func TestChain(t *testing.T) {
@@ -24,7 +22,7 @@ func testChain(t *testing.T, count int) {
 	deps := make([]Runnable, count)
 	for i := range deps {
 		i := i
-		deps[i] = RunnableFunc(func(ctx context.Context, callback func(ctx context.Context) error) error {
+		deps[i] = RunnableFunc(func(ctx context.Context, callback Callback) error {
 			values = append(values, i)
 			return callback(ctx)
 		})
@@ -34,6 +32,15 @@ func testChain(t *testing.T, count int) {
 	err := seq.Run(context.Background(), func(ctx context.Context) error {
 		return nil
 	})
-	assert.NilError(t, err)
-	assert.DeepEqual(t, expected, values)
+	if err != nil {
+		t.FailNow()
+	}
+	if len(expected) != len(values) {
+		t.FailNow()
+	}
+	for i := range expected {
+		if expected[i] != values[i] {
+			t.FailNow()
+		}
+	}
 }

@@ -1,4 +1,4 @@
-package process
+package supervisor
 
 import (
 	"context"
@@ -14,13 +14,13 @@ const (
 )
 
 // restartInitial restores the last state from the underlying table.
-func (m *Manager[K, P]) restartInitial(ctx context.Context) {
+func (m *Supervisor[K, P]) restartInitial(ctx context.Context) {
 	_ = m.restart(ctx, restartInitialWait) // TODO: log error
 }
 
 // spawnRestartLoop spawns a restartLoop using the given context and returns
 // a function that stops restart loop and waits completion.
-func (m *Manager[K, P]) spawnRestartLoop(ctx context.Context) func() {
+func (m *Supervisor[K, P]) spawnRestartLoop(ctx context.Context) func() {
 	ctx, cancel := context.WithCancel(ctx)
 
 	var wg sync.WaitGroup
@@ -38,7 +38,7 @@ func (m *Manager[K, P]) spawnRestartLoop(ctx context.Context) func() {
 }
 
 // restartLoop runs a loop that calls restart.
-func (m *Manager[K, P]) restartLoop(ctx context.Context) {
+func (m *Supervisor[K, P]) restartLoop(ctx context.Context) {
 	const interval = restartLoopInterval
 
 	timer := m.clock.Timer(interval)
@@ -58,8 +58,8 @@ func (m *Manager[K, P]) restartLoop(ctx context.Context) {
 //
 // If wait duration is not zero, it waits until background startProcess calls
 // complete. This allows ensuring that we restore at least partial state in
-// restoreInitial before invoking Manager’s Run callback.
-func (m *Manager[K, P]) restart(ctx context.Context, wait time.Duration) error {
+// restoreInitial before invoking Supervisor’s Run callback.
+func (m *Supervisor[K, P]) restart(ctx context.Context, wait time.Duration) error {
 	iter, err := m.table.Iter(ctx)
 	if err != nil {
 		return fmt.Errorf("create iterator: %w", err)
@@ -132,7 +132,7 @@ func (m *Manager[K, P]) restart(ctx context.Context, wait time.Duration) error {
 // restartProcessInBackground starts the process for the given key in the
 // background. It returns a channel that is closed when startProcess call
 // completes.
-func (m *Manager[K, P]) restartProcessInBackground(ctx context.Context, pk K, r P) <-chan struct{} {
+func (m *Supervisor[K, P]) restartProcessInBackground(ctx context.Context, pk K, r P) <-chan struct{} {
 	done := make(chan struct{})
 	m.wg.Add(1)
 	go func() {

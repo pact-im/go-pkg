@@ -1,13 +1,19 @@
-// Package process provides process management and supervision implementation.
+// Package process provides primitives for managing processes, an abstraction
+// for stateful goroutines.
 package process
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
 
 	"go.uber.org/atomic"
 )
+
+// ErrProcessInvalidState is an error that is returned if the process
+// is not in the valid state for the operation.
+var ErrProcessInvalidState = errors.New("process: invalid process state")
 
 // State represents the current state of the process.
 type State int

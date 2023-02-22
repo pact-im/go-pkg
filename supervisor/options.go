@@ -1,10 +1,10 @@
-package process
+package supervisor
 
 import (
 	"go.pact.im/x/clock"
 )
 
-// Options is a set of options for Manager constructor.
+// Options is a set of options for supervisor constructor.
 type Options struct {
 	// Clock is the clock to use. Defaults to system clock.
 	Clock *clock.Clock

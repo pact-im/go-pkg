@@ -1,4 +1,4 @@
-package process
+package supervisor
 
 import (
 	"context"
@@ -13,12 +13,12 @@ import (
 	"go.pact.im/x/clock/fakeclock"
 )
 
-func TestManagerStartConflict(t *testing.T) {
+func TestSupervisorStartConflict(t *testing.T) {
 	ctx := context.Background()
 
 	var pk struct{}
 	var tab mapTable[struct{}, *observeRunnable]
-	m := NewManager[struct{}, *observeRunnable](&tab, Options{
+	m := NewSupervisor[struct{}, *observeRunnable](&tab, Options{
 		Clock: clock.NewClock(fakeclock.Go()),
 	})
 
@@ -61,12 +61,12 @@ func TestManagerStartConflict(t *testing.T) {
 	assert.NilError(t, err)
 }
 
-func TestManagerStartStop(t *testing.T) {
+func TestSupervisorStartStop(t *testing.T) {
 	ctx := context.Background()
 
 	var pk struct{}
 	var tab mapTable[struct{}, *fakeRunnable]
-	m := NewManager[struct{}, *fakeRunnable](&tab, Options{
+	m := NewSupervisor[struct{}, *fakeRunnable](&tab, Options{
 		Clock: clock.NewClock(fakeclock.Go()),
 	})
 
