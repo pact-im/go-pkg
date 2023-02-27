@@ -8,43 +8,43 @@ import (
 	"go.pact.im/x/process"
 )
 
-// fakeRunnable is a fake process.Runnable interface implementation.
-type fakeRunnable struct{}
+// fakeRunner is a fake [process.Runner] interface implementation.
+type fakeRunner struct{}
 
-// newFakeRunnable returns a new fakeRunnable instance.
-func newFakeRunnable() *fakeRunnable {
-	return (*fakeRunnable)(nil)
+// newFakeRunner returns a new fakeRunner instance.
+func newFakeRunner() *fakeRunner {
+	return (*fakeRunner)(nil)
 }
 
-// Run implements the process.Runnable interface.
-func (*fakeRunnable) Run(ctx context.Context, callback process.Callback) error {
+// Run implements the [process.Runner] interface.
+func (*fakeRunner) Run(ctx context.Context, callback process.Callback) error {
 	return callback(ctx)
 }
 
-// observeRunnable allows simulating cases in tests where Run blocks
+// observeRunner allows simulating cases in tests where Run blocks
 // indefenitely.
-type observeRunnable struct {
-	proc process.Runnable
-	runc chan chan<- struct{}
+type observeRunner struct {
+	runner process.Runner
+	runc   chan chan<- struct{}
 }
 
-// newRunObserver returns a new observeRunnable instance that wraps proc
-// process.Runnable.
-func newObserveRunnable(proc process.Runnable) *observeRunnable {
-	return &observeRunnable{
-		proc: proc,
-		runc: make(chan chan<- struct{}),
+// newRunObserver returns a new observeRunner instance that wraps the given
+// [process.Runner].
+func newObserveRunner(runner process.Runner) *observeRunner {
+	return &observeRunner{
+		runner: runner,
+		runc:   make(chan chan<- struct{}),
 	}
 }
 
 // Observe returns an unbuffered channel where a channel that should be closed
 // to unblock Run method gets sent for each Run call.
-func (r *observeRunnable) Observe() <-chan chan<- struct{} {
+func (r *observeRunner) Observe() <-chan chan<- struct{} {
 	return r.runc
 }
 
-// Run implements the process.Runnable interface.
-func (r *observeRunnable) Run(ctx context.Context, callback process.Callback) error {
+// Run implements the [process.Runner] interface.
+func (r *observeRunner) Run(ctx context.Context, callback process.Callback) error {
 	unblock := make(chan struct{})
 	select {
 	case <-ctx.Done():
@@ -56,11 +56,11 @@ func (r *observeRunnable) Run(ctx context.Context, callback process.Callback) er
 		return ctx.Err()
 	case <-unblock:
 	}
-	return r.proc.Run(ctx, callback)
+	return r.runner.Run(ctx, callback)
 }
 
-func TestObserveRunnable(_ *testing.T) {
-	r := newObserveRunnable(newFakeRunnable())
+func TestObserveRunner(_ *testing.T) {
+	r := newObserveRunner(newFakeRunner())
 	observer := r.Observe()
 
 	var wg sync.WaitGroup

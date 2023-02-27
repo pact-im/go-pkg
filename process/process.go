@@ -7,8 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"sync"
-
-	"go.uber.org/atomic"
+	"sync/atomic"
 )
 
 // ErrProcessInvalidState is an error that is returned if the process
@@ -42,11 +41,11 @@ const (
 // It exposes Start and Stop methods that use an underlying state machine to
 // prevent operations in invalid states. Process is safe for concurrent use.
 //
-// Unlike some implementations of the underlying Runnable interface that allow
+// Unlike some implementations of the underlying [Runner] interface that allow
 // multiple consecutive Run invocations on the same instance, a Process may not
 // be reset and started after being stopped.
 type Process struct {
-	proc   Runnable
+	runner Runner
 	parent context.Context
 
 	stateMu sync.Mutex
@@ -56,14 +55,14 @@ type Process struct {
 
 	stop chan struct{}
 	done chan struct{}
-	err  atomic.Error
+	err  atomic.Value
 }
 
-// NewProcess returns a new stateful process instance for the given Runnable
+// NewProcess returns a new stateful process instance for the given [Runner]
 // type parameter that would run with the ctx context.
-func NewProcess(ctx context.Context, proc Runnable) *Process {
+func NewProcess(ctx context.Context, runner Runner) *Process {
 	return &Process{
-		proc:   proc,
+		runner: runner,
 		parent: ctx,
 		stop:   make(chan struct{}),
 		done:   make(chan struct{}),
@@ -77,7 +76,8 @@ func (p *Process) Done() <-chan struct{} {
 
 // Err returns the error from running the process.
 func (p *Process) Err() error {
-	return p.err.Load()
+	err, _ := p.err.Load().(error)
+	return err
 }
 
 // State returns the current process state.
@@ -93,7 +93,8 @@ func (p *Process) State() State {
 // context would not be used by process directly so the associated values are
 // not propagated.
 //
-// It returns ErrProcessInvalidState if the process is not in the initial state.
+// It returns [ErrProcessInvalidState] if the process is not in the initial
+// state.
 func (p *Process) Start(ctx context.Context) error {
 	var bgctx context.Context
 	var cancel context.CancelFunc
@@ -106,7 +107,7 @@ func (p *Process) Start(ctx context.Context) error {
 
 	init := make(chan struct{})
 	go func() {
-		err := p.proc.Run(bgctx, func(bgctx context.Context) error {
+		err := p.runner.Run(bgctx, func(bgctx context.Context) error {
 			_ = p.transition(StateRunning, nil)
 
 			close(init)
@@ -121,7 +122,9 @@ func (p *Process) Start(ctx context.Context) error {
 			p.cancel = nil
 		})
 		cancel()
-		p.err.Store(err)
+		if err != nil {
+			p.err.Store(err)
+		}
 		close(p.done)
 	}()
 
@@ -148,7 +151,7 @@ func (p *Process) Start(ctx context.Context) error {
 // is exceeded, underlying context is canceled, signaling a forced shutdown to
 // the process.
 //
-// It returns ErrProcessInvalidState if the process was not started or has
+// It returns [ErrProcessInvalidState] if the process was not started or has
 // already been stopped.
 func (p *Process) Stop(ctx context.Context) error {
 	var initial bool

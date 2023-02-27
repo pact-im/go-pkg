@@ -5,12 +5,12 @@ import (
 	"sync"
 )
 
-// Leaf converts a “leaf” function to a runnable process function that accepts
-// callback. It accepts an optional gracefulStop function to perform graceful
-// shutdown. If the function is nil, the process will be terminated by context
-// cancellation instead.
+// Leaf converts a “leaf” function to a process entrypoint with callback. It
+// accepts an optional gracefulStop function to perform graceful shutdown. If
+// the function is nil, the process will be terminated by context cancellation
+// instead.
 //
-// The resulting Runnable returns first non-nil error from functions in the
+// The resulting [Runner] returns first non-nil error from functions in the
 // following order: callback, gracefulStop, runInForeground. That is, if both
 // callback and gracefulStop return a non-nil error, the latter is ignored.
 //
@@ -63,16 +63,16 @@ import (
 //
 // Alternatively, use [go.pact.im/x/httpprocess] package for HTTP and
 // [go.pact.im/x/grpcprocess] for gRPC.
-func Leaf(runInForeground, gracefulStop func(ctx context.Context) error) Runnable {
-	return &leafRunnable{runInForeground, gracefulStop}
+func Leaf(runInForeground, gracefulStop func(ctx context.Context) error) Runner {
+	return &leafRunner{runInForeground, gracefulStop}
 }
 
-type leafRunnable struct {
+type leafRunner struct {
 	runInForeground func(ctx context.Context) error
 	gracefulStop    func(ctx context.Context) error
 }
 
-func (r *leafRunnable) Run(ctx context.Context, callback Callback) error {
+func (r *leafRunner) Run(ctx context.Context, callback Callback) error {
 	bgctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
@@ -105,23 +105,23 @@ func (r *leafRunnable) Run(ctx context.Context, callback Callback) error {
 	return runError
 }
 
-// StartStop returns a Runnable instance for the pair of start/stop functions.
+// StartStop returns a [Runner] instance for the pair of start/stop functions.
 // The stop function should perform a graceful shutdown until a context expires,
 // then proceed with a forced shutdown.
 //
-// The resulting Runnable returns either start error or the first non-nil error
+// The resulting [Runner] returns either start error or the first non-nil error
 // from callback and stop functions. If both callback and stop return a non-nil
 // error, the latter is ignored.
-func StartStop(startInBackground, gracefulStop func(ctx context.Context) error) Runnable {
-	return &startStopRunnable{startInBackground, gracefulStop}
+func StartStop(startInBackground, gracefulStop func(ctx context.Context) error) Runner {
+	return &startStopRunner{startInBackground, gracefulStop}
 }
 
-type startStopRunnable struct {
+type startStopRunner struct {
 	startInBackground func(ctx context.Context) error
 	gracefulStop      func(ctx context.Context) error
 }
 
-func (r *startStopRunnable) Run(ctx context.Context, callback Callback) error {
+func (r *startStopRunner) Run(ctx context.Context, callback Callback) error {
 	if err := r.startInBackground(ctx); err != nil {
 		return err
 	}

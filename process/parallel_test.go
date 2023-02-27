@@ -19,10 +19,10 @@ func testParallel(t *testing.T, count int) {
 
 	values := make([]int, count)
 
-	deps := make([]Runnable, count)
+	deps := make([]Runner, count)
 	for i := range deps {
 		i := i
-		deps[i] = RunnableFunc(func(ctx context.Context, callback Callback) error {
+		deps[i] = RunnerFunc(func(ctx context.Context, callback Callback) error {
 			values[i] = i
 			return callback(ctx)
 		})

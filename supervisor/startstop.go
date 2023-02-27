@@ -16,7 +16,7 @@ func (m *Supervisor[K, P]) Start(ctx context.Context, pk K) (P, error) {
 		var zero P
 		return zero, err
 	}
-	return p.proc, nil
+	return p.runner, nil
 }
 
 // Stop stops the process with the given key. It returns ErrProcessNotFound if
@@ -35,9 +35,9 @@ func (m *Supervisor[K, P]) Get(_ context.Context, pk K) (P, error) {
 		return zero, ErrProcessNotFound
 	}
 	if p.State() != process.StateRunning {
-		return p.proc, ErrProcessNotRunning
+		return p.runner, ErrProcessNotRunning
 	}
-	return p.proc, nil
+	return p.runner, nil
 }
 
 // Keys returns a list of all process keys.

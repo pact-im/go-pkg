@@ -18,13 +18,13 @@ func TestSupervisorStartConflict(t *testing.T) {
 	ctx := context.Background()
 
 	var pk struct{}
-	var tab mapTable[struct{}, *observeRunnable]
-	m := NewSupervisor[struct{}, *observeRunnable](&tab, Options{
+	var tab mapTable[struct{}, *observeRunner]
+	m := NewSupervisor[struct{}, *observeRunner](&tab, Options{
 		Clock: clock.NewClock(fakeclock.Go()),
 	})
 
 	err := m.Run(ctx, func(ctx context.Context) error {
-		r := newObserveRunnable(newFakeRunnable())
+		r := newObserveRunner(newFakeRunner())
 		observer := r.Observe()
 		tab.m.Store(pk, r)
 
@@ -66,13 +66,13 @@ func TestSupervisorStartStop(t *testing.T) {
 	ctx := context.Background()
 
 	var pk struct{}
-	var tab mapTable[struct{}, *fakeRunnable]
-	m := NewSupervisor[struct{}, *fakeRunnable](&tab, Options{
+	var tab mapTable[struct{}, *fakeRunner]
+	m := NewSupervisor[struct{}, *fakeRunner](&tab, Options{
 		Clock: clock.NewClock(fakeclock.Go()),
 	})
 
 	err := m.Run(ctx, func(ctx context.Context) error {
-		tab.m.Store(pk, newFakeRunnable())
+		tab.m.Store(pk, newFakeRunner())
 
 		if _, err := m.Start(ctx, pk); err != nil {
 			return err

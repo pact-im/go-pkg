@@ -1,4 +1,4 @@
-// Package grpcprocess provides [process.Runnable] wrapper for [grpc.Server].
+// Package grpcprocess provides [process.Runner] wrapper for [grpc.Server].
 package grpcprocess
 
 import (
@@ -10,9 +10,9 @@ import (
 	"go.pact.im/x/process"
 )
 
-// Server returns a [process.Runnable] instance for the given gRPC server and
+// Server returns a [process.Runner] instance for the given gRPC server and
 // network listener.
-func Server(srv *grpc.Server, lis net.Listener) process.Runnable {
+func Server(srv *grpc.Server, lis net.Listener) process.Runner {
 	return process.Leaf(
 		func(_ context.Context) error {
 			// TODO: consider injecting base context into gRPC’s
