@@ -19,10 +19,10 @@ func testChain(t *testing.T, count int) {
 
 	values := make([]int, 0, count)
 
-	deps := make([]Runnable, count)
+	deps := make([]Runner, count)
 	for i := range deps {
 		i := i
-		deps[i] = RunnableFunc(func(ctx context.Context, callback Callback) error {
+		deps[i] = RunnerFunc(func(ctx context.Context, callback Callback) error {
 			values = append(values, i)
 			return callback(ctx)
 		})

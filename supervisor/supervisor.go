@@ -15,7 +15,7 @@ import (
 
 // Supervisor is responsible for starting, stopping, and monitoring its child
 // processes.
-type Supervisor[K comparable, P process.Runnable] struct {
+type Supervisor[K comparable, P process.Runner] struct {
 	table Table[K, P]
 	clock *clock.Clock
 
@@ -42,13 +42,13 @@ type Supervisor[K comparable, P process.Runnable] struct {
 	wg sync.WaitGroup
 }
 
-// managedProcess contains a process.Process and associated process.Runnable
+// managedProcess contains a process.Process and associated [process.Runner]
 // managed by Supervisor.
-type managedProcess[P process.Runnable] struct {
+type managedProcess[P process.Runner] struct {
 	*process.Process
 
-	// proc is the underlying process instance with parametrized P type.
-	proc P
+	// runner is the underlying process entrypoint with parametrized type P.
+	runner P
 
 	// stopped is used by Supervisor to remove the process instance from
 	// internal map at most once.
@@ -72,7 +72,7 @@ type managedProcess[P process.Runnable] struct {
 // possible orderings of table removal, addition, re-addition and process
 // startup, shutdown and self-removal (or a subset of these operations depending
 // on the use cases).
-func NewSupervisor[K comparable, P process.Runnable](t Table[K, P], o Options) *Supervisor[K, P] {
+func NewSupervisor[K comparable, P process.Runner](t Table[K, P], o Options) *Supervisor[K, P] {
 	o.setDefaults()
 
 	return &Supervisor[K, P]{
@@ -144,7 +144,8 @@ func (m *Supervisor[K, P]) startProcessForKey(ctx context.Context, pk K) (*manag
 }
 
 // startProcess starts the process for the given key. Unlike startProcessForKey,
-// it uses the given r Runnable instance instead of getting it from the table.
+// it uses the given r [process.Runner] instance instead of getting it from the
+// table.
 func (m *Supervisor[K, P]) startProcess(ctx context.Context, pk K, r P) (*managedProcess[P], error) {
 	m.startMu.RLock()
 	defer m.startMu.RUnlock()
@@ -163,7 +164,7 @@ func (m *Supervisor[K, P]) startProcess(ctx context.Context, pk K, r P) (*manage
 func (m *Supervisor[K, P]) startProcessUnlocked(ctx context.Context, pk K, r P) (*managedProcess[P], error) {
 	p := &managedProcess[P]{
 		Process: process.NewProcess(m.parent, r),
-		proc:    r,
+		runner:  r,
 	}
 	m.processes.Store(pk, p)
 	if err := p.Start(ctx); err != nil {

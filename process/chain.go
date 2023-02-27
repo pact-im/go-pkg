@@ -4,31 +4,31 @@ import (
 	"context"
 )
 
-// Chain returns a Runnable instance that starts and runs processes by nesting
-// them in callbacks. If no processes are given, it returns Nop instance.
-func Chain(deps ...Runnable) Runnable {
+// Chain returns a [Runner] instance that starts and runs processes by nesting
+// them in callbacks. If no processes are given, it returns [Nop] instance.
+func Chain(deps ...Runner) Runner {
 	switch len(deps) {
 	case 0:
 		return Nop()
 	case 1:
 		return deps[0]
 	}
-	return &chainRunnable{deps}
+	return &chainRunner{deps}
 }
 
-type chainRunnable struct {
-	deps []Runnable
+type chainRunner struct {
+	deps []Runner
 }
 
-func (r *chainRunnable) Run(ctx context.Context, callback Callback) error {
+func (r *chainRunner) Run(ctx context.Context, callback Callback) error {
 	s := chainState{deps: r.deps}
 	return s.Run(ctx, callback)
 }
 
 type chainState struct {
 	index int
-	deps  []Runnable // len(deps) >= 2
-	main  func(ctx context.Context) error
+	deps  []Runner // len(deps) >= 2
+	main  Callback
 }
 
 func (r *chainState) Run(ctx context.Context, callback Callback) error {

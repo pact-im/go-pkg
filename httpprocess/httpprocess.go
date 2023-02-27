@@ -1,4 +1,4 @@
-// Package httpprocess provides [process.Runnable] wrapper for [http.Server].
+// Package httpprocess provides [process.Runner] wrapper for [http.Server].
 package httpprocess
 
 import (
@@ -12,9 +12,9 @@ import (
 	"go.pact.im/x/process"
 )
 
-// Server returns a [process.Runnable] instance for the given HTTP server and
+// Server returns a [process.Runner] instance for the given HTTP server and
 // network listener.
-func Server(srv *http.Server, lis net.Listener) process.Runnable {
+func Server(srv *http.Server, lis net.Listener) process.Runner {
 	var connTracker httptrack.ConnTracker
 	oldConnState := httptrack.Wrap(srv, &connTracker)
 	wrappedListener := &nilCloserListener{Listener: lis}

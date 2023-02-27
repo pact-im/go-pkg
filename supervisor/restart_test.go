@@ -28,18 +28,18 @@ func testSupervisorRestartInitial(t *testing.T, timeout bool) {
 	stopc := make(chan struct{})
 
 	var pk struct{}
-	var tab mapTable[struct{}, *observeRunnable]
+	var tab mapTable[struct{}, *observeRunner]
 
 	fakeClock := fakeclock.Go()
 	observeClock := observeclock.New(fakeClock)
 	clockObserver := observeClock.Observe()
 
 	// Create the initial process.
-	r := newObserveRunnable(newFakeRunnable())
+	r := newObserveRunner(newFakeRunner())
 	tab.m.Store(pk, r)
 	runObserver := r.Observe()
 
-	m := NewSupervisor[struct{}, *observeRunnable](&tab, Options{
+	m := NewSupervisor[struct{}, *observeRunner](&tab, Options{
 		Clock: clock.NewClock(observeClock),
 	})
 
@@ -126,19 +126,19 @@ func TestSupervisorRestartTimeoutShutdown(t *testing.T) {
 	ctx := context.Background()
 
 	var pk struct{}
-	var tab mapTable[struct{}, *observeRunnable]
+	var tab mapTable[struct{}, *observeRunner]
 
 	fakeClock := fakeclock.Go()
 	observeClock := observeclock.New(fakeClock)
 	clockObserver := observeClock.Observe()
 
-	m := NewSupervisor[struct{}, *observeRunnable](&tab, Options{
+	m := NewSupervisor[struct{}, *observeRunner](&tab, Options{
 		Clock: clock.NewClock(observeClock),
 	})
 
 	err := m.Run(ctx, func(ctx context.Context) error {
 		// Create a new process.
-		r := newObserveRunnable(newFakeRunnable())
+		r := newObserveRunner(newFakeRunner())
 		tab.m.Store(pk, r)
 		runObserver := r.Observe()
 
