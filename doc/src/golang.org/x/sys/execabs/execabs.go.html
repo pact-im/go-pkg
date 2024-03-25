@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: execabs.go in package golang.org/x/sys/execabs</title>
+<link href="../../../../../css/light-v0.4.9.css" rel="stylesheet">
+<script src="../../../../../jvs/golds-v0.4.9.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	execabs.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../pkg/golang.org/x/sys/execabs.html">golang.org/x/sys/execabs</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3,
+input[id=i4]:checked ~pre .i4,
+input[id=i5]:checked ~pre .i5
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+<input id="i4" type="radio" name="i"/>
+<input id="i5" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2020 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<div class="anchor" id="doc"><span class="codeline" id="line-5"><code><span class="comment">// Package execabs is a drop-in replacement for os/exec</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment">// that requires PATH lookups to find absolute paths.</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment">// That is, execabs.Command("cmd") runs the same PATH lookup</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment">// as exec.Command("cmd"), but if the result is a path</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment">// which is relative, the Run and Start methods will report</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment">// an error instead of running the executable.</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment">// See https://blog.golang.org/path-security for more information</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">// about when it may be necessary or appropriate to use this package.</span></code></span></div><span class="codeline" id="line-14"><code><span class="keyword">package</span> execabs</code></span>
+<span class="codeline" id="line-15"><code></code></span>
+<span class="codeline" id="line-16"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-17"><code>	<label for="i0"><span class="lit-string i0">"context"</span></label></code></span>
+<span class="codeline" id="line-18"><code>	<label for="i1"><span class="lit-string i1">"fmt"</span></label></code></span>
+<span class="codeline" id="line-19"><code>	<label for="i2"><span class="lit-string i2">"os/exec"</span></label></code></span>
+<span class="codeline" id="line-20"><code>	<label for="i3"><span class="lit-string i3">"path/filepath"</span></label></code></span>
+<span class="codeline" id="line-21"><code>	<label for="i4"><span class="lit-string i4">"reflect"</span></label></code></span>
+<span class="codeline" id="line-22"><code>	<label for="i5"><span class="lit-string i5">"unsafe"</span></label></code></span>
+<span class="codeline" id="line-23"><code>)</code></span>
+<span class="codeline" id="line-24"><code></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">// ErrNotFound is the error resulting if a path search failed to find an executable file.</span></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">// It is an alias for exec.ErrNotFound.</span></code></span>
+<span class="codeline" id="line-27"><code><span class="keyword">var</span> <a href="../../../../../pkg/golang.org/x/sys/execabs.html#name-ErrNotFound" class="ident">ErrNotFound</a> = <a href="../../../../../pkg/os/exec.html" class="ident i2">exec</a>.<a href="../../../../os/exec/lp_unix.go.html#line-18" class="ident">ErrNotFound</a></code></span>
+<span class="codeline" id="line-28"><code></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">// Cmd represents an external command being prepared or run.</span></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">// It is an alias for exec.Cmd.</span></code></span>
+<span class="codeline" id="line-31"><code><span class="keyword">type</span> <a href="../../../../../pkg/golang.org/x/sys/execabs.html#name-Cmd" class="ident">Cmd</a> = <a href="../../../../../pkg/os/exec.html" class="ident i2">exec</a>.<a href="../../../../os/exec/exec.go.html#line-57" class="ident">Cmd</a></code></span>
+<span class="codeline" id="line-32"><code></code></span>
+<span class="codeline" id="line-33"><code><span class="comment">// Error is returned by LookPath when it fails to classify a file as an executable.</span></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">// It is an alias for exec.Error.</span></code></span>
+<span class="codeline" id="line-35"><code><span class="keyword">type</span> <a href="../../../../../pkg/golang.org/x/sys/execabs.html#name-Error" class="ident">Error</a> = <a href="../../../../../pkg/os/exec.html" class="ident i2">exec</a>.<a href="../../../../os/exec/exec.go.html#line-40" class="ident">Error</a></code></span>
+<span class="codeline" id="line-36"><code></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">// An ExitError reports an unsuccessful exit by a command.</span></code></span>
+<span class="codeline" id="line-38"><code><span class="comment">// It is an alias for exec.ExitError.</span></code></span>
+<span class="codeline" id="line-39"><code><span class="keyword">type</span> <a href="../../../../../pkg/golang.org/x/sys/execabs.html#name-ExitError" class="ident">ExitError</a> = <a href="../../../../../pkg/os/exec.html" class="ident i2">exec</a>.<a href="../../../../os/exec/exec.go.html#line-461" class="ident">ExitError</a></code></span>
+<span class="codeline" id="line-40"><code></code></span>
+<span class="codeline" id="line-41"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../../pkg/golang.org/x/sys/execabs.html#name-relError" class="ident">relError</a></label>(<label for="r1" class="ident">file</label>, <label for="r2" class="ident">path</label> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-42"><code>	<span class="keyword">return</span> <a href="../../../../../pkg/fmt.html" class="ident i1">fmt</a>.<a href="../../../../fmt/errors.go.html#line-17" class="ident">Errorf</a>(<span class="lit-string">"%s resolves to executable in current directory (.%c%s)"</span>, <label for="r1" class="ident">file</label>, <a href="../../../../../pkg/path/filepath.html" class="ident i3">filepath</a>.<a href="../../../../path/filepath/path.go.html#line-62" class="ident">Separator</a>, <label for="r2" class="ident">path</label>)</code></span>
+<span class="codeline" id="line-43"><code>}</code></span>
+<span class="codeline" id="line-44"><code></code></span>
+<span class="codeline" id="line-45"><code><span class="comment">// LookPath searches for an executable named file in the directories</span></code></span>
+<span class="codeline" id="line-46"><code><span class="comment">// named by the PATH environment variable. If file contains a slash,</span></code></span>
+<span class="codeline" id="line-47"><code><span class="comment">// it is tried directly and the PATH is not consulted. The result will be</span></code></span>
+<span class="codeline" id="line-48"><code><span class="comment">// an absolute path.</span></code></span>
+<span class="codeline" id="line-49"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-50"><code><span class="comment">// LookPath differs from exec.LookPath in its handling of PATH lookups,</span></code></span>
+<span class="codeline" id="line-51"><code><span class="comment">// which are used for file names without slashes. If exec.LookPath's</span></code></span>
+<span class="codeline" id="line-52"><code><span class="comment">// PATH lookup would have returned an executable from the current directory,</span></code></span>
+<span class="codeline" id="line-53"><code><span class="comment">// LookPath instead returns an error.</span></code></span>
+<span class="codeline" id="line-54"><code><span class="keyword">func</span> <label for="r3" class="ident"><a href="../../../../../pkg/golang.org/x/sys/execabs.html#name-LookPath" class="ident">LookPath</a></label>(<label for="r4" class="ident">file</label> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>) (<a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>, <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-55"><code>	<label for="r5" class="ident">path</label>, <label for="r6" class="ident">err</label> := <a href="../../../../../pkg/os/exec.html" class="ident i2">exec</a>.<a href="../../../../os/exec/lp_unix.go.html#line-35" class="ident">LookPath</a>(<label for="r4" class="ident">file</label>)</code></span>
+<span class="codeline" id="line-56"><code>	<span class="keyword">if</span> <label for="r6" class="ident">err</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> &amp;&amp; !<a href="execabs_go118.go.html#line-10" class="ident">isGo119ErrDot</a>(<label for="r6" class="ident">err</label>) {</code></span>
+<span class="codeline" id="line-57"><code>		<span class="keyword">return</span> <span class="lit-string">""</span>, <label for="r6" class="ident">err</label></code></span>
+<span class="codeline" id="line-58"><code>	}</code></span>
+<span class="codeline" id="line-59"><code>	<span class="keyword">if</span> <a href="../../../../../pkg/path/filepath.html" class="ident i3">filepath</a>.<a href="../../../../path/filepath/path.go.html#line-549" class="ident">Base</a>(<label for="r4" class="ident">file</label>) == <label for="r4" class="ident">file</label> &amp;&amp; !<a href="../../../../../pkg/path/filepath.html" class="ident i3">filepath</a>.<a href="../../../../path/filepath/path_unix.go.html#line-12" class="ident">IsAbs</a>(<label for="r5" class="ident">path</label>) {</code></span>
+<span class="codeline" id="line-60"><code>		<span class="keyword">return</span> <span class="lit-string">""</span>, <a href="#line-41" class="ident">relError</a>(<label for="r4" class="ident">file</label>, <label for="r5" class="ident">path</label>)</code></span>
+<span class="codeline" id="line-61"><code>	}</code></span>
+<span class="codeline" id="line-62"><code>	<span class="keyword">return</span> <label for="r5" class="ident">path</label>, <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-63"><code>}</code></span>
+<span class="codeline" id="line-64"><code></code></span>
+<span class="codeline" id="line-65"><code><span class="keyword">func</span> <label for="r7" class="ident"><a href="../../../../../pkg/golang.org/x/sys/execabs.html#name-fixCmd" class="ident">fixCmd</a></label>(<label for="r8" class="ident">name</label> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r9" class="ident">cmd</label> *<a href="../../../../../pkg/os/exec.html" class="ident i2">exec</a>.<a href="../../../../os/exec/exec.go.html#line-57" class="ident">Cmd</a>) {</code></span>
+<span class="codeline" id="line-66"><code>	<span class="keyword">if</span> <a href="../../../../../pkg/path/filepath.html" class="ident i3">filepath</a>.<a href="../../../../path/filepath/path.go.html#line-549" class="ident">Base</a>(<label for="r8" class="ident">name</label>) == <label for="r8" class="ident">name</label> &amp;&amp; !<a href="../../../../../pkg/path/filepath.html" class="ident i3">filepath</a>.<a href="../../../../path/filepath/path_unix.go.html#line-12" class="ident">IsAbs</a>(<label for="r9" class="ident">cmd</label>.<a href="../../../../os/exec/exec.go.html#line-63" class="ident">Path</a>) {</code></span>
+<span class="codeline" id="line-67"><code>		<span class="comment">// exec.Command was called with a bare binary name and</span></code></span>
+<span class="codeline" id="line-68"><code><span class="comment">		// exec.LookPath returned a path which is not absolute.</span></code></span>
+<span class="codeline" id="line-69"><code><span class="comment">		// Set cmd.lookPathErr and clear cmd.Path so that it</span></code></span>
+<span class="codeline" id="line-70"><code><span class="comment">		// cannot be run.</span></code></span>
+<span class="codeline" id="line-71"><code>		<label for="r10" class="ident">lookPathErr</label> := (*<a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>)(<a href="../../../../../pkg/unsafe.html" class="ident i5">unsafe</a>.<a href="../../../../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<a href="../../../../../pkg/reflect.html" class="ident i4">reflect</a>.<a href="../../../../reflect/value.go.html#line-2959" class="ident">ValueOf</a>(<label for="r9" class="ident">cmd</label>).<a href="../../../../reflect/value.go.html#line-1166" class="ident">Elem</a>().<a href="../../../../reflect/value.go.html#line-1296" class="ident">FieldByName</a>(<span class="lit-string">"lookPathErr"</span>).<a href="../../../../reflect/value.go.html#line-271" class="ident">Addr</a>().<a href="../../../../reflect/value.go.html#line-1978" class="ident">Pointer</a>()))</code></span>
+<span class="codeline" id="line-72"><code>		<span class="keyword">if</span> *<label for="r10" class="ident">lookPathErr</label> == <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-73"><code>			*<label for="r10" class="ident">lookPathErr</label> = <a href="#line-41" class="ident">relError</a>(<label for="r8" class="ident">name</label>, <label for="r9" class="ident">cmd</label>.<a href="../../../../os/exec/exec.go.html#line-63" class="ident">Path</a>)</code></span>
+<span class="codeline" id="line-74"><code>		}</code></span>
+<span class="codeline" id="line-75"><code>		<label for="r9" class="ident">cmd</label>.<a href="../../../../os/exec/exec.go.html#line-63" class="ident">Path</a> = <span class="lit-string">""</span></code></span>
+<span class="codeline" id="line-76"><code>	}</code></span>
+<span class="codeline" id="line-77"><code>}</code></span>
+<span class="codeline" id="line-78"><code></code></span>
+<span class="codeline" id="line-79"><code><span class="comment">// CommandContext is like Command but includes a context.</span></code></span>
+<span class="codeline" id="line-80"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-81"><code><span class="comment">// The provided context is used to kill the process (by calling os.Process.Kill)</span></code></span>
+<span class="codeline" id="line-82"><code><span class="comment">// if the context becomes done before the command completes on its own.</span></code></span>
+<span class="codeline" id="line-83"><code><span class="keyword">func</span> <label for="r11" class="ident"><a href="../../../../../pkg/golang.org/x/sys/execabs.html#name-CommandContext" class="ident">CommandContext</a></label>(<label for="r12" class="ident">ctx</label> <a href="../../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../../context/context.go.html#line-62" class="ident">Context</a>, <label for="r13" class="ident">name</label> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r14" class="ident">arg</label> ...<a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>) *<a href="../../../../../pkg/os/exec.html" class="ident i2">exec</a>.<a href="../../../../os/exec/exec.go.html#line-57" class="ident">Cmd</a> {</code></span>
+<span class="codeline" id="line-84"><code>	<label for="r15" class="ident">cmd</label> := <a href="../../../../../pkg/os/exec.html" class="ident i2">exec</a>.<a href="../../../../os/exec/exec.go.html#line-189" class="ident">CommandContext</a>(<label for="r12" class="ident">ctx</label>, <label for="r13" class="ident">name</label>, <label for="r14" class="ident">arg</label>...)</code></span>
+<span class="codeline" id="line-85"><code>	<a href="#line-65" class="ident">fixCmd</a>(<label for="r13" class="ident">name</label>, <label for="r15" class="ident">cmd</label>)</code></span>
+<span class="codeline" id="line-86"><code>	<span class="keyword">return</span> <label for="r15" class="ident">cmd</label></code></span>
+<span class="codeline" id="line-87"><code></code></span>
+<span class="codeline" id="line-88"><code>}</code></span>
+<span class="codeline" id="line-89"><code></code></span>
+<span class="codeline" id="line-90"><code><span class="comment">// Command returns the Cmd struct to execute the named program with the given arguments.</span></code></span>
+<span class="codeline" id="line-91"><code><span class="comment">// See exec.Command for most details.</span></code></span>
+<span class="codeline" id="line-92"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-93"><code><span class="comment">// Command differs from exec.Command in its handling of PATH lookups,</span></code></span>
+<span class="codeline" id="line-94"><code><span class="comment">// which are used when the program name contains no slashes.</span></code></span>
+<span class="codeline" id="line-95"><code><span class="comment">// If exec.Command would have returned an exec.Cmd configured to run an</span></code></span>
+<span class="codeline" id="line-96"><code><span class="comment">// executable from the current directory, Command instead</span></code></span>
+<span class="codeline" id="line-97"><code><span class="comment">// returns an exec.Cmd that will return an error from Start or Run.</span></code></span>
+<span class="codeline" id="line-98"><code><span class="keyword">func</span> <label for="r16" class="ident"><a href="../../../../../pkg/golang.org/x/sys/execabs.html#name-Command" class="ident">Command</a></label>(<label for="r17" class="ident">name</label> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r18" class="ident">arg</label> ...<a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>) *<a href="../../../../../pkg/os/exec.html" class="ident i2">exec</a>.<a href="../../../../os/exec/exec.go.html#line-57" class="ident">Cmd</a> {</code></span>
+<span class="codeline" id="line-99"><code>	<label for="r19" class="ident">cmd</label> := <a href="../../../../../pkg/os/exec.html" class="ident i2">exec</a>.<a href="../../../../os/exec/exec.go.html#line-169" class="ident">Command</a>(<label for="r17" class="ident">name</label>, <label for="r18" class="ident">arg</label>...)</code></span>
+<span class="codeline" id="line-100"><code>	<a href="#line-65" class="ident">fixCmd</a>(<label for="r17" class="ident">name</label>, <label for="r19" class="ident">cmd</label>)</code></span>
+<span class="codeline" id="line-101"><code>	<span class="keyword">return</span> <label for="r19" class="ident">cmd</label></code></span>
+<span class="codeline" id="line-102"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.4.9</i>. (GOOS=linux GOARCH=amd64)</pre>

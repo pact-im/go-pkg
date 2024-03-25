@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: xor_unaligned.go in package golang.org/x/crypto/sha3</title>
+<link href="../../../../../css/light-v0.4.9.css" rel="stylesheet">
+<script src="../../../../../jvs/golds-v0.4.9.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	xor_unaligned.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../pkg/golang.org/x/crypto/sha3.html">golang.org/x/crypto/sha3</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2015 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="comment">//go:build (amd64 || 386 || ppc64le) &amp;&amp; !purego</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment">// +build amd64 386 ppc64le</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment">// +build !purego</span></code></span>
+<span class="codeline" id="line-8"><code></code></span>
+<span class="codeline" id="line-9"><code><span class="keyword">package</span> sha3</code></span>
+<span class="codeline" id="line-10"><code></code></span>
+<span class="codeline" id="line-11"><code><span class="keyword">import</span> <label for="i0"><span class="lit-string i0">"unsafe"</span></label></code></span>
+<span class="codeline" id="line-12"><code></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">// A storageBuf is an aligned array of maxRate bytes.</span></code></span>
+<span class="codeline" id="line-14"><code><span class="keyword">type</span> <a href="../../../../../pkg/golang.org/x/crypto/sha3.html#name-storageBuf" class="ident">storageBuf</a> [<a href="sha3.go.html#line-20" class="ident">maxRate</a> / <span class="lit-number">8</span>]<a href="../../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a></code></span>
+<span class="codeline" id="line-15"><code></code></span>
+<span class="codeline" id="line-16"><code><span class="keyword">func</span> (<label for="r0" class="ident">b</label> *<a href="#line-14" class="ident">storageBuf</a>) <label for="r1" class="ident"><a href="../../../../../use/golang.org/x/crypto/sha3..storageBuf^15a21.asBytes^d1010.html" class="ident">asBytes</a></label>() *[<a href="sha3.go.html#line-20" class="ident">maxRate</a>]<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a> {</code></span>
+<span class="codeline" id="line-17"><code>	<span class="keyword">return</span> (*[<a href="sha3.go.html#line-20" class="ident">maxRate</a>]<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>)(<a href="../../../../../pkg/unsafe.html" class="ident i0">unsafe</a>.<a href="../../../../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r0" class="ident">b</label>))</code></span>
+<span class="codeline" id="line-18"><code>}</code></span>
+<span class="codeline" id="line-19"><code></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">// xorInUnaligned uses unaligned reads and writes to update d.a to contain d.a</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">// XOR buf.</span></code></span>
+<span class="codeline" id="line-22"><code><span class="keyword">func</span> <label for="r2" class="ident"><a href="../../../../../pkg/golang.org/x/crypto/sha3.html#name-xorInUnaligned" class="ident">xorInUnaligned</a></label>(<label for="r3" class="ident">d</label> *<a href="sha3.go.html#line-23" class="ident">state</a>, <label for="r4" class="ident">buf</label> []<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) {</code></span>
+<span class="codeline" id="line-23"><code>	<label for="r5" class="ident">n</label> := <a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r4" class="ident">buf</label>)</code></span>
+<span class="codeline" id="line-24"><code>	<label for="r6" class="ident">bw</label> := (*[<a href="sha3.go.html#line-20" class="ident">maxRate</a> / <span class="lit-number">8</span>]<a href="../../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>)(<a href="../../../../../pkg/unsafe.html" class="ident i0">unsafe</a>.<a href="../../../../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(&amp;<label for="r4" class="ident">buf</label>[<span class="lit-number">0</span>]))[: <label for="r5" class="ident">n</label>/<span class="lit-number">8</span> : <label for="r5" class="ident">n</label>/<span class="lit-number">8</span>]</code></span>
+<span class="codeline" id="line-25"><code>	<span class="keyword">if</span> <label for="r5" class="ident">n</label> &gt;= <span class="lit-number">72</span> {</code></span>
+<span class="codeline" id="line-26"><code>		<label for="r3" class="ident">d</label>.<a href="sha3.go.html#line-25" class="ident">a</a>[<span class="lit-number">0</span>] ^= <label for="r6" class="ident">bw</label>[<span class="lit-number">0</span>]</code></span>
+<span class="codeline" id="line-27"><code>		<label for="r3" class="ident">d</label>.<a href="sha3.go.html#line-25" class="ident">a</a>[<span class="lit-number">1</span>] ^= <label for="r6" class="ident">bw</label>[<span class="lit-number">1</span>]</code></span>
+<span class="codeline" id="line-28"><code>		<label for="r3" class="ident">d</label>.<a href="sha3.go.html#line-25" class="ident">a</a>[<span class="lit-number">2</span>] ^= <label for="r6" class="ident">bw</label>[<span class="lit-number">2</span>]</code></span>
+<span class="codeline" id="line-29"><code>		<label for="r3" class="ident">d</label>.<a href="sha3.go.html#line-25" class="ident">a</a>[<span class="lit-number">3</span>] ^= <label for="r6" class="ident">bw</label>[<span class="lit-number">3</span>]</code></span>
+<span class="codeline" id="line-30"><code>		<label for="r3" class="ident">d</label>.<a href="sha3.go.html#line-25" class="ident">a</a>[<span class="lit-number">4</span>] ^= <label for="r6" class="ident">bw</label>[<span class="lit-number">4</span>]</code></span>
+<span class="codeline" id="line-31"><code>		<label for="r3" class="ident">d</label>.<a href="sha3.go.html#line-25" class="ident">a</a>[<span class="lit-number">5</span>] ^= <label for="r6" class="ident">bw</label>[<span class="lit-number">5</span>]</code></span>
+<span class="codeline" id="line-32"><code>		<label for="r3" class="ident">d</label>.<a href="sha3.go.html#line-25" class="ident">a</a>[<span class="lit-number">6</span>] ^= <label for="r6" class="ident">bw</label>[<span class="lit-number">6</span>]</code></span>
+<span class="codeline" id="line-33"><code>		<label for="r3" class="ident">d</label>.<a href="sha3.go.html#line-25" class="ident">a</a>[<span class="lit-number">7</span>] ^= <label for="r6" class="ident">bw</label>[<span class="lit-number">7</span>]</code></span>
+<span class="codeline" id="line-34"><code>		<label for="r3" class="ident">d</label>.<a href="sha3.go.html#line-25" class="ident">a</a>[<span class="lit-number">8</span>] ^= <label for="r6" class="ident">bw</label>[<span class="lit-number">8</span>]</code></span>
+<span class="codeline" id="line-35"><code>	}</code></span>
+<span class="codeline" id="line-36"><code>	<span class="keyword">if</span> <label for="r5" class="ident">n</label> &gt;= <span class="lit-number">104</span> {</code></span>
+<span class="codeline" id="line-37"><code>		<label for="r3" class="ident">d</label>.<a href="sha3.go.html#line-25" class="ident">a</a>[<span class="lit-number">9</span>] ^= <label for="r6" class="ident">bw</label>[<span class="lit-number">9</span>]</code></span>
+<span class="codeline" id="line-38"><code>		<label for="r3" class="ident">d</label>.<a href="sha3.go.html#line-25" class="ident">a</a>[<span class="lit-number">10</span>] ^= <label for="r6" class="ident">bw</label>[<span class="lit-number">10</span>]</code></span>
+<span class="codeline" id="line-39"><code>		<label for="r3" class="ident">d</label>.<a href="sha3.go.html#line-25" class="ident">a</a>[<span class="lit-number">11</span>] ^= <label for="r6" class="ident">bw</label>[<span class="lit-number">11</span>]</code></span>
+<span class="codeline" id="line-40"><code>		<label for="r3" class="ident">d</label>.<a href="sha3.go.html#line-25" class="ident">a</a>[<span class="lit-number">12</span>] ^= <label for="r6" class="ident">bw</label>[<span class="lit-number">12</span>]</code></span>
+<span class="codeline" id="line-41"><code>	}</code></span>
+<span class="codeline" id="line-42"><code>	<span class="keyword">if</span> <label for="r5" class="ident">n</label> &gt;= <span class="lit-number">136</span> {</code></span>
+<span class="codeline" id="line-43"><code>		<label for="r3" class="ident">d</label>.<a href="sha3.go.html#line-25" class="ident">a</a>[<span class="lit-number">13</span>] ^= <label for="r6" class="ident">bw</label>[<span class="lit-number">13</span>]</code></span>
+<span class="codeline" id="line-44"><code>		<label for="r3" class="ident">d</label>.<a href="sha3.go.html#line-25" class="ident">a</a>[<span class="lit-number">14</span>] ^= <label for="r6" class="ident">bw</label>[<span class="lit-number">14</span>]</code></span>
+<span class="codeline" id="line-45"><code>		<label for="r3" class="ident">d</label>.<a href="sha3.go.html#line-25" class="ident">a</a>[<span class="lit-number">15</span>] ^= <label for="r6" class="ident">bw</label>[<span class="lit-number">15</span>]</code></span>
+<span class="codeline" id="line-46"><code>		<label for="r3" class="ident">d</label>.<a href="sha3.go.html#line-25" class="ident">a</a>[<span class="lit-number">16</span>] ^= <label for="r6" class="ident">bw</label>[<span class="lit-number">16</span>]</code></span>
+<span class="codeline" id="line-47"><code>	}</code></span>
+<span class="codeline" id="line-48"><code>	<span class="keyword">if</span> <label for="r5" class="ident">n</label> &gt;= <span class="lit-number">144</span> {</code></span>
+<span class="codeline" id="line-49"><code>		<label for="r3" class="ident">d</label>.<a href="sha3.go.html#line-25" class="ident">a</a>[<span class="lit-number">17</span>] ^= <label for="r6" class="ident">bw</label>[<span class="lit-number">17</span>]</code></span>
+<span class="codeline" id="line-50"><code>	}</code></span>
+<span class="codeline" id="line-51"><code>	<span class="keyword">if</span> <label for="r5" class="ident">n</label> &gt;= <span class="lit-number">168</span> {</code></span>
+<span class="codeline" id="line-52"><code>		<label for="r3" class="ident">d</label>.<a href="sha3.go.html#line-25" class="ident">a</a>[<span class="lit-number">18</span>] ^= <label for="r6" class="ident">bw</label>[<span class="lit-number">18</span>]</code></span>
+<span class="codeline" id="line-53"><code>		<label for="r3" class="ident">d</label>.<a href="sha3.go.html#line-25" class="ident">a</a>[<span class="lit-number">19</span>] ^= <label for="r6" class="ident">bw</label>[<span class="lit-number">19</span>]</code></span>
+<span class="codeline" id="line-54"><code>		<label for="r3" class="ident">d</label>.<a href="sha3.go.html#line-25" class="ident">a</a>[<span class="lit-number">20</span>] ^= <label for="r6" class="ident">bw</label>[<span class="lit-number">20</span>]</code></span>
+<span class="codeline" id="line-55"><code>	}</code></span>
+<span class="codeline" id="line-56"><code>}</code></span>
+<span class="codeline" id="line-57"><code></code></span>
+<span class="codeline" id="line-58"><code><span class="keyword">func</span> <label for="r7" class="ident"><a href="../../../../../pkg/golang.org/x/crypto/sha3.html#name-copyOutUnaligned" class="ident">copyOutUnaligned</a></label>(<label for="r8" class="ident">d</label> *<a href="sha3.go.html#line-23" class="ident">state</a>, <label for="r9" class="ident">buf</label> []<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) {</code></span>
+<span class="codeline" id="line-59"><code>	<label for="r10" class="ident">ab</label> := (*[<a href="sha3.go.html#line-20" class="ident">maxRate</a>]<a href="../../../../../pkg/builtin.html#name-uint8" class="ident">uint8</a>)(<a href="../../../../../pkg/unsafe.html" class="ident i0">unsafe</a>.<a href="../../../../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(&amp;<label for="r8" class="ident">d</label>.<a href="sha3.go.html#line-25" class="ident">a</a>[<span class="lit-number">0</span>]))</code></span>
+<span class="codeline" id="line-60"><code>	<a href="../../../../../pkg/builtin.html#name-copy" class="ident">copy</a>(<label for="r9" class="ident">buf</label>, <label for="r10" class="ident">ab</label>[:])</code></span>
+<span class="codeline" id="line-61"><code>}</code></span>
+<span class="codeline" id="line-62"><code></code></span>
+<span class="codeline" id="line-63"><code><span class="keyword">var</span> (</code></span>
+<span class="codeline" id="line-64"><code>	<a href="../../../../../pkg/golang.org/x/crypto/sha3.html#name-xorIn" class="ident">xorIn</a>   = <a href="#line-22" class="ident">xorInUnaligned</a></code></span>
+<span class="codeline" id="line-65"><code>	<a href="../../../../../pkg/golang.org/x/crypto/sha3.html#name-copyOut" class="ident">copyOut</a> = <a href="#line-58" class="ident">copyOutUnaligned</a></code></span>
+<span class="codeline" id="line-66"><code>)</code></span>
+<span class="codeline" id="line-67"><code></code></span>
+<span class="codeline" id="line-68"><code><span class="keyword">const</span> <a href="../../../../../pkg/golang.org/x/crypto/sha3.html#name-xorImplementationUnaligned" class="ident">xorImplementationUnaligned</a> = <span class="lit-string">"unaligned"</span></code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.4.9</i>. (GOOS=linux GOARCH=amd64)</pre>

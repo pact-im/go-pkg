@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: validtype.go in package go/types</title>
+<link href="../../../css/light-v0.4.9.css" rel="stylesheet">
+<script src="../../../jvs/golds-v0.4.9.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	validtype.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../pkg/go/types.html">go/types</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30],
+input[id=r31]:checked ~pre label[for=r31],
+input[id=r32]:checked ~pre label[for=r32],
+input[id=r33]:checked ~pre label[for=r33],
+input[id=r34]:checked ~pre label[for=r34],
+input[id=r35]:checked ~pre label[for=r35]
+{background: #226; color: #ff8;}
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="r31" type="radio" name="g"/>
+<input id="r32" type="radio" name="g"/>
+<input id="r33" type="radio" name="g"/>
+<input id="r34" type="radio" name="g"/>
+<input id="r35" type="radio" name="g"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2022 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> types</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="comment">// validType verifies that the given type does not "expand" indefinitely</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment">// producing a cycle in the type graph. Cycles are detected by marking</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment">// defined types.</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment">// (Cycles involving alias types, as in "type A = [10]A" are detected</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment">// earlier, via the objDecl cycle detection mechanism.)</span></code></span>
+<span class="codeline" id="line-12"><code><span class="keyword">func</span> (<label for="r0" class="ident">check</label> *<a href="check.go.html#line-96" class="ident">Checker</a>) <label for="r1" class="ident"><a href="../../../use/go/types..Checker.validType^7e556.html" class="ident">validType</a></label>(<label for="r2" class="ident">typ</label> *<a href="named.go.html#line-13" class="ident">Named</a>) {</code></span>
+<span class="codeline" id="line-13"><code>	<label for="r0" class="ident">check</label>.<a href="#line-23" class="ident">validType0</a>(<label for="r2" class="ident">typ</label>, <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>)</code></span>
+<span class="codeline" id="line-14"><code>}</code></span>
+<span class="codeline" id="line-15"><code></code></span>
+<span class="codeline" id="line-16"><code><span class="keyword">type</span> <a href="../../../pkg/go/types.html#name-typeInfo" class="ident">typeInfo</a> <a href="../../../pkg/builtin.html#name-uint" class="ident">uint</a></code></span>
+<span class="codeline" id="line-17"><code></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">// validType0 checks if the given type is valid. If typ is a type parameter</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">// its value is looked up in the provided environment. The environment is</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">// nil if typ is not part of (the RHS of) an instantiated type, in that case</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">// any type parameter encountered must be from an enclosing function and can</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">// be ignored. The path is the list of type names that lead to the current typ.</span></code></span>
+<span class="codeline" id="line-23"><code><span class="keyword">func</span> (<label for="r3" class="ident">check</label> *<a href="check.go.html#line-96" class="ident">Checker</a>) <label for="r4" class="ident"><a href="../../../use/go/types..Checker.validType0^ddd46.html" class="ident">validType0</a></label>(<label for="r5" class="ident">typ</label> <a href="type.go.html#line-9" class="ident">Type</a>, <label for="r6" class="ident">env</label> *<a href="#line-112" class="ident">tparamEnv</a>, <label for="r7" class="ident">path</label> []<a href="object.go.html#line-18" class="ident">Object</a>) <a href="#line-16" class="ident">typeInfo</a> {</code></span>
+<span class="codeline" id="line-24"><code>	<span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-25"><code>		<label for="r8" class="ident">unknown</label> <a href="#line-16" class="ident">typeInfo</a> = <a href="../../../pkg/builtin.html#name-iota" class="ident">iota</a></code></span>
+<span class="codeline" id="line-26"><code>		<label for="r9" class="ident">marked</label></code></span>
+<span class="codeline" id="line-27"><code>		<label for="r10" class="ident">valid</label></code></span>
+<span class="codeline" id="line-28"><code>		<label for="r11" class="ident">invalid</label></code></span>
+<span class="codeline" id="line-29"><code>	)</code></span>
+<span class="codeline" id="line-30"><code></code></span>
+<span class="codeline" id="line-31"><code>	<span class="keyword">switch</span> t := <label for="r5" class="ident">typ</label>.(<span class="keyword">type</span>) {</code></span>
+<span class="codeline" id="line-32"><code>	<span class="keyword">case</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>:</code></span>
+<span class="codeline" id="line-33"><code>		<span class="comment">// We should never see a nil type but be conservative and panic</span></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">		// only in debug mode.</span></code></span>
+<span class="codeline" id="line-35"><code>		<span class="keyword">if</span> <a href="check.go.html#line-19" class="ident">debug</a> {</code></span>
+<span class="codeline" id="line-36"><code>			<a href="../../../pkg/builtin.html#name-panic" class="ident">panic</a>(<span class="lit-string">"validType0(nil)"</span>)</code></span>
+<span class="codeline" id="line-37"><code>		}</code></span>
+<span class="codeline" id="line-38"><code></code></span>
+<span class="codeline" id="line-39"><code>	<span class="keyword">case</span> *<a href="array.go.html#line-8" class="ident">Array</a>:</code></span>
+<span class="codeline" id="line-40"><code>		<span class="keyword">return</span> <label for="r3" class="ident">check</label>.<label for="r4" class="ident">validType0</label>(<label for="r12" class="ident">t</label>.<a href="array.go.html#line-10" class="ident">elem</a>, <label for="r6" class="ident">env</label>, <label for="r7" class="ident">path</label>)</code></span>
+<span class="codeline" id="line-41"><code></code></span>
+<span class="codeline" id="line-42"><code>	<span class="keyword">case</span> *<a href="struct.go.html#line-17" class="ident">Struct</a>:</code></span>
+<span class="codeline" id="line-43"><code>		<span class="keyword">for</span> <label for="r13" class="ident">_</label>, <label for="r14" class="ident">f</label> := <span class="keyword">range</span> <label for="r15" class="ident">t</label>.<a href="struct.go.html#line-18" class="ident">fields</a> {</code></span>
+<span class="codeline" id="line-44"><code>			<span class="keyword">if</span> <label for="r3" class="ident">check</label>.<label for="r4" class="ident">validType0</label>(<label for="r14" class="ident">f</label>.<a href="object.go.html#line-87" class="ident">typ</a>, <label for="r6" class="ident">env</label>, <label for="r7" class="ident">path</label>) == <label for="r11" class="ident">invalid</label> {</code></span>
+<span class="codeline" id="line-45"><code>				<span class="keyword">return</span> <label for="r11" class="ident">invalid</label></code></span>
+<span class="codeline" id="line-46"><code>			}</code></span>
+<span class="codeline" id="line-47"><code>		}</code></span>
+<span class="codeline" id="line-48"><code></code></span>
+<span class="codeline" id="line-49"><code>	<span class="keyword">case</span> *<a href="union.go.html#line-16" class="ident">Union</a>:</code></span>
+<span class="codeline" id="line-50"><code>		<span class="keyword">for</span> <label for="r16" class="ident">_</label>, <label for="r17" class="ident">t</label> := <span class="keyword">range</span> <label for="r18" class="ident">t</label>.<a href="union.go.html#line-17" class="ident">terms</a> {</code></span>
+<span class="codeline" id="line-51"><code>			<span class="keyword">if</span> <label for="r3" class="ident">check</label>.<label for="r4" class="ident">validType0</label>(<label for="r17" class="ident">t</label>.<a href="typeterm.go.html#line-16" class="ident">typ</a>, <label for="r6" class="ident">env</label>, <label for="r7" class="ident">path</label>) == <label for="r11" class="ident">invalid</label> {</code></span>
+<span class="codeline" id="line-52"><code>				<span class="keyword">return</span> <label for="r11" class="ident">invalid</label></code></span>
+<span class="codeline" id="line-53"><code>			}</code></span>
+<span class="codeline" id="line-54"><code>		}</code></span>
+<span class="codeline" id="line-55"><code></code></span>
+<span class="codeline" id="line-56"><code>	<span class="keyword">case</span> *<a href="interface.go.html#line-16" class="ident">Interface</a>:</code></span>
+<span class="codeline" id="line-57"><code>		<span class="keyword">for</span> <label for="r19" class="ident">_</label>, <label for="r20" class="ident">etyp</label> := <span class="keyword">range</span> <label for="r21" class="ident">t</label>.<a href="interface.go.html#line-20" class="ident">embeddeds</a> {</code></span>
+<span class="codeline" id="line-58"><code>			<span class="keyword">if</span> <label for="r3" class="ident">check</label>.<label for="r4" class="ident">validType0</label>(<label for="r20" class="ident">etyp</label>, <label for="r6" class="ident">env</label>, <label for="r7" class="ident">path</label>) == <label for="r11" class="ident">invalid</label> {</code></span>
+<span class="codeline" id="line-59"><code>				<span class="keyword">return</span> <label for="r11" class="ident">invalid</label></code></span>
+<span class="codeline" id="line-60"><code>			}</code></span>
+<span class="codeline" id="line-61"><code>		}</code></span>
+<span class="codeline" id="line-62"><code></code></span>
+<span class="codeline" id="line-63"><code>	<span class="keyword">case</span> *<a href="named.go.html#line-13" class="ident">Named</a>:</code></span>
+<span class="codeline" id="line-64"><code>		<span class="comment">// Don't report a 2nd error if we already know the type is invalid</span></code></span>
+<span class="codeline" id="line-65"><code><span class="comment">		// (e.g., if a cycle was detected earlier, via under).</span></code></span>
+<span class="codeline" id="line-66"><code>		<span class="keyword">if</span> <label for="r22" class="ident">t</label>.<a href="named.go.html#line-18" class="ident">underlying</a> == <a href="universe.go.html#line-38" class="ident">Typ</a>[<a href="basic.go.html#line-11" class="ident">Invalid</a>] {</code></span>
+<span class="codeline" id="line-67"><code>			<label for="r3" class="ident">check</label>.<a href="check.go.html#line-108" class="ident">infoMap</a>[<label for="r22" class="ident">t</label>] = <label for="r11" class="ident">invalid</label></code></span>
+<span class="codeline" id="line-68"><code>			<span class="keyword">return</span> <label for="r11" class="ident">invalid</label></code></span>
+<span class="codeline" id="line-69"><code>		}</code></span>
+<span class="codeline" id="line-70"><code></code></span>
+<span class="codeline" id="line-71"><code>		<span class="keyword">switch</span> <label for="r3" class="ident">check</label>.<a href="check.go.html#line-108" class="ident">infoMap</a>[<label for="r22" class="ident">t</label>] {</code></span>
+<span class="codeline" id="line-72"><code>		<span class="keyword">case</span> <label for="r8" class="ident">unknown</label>:</code></span>
+<span class="codeline" id="line-73"><code>			<label for="r3" class="ident">check</label>.<a href="check.go.html#line-108" class="ident">infoMap</a>[<label for="r22" class="ident">t</label>] = <label for="r9" class="ident">marked</label></code></span>
+<span class="codeline" id="line-74"><code>			<label for="r3" class="ident">check</label>.<a href="check.go.html#line-108" class="ident">infoMap</a>[<label for="r22" class="ident">t</label>] = <label for="r3" class="ident">check</label>.<label for="r4" class="ident">validType0</label>(<label for="r22" class="ident">t</label>.<a href="named.go.html#line-16" class="ident">orig</a>.<a href="named.go.html#line-17" class="ident">fromRHS</a>, <label for="r6" class="ident">env</label>.<a href="#line-117" class="ident">push</a>(<label for="r22" class="ident">t</label>), <a href="../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r7" class="ident">path</label>, <label for="r22" class="ident">t</label>.<a href="named.go.html#line-15" class="ident">obj</a>))</code></span>
+<span class="codeline" id="line-75"><code>		<span class="keyword">case</span> <label for="r9" class="ident">marked</label>:</code></span>
+<span class="codeline" id="line-76"><code>			<span class="comment">// We have seen type t before and thus must have a cycle.</span></code></span>
+<span class="codeline" id="line-77"><code>			<label for="r3" class="ident">check</label>.<a href="check.go.html#line-108" class="ident">infoMap</a>[<label for="r22" class="ident">t</label>] = <label for="r11" class="ident">invalid</label></code></span>
+<span class="codeline" id="line-78"><code>			<span class="comment">// t cannot be in an imported package otherwise that package</span></code></span>
+<span class="codeline" id="line-79"><code><span class="comment">			// would have reported a type cycle and couldn't have been</span></code></span>
+<span class="codeline" id="line-80"><code><span class="comment">			// imported in the first place.</span></code></span>
+<span class="codeline" id="line-81"><code>			<a href="errors.go.html#line-19" class="ident">assert</a>(<label for="r22" class="ident">t</label>.<a href="named.go.html#line-15" class="ident">obj</a>.<a href="object.go.html#line-85" class="ident">pkg</a> == <label for="r3" class="ident">check</label>.<a href="check.go.html#line-102" class="ident">pkg</a>)</code></span>
+<span class="codeline" id="line-82"><code>			<label for="r22" class="ident">t</label>.<a href="named.go.html#line-18" class="ident">underlying</a> = <a href="universe.go.html#line-38" class="ident">Typ</a>[<a href="basic.go.html#line-11" class="ident">Invalid</a>] <span class="comment">// t is in the current package (no race possibility)</span></code></span>
+<span class="codeline" id="line-83"><code>			<span class="comment">// Find the starting point of the cycle and report it.</span></code></span>
+<span class="codeline" id="line-84"><code>			<span class="keyword">for</span> <label for="r23" class="ident">i</label>, <label for="r24" class="ident">tn</label> := <span class="keyword">range</span> <label for="r7" class="ident">path</label> {</code></span>
+<span class="codeline" id="line-85"><code>				<span class="keyword">if</span> <label for="r24" class="ident">tn</label> == <label for="r22" class="ident">t</label>.<a href="named.go.html#line-15" class="ident">obj</a> {</code></span>
+<span class="codeline" id="line-86"><code>					<label for="r3" class="ident">check</label>.<a href="decl.go.html#line-304" class="ident">cycleError</a>(<label for="r7" class="ident">path</label>[<label for="r23" class="ident">i</label>:])</code></span>
+<span class="codeline" id="line-87"><code>					<span class="keyword">return</span> <label for="r11" class="ident">invalid</label></code></span>
+<span class="codeline" id="line-88"><code>				}</code></span>
+<span class="codeline" id="line-89"><code>			}</code></span>
+<span class="codeline" id="line-90"><code>			<a href="../../../pkg/builtin.html#name-panic" class="ident">panic</a>(<span class="lit-string">"cycle start not found"</span>)</code></span>
+<span class="codeline" id="line-91"><code>		}</code></span>
+<span class="codeline" id="line-92"><code>		<span class="keyword">return</span> <label for="r3" class="ident">check</label>.<a href="check.go.html#line-108" class="ident">infoMap</a>[<label for="r22" class="ident">t</label>]</code></span>
+<span class="codeline" id="line-93"><code></code></span>
+<span class="codeline" id="line-94"><code>	<span class="keyword">case</span> *<a href="typeparam.go.html#line-21" class="ident">TypeParam</a>:</code></span>
+<span class="codeline" id="line-95"><code>		<span class="comment">// A type parameter stands for the type (argument) it was instantiated with.</span></code></span>
+<span class="codeline" id="line-96"><code><span class="comment">		// Check the corresponding type argument for validity if we have one.</span></code></span>
+<span class="codeline" id="line-97"><code>		<span class="keyword">if</span> <label for="r6" class="ident">env</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-98"><code>			<span class="keyword">if</span> <label for="r25" class="ident">targ</label> := <label for="r6" class="ident">env</label>.<a href="#line-113" class="ident">tmap</a>[<label for="r26" class="ident">t</label>]; <label for="r25" class="ident">targ</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-99"><code>				<span class="comment">// Type arguments found in targ must be looked</span></code></span>
+<span class="codeline" id="line-100"><code><span class="comment">				// up in the enclosing environment env.link.</span></code></span>
+<span class="codeline" id="line-101"><code>				<span class="keyword">return</span> <label for="r3" class="ident">check</label>.<label for="r4" class="ident">validType0</label>(<label for="r25" class="ident">targ</label>, <label for="r6" class="ident">env</label>.<a href="#line-114" class="ident">link</a>, <label for="r7" class="ident">path</label>)</code></span>
+<span class="codeline" id="line-102"><code>			}</code></span>
+<span class="codeline" id="line-103"><code>		}</code></span>
+<span class="codeline" id="line-104"><code>	}</code></span>
+<span class="codeline" id="line-105"><code></code></span>
+<span class="codeline" id="line-106"><code>	<span class="keyword">return</span> <label for="r10" class="ident">valid</label></code></span>
+<span class="codeline" id="line-107"><code>}</code></span>
+<span class="codeline" id="line-108"><code></code></span>
+<span class="codeline" id="line-109"><code><span class="comment">// A tparamEnv provides the environment for looking up the type arguments</span></code></span>
+<span class="codeline" id="line-110"><code><span class="comment">// with which type parameters for a given instance were instantiated.</span></code></span>
+<span class="codeline" id="line-111"><code><span class="comment">// If we don't have an instance, the corresponding tparamEnv is nil.</span></code></span>
+<span class="codeline" id="line-112"><code><span class="keyword">type</span> <a href="../../../pkg/go/types.html#name-tparamEnv" class="ident">tparamEnv</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-113"><code>	<a href="../../../use/go/types..tparamEnv^e28d8.tmap^60d4d.html" class="ident">tmap</a> <a href="subst.go.html#line-11" class="ident">substMap</a></code></span>
+<span class="codeline" id="line-114"><code>	<a href="../../../use/go/types..tparamEnv^e28d8.link^b1b1b.html" class="ident">link</a> *<a href="#line-112" class="ident">tparamEnv</a></code></span>
+<span class="codeline" id="line-115"><code>}</code></span>
+<span class="codeline" id="line-116"><code></code></span>
+<span class="codeline" id="line-117"><code><span class="keyword">func</span> (<label for="r27" class="ident">env</label> *<a href="#line-112" class="ident">tparamEnv</a>) <label for="r28" class="ident"><a href="../../../use/go/types..tparamEnv^e28d8.push^d107e.html" class="ident">push</a></label>(<label for="r29" class="ident">typ</label> *<a href="named.go.html#line-13" class="ident">Named</a>) *<a href="#line-112" class="ident">tparamEnv</a> {</code></span>
+<span class="codeline" id="line-118"><code>	<span class="comment">// If typ is not an instantiated type there are no typ-specific</span></code></span>
+<span class="codeline" id="line-119"><code><span class="comment">	// type parameters to look up and we don't need an environment.</span></code></span>
+<span class="codeline" id="line-120"><code>	<label for="r30" class="ident">targs</label> := <label for="r29" class="ident">typ</label>.<a href="named.go.html#line-125" class="ident">TypeArgs</a>()</code></span>
+<span class="codeline" id="line-121"><code>	<span class="keyword">if</span> <label for="r30" class="ident">targs</label> == <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-122"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> <span class="comment">// no instance =&gt; nil environment</span></code></span>
+<span class="codeline" id="line-123"><code>	}</code></span>
+<span class="codeline" id="line-124"><code></code></span>
+<span class="codeline" id="line-125"><code>	<span class="comment">// Populate tmap: remember the type argument for each type parameter.</span></code></span>
+<span class="codeline" id="line-126"><code><span class="comment">	// We cannot use makeSubstMap because the number of type parameters</span></code></span>
+<span class="codeline" id="line-127"><code><span class="comment">	// and arguments may not match due to errors in the source (too many</span></code></span>
+<span class="codeline" id="line-128"><code><span class="comment">	// or too few type arguments). Populate tmap "manually".</span></code></span>
+<span class="codeline" id="line-129"><code>	<label for="r31" class="ident">tparams</label> := <label for="r29" class="ident">typ</label>.<a href="named.go.html#line-115" class="ident">TypeParams</a>()</code></span>
+<span class="codeline" id="line-130"><code>	<label for="r32" class="ident">n</label>, <label for="r33" class="ident">m</label> := <label for="r30" class="ident">targs</label>.<a href="typelists.go.html#line-40" class="ident">Len</a>(), <label for="r31" class="ident">tparams</label>.<a href="typelists.go.html#line-12" class="ident">Len</a>()</code></span>
+<span class="codeline" id="line-131"><code>	<span class="keyword">if</span> <label for="r32" class="ident">n</label> &gt; <label for="r33" class="ident">m</label> {</code></span>
+<span class="codeline" id="line-132"><code>		<label for="r32" class="ident">n</label> = <label for="r33" class="ident">m</label> <span class="comment">// too many targs</span></code></span>
+<span class="codeline" id="line-133"><code>	}</code></span>
+<span class="codeline" id="line-134"><code>	<label for="r34" class="ident">tmap</label> := <a href="../../../pkg/builtin.html#name-make" class="ident">make</a>(<a href="subst.go.html#line-11" class="ident">substMap</a>, <label for="r32" class="ident">n</label>)</code></span>
+<span class="codeline" id="line-135"><code>	<span class="keyword">for</span> <label for="r35" class="ident">i</label> := <span class="lit-number">0</span>; <label for="r35" class="ident">i</label> &lt; <label for="r32" class="ident">n</label>; <label for="r35" class="ident">i</label>++ {</code></span>
+<span class="codeline" id="line-136"><code>		<label for="r34" class="ident">tmap</label>[<label for="r31" class="ident">tparams</label>.<a href="typelists.go.html#line-15" class="ident">At</a>(<label for="r35" class="ident">i</label>)] = <label for="r30" class="ident">targs</label>.<a href="typelists.go.html#line-43" class="ident">At</a>(<label for="r35" class="ident">i</label>)</code></span>
+<span class="codeline" id="line-137"><code>	}</code></span>
+<span class="codeline" id="line-138"><code></code></span>
+<span class="codeline" id="line-139"><code>	<span class="keyword">return</span> &amp;<a href="#line-112" class="ident">tparamEnv</a>{<a href="#line-113" class="ident">tmap</a>: <label for="r34" class="ident">tmap</label>, <a href="#line-114" class="ident">link</a>: <label for="r27" class="ident">env</label>}</code></span>
+<span class="codeline" id="line-140"><code>}</code></span>
+<span class="codeline" id="line-141"><code></code></span>
+<span class="codeline" id="line-142"><code><span class="comment">// TODO(gri) Alternative implementation:</span></code></span>
+<span class="codeline" id="line-143"><code><span class="comment">//           We may not need to build a stack of environments to</span></code></span>
+<span class="codeline" id="line-144"><code><span class="comment">//           look up the type arguments for type parameters. The</span></code></span>
+<span class="codeline" id="line-145"><code><span class="comment">//           same information should be available via the path:</span></code></span>
+<span class="codeline" id="line-146"><code><span class="comment">//           We should be able to just walk the path backwards</span></code></span>
+<span class="codeline" id="line-147"><code><span class="comment">//           and find the type arguments in the instance objects.</span></code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.4.9</i>. (GOOS=linux GOARCH=amd64)</pre>
