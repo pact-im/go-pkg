@@ -39,3 +39,14 @@ func (m *Supervisor[K, P]) Get(ctx context.Context, pk K) (P, error) {
 	}
 	return p.proc, nil
 }
+
+// Keys returns a list of all process keys.
+func (m *Supervisor[K, P]) Keys() []K {
+	var keys []K
+
+	m.processes.Range(func(pk K, _ *managedProcess[P]) bool {
+		keys = append(keys, pk)
+		return true
+	})
+	return keys
+}
