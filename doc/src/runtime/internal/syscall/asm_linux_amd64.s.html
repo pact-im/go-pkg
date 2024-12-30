@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: asm_linux_amd64.s in package runtime/internal/syscall</title>
+<link href="../../../../css/light-v0.4.9.css" rel="stylesheet">
+<script src="../../../../jvs/golds-v0.4.9.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	asm_linux_amd64.s
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../pkg/runtime/internal/syscall.html">runtime/internal/syscall</a>
+</code></pre>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code>// Copyright 2022 The Go Authors. All rights reserved.</code></span>
+<span class="codeline" id="line-2"><code>// Use of this source code is governed by a BSD-style</code></span>
+<span class="codeline" id="line-3"><code>// license that can be found in the LICENSE file.</code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code>#include "textflag.h"</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code>// func Syscall6(num, a1, a2, a3, a4, a5, a6 uintptr) (r1, r2, errno uintptr)</code></span>
+<span class="codeline" id="line-8"><code>//</code></span>
+<span class="codeline" id="line-9"><code>// Syscall # in AX, args in DI SI DX R10 R8 R9, return in AX DX.</code></span>
+<span class="codeline" id="line-10"><code>//</code></span>
+<span class="codeline" id="line-11"><code>// Note that this differs from "standard" ABI convention, which would pass 4th</code></span>
+<span class="codeline" id="line-12"><code>// arg in CX, not R10.</code></span>
+<span class="codeline" id="line-13"><code>TEXT ·Syscall6(SB),NOSPLIT,$0-80</code></span>
+<span class="codeline" id="line-14"><code>	MOVQ	num+0(FP), AX	// syscall entry</code></span>
+<span class="codeline" id="line-15"><code>	MOVQ	a1+8(FP), DI</code></span>
+<span class="codeline" id="line-16"><code>	MOVQ	a2+16(FP), SI</code></span>
+<span class="codeline" id="line-17"><code>	MOVQ	a3+24(FP), DX</code></span>
+<span class="codeline" id="line-18"><code>	MOVQ	a4+32(FP), R10</code></span>
+<span class="codeline" id="line-19"><code>	MOVQ	a5+40(FP), R8</code></span>
+<span class="codeline" id="line-20"><code>	MOVQ	a6+48(FP), R9</code></span>
+<span class="codeline" id="line-21"><code>	SYSCALL</code></span>
+<span class="codeline" id="line-22"><code>	CMPQ	AX, $0xfffffffffffff001</code></span>
+<span class="codeline" id="line-23"><code>	JLS	ok</code></span>
+<span class="codeline" id="line-24"><code>	MOVQ	$-1, r1+56(FP)</code></span>
+<span class="codeline" id="line-25"><code>	MOVQ	$0, r2+64(FP)</code></span>
+<span class="codeline" id="line-26"><code>	NEGQ	AX</code></span>
+<span class="codeline" id="line-27"><code>	MOVQ	AX, errno+72(FP)</code></span>
+<span class="codeline" id="line-28"><code>	RET</code></span>
+<span class="codeline" id="line-29"><code>ok:</code></span>
+<span class="codeline" id="line-30"><code>	MOVQ	AX, r1+56(FP)</code></span>
+<span class="codeline" id="line-31"><code>	MOVQ	DX, r2+64(FP)</code></span>
+<span class="codeline" id="line-32"><code>	MOVQ	$0, errno+72(FP)</code></span>
+<span class="codeline" id="line-33"><code>	RET</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.4.9</i>. (GOOS=linux GOARCH=amd64)</pre>

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: stacks.go in package go.uber.org/goleak/internal/stack</title>
+<link href="../../../../../css/light-v0.4.9.css" rel="stylesheet">
+<script src="../../../../../jvs/golds-v0.4.9.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	stacks.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../pkg/go.uber.org/goleak/internal/stack.html">go.uber.org/goleak/internal/stack</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30],
+input[id=r31]:checked ~pre label[for=r31],
+input[id=r32]:checked ~pre label[for=r32],
+input[id=r33]:checked ~pre label[for=r33],
+input[id=r34]:checked ~pre label[for=r34],
+input[id=r35]:checked ~pre label[for=r35],
+input[id=r36]:checked ~pre label[for=r36]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3,
+input[id=i4]:checked ~pre .i4,
+input[id=i5]:checked ~pre .i5,
+input[id=i6]:checked ~pre .i6
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="r31" type="radio" name="g"/>
+<input id="r32" type="radio" name="g"/>
+<input id="r33" type="radio" name="g"/>
+<input id="r34" type="radio" name="g"/>
+<input id="r35" type="radio" name="g"/>
+<input id="r36" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+<input id="i4" type="radio" name="i"/>
+<input id="i5" type="radio" name="i"/>
+<input id="i6" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright (c) 2017 Uber Technologies, Inc.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// Permission is hereby granted, free of charge, to any person obtaining a copy</span></code></span>
+<span class="codeline" id="line-4"><code><span class="comment">// of this software and associated documentation files (the "Software"), to deal</span></code></span>
+<span class="codeline" id="line-5"><code><span class="comment">// in the Software without restriction, including without limitation the rights</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment">// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment">// copies of the Software, and to permit persons to whom the Software is</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment">// furnished to do so, subject to the following conditions:</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment">// The above copyright notice and this permission notice shall be included in</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment">// all copies or substantial portions of the Software.</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">// THE SOFTWARE.</span></code></span>
+<span class="codeline" id="line-20"><code></code></span>
+<span class="codeline" id="line-21"><code><span class="keyword">package</span> stack</code></span>
+<span class="codeline" id="line-22"><code></code></span>
+<span class="codeline" id="line-23"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-24"><code>	<label for="i0"><span class="lit-string i0">"bufio"</span></label></code></span>
+<span class="codeline" id="line-25"><code>	<label for="i1"><span class="lit-string i1">"bytes"</span></label></code></span>
+<span class="codeline" id="line-26"><code>	<label for="i2"><span class="lit-string i2">"fmt"</span></label></code></span>
+<span class="codeline" id="line-27"><code>	<label for="i3"><span class="lit-string i3">"io"</span></label></code></span>
+<span class="codeline" id="line-28"><code>	<label for="i4"><span class="lit-string i4">"runtime"</span></label></code></span>
+<span class="codeline" id="line-29"><code>	<label for="i5"><span class="lit-string i5">"strconv"</span></label></code></span>
+<span class="codeline" id="line-30"><code>	<label for="i6"><span class="lit-string i6">"strings"</span></label></code></span>
+<span class="codeline" id="line-31"><code>)</code></span>
+<span class="codeline" id="line-32"><code></code></span>
+<span class="codeline" id="line-33"><code><span class="keyword">const</span> <a href="../../../../../pkg/go.uber.org/goleak/internal/stack.html#name-_defaultBufferSize" class="ident">_defaultBufferSize</a> = <span class="lit-number">64</span> * <span class="lit-number">1024</span> <span class="comment">// 64 KiB</span></code></span>
+<span class="codeline" id="line-34"><code></code></span>
+<span class="codeline" id="line-35"><code><span class="comment">// Stack represents a single Goroutine's stack.</span></code></span>
+<span class="codeline" id="line-36"><code><span class="keyword">type</span> <a href="../../../../../pkg/go.uber.org/goleak/internal/stack.html#name-Stack" class="ident">Stack</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-37"><code>	<a href="../../../../../use/go.uber.org/goleak/internal/stack..Stack.id^a5614.html" class="ident">id</a>            <a href="../../../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-38"><code>	<a href="../../../../../use/go.uber.org/goleak/internal/stack..Stack.state^4ba69.html" class="ident">state</a>         <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-39"><code>	<a href="../../../../../use/go.uber.org/goleak/internal/stack..Stack.firstFunction^3b1db.html" class="ident">firstFunction</a> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-40"><code>	<a href="../../../../../use/go.uber.org/goleak/internal/stack..Stack.fullStack^bab13.html" class="ident">fullStack</a>     *<a href="../../../../../pkg/bytes.html" class="ident i1">bytes</a>.<a href="../../../../bytes/buffer.go.html#line-20" class="ident">Buffer</a></code></span>
+<span class="codeline" id="line-41"><code>}</code></span>
+<span class="codeline" id="line-42"><code></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">// ID returns the goroutine ID.</span></code></span>
+<span class="codeline" id="line-44"><code><span class="keyword">func</span> (<label for="r0" class="ident">s</label> <a href="#line-36" class="ident">Stack</a>) <label for="r1" class="ident"><a href="../../../../../use/go.uber.org/goleak/internal/stack..Stack.ID^38439.html" class="ident">ID</a></label>() <a href="../../../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-45"><code>	<span class="keyword">return</span> <label for="r0" class="ident">s</label>.<a href="#line-37" class="ident">id</a></code></span>
+<span class="codeline" id="line-46"><code>}</code></span>
+<span class="codeline" id="line-47"><code></code></span>
+<span class="codeline" id="line-48"><code><span class="comment">// State returns the Goroutine's state.</span></code></span>
+<span class="codeline" id="line-49"><code><span class="keyword">func</span> (<label for="r2" class="ident">s</label> <a href="#line-36" class="ident">Stack</a>) <label for="r3" class="ident"><a href="../../../../../use/go.uber.org/goleak/internal/stack..Stack.State.html" class="ident">State</a></label>() <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-50"><code>	<span class="keyword">return</span> <label for="r2" class="ident">s</label>.<a href="#line-38" class="ident">state</a></code></span>
+<span class="codeline" id="line-51"><code>}</code></span>
+<span class="codeline" id="line-52"><code></code></span>
+<span class="codeline" id="line-53"><code><span class="comment">// Full returns the full stack trace for this goroutine.</span></code></span>
+<span class="codeline" id="line-54"><code><span class="keyword">func</span> (<label for="r4" class="ident">s</label> <a href="#line-36" class="ident">Stack</a>) <label for="r5" class="ident"><a href="../../../../../use/go.uber.org/goleak/internal/stack..Stack.Full.html" class="ident">Full</a></label>() <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-55"><code>	<span class="keyword">return</span> <label for="r4" class="ident">s</label>.<a href="#line-40" class="ident">fullStack</a>.<a href="../../../../bytes/buffer.go.html#line-60" class="ident">String</a>()</code></span>
+<span class="codeline" id="line-56"><code>}</code></span>
+<span class="codeline" id="line-57"><code></code></span>
+<span class="codeline" id="line-58"><code><span class="comment">// FirstFunction returns the name of the first function on the stack.</span></code></span>
+<span class="codeline" id="line-59"><code><span class="keyword">func</span> (<label for="r6" class="ident">s</label> <a href="#line-36" class="ident">Stack</a>) <label for="r7" class="ident"><a href="../../../../../use/go.uber.org/goleak/internal/stack..Stack.FirstFunction.html" class="ident">FirstFunction</a></label>() <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-60"><code>	<span class="keyword">return</span> <label for="r6" class="ident">s</label>.<a href="#line-39" class="ident">firstFunction</a></code></span>
+<span class="codeline" id="line-61"><code>}</code></span>
+<span class="codeline" id="line-62"><code></code></span>
+<span class="codeline" id="line-63"><code><span class="keyword">func</span> (<label for="r8" class="ident">s</label> <a href="#line-36" class="ident">Stack</a>) <label for="r9" class="ident"><a href="../../../../../use/go.uber.org/goleak/internal/stack..Stack.String.html" class="ident">String</a></label>() <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-64"><code>	<span class="keyword">return</span> <a href="../../../../../pkg/fmt.html" class="ident i2">fmt</a>.<a href="../../../../fmt/print.go.html#line-217" class="ident">Sprintf</a>(</code></span>
+<span class="codeline" id="line-65"><code>		<span class="lit-string">"Goroutine %v in state %v, with %v on top of the stack:\n%s"</span>,</code></span>
+<span class="codeline" id="line-66"><code>		<label for="r8" class="ident">s</label>.<a href="#line-37" class="ident">id</a>, <label for="r8" class="ident">s</label>.<a href="#line-38" class="ident">state</a>, <label for="r8" class="ident">s</label>.<a href="#line-39" class="ident">firstFunction</a>, <label for="r8" class="ident">s</label>.<a href="#line-54" class="ident">Full</a>())</code></span>
+<span class="codeline" id="line-67"><code>}</code></span>
+<span class="codeline" id="line-68"><code></code></span>
+<span class="codeline" id="line-69"><code><span class="keyword">func</span> <label for="r10" class="ident"><a href="../../../../../pkg/go.uber.org/goleak/internal/stack.html#name-getStacks" class="ident">getStacks</a></label>(<label for="r11" class="ident">all</label> <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a>) []<a href="#line-36" class="ident">Stack</a> {</code></span>
+<span class="codeline" id="line-70"><code>	<span class="keyword">var</span> <label for="r12" class="ident">stacks</label> []<a href="#line-36" class="ident">Stack</a></code></span>
+<span class="codeline" id="line-71"><code></code></span>
+<span class="codeline" id="line-72"><code>	<span class="keyword">var</span> <label for="r13" class="ident">curStack</label> *<a href="#line-36" class="ident">Stack</a></code></span>
+<span class="codeline" id="line-73"><code>	<label for="r14" class="ident">stackReader</label> := <a href="../../../../../pkg/bufio.html" class="ident i0">bufio</a>.<a href="../../../../bufio/bufio.go.html#line-62" class="ident">NewReader</a>(<a href="../../../../../pkg/bytes.html" class="ident i1">bytes</a>.<a href="../../../../bytes/reader.go.html#line-160" class="ident">NewReader</a>(<a href="#line-121" class="ident">getStackBuffer</a>(<label for="r11" class="ident">all</label>)))</code></span>
+<span class="codeline" id="line-74"><code>	<span class="keyword">for</span> {</code></span>
+<span class="codeline" id="line-75"><code>		<label for="r15" class="ident">line</label>, <label for="r16" class="ident">err</label> := <label for="r14" class="ident">stackReader</label>.<a href="../../../../bufio/bufio.go.html#line-493" class="ident">ReadString</a>(<span class="lit-number">'\n'</span>)</code></span>
+<span class="codeline" id="line-76"><code>		<span class="keyword">if</span> <label for="r16" class="ident">err</label> == <a href="../../../../../pkg/io.html" class="ident i3">io</a>.<a href="../../../../io/io.go.html#line-44" class="ident">EOF</a> {</code></span>
+<span class="codeline" id="line-77"><code>			<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-78"><code>		}</code></span>
+<span class="codeline" id="line-79"><code>		<span class="keyword">if</span> <label for="r16" class="ident">err</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-80"><code>			<span class="comment">// We're reading using bytes.NewReader which should never fail.</span></code></span>
+<span class="codeline" id="line-81"><code>			<a href="../../../../../pkg/builtin.html#name-panic" class="ident">panic</a>(<span class="lit-string">"bufio.NewReader failed on a fixed string"</span>)</code></span>
+<span class="codeline" id="line-82"><code>		}</code></span>
+<span class="codeline" id="line-83"><code></code></span>
+<span class="codeline" id="line-84"><code>		<span class="comment">// If we see the goroutine header, start a new stack.</span></code></span>
+<span class="codeline" id="line-85"><code>		<label for="r17" class="ident">isFirstLine</label> := <a href="../../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-86"><code>		<span class="keyword">if</span> <a href="../../../../../pkg/strings.html" class="ident i6">strings</a>.<a href="../../../../strings/strings.go.html#line-448" class="ident">HasPrefix</a>(<label for="r15" class="ident">line</label>, <span class="lit-string">"goroutine "</span>) {</code></span>
+<span class="codeline" id="line-87"><code>			<span class="comment">// flush any previous stack</span></code></span>
+<span class="codeline" id="line-88"><code>			<span class="keyword">if</span> <label for="r13" class="ident">curStack</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-89"><code>				<label for="r12" class="ident">stacks</label> = <a href="../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r12" class="ident">stacks</label>, *<label for="r13" class="ident">curStack</label>)</code></span>
+<span class="codeline" id="line-90"><code>			}</code></span>
+<span class="codeline" id="line-91"><code>			<label for="r18" class="ident">id</label>, <label for="r19" class="ident">goState</label> := <a href="#line-141" class="ident">parseGoStackHeader</a>(<label for="r15" class="ident">line</label>)</code></span>
+<span class="codeline" id="line-92"><code>			<label for="r13" class="ident">curStack</label> = &amp;<a href="#line-36" class="ident">Stack</a>{</code></span>
+<span class="codeline" id="line-93"><code>				<a href="#line-37" class="ident">id</a>:        <label for="r18" class="ident">id</label>,</code></span>
+<span class="codeline" id="line-94"><code>				<a href="#line-38" class="ident">state</a>:     <label for="r19" class="ident">goState</label>,</code></span>
+<span class="codeline" id="line-95"><code>				<a href="#line-40" class="ident">fullStack</a>: &amp;<a href="../../../../../pkg/bytes.html" class="ident i1">bytes</a>.<a href="../../../../bytes/buffer.go.html#line-20" class="ident">Buffer</a>{},</code></span>
+<span class="codeline" id="line-96"><code>			}</code></span>
+<span class="codeline" id="line-97"><code>			<label for="r17" class="ident">isFirstLine</label> = <a href="../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-98"><code>		}</code></span>
+<span class="codeline" id="line-99"><code>		<label for="r13" class="ident">curStack</label>.<a href="#line-40" class="ident">fullStack</a>.<a href="../../../../bytes/buffer.go.html#line-180" class="ident">WriteString</a>(<label for="r15" class="ident">line</label>)</code></span>
+<span class="codeline" id="line-100"><code>		<span class="keyword">if</span> !<label for="r17" class="ident">isFirstLine</label> &amp;&amp; <label for="r13" class="ident">curStack</label>.<a href="#line-39" class="ident">firstFunction</a> == <span class="lit-string">""</span> {</code></span>
+<span class="codeline" id="line-101"><code>			<label for="r13" class="ident">curStack</label>.<a href="#line-39" class="ident">firstFunction</a> = <a href="#line-130" class="ident">parseFirstFunc</a>(<label for="r15" class="ident">line</label>)</code></span>
+<span class="codeline" id="line-102"><code>		}</code></span>
+<span class="codeline" id="line-103"><code>	}</code></span>
+<span class="codeline" id="line-104"><code></code></span>
+<span class="codeline" id="line-105"><code>	<span class="keyword">if</span> <label for="r13" class="ident">curStack</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-106"><code>		<label for="r12" class="ident">stacks</label> = <a href="../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r12" class="ident">stacks</label>, *<label for="r13" class="ident">curStack</label>)</code></span>
+<span class="codeline" id="line-107"><code>	}</code></span>
+<span class="codeline" id="line-108"><code>	<span class="keyword">return</span> <label for="r12" class="ident">stacks</label></code></span>
+<span class="codeline" id="line-109"><code>}</code></span>
+<span class="codeline" id="line-110"><code></code></span>
+<span class="codeline" id="line-111"><code><span class="comment">// All returns the stacks for all running goroutines.</span></code></span>
+<span class="codeline" id="line-112"><code><span class="keyword">func</span> <label for="r20" class="ident"><a href="../../../../../pkg/go.uber.org/goleak/internal/stack.html#name-All" class="ident">All</a></label>() []<a href="#line-36" class="ident">Stack</a> {</code></span>
+<span class="codeline" id="line-113"><code>	<span class="keyword">return</span> <a href="#line-69" class="ident">getStacks</a>(<a href="../../../../../pkg/builtin.html#name-true" class="ident">true</a>)</code></span>
+<span class="codeline" id="line-114"><code>}</code></span>
+<span class="codeline" id="line-115"><code></code></span>
+<span class="codeline" id="line-116"><code><span class="comment">// Current returns the stack for the current goroutine.</span></code></span>
+<span class="codeline" id="line-117"><code><span class="keyword">func</span> <label for="r21" class="ident"><a href="../../../../../pkg/go.uber.org/goleak/internal/stack.html#name-Current" class="ident">Current</a></label>() <a href="#line-36" class="ident">Stack</a> {</code></span>
+<span class="codeline" id="line-118"><code>	<span class="keyword">return</span> <a href="#line-69" class="ident">getStacks</a>(<a href="../../../../../pkg/builtin.html#name-false" class="ident">false</a>)[<span class="lit-number">0</span>]</code></span>
+<span class="codeline" id="line-119"><code>}</code></span>
+<span class="codeline" id="line-120"><code></code></span>
+<span class="codeline" id="line-121"><code><span class="keyword">func</span> <label for="r22" class="ident"><a href="../../../../../pkg/go.uber.org/goleak/internal/stack.html#name-getStackBuffer" class="ident">getStackBuffer</a></label>(<label for="r23" class="ident">all</label> <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a>) []<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a> {</code></span>
+<span class="codeline" id="line-122"><code>	<span class="keyword">for</span> <label for="r24" class="ident">i</label> := <a href="#line-33" class="ident">_defaultBufferSize</a>; ; <label for="r24" class="ident">i</label> *= <span class="lit-number">2</span> {</code></span>
+<span class="codeline" id="line-123"><code>		<label for="r25" class="ident">buf</label> := <a href="../../../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r24" class="ident">i</label>)</code></span>
+<span class="codeline" id="line-124"><code>		<span class="keyword">if</span> <label for="r26" class="ident">n</label> := <a href="../../../../../pkg/runtime.html" class="ident i4">runtime</a>.<a href="../../../../runtime/mprof.go.html#line-847" class="ident">Stack</a>(<label for="r25" class="ident">buf</label>, <label for="r23" class="ident">all</label>); <label for="r26" class="ident">n</label> &lt; <label for="r24" class="ident">i</label> {</code></span>
+<span class="codeline" id="line-125"><code>			<span class="keyword">return</span> <label for="r25" class="ident">buf</label>[:<label for="r26" class="ident">n</label>]</code></span>
+<span class="codeline" id="line-126"><code>		}</code></span>
+<span class="codeline" id="line-127"><code>	}</code></span>
+<span class="codeline" id="line-128"><code>}</code></span>
+<span class="codeline" id="line-129"><code></code></span>
+<span class="codeline" id="line-130"><code><span class="keyword">func</span> <label for="r27" class="ident"><a href="../../../../../pkg/go.uber.org/goleak/internal/stack.html#name-parseFirstFunc" class="ident">parseFirstFunc</a></label>(<label for="r28" class="ident">line</label> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-131"><code>	<label for="r28" class="ident">line</label> = <a href="../../../../../pkg/strings.html" class="ident i6">strings</a>.<a href="../../../../strings/strings.go.html#line-940" class="ident">TrimSpace</a>(<label for="r28" class="ident">line</label>)</code></span>
+<span class="codeline" id="line-132"><code>	<span class="keyword">if</span> <label for="r29" class="ident">idx</label> := <a href="../../../../../pkg/strings.html" class="ident i6">strings</a>.<a href="../../../../strings/strings.go.html#line-76" class="ident">LastIndex</a>(<label for="r28" class="ident">line</label>, <span class="lit-string">"("</span>); <label for="r29" class="ident">idx</label> &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-133"><code>		<span class="keyword">return</span> <label for="r28" class="ident">line</label>[:<label for="r29" class="ident">idx</label>]</code></span>
+<span class="codeline" id="line-134"><code>	}</code></span>
+<span class="codeline" id="line-135"><code>	<a href="../../../../../pkg/builtin.html#name-panic" class="ident">panic</a>(<a href="../../../../../pkg/fmt.html" class="ident i2">fmt</a>.<a href="../../../../fmt/print.go.html#line-217" class="ident">Sprintf</a>(<span class="lit-string">"function calls missing parents: %q"</span>, <label for="r28" class="ident">line</label>))</code></span>
+<span class="codeline" id="line-136"><code>}</code></span>
+<span class="codeline" id="line-137"><code></code></span>
+<span class="codeline" id="line-138"><code><span class="comment">// parseGoStackHeader parses a stack header that looks like:</span></code></span>
+<span class="codeline" id="line-139"><code><span class="comment">// goroutine 643 [runnable]:\n</span></code></span>
+<span class="codeline" id="line-140"><code><span class="comment">// And returns the goroutine ID, and the state.</span></code></span>
+<span class="codeline" id="line-141"><code><span class="keyword">func</span> <label for="r30" class="ident"><a href="../../../../../pkg/go.uber.org/goleak/internal/stack.html#name-parseGoStackHeader" class="ident">parseGoStackHeader</a></label>(<label for="r31" class="ident">line</label> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>) (<label for="r32" class="ident">goroutineID</label> <a href="../../../../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r33" class="ident">state</label> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>) {</code></span>
+<span class="codeline" id="line-142"><code>	<label for="r31" class="ident">line</label> = <a href="../../../../../pkg/strings.html" class="ident i6">strings</a>.<a href="../../../../strings/strings.go.html#line-984" class="ident">TrimSuffix</a>(<label for="r31" class="ident">line</label>, <span class="lit-string">":\n"</span>)</code></span>
+<span class="codeline" id="line-143"><code>	<label for="r34" class="ident">parts</label> := <a href="../../../../../pkg/strings.html" class="ident i6">strings</a>.<a href="../../../../strings/strings.go.html#line-275" class="ident">SplitN</a>(<label for="r31" class="ident">line</label>, <span class="lit-string">" "</span>, <span class="lit-number">3</span>)</code></span>
+<span class="codeline" id="line-144"><code>	<span class="keyword">if</span> <a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r34" class="ident">parts</label>) != <span class="lit-number">3</span> {</code></span>
+<span class="codeline" id="line-145"><code>		<a href="../../../../../pkg/builtin.html#name-panic" class="ident">panic</a>(<a href="../../../../../pkg/fmt.html" class="ident i2">fmt</a>.<a href="../../../../fmt/print.go.html#line-217" class="ident">Sprintf</a>(<span class="lit-string">"unexpected stack header format: %q"</span>, <label for="r31" class="ident">line</label>))</code></span>
+<span class="codeline" id="line-146"><code>	}</code></span>
+<span class="codeline" id="line-147"><code></code></span>
+<span class="codeline" id="line-148"><code>	<label for="r35" class="ident">id</label>, <label for="r36" class="ident">err</label> := <a href="../../../../../pkg/strconv.html" class="ident i5">strconv</a>.<a href="../../../../strconv/atoi.go.html#line-229" class="ident">Atoi</a>(<label for="r34" class="ident">parts</label>[<span class="lit-number">1</span>])</code></span>
+<span class="codeline" id="line-149"><code>	<span class="keyword">if</span> <label for="r36" class="ident">err</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-150"><code>		<a href="../../../../../pkg/builtin.html#name-panic" class="ident">panic</a>(<a href="../../../../../pkg/fmt.html" class="ident i2">fmt</a>.<a href="../../../../fmt/print.go.html#line-217" class="ident">Sprintf</a>(<span class="lit-string">"failed to parse goroutine ID: %v in line %q"</span>, <label for="r34" class="ident">parts</label>[<span class="lit-number">1</span>], <label for="r31" class="ident">line</label>))</code></span>
+<span class="codeline" id="line-151"><code>	}</code></span>
+<span class="codeline" id="line-152"><code></code></span>
+<span class="codeline" id="line-153"><code>	<label for="r33" class="ident">state</label> = <a href="../../../../../pkg/strings.html" class="ident i6">strings</a>.<a href="../../../../strings/strings.go.html#line-984" class="ident">TrimSuffix</a>(<a href="../../../../../pkg/strings.html" class="ident i6">strings</a>.<a href="../../../../strings/strings.go.html#line-975" class="ident">TrimPrefix</a>(<label for="r34" class="ident">parts</label>[<span class="lit-number">2</span>], <span class="lit-string">"["</span>), <span class="lit-string">"]"</span>)</code></span>
+<span class="codeline" id="line-154"><code>	<span class="keyword">return</span> <label for="r35" class="ident">id</label>, <label for="r33" class="ident">state</label></code></span>
+<span class="codeline" id="line-155"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.4.9</i>. (GOOS=linux GOARCH=amd64)</pre>
