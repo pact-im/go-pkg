@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: call.go in package google.golang.org/grpc</title>
+<link href="../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	call.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../pkg/google.golang.org/grpc.html">google.golang.org/grpc</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">/*</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment"> * Copyright 2014 gRPC authors.</span></code></span>
+<span class="codeline" id="line-4"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-5"><code><span class="comment"> * Licensed under the Apache License, Version 2.0 (the "License");</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment"> * you may not use this file except in compliance with the License.</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment"> * You may obtain a copy of the License at</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment"> *     http://www.apache.org/licenses/LICENSE-2.0</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment"> * Unless required by applicable law or agreed to in writing, software</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment"> * distributed under the License is distributed on an "AS IS" BASIS,</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment"> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment"> * See the License for the specific language governing permissions and</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment"> * limitations under the License.</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment"> */</span></code></span>
+<span class="codeline" id="line-18"><code></code></span>
+<span class="codeline" id="line-19"><code><span class="keyword">package</span> grpc</code></span>
+<span class="codeline" id="line-20"><code></code></span>
+<span class="codeline" id="line-21"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-22"><code>	<label for="i0"><span class="lit-string i0">"context"</span></label></code></span>
+<span class="codeline" id="line-23"><code>)</code></span>
+<span class="codeline" id="line-24"><code></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">// Invoke sends the RPC request on the wire and returns after response is</span></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">// received.  This is typically called by generated code.</span></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">// All errors returned by Invoke are compatible with the status package.</span></code></span>
+<span class="codeline" id="line-29"><code><span class="keyword">func</span> (<label for="r0" class="ident">cc</label> *<a href="clientconn.go.html#line-467" class="ident">ClientConn</a>) <label for="r1" class="ident"><a href="../../../use/google.golang.org/grpc..ClientConn.Invoke.html" class="ident">Invoke</a></label>(<label for="r2" class="ident">ctx</label> <a href="../../../pkg/context.html" class="ident i0">context</a>.<a href="../../context/context.go.html#line-71" class="ident">Context</a>, <label for="r3" class="ident">method</label> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r4" class="ident">args</label>, <label for="r5" class="ident">reply</label> <span class="keyword">interface</span>{}, <label for="r6" class="ident">opts</label> ...<a href="rpc_util.go.html#line-173" class="ident">CallOption</a>) <a href="../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-30"><code>	<span class="comment">// allow interceptor to see all applicable call options, which means those</span></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">	// configured as defaults from dial option as well as per-call options</span></code></span>
+<span class="codeline" id="line-32"><code>	<label for="r6" class="ident">opts</label> = <a href="#line-40" class="ident">combine</a>(<label for="r0" class="ident">cc</label>.<a href="clientconn.go.html#line-475" class="ident">dopts</a>.<a href="dialoptions.go.html#line-69" class="ident">callOptions</a>, <label for="r6" class="ident">opts</label>)</code></span>
+<span class="codeline" id="line-33"><code></code></span>
+<span class="codeline" id="line-34"><code>	<span class="keyword">if</span> <label for="r0" class="ident">cc</label>.<a href="clientconn.go.html#line-475" class="ident">dopts</a>.<a href="dialoptions.go.html#line-53" class="ident">unaryInt</a> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-35"><code>		<span class="keyword">return</span> <label for="r0" class="ident">cc</label>.<a href="clientconn.go.html#line-475" class="ident">dopts</a>.<a href="dialoptions.go.html#line-53" class="ident">unaryInt</a>(<label for="r2" class="ident">ctx</label>, <label for="r3" class="ident">method</label>, <label for="r4" class="ident">args</label>, <label for="r5" class="ident">reply</label>, <label for="r0" class="ident">cc</label>, <a href="#line-65" class="ident">invoke</a>, <label for="r6" class="ident">opts</label>...)</code></span>
+<span class="codeline" id="line-36"><code>	}</code></span>
+<span class="codeline" id="line-37"><code>	<span class="keyword">return</span> <a href="#line-65" class="ident">invoke</a>(<label for="r2" class="ident">ctx</label>, <label for="r3" class="ident">method</label>, <label for="r4" class="ident">args</label>, <label for="r5" class="ident">reply</label>, <label for="r0" class="ident">cc</label>, <label for="r6" class="ident">opts</label>...)</code></span>
+<span class="codeline" id="line-38"><code>}</code></span>
+<span class="codeline" id="line-39"><code></code></span>
+<span class="codeline" id="line-40"><code><span class="keyword">func</span> <label for="r7" class="ident"><a href="../../../pkg/google.golang.org/grpc.html#name-combine" class="ident">combine</a></label>(<label for="r8" class="ident">o1</label> []<a href="rpc_util.go.html#line-173" class="ident">CallOption</a>, <label for="r9" class="ident">o2</label> []<a href="rpc_util.go.html#line-173" class="ident">CallOption</a>) []<a href="rpc_util.go.html#line-173" class="ident">CallOption</a> {</code></span>
+<span class="codeline" id="line-41"><code>	<span class="comment">// we don't use append because o1 could have extra capacity whose</span></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">	// elements would be overwritten, which could cause inadvertent</span></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">	// sharing (and race conditions) between concurrent calls</span></code></span>
+<span class="codeline" id="line-44"><code>	<span class="keyword">if</span> <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r8" class="ident">o1</label>) == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-45"><code>		<span class="keyword">return</span> <label for="r9" class="ident">o2</label></code></span>
+<span class="codeline" id="line-46"><code>	} <span class="keyword">else</span> <span class="keyword">if</span> <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r9" class="ident">o2</label>) == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-47"><code>		<span class="keyword">return</span> <label for="r8" class="ident">o1</label></code></span>
+<span class="codeline" id="line-48"><code>	}</code></span>
+<span class="codeline" id="line-49"><code>	<label for="r10" class="ident">ret</label> := <a href="../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="rpc_util.go.html#line-173" class="ident">CallOption</a>, <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r8" class="ident">o1</label>)+<a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r9" class="ident">o2</label>))</code></span>
+<span class="codeline" id="line-50"><code>	<a href="../../../pkg/builtin.html#name-copy" class="ident">copy</a>(<label for="r10" class="ident">ret</label>, <label for="r8" class="ident">o1</label>)</code></span>
+<span class="codeline" id="line-51"><code>	<a href="../../../pkg/builtin.html#name-copy" class="ident">copy</a>(<label for="r10" class="ident">ret</label>[<a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r8" class="ident">o1</label>):], <label for="r9" class="ident">o2</label>)</code></span>
+<span class="codeline" id="line-52"><code>	<span class="keyword">return</span> <label for="r10" class="ident">ret</label></code></span>
+<span class="codeline" id="line-53"><code>}</code></span>
+<span class="codeline" id="line-54"><code></code></span>
+<span class="codeline" id="line-55"><code><span class="comment">// Invoke sends the RPC request on the wire and returns after response is</span></code></span>
+<span class="codeline" id="line-56"><code><span class="comment">// received.  This is typically called by generated code.</span></code></span>
+<span class="codeline" id="line-57"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-58"><code><span class="comment">// DEPRECATED: Use ClientConn.Invoke instead.</span></code></span>
+<span class="codeline" id="line-59"><code><span class="keyword">func</span> <label for="r11" class="ident"><a href="../../../pkg/google.golang.org/grpc.html#name-Invoke" class="ident">Invoke</a></label>(<label for="r12" class="ident">ctx</label> <a href="../../../pkg/context.html" class="ident i0">context</a>.<a href="../../context/context.go.html#line-71" class="ident">Context</a>, <label for="r13" class="ident">method</label> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r14" class="ident">args</label>, <label for="r15" class="ident">reply</label> <span class="keyword">interface</span>{}, <label for="r16" class="ident">cc</label> *<a href="clientconn.go.html#line-467" class="ident">ClientConn</a>, <label for="r17" class="ident">opts</label> ...<a href="rpc_util.go.html#line-173" class="ident">CallOption</a>) <a href="../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-60"><code>	<span class="keyword">return</span> <label for="r16" class="ident">cc</label>.<a href="#line-29" class="ident">Invoke</a>(<label for="r12" class="ident">ctx</label>, <label for="r13" class="ident">method</label>, <label for="r14" class="ident">args</label>, <label for="r15" class="ident">reply</label>, <label for="r17" class="ident">opts</label>...)</code></span>
+<span class="codeline" id="line-61"><code>}</code></span>
+<span class="codeline" id="line-62"><code></code></span>
+<span class="codeline" id="line-63"><code><span class="keyword">var</span> <a href="../../../pkg/google.golang.org/grpc.html#name-unaryStreamDesc" class="ident">unaryStreamDesc</a> = &amp;<a href="stream.go.html#line-62" class="ident">StreamDesc</a>{<a href="stream.go.html#line-71" class="ident">ServerStreams</a>: <a href="../../../pkg/builtin.html#name-false" class="ident">false</a>, <a href="stream.go.html#line-72" class="ident">ClientStreams</a>: <a href="../../../pkg/builtin.html#name-false" class="ident">false</a>}</code></span>
+<span class="codeline" id="line-64"><code></code></span>
+<span class="codeline" id="line-65"><code><span class="keyword">func</span> <label for="r18" class="ident"><a href="../../../pkg/google.golang.org/grpc.html#name-invoke" class="ident">invoke</a></label>(<label for="r19" class="ident">ctx</label> <a href="../../../pkg/context.html" class="ident i0">context</a>.<a href="../../context/context.go.html#line-71" class="ident">Context</a>, <label for="r20" class="ident">method</label> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r21" class="ident">req</label>, <label for="r22" class="ident">reply</label> <span class="keyword">interface</span>{}, <label for="r23" class="ident">cc</label> *<a href="clientconn.go.html#line-467" class="ident">ClientConn</a>, <label for="r24" class="ident">opts</label> ...<a href="rpc_util.go.html#line-173" class="ident">CallOption</a>) <a href="../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-66"><code>	<label for="r25" class="ident">cs</label>, <label for="r26" class="ident">err</label> := <a href="stream.go.html#line-170" class="ident">newClientStream</a>(<label for="r19" class="ident">ctx</label>, <a href="#line-63" class="ident">unaryStreamDesc</a>, <label for="r23" class="ident">cc</label>, <label for="r20" class="ident">method</label>, <label for="r24" class="ident">opts</label>...)</code></span>
+<span class="codeline" id="line-67"><code>	<span class="keyword">if</span> <label for="r26" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-68"><code>		<span class="keyword">return</span> <label for="r26" class="ident">err</label></code></span>
+<span class="codeline" id="line-69"><code>	}</code></span>
+<span class="codeline" id="line-70"><code>	<span class="keyword">if</span> <label for="r27" class="ident">err</label> := <label for="r25" class="ident">cs</label>.<a href="stream.go.html#line-126" class="ident">SendMsg</a>(<label for="r21" class="ident">req</label>); <label for="r27" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-71"><code>		<span class="keyword">return</span> <label for="r27" class="ident">err</label></code></span>
+<span class="codeline" id="line-72"><code>	}</code></span>
+<span class="codeline" id="line-73"><code>	<span class="keyword">return</span> <label for="r25" class="ident">cs</label>.<a href="stream.go.html#line-135" class="ident">RecvMsg</a>(<label for="r22" class="ident">reply</label>)</code></span>
+<span class="codeline" id="line-74"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

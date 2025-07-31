@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: format.go in package go/format</title>
+<link href="../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	format.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../pkg/go/format.html">go/format</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3,
+input[id=i4]:checked ~pre .i4,
+input[id=i5]:checked ~pre .i5,
+input[id=i6]:checked ~pre .i6
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+<input id="i4" type="radio" name="i"/>
+<input id="i5" type="radio" name="i"/>
+<input id="i6" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2012 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<div class="anchor" id="doc"><span class="codeline" id="line-5"><code><span class="comment">// Package format implements standard formatting of Go source.</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment">// Note that formatting of Go source code changes over time, so tools relying on</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment">// consistent formatting should execute a specific version of the gofmt binary</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment">// instead of using this package. That way, the formatting will be stable, and</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment">// the tools won't need to be recompiled each time gofmt changes.</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment">// For example, pre-submit checks that use this package directly would behave</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">// differently depending on what Go version each developer uses, causing the</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">// check to be inherently fragile.</span></code></span></div><span class="codeline" id="line-15"><code><span class="keyword">package</span> format</code></span>
+<span class="codeline" id="line-16"><code></code></span>
+<span class="codeline" id="line-17"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-18"><code>	<label for="i0"><span class="lit-string i0">"bytes"</span></label></code></span>
+<span class="codeline" id="line-19"><code>	<label for="i1"><span class="lit-string i1">"fmt"</span></label></code></span>
+<span class="codeline" id="line-20"><code>	<label for="i2"><span class="lit-string i2">"go/ast"</span></label></code></span>
+<span class="codeline" id="line-21"><code>	<label for="i3"><span class="lit-string i3">"go/parser"</span></label></code></span>
+<span class="codeline" id="line-22"><code>	<label for="i4"><span class="lit-string i4">"go/printer"</span></label></code></span>
+<span class="codeline" id="line-23"><code>	<label for="i5"><span class="lit-string i5">"go/token"</span></label></code></span>
+<span class="codeline" id="line-24"><code>	<label for="i6"><span class="lit-string i6">"io"</span></label></code></span>
+<span class="codeline" id="line-25"><code>)</code></span>
+<span class="codeline" id="line-26"><code></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">// Keep these in sync with cmd/gofmt/gofmt.go.</span></code></span>
+<span class="codeline" id="line-28"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-29"><code>	<a href="../../../pkg/go/format.html#name-tabWidth" class="ident">tabWidth</a>    = <span class="lit-number">8</span></code></span>
+<span class="codeline" id="line-30"><code>	<a href="../../../pkg/go/format.html#name-printerMode" class="ident">printerMode</a> = <a href="../../../pkg/go/printer.html" class="ident i4">printer</a>.<a href="../printer/printer.go.html#line-1296" class="ident">UseSpaces</a> | <a href="../../../pkg/go/printer.html" class="ident i4">printer</a>.<a href="../printer/printer.go.html#line-1295" class="ident">TabIndent</a> | <a href="#line-36" class="ident">printerNormalizeNumbers</a></code></span>
+<span class="codeline" id="line-31"><code></code></span>
+<span class="codeline" id="line-32"><code>	<span class="comment">// printerNormalizeNumbers means to canonicalize number literal prefixes</span></code></span>
+<span class="codeline" id="line-33"><code><span class="comment">	// and exponents while printing. See https://golang.org/doc/go1.13#gofmt.</span></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-35"><code><span class="comment">	// This value is defined in go/printer specifically for go/format and cmd/gofmt.</span></code></span>
+<span class="codeline" id="line-36"><code>	<a href="../../../pkg/go/format.html#name-printerNormalizeNumbers" class="ident">printerNormalizeNumbers</a> = <span class="lit-number">1</span> &lt;&lt; <span class="lit-number">30</span></code></span>
+<span class="codeline" id="line-37"><code>)</code></span>
+<span class="codeline" id="line-38"><code></code></span>
+<span class="codeline" id="line-39"><code><span class="keyword">var</span> <a href="../../../pkg/go/format.html#name-config" class="ident">config</a> = <a href="../../../pkg/go/printer.html" class="ident i4">printer</a>.<a href="../printer/printer.go.html#line-1317" class="ident">Config</a>{<a href="../printer/printer.go.html#line-1318" class="ident">Mode</a>: <a href="#line-30" class="ident">printerMode</a>, <a href="../printer/printer.go.html#line-1319" class="ident">Tabwidth</a>: <a href="#line-29" class="ident">tabWidth</a>}</code></span>
+<span class="codeline" id="line-40"><code></code></span>
+<span class="codeline" id="line-41"><code><span class="keyword">const</span> <a href="../../../pkg/go/format.html#name-parserMode" class="ident">parserMode</a> = <a href="../../../pkg/go/parser.html" class="ident i3">parser</a>.<a href="../parser/interface.go.html#line-52" class="ident">ParseComments</a> | <a href="../../../pkg/go/parser.html" class="ident i3">parser</a>.<a href="../parser/interface.go.html#line-56" class="ident">SkipObjectResolution</a></code></span>
+<span class="codeline" id="line-42"><code></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">// Node formats node in canonical gofmt style and writes the result to dst.</span></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-45"><code><span class="comment">// The node type must be *[ast.File], *[printer.CommentedNode], [][ast.Decl],</span></code></span>
+<span class="codeline" id="line-46"><code><span class="comment">// [][ast.Stmt], or assignment-compatible to [ast.Expr], [ast.Decl], [ast.Spec],</span></code></span>
+<span class="codeline" id="line-47"><code><span class="comment">// or [ast.Stmt]. Node does not modify node. Imports are not sorted for</span></code></span>
+<span class="codeline" id="line-48"><code><span class="comment">// nodes representing partial source files (for instance, if the node is</span></code></span>
+<span class="codeline" id="line-49"><code><span class="comment">// not an *[ast.File] or a *[printer.CommentedNode] not wrapping an *[ast.File]).</span></code></span>
+<span class="codeline" id="line-50"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-51"><code><span class="comment">// The function may return early (before the entire result is written)</span></code></span>
+<span class="codeline" id="line-52"><code><span class="comment">// and return a formatting error, for instance due to an incorrect AST.</span></code></span>
+<span class="codeline" id="line-53"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../pkg/go/format.html#name-Node" class="ident">Node</a></label>(<label for="r1" class="ident">dst</label> <a href="../../../pkg/io.html" class="ident i6">io</a>.<a href="../../io/io.go.html#line-99" class="ident">Writer</a>, <label for="r2" class="ident">fset</label> *<a href="../../../pkg/go/token.html" class="ident i5">token</a>.<a href="../token/position.go.html#line-426" class="ident">FileSet</a>, <label for="r3" class="ident">node</label> <a href="../../../pkg/builtin.html#name-any" class="ident">any</a>) <a href="../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-54"><code>	<span class="comment">// Determine if we have a complete source file (file != nil).</span></code></span>
+<span class="codeline" id="line-55"><code>	<span class="keyword">var</span> <label for="r4" class="ident">file</label> *<a href="../../../pkg/go/ast.html" class="ident i2">ast</a>.<a href="../ast/ast.go.html#line-1053" class="ident">File</a></code></span>
+<span class="codeline" id="line-56"><code>	<span class="keyword">var</span> <label for="r5" class="ident">cnode</label> *<a href="../../../pkg/go/printer.html" class="ident i4">printer</a>.<a href="../printer/printer.go.html#line-1414" class="ident">CommentedNode</a></code></span>
+<span class="codeline" id="line-57"><code>	<span class="keyword">switch</span> n := <label for="r3" class="ident">node</label>.(<span class="keyword">type</span>) {</code></span>
+<span class="codeline" id="line-58"><code>	<span class="keyword">case</span> *<a href="../../../pkg/go/ast.html" class="ident i2">ast</a>.<a href="../ast/ast.go.html#line-1053" class="ident">File</a>:</code></span>
+<span class="codeline" id="line-59"><code>		<label for="r4" class="ident">file</label> = <label for="r6" class="ident">n</label></code></span>
+<span class="codeline" id="line-60"><code>	<span class="keyword">case</span> *<a href="../../../pkg/go/printer.html" class="ident i4">printer</a>.<a href="../printer/printer.go.html#line-1414" class="ident">CommentedNode</a>:</code></span>
+<span class="codeline" id="line-61"><code>		<span class="keyword">if</span> <label for="r7" class="ident">f</label>, <label for="r8" class="ident">ok</label> := <label for="r9" class="ident">n</label>.<a href="../printer/printer.go.html#line-1415" class="ident">Node</a>.(*<a href="../../../pkg/go/ast.html" class="ident i2">ast</a>.<a href="../ast/ast.go.html#line-1053" class="ident">File</a>); <label for="r8" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-62"><code>			<label for="r4" class="ident">file</label> = <label for="r7" class="ident">f</label></code></span>
+<span class="codeline" id="line-63"><code>			<label for="r5" class="ident">cnode</label> = <label for="r9" class="ident">n</label></code></span>
+<span class="codeline" id="line-64"><code>		}</code></span>
+<span class="codeline" id="line-65"><code>	}</code></span>
+<span class="codeline" id="line-66"><code></code></span>
+<span class="codeline" id="line-67"><code>	<span class="comment">// Sort imports if necessary.</span></code></span>
+<span class="codeline" id="line-68"><code>	<span class="keyword">if</span> <label for="r4" class="ident">file</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> &amp;&amp; <a href="#line-117" class="ident">hasUnsortedImports</a>(<label for="r4" class="ident">file</label>) {</code></span>
+<span class="codeline" id="line-69"><code>		<span class="comment">// Make a copy of the AST because ast.SortImports is destructive.</span></code></span>
+<span class="codeline" id="line-70"><code><span class="comment">		// TODO(gri) Do this more efficiently.</span></code></span>
+<span class="codeline" id="line-71"><code>		<span class="keyword">var</span> <label for="r10" class="ident">buf</label> <a href="../../../pkg/bytes.html" class="ident i0">bytes</a>.<a href="../../bytes/buffer.go.html#line-20" class="ident">Buffer</a></code></span>
+<span class="codeline" id="line-72"><code>		<label for="r11" class="ident">err</label> := <a href="#line-39" class="ident">config</a>.<a href="../printer/printer.go.html#line-1423" class="ident">Fprint</a>(&amp;<label for="r10" class="ident">buf</label>, <label for="r2" class="ident">fset</label>, <label for="r4" class="ident">file</label>)</code></span>
+<span class="codeline" id="line-73"><code>		<span class="keyword">if</span> <label for="r11" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-74"><code>			<span class="keyword">return</span> <label for="r11" class="ident">err</label></code></span>
+<span class="codeline" id="line-75"><code>		}</code></span>
+<span class="codeline" id="line-76"><code>		<label for="r4" class="ident">file</label>, <label for="r11" class="ident">err</label> = <a href="../../../pkg/go/parser.html" class="ident i3">parser</a>.<a href="../parser/interface.go.html#line-84" class="ident">ParseFile</a>(<label for="r2" class="ident">fset</label>, <span class="lit-string">""</span>, <label for="r10" class="ident">buf</label>.<a href="../../bytes/buffer.go.html#line-54" class="ident">Bytes</a>(), <a href="#line-41" class="ident">parserMode</a>)</code></span>
+<span class="codeline" id="line-77"><code>		<span class="keyword">if</span> <label for="r11" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-78"><code>			<span class="comment">// We should never get here. If we do, provide good diagnostic.</span></code></span>
+<span class="codeline" id="line-79"><code>			<span class="keyword">return</span> <a href="../../../pkg/fmt.html" class="ident i1">fmt</a>.<a href="../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"format.Node internal error (%s)"</span>, <label for="r11" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-80"><code>		}</code></span>
+<span class="codeline" id="line-81"><code>		<a href="../../../pkg/go/ast.html" class="ident i2">ast</a>.<a href="../ast/import.go.html#line-16" class="ident">SortImports</a>(<label for="r2" class="ident">fset</label>, <label for="r4" class="ident">file</label>)</code></span>
+<span class="codeline" id="line-82"><code></code></span>
+<span class="codeline" id="line-83"><code>		<span class="comment">// Use new file with sorted imports.</span></code></span>
+<span class="codeline" id="line-84"><code>		<label for="r3" class="ident">node</label> = <label for="r4" class="ident">file</label></code></span>
+<span class="codeline" id="line-85"><code>		<span class="keyword">if</span> <label for="r5" class="ident">cnode</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-86"><code>			<label for="r3" class="ident">node</label> = &amp;<a href="../../../pkg/go/printer.html" class="ident i4">printer</a>.<a href="../printer/printer.go.html#line-1414" class="ident">CommentedNode</a>{<a href="../printer/printer.go.html#line-1415" class="ident">Node</a>: <label for="r4" class="ident">file</label>, <a href="../printer/printer.go.html#line-1416" class="ident">Comments</a>: <label for="r5" class="ident">cnode</label>.<a href="../printer/printer.go.html#line-1416" class="ident">Comments</a>}</code></span>
+<span class="codeline" id="line-87"><code>		}</code></span>
+<span class="codeline" id="line-88"><code>	}</code></span>
+<span class="codeline" id="line-89"><code></code></span>
+<span class="codeline" id="line-90"><code>	<span class="keyword">return</span> <a href="#line-39" class="ident">config</a>.<a href="../printer/printer.go.html#line-1423" class="ident">Fprint</a>(<label for="r1" class="ident">dst</label>, <label for="r2" class="ident">fset</label>, <label for="r3" class="ident">node</label>)</code></span>
+<span class="codeline" id="line-91"><code>}</code></span>
+<span class="codeline" id="line-92"><code></code></span>
+<span class="codeline" id="line-93"><code><span class="comment">// Source formats src in canonical gofmt style and returns the result</span></code></span>
+<span class="codeline" id="line-94"><code><span class="comment">// or an (I/O or syntax) error. src is expected to be a syntactically</span></code></span>
+<span class="codeline" id="line-95"><code><span class="comment">// correct Go source file, or a list of Go declarations or statements.</span></code></span>
+<span class="codeline" id="line-96"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-97"><code><span class="comment">// If src is a partial source file, the leading and trailing space of src</span></code></span>
+<span class="codeline" id="line-98"><code><span class="comment">// is applied to the result (such that it has the same leading and trailing</span></code></span>
+<span class="codeline" id="line-99"><code><span class="comment">// space as src), and the result is indented by the same amount as the first</span></code></span>
+<span class="codeline" id="line-100"><code><span class="comment">// line of src containing code. Imports are not sorted for partial source files.</span></code></span>
+<span class="codeline" id="line-101"><code><span class="keyword">func</span> <label for="r12" class="ident"><a href="../../../pkg/go/format.html#name-Source" class="ident">Source</a></label>(<label for="r13" class="ident">src</label> []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) ([]<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-102"><code>	<label for="r14" class="ident">fset</label> := <a href="../../../pkg/go/token.html" class="ident i5">token</a>.<a href="../token/position.go.html#line-434" class="ident">NewFileSet</a>()</code></span>
+<span class="codeline" id="line-103"><code>	<label for="r15" class="ident">file</label>, <label for="r16" class="ident">sourceAdj</label>, <label for="r17" class="ident">indentAdj</label>, <label for="r18" class="ident">err</label> := <a href="internal.go.html#line-23" class="ident">parse</a>(<label for="r14" class="ident">fset</label>, <span class="lit-string">""</span>, <label for="r13" class="ident">src</label>, <a href="../../../pkg/builtin.html#name-true" class="ident">true</a>)</code></span>
+<span class="codeline" id="line-104"><code>	<span class="keyword">if</span> <label for="r18" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-105"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r18" class="ident">err</label></code></span>
+<span class="codeline" id="line-106"><code>	}</code></span>
+<span class="codeline" id="line-107"><code></code></span>
+<span class="codeline" id="line-108"><code>	<span class="keyword">if</span> <label for="r16" class="ident">sourceAdj</label> == <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-109"><code>		<span class="comment">// Complete source file.</span></code></span>
+<span class="codeline" id="line-110"><code><span class="comment">		// TODO(gri) consider doing this always.</span></code></span>
+<span class="codeline" id="line-111"><code>		<a href="../../../pkg/go/ast.html" class="ident i2">ast</a>.<a href="../ast/import.go.html#line-16" class="ident">SortImports</a>(<label for="r14" class="ident">fset</label>, <label for="r15" class="ident">file</label>)</code></span>
+<span class="codeline" id="line-112"><code>	}</code></span>
+<span class="codeline" id="line-113"><code></code></span>
+<span class="codeline" id="line-114"><code>	<span class="keyword">return</span> <a href="internal.go.html#line-94" class="ident">format</a>(<label for="r14" class="ident">fset</label>, <label for="r15" class="ident">file</label>, <label for="r16" class="ident">sourceAdj</label>, <label for="r17" class="ident">indentAdj</label>, <label for="r13" class="ident">src</label>, <a href="#line-39" class="ident">config</a>)</code></span>
+<span class="codeline" id="line-115"><code>}</code></span>
+<span class="codeline" id="line-116"><code></code></span>
+<span class="codeline" id="line-117"><code><span class="keyword">func</span> <label for="r19" class="ident"><a href="../../../pkg/go/format.html#name-hasUnsortedImports" class="ident">hasUnsortedImports</a></label>(<label for="r20" class="ident">file</label> *<a href="../../../pkg/go/ast.html" class="ident i2">ast</a>.<a href="../ast/ast.go.html#line-1053" class="ident">File</a>) <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-118"><code>	<span class="keyword">for</span> <label for="r21" class="ident">_</label>, <label for="r22" class="ident">d</label> := <span class="keyword">range</span> <label for="r20" class="ident">file</label>.<a href="../ast/ast.go.html#line-1057" class="ident">Decls</a> {</code></span>
+<span class="codeline" id="line-119"><code>		<label for="r23" class="ident">d</label>, <label for="r24" class="ident">ok</label> := <label for="r22" class="ident">d</label>.(*<a href="../../../pkg/go/ast.html" class="ident i2">ast</a>.<a href="../ast/ast.go.html#line-984" class="ident">GenDecl</a>)</code></span>
+<span class="codeline" id="line-120"><code>		<span class="keyword">if</span> !<label for="r24" class="ident">ok</label> || <label for="r23" class="ident">d</label>.<a href="../ast/ast.go.html#line-987" class="ident">Tok</a> != <a href="../../../pkg/go/token.html" class="ident i5">token</a>.<a href="../token/token.go.html#line-113" class="ident">IMPORT</a> {</code></span>
+<span class="codeline" id="line-121"><code>			<span class="comment">// Not an import declaration, so we're done.</span></code></span>
+<span class="codeline" id="line-122"><code><span class="comment">			// Imports are always first.</span></code></span>
+<span class="codeline" id="line-123"><code>			<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-124"><code>		}</code></span>
+<span class="codeline" id="line-125"><code>		<span class="keyword">if</span> <label for="r23" class="ident">d</label>.<a href="../ast/ast.go.html#line-988" class="ident">Lparen</a>.<a href="../token/position.go.html#line-92" class="ident">IsValid</a>() {</code></span>
+<span class="codeline" id="line-126"><code>			<span class="comment">// For now assume all grouped imports are unsorted.</span></code></span>
+<span class="codeline" id="line-127"><code><span class="comment">			// TODO(gri) Should check if they are sorted already.</span></code></span>
+<span class="codeline" id="line-128"><code>			<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-129"><code>		}</code></span>
+<span class="codeline" id="line-130"><code>		<span class="comment">// Ungrouped imports are sorted by default.</span></code></span>
+<span class="codeline" id="line-131"><code>	}</code></span>
+<span class="codeline" id="line-132"><code>	<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-133"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: codes.go in package google.golang.org/grpc/codes</title>
+<link href="../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	codes.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../pkg/google.golang.org/grpc/codes.html">google.golang.org/grpc/codes</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">/*</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment"> * Copyright 2014 gRPC authors.</span></code></span>
+<span class="codeline" id="line-4"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-5"><code><span class="comment"> * Licensed under the Apache License, Version 2.0 (the "License");</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment"> * you may not use this file except in compliance with the License.</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment"> * You may obtain a copy of the License at</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment"> *     http://www.apache.org/licenses/LICENSE-2.0</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment"> * Unless required by applicable law or agreed to in writing, software</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment"> * distributed under the License is distributed on an "AS IS" BASIS,</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment"> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment"> * See the License for the specific language governing permissions and</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment"> * limitations under the License.</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment"> */</span></code></span>
+<span class="codeline" id="line-18"><code></code></span>
+<div class="anchor" id="doc"><span class="codeline" id="line-19"><code><span class="comment">// Package codes defines the canonical error codes used by gRPC. It is</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">// consistent across various languages.</span></code></span></div><span class="codeline" id="line-21"><code><span class="keyword">package</span> codes <span class="comment">// import "google.golang.org/grpc/codes"</span></code></span>
+<span class="codeline" id="line-22"><code></code></span>
+<span class="codeline" id="line-23"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-24"><code>	<label for="i0"><span class="lit-string i0">"fmt"</span></label></code></span>
+<span class="codeline" id="line-25"><code>	<label for="i1"><span class="lit-string i1">"strconv"</span></label></code></span>
+<span class="codeline" id="line-26"><code>)</code></span>
+<span class="codeline" id="line-27"><code></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">// A Code is an unsigned 32-bit error code as defined in the gRPC spec.</span></code></span>
+<span class="codeline" id="line-29"><code><span class="keyword">type</span> <a href="../../../../pkg/google.golang.org/grpc/codes.html#name-Code" class="ident">Code</a> <a href="../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a></code></span>
+<span class="codeline" id="line-30"><code></code></span>
+<span class="codeline" id="line-31"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-32"><code>	<span class="comment">// OK is returned on success.</span></code></span>
+<span class="codeline" id="line-33"><code>	<a href="../../../../pkg/google.golang.org/grpc/codes.html#name-OK" class="ident">OK</a> <a href="#line-29" class="ident">Code</a> = <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-34"><code></code></span>
+<span class="codeline" id="line-35"><code>	<span class="comment">// Canceled indicates the operation was canceled (typically by the caller).</span></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">	// The gRPC framework will generate this error code when cancellation</span></code></span>
+<span class="codeline" id="line-38"><code><span class="comment">	// is requested.</span></code></span>
+<span class="codeline" id="line-39"><code>	<a href="../../../../pkg/google.golang.org/grpc/codes.html#name-Canceled" class="ident">Canceled</a> <a href="#line-29" class="ident">Code</a> = <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-40"><code></code></span>
+<span class="codeline" id="line-41"><code>	<span class="comment">// Unknown error. An example of where this error may be returned is</span></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">	// if a Status value received from another address space belongs to</span></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">	// an error-space that is not known in this address space. Also</span></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">	// errors raised by APIs that do not return enough error information</span></code></span>
+<span class="codeline" id="line-45"><code><span class="comment">	// may be converted to this error.</span></code></span>
+<span class="codeline" id="line-46"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-47"><code><span class="comment">	// The gRPC framework will generate this error code in the above two</span></code></span>
+<span class="codeline" id="line-48"><code><span class="comment">	// mentioned cases.</span></code></span>
+<span class="codeline" id="line-49"><code>	<a href="../../../../pkg/google.golang.org/grpc/codes.html#name-Unknown" class="ident">Unknown</a> <a href="#line-29" class="ident">Code</a> = <span class="lit-number">2</span></code></span>
+<span class="codeline" id="line-50"><code></code></span>
+<span class="codeline" id="line-51"><code>	<span class="comment">// InvalidArgument indicates client specified an invalid argument.</span></code></span>
+<span class="codeline" id="line-52"><code><span class="comment">	// Note that this differs from FailedPrecondition. It indicates arguments</span></code></span>
+<span class="codeline" id="line-53"><code><span class="comment">	// that are problematic regardless of the state of the system</span></code></span>
+<span class="codeline" id="line-54"><code><span class="comment">	// (e.g., a malformed file name).</span></code></span>
+<span class="codeline" id="line-55"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-56"><code><span class="comment">	// This error code will not be generated by the gRPC framework.</span></code></span>
+<span class="codeline" id="line-57"><code>	<a href="../../../../pkg/google.golang.org/grpc/codes.html#name-InvalidArgument" class="ident">InvalidArgument</a> <a href="#line-29" class="ident">Code</a> = <span class="lit-number">3</span></code></span>
+<span class="codeline" id="line-58"><code></code></span>
+<span class="codeline" id="line-59"><code>	<span class="comment">// DeadlineExceeded means operation expired before completion.</span></code></span>
+<span class="codeline" id="line-60"><code><span class="comment">	// For operations that change the state of the system, this error may be</span></code></span>
+<span class="codeline" id="line-61"><code><span class="comment">	// returned even if the operation has completed successfully. For</span></code></span>
+<span class="codeline" id="line-62"><code><span class="comment">	// example, a successful response from a server could have been delayed</span></code></span>
+<span class="codeline" id="line-63"><code><span class="comment">	// long enough for the deadline to expire.</span></code></span>
+<span class="codeline" id="line-64"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-65"><code><span class="comment">	// The gRPC framework will generate this error code when the deadline is</span></code></span>
+<span class="codeline" id="line-66"><code><span class="comment">	// exceeded.</span></code></span>
+<span class="codeline" id="line-67"><code>	<a href="../../../../pkg/google.golang.org/grpc/codes.html#name-DeadlineExceeded" class="ident">DeadlineExceeded</a> <a href="#line-29" class="ident">Code</a> = <span class="lit-number">4</span></code></span>
+<span class="codeline" id="line-68"><code></code></span>
+<span class="codeline" id="line-69"><code>	<span class="comment">// NotFound means some requested entity (e.g., file or directory) was</span></code></span>
+<span class="codeline" id="line-70"><code><span class="comment">	// not found.</span></code></span>
+<span class="codeline" id="line-71"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-72"><code><span class="comment">	// This error code will not be generated by the gRPC framework.</span></code></span>
+<span class="codeline" id="line-73"><code>	<a href="../../../../pkg/google.golang.org/grpc/codes.html#name-NotFound" class="ident">NotFound</a> <a href="#line-29" class="ident">Code</a> = <span class="lit-number">5</span></code></span>
+<span class="codeline" id="line-74"><code></code></span>
+<span class="codeline" id="line-75"><code>	<span class="comment">// AlreadyExists means an attempt to create an entity failed because one</span></code></span>
+<span class="codeline" id="line-76"><code><span class="comment">	// already exists.</span></code></span>
+<span class="codeline" id="line-77"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-78"><code><span class="comment">	// This error code will not be generated by the gRPC framework.</span></code></span>
+<span class="codeline" id="line-79"><code>	<a href="../../../../pkg/google.golang.org/grpc/codes.html#name-AlreadyExists" class="ident">AlreadyExists</a> <a href="#line-29" class="ident">Code</a> = <span class="lit-number">6</span></code></span>
+<span class="codeline" id="line-80"><code></code></span>
+<span class="codeline" id="line-81"><code>	<span class="comment">// PermissionDenied indicates the caller does not have permission to</span></code></span>
+<span class="codeline" id="line-82"><code><span class="comment">	// execute the specified operation. It must not be used for rejections</span></code></span>
+<span class="codeline" id="line-83"><code><span class="comment">	// caused by exhausting some resource (use ResourceExhausted</span></code></span>
+<span class="codeline" id="line-84"><code><span class="comment">	// instead for those errors). It must not be</span></code></span>
+<span class="codeline" id="line-85"><code><span class="comment">	// used if the caller cannot be identified (use Unauthenticated</span></code></span>
+<span class="codeline" id="line-86"><code><span class="comment">	// instead for those errors).</span></code></span>
+<span class="codeline" id="line-87"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-88"><code><span class="comment">	// This error code will not be generated by the gRPC core framework,</span></code></span>
+<span class="codeline" id="line-89"><code><span class="comment">	// but expect authentication middleware to use it.</span></code></span>
+<span class="codeline" id="line-90"><code>	<a href="../../../../pkg/google.golang.org/grpc/codes.html#name-PermissionDenied" class="ident">PermissionDenied</a> <a href="#line-29" class="ident">Code</a> = <span class="lit-number">7</span></code></span>
+<span class="codeline" id="line-91"><code></code></span>
+<span class="codeline" id="line-92"><code>	<span class="comment">// ResourceExhausted indicates some resource has been exhausted, perhaps</span></code></span>
+<span class="codeline" id="line-93"><code><span class="comment">	// a per-user quota, or perhaps the entire file system is out of space.</span></code></span>
+<span class="codeline" id="line-94"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-95"><code><span class="comment">	// This error code will be generated by the gRPC framework in</span></code></span>
+<span class="codeline" id="line-96"><code><span class="comment">	// out-of-memory and server overload situations, or when a message is</span></code></span>
+<span class="codeline" id="line-97"><code><span class="comment">	// larger than the configured maximum size.</span></code></span>
+<span class="codeline" id="line-98"><code>	<a href="../../../../pkg/google.golang.org/grpc/codes.html#name-ResourceExhausted" class="ident">ResourceExhausted</a> <a href="#line-29" class="ident">Code</a> = <span class="lit-number">8</span></code></span>
+<span class="codeline" id="line-99"><code></code></span>
+<span class="codeline" id="line-100"><code>	<span class="comment">// FailedPrecondition indicates operation was rejected because the</span></code></span>
+<span class="codeline" id="line-101"><code><span class="comment">	// system is not in a state required for the operation's execution.</span></code></span>
+<span class="codeline" id="line-102"><code><span class="comment">	// For example, directory to be deleted may be non-empty, an rmdir</span></code></span>
+<span class="codeline" id="line-103"><code><span class="comment">	// operation is applied to a non-directory, etc.</span></code></span>
+<span class="codeline" id="line-104"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-105"><code><span class="comment">	// A litmus test that may help a service implementor in deciding</span></code></span>
+<span class="codeline" id="line-106"><code><span class="comment">	// between FailedPrecondition, Aborted, and Unavailable:</span></code></span>
+<span class="codeline" id="line-107"><code><span class="comment">	//  (a) Use Unavailable if the client can retry just the failing call.</span></code></span>
+<span class="codeline" id="line-108"><code><span class="comment">	//  (b) Use Aborted if the client should retry at a higher-level</span></code></span>
+<span class="codeline" id="line-109"><code><span class="comment">	//      (e.g., restarting a read-modify-write sequence).</span></code></span>
+<span class="codeline" id="line-110"><code><span class="comment">	//  (c) Use FailedPrecondition if the client should not retry until</span></code></span>
+<span class="codeline" id="line-111"><code><span class="comment">	//      the system state has been explicitly fixed. E.g., if an "rmdir"</span></code></span>
+<span class="codeline" id="line-112"><code><span class="comment">	//      fails because the directory is non-empty, FailedPrecondition</span></code></span>
+<span class="codeline" id="line-113"><code><span class="comment">	//      should be returned since the client should not retry unless</span></code></span>
+<span class="codeline" id="line-114"><code><span class="comment">	//      they have first fixed up the directory by deleting files from it.</span></code></span>
+<span class="codeline" id="line-115"><code><span class="comment">	//  (d) Use FailedPrecondition if the client performs conditional</span></code></span>
+<span class="codeline" id="line-116"><code><span class="comment">	//      REST Get/Update/Delete on a resource and the resource on the</span></code></span>
+<span class="codeline" id="line-117"><code><span class="comment">	//      server does not match the condition. E.g., conflicting</span></code></span>
+<span class="codeline" id="line-118"><code><span class="comment">	//      read-modify-write on the same resource.</span></code></span>
+<span class="codeline" id="line-119"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-120"><code><span class="comment">	// This error code will not be generated by the gRPC framework.</span></code></span>
+<span class="codeline" id="line-121"><code>	<a href="../../../../pkg/google.golang.org/grpc/codes.html#name-FailedPrecondition" class="ident">FailedPrecondition</a> <a href="#line-29" class="ident">Code</a> = <span class="lit-number">9</span></code></span>
+<span class="codeline" id="line-122"><code></code></span>
+<span class="codeline" id="line-123"><code>	<span class="comment">// Aborted indicates the operation was aborted, typically due to a</span></code></span>
+<span class="codeline" id="line-124"><code><span class="comment">	// concurrency issue like sequencer check failures, transaction aborts,</span></code></span>
+<span class="codeline" id="line-125"><code><span class="comment">	// etc.</span></code></span>
+<span class="codeline" id="line-126"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-127"><code><span class="comment">	// See litmus test above for deciding between FailedPrecondition,</span></code></span>
+<span class="codeline" id="line-128"><code><span class="comment">	// Aborted, and Unavailable.</span></code></span>
+<span class="codeline" id="line-129"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-130"><code><span class="comment">	// This error code will not be generated by the gRPC framework.</span></code></span>
+<span class="codeline" id="line-131"><code>	<a href="../../../../pkg/google.golang.org/grpc/codes.html#name-Aborted" class="ident">Aborted</a> <a href="#line-29" class="ident">Code</a> = <span class="lit-number">10</span></code></span>
+<span class="codeline" id="line-132"><code></code></span>
+<span class="codeline" id="line-133"><code>	<span class="comment">// OutOfRange means operation was attempted past the valid range.</span></code></span>
+<span class="codeline" id="line-134"><code><span class="comment">	// E.g., seeking or reading past end of file.</span></code></span>
+<span class="codeline" id="line-135"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-136"><code><span class="comment">	// Unlike InvalidArgument, this error indicates a problem that may</span></code></span>
+<span class="codeline" id="line-137"><code><span class="comment">	// be fixed if the system state changes. For example, a 32-bit file</span></code></span>
+<span class="codeline" id="line-138"><code><span class="comment">	// system will generate InvalidArgument if asked to read at an</span></code></span>
+<span class="codeline" id="line-139"><code><span class="comment">	// offset that is not in the range [0,2^32-1], but it will generate</span></code></span>
+<span class="codeline" id="line-140"><code><span class="comment">	// OutOfRange if asked to read from an offset past the current</span></code></span>
+<span class="codeline" id="line-141"><code><span class="comment">	// file size.</span></code></span>
+<span class="codeline" id="line-142"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-143"><code><span class="comment">	// There is a fair bit of overlap between FailedPrecondition and</span></code></span>
+<span class="codeline" id="line-144"><code><span class="comment">	// OutOfRange. We recommend using OutOfRange (the more specific</span></code></span>
+<span class="codeline" id="line-145"><code><span class="comment">	// error) when it applies so that callers who are iterating through</span></code></span>
+<span class="codeline" id="line-146"><code><span class="comment">	// a space can easily look for an OutOfRange error to detect when</span></code></span>
+<span class="codeline" id="line-147"><code><span class="comment">	// they are done.</span></code></span>
+<span class="codeline" id="line-148"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-149"><code><span class="comment">	// This error code will not be generated by the gRPC framework.</span></code></span>
+<span class="codeline" id="line-150"><code>	<a href="../../../../pkg/google.golang.org/grpc/codes.html#name-OutOfRange" class="ident">OutOfRange</a> <a href="#line-29" class="ident">Code</a> = <span class="lit-number">11</span></code></span>
+<span class="codeline" id="line-151"><code></code></span>
+<span class="codeline" id="line-152"><code>	<span class="comment">// Unimplemented indicates operation is not implemented or not</span></code></span>
+<span class="codeline" id="line-153"><code><span class="comment">	// supported/enabled in this service.</span></code></span>
+<span class="codeline" id="line-154"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-155"><code><span class="comment">	// This error code will be generated by the gRPC framework. Most</span></code></span>
+<span class="codeline" id="line-156"><code><span class="comment">	// commonly, you will see this error code when a method implementation</span></code></span>
+<span class="codeline" id="line-157"><code><span class="comment">	// is missing on the server. It can also be generated for unknown</span></code></span>
+<span class="codeline" id="line-158"><code><span class="comment">	// compression algorithms or a disagreement as to whether an RPC should</span></code></span>
+<span class="codeline" id="line-159"><code><span class="comment">	// be streaming.</span></code></span>
+<span class="codeline" id="line-160"><code>	<a href="../../../../pkg/google.golang.org/grpc/codes.html#name-Unimplemented" class="ident">Unimplemented</a> <a href="#line-29" class="ident">Code</a> = <span class="lit-number">12</span></code></span>
+<span class="codeline" id="line-161"><code></code></span>
+<span class="codeline" id="line-162"><code>	<span class="comment">// Internal errors. Means some invariants expected by underlying</span></code></span>
+<span class="codeline" id="line-163"><code><span class="comment">	// system has been broken. If you see one of these errors,</span></code></span>
+<span class="codeline" id="line-164"><code><span class="comment">	// something is very broken.</span></code></span>
+<span class="codeline" id="line-165"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-166"><code><span class="comment">	// This error code will be generated by the gRPC framework in several</span></code></span>
+<span class="codeline" id="line-167"><code><span class="comment">	// internal error conditions.</span></code></span>
+<span class="codeline" id="line-168"><code>	<a href="../../../../pkg/google.golang.org/grpc/codes.html#name-Internal" class="ident">Internal</a> <a href="#line-29" class="ident">Code</a> = <span class="lit-number">13</span></code></span>
+<span class="codeline" id="line-169"><code></code></span>
+<span class="codeline" id="line-170"><code>	<span class="comment">// Unavailable indicates the service is currently unavailable.</span></code></span>
+<span class="codeline" id="line-171"><code><span class="comment">	// This is a most likely a transient condition and may be corrected</span></code></span>
+<span class="codeline" id="line-172"><code><span class="comment">	// by retrying with a backoff. Note that it is not always safe to retry</span></code></span>
+<span class="codeline" id="line-173"><code><span class="comment">	// non-idempotent operations.</span></code></span>
+<span class="codeline" id="line-174"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-175"><code><span class="comment">	// See litmus test above for deciding between FailedPrecondition,</span></code></span>
+<span class="codeline" id="line-176"><code><span class="comment">	// Aborted, and Unavailable.</span></code></span>
+<span class="codeline" id="line-177"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-178"><code><span class="comment">	// This error code will be generated by the gRPC framework during</span></code></span>
+<span class="codeline" id="line-179"><code><span class="comment">	// abrupt shutdown of a server process or network connection.</span></code></span>
+<span class="codeline" id="line-180"><code>	<a href="../../../../pkg/google.golang.org/grpc/codes.html#name-Unavailable" class="ident">Unavailable</a> <a href="#line-29" class="ident">Code</a> = <span class="lit-number">14</span></code></span>
+<span class="codeline" id="line-181"><code></code></span>
+<span class="codeline" id="line-182"><code>	<span class="comment">// DataLoss indicates unrecoverable data loss or corruption.</span></code></span>
+<span class="codeline" id="line-183"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-184"><code><span class="comment">	// This error code will not be generated by the gRPC framework.</span></code></span>
+<span class="codeline" id="line-185"><code>	<a href="../../../../pkg/google.golang.org/grpc/codes.html#name-DataLoss" class="ident">DataLoss</a> <a href="#line-29" class="ident">Code</a> = <span class="lit-number">15</span></code></span>
+<span class="codeline" id="line-186"><code></code></span>
+<span class="codeline" id="line-187"><code>	<span class="comment">// Unauthenticated indicates the request does not have valid</span></code></span>
+<span class="codeline" id="line-188"><code><span class="comment">	// authentication credentials for the operation.</span></code></span>
+<span class="codeline" id="line-189"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-190"><code><span class="comment">	// The gRPC framework will generate this error code when the</span></code></span>
+<span class="codeline" id="line-191"><code><span class="comment">	// authentication metadata is invalid or a Credentials callback fails,</span></code></span>
+<span class="codeline" id="line-192"><code><span class="comment">	// but also expect authentication middleware to generate it.</span></code></span>
+<span class="codeline" id="line-193"><code>	<a href="../../../../pkg/google.golang.org/grpc/codes.html#name-Unauthenticated" class="ident">Unauthenticated</a> <a href="#line-29" class="ident">Code</a> = <span class="lit-number">16</span></code></span>
+<span class="codeline" id="line-194"><code></code></span>
+<span class="codeline" id="line-195"><code>	<a href="../../../../pkg/google.golang.org/grpc/codes.html#name-_maxCode" class="ident">_maxCode</a> = <span class="lit-number">17</span></code></span>
+<span class="codeline" id="line-196"><code>)</code></span>
+<span class="codeline" id="line-197"><code></code></span>
+<span class="codeline" id="line-198"><code><span class="keyword">var</span> <a href="../../../../pkg/google.golang.org/grpc/codes.html#name-strToCode" class="ident">strToCode</a> = <span class="keyword">map</span>[<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>]<a href="#line-29" class="ident">Code</a>{</code></span>
+<span class="codeline" id="line-199"><code>	<span class="lit-string">`"OK"`</span>: <a href="#line-33" class="ident">OK</a>,</code></span>
+<span class="codeline" id="line-200"><code>	<span class="lit-string">`"CANCELLED"`</span>:<span class="comment">/* [sic] */</span> <a href="#line-39" class="ident">Canceled</a>,</code></span>
+<span class="codeline" id="line-201"><code>	<span class="lit-string">`"UNKNOWN"`</span>:             <a href="#line-49" class="ident">Unknown</a>,</code></span>
+<span class="codeline" id="line-202"><code>	<span class="lit-string">`"INVALID_ARGUMENT"`</span>:    <a href="#line-57" class="ident">InvalidArgument</a>,</code></span>
+<span class="codeline" id="line-203"><code>	<span class="lit-string">`"DEADLINE_EXCEEDED"`</span>:   <a href="#line-67" class="ident">DeadlineExceeded</a>,</code></span>
+<span class="codeline" id="line-204"><code>	<span class="lit-string">`"NOT_FOUND"`</span>:           <a href="#line-73" class="ident">NotFound</a>,</code></span>
+<span class="codeline" id="line-205"><code>	<span class="lit-string">`"ALREADY_EXISTS"`</span>:      <a href="#line-79" class="ident">AlreadyExists</a>,</code></span>
+<span class="codeline" id="line-206"><code>	<span class="lit-string">`"PERMISSION_DENIED"`</span>:   <a href="#line-90" class="ident">PermissionDenied</a>,</code></span>
+<span class="codeline" id="line-207"><code>	<span class="lit-string">`"RESOURCE_EXHAUSTED"`</span>:  <a href="#line-98" class="ident">ResourceExhausted</a>,</code></span>
+<span class="codeline" id="line-208"><code>	<span class="lit-string">`"FAILED_PRECONDITION"`</span>: <a href="#line-121" class="ident">FailedPrecondition</a>,</code></span>
+<span class="codeline" id="line-209"><code>	<span class="lit-string">`"ABORTED"`</span>:             <a href="#line-131" class="ident">Aborted</a>,</code></span>
+<span class="codeline" id="line-210"><code>	<span class="lit-string">`"OUT_OF_RANGE"`</span>:        <a href="#line-150" class="ident">OutOfRange</a>,</code></span>
+<span class="codeline" id="line-211"><code>	<span class="lit-string">`"UNIMPLEMENTED"`</span>:       <a href="#line-160" class="ident">Unimplemented</a>,</code></span>
+<span class="codeline" id="line-212"><code>	<span class="lit-string">`"INTERNAL"`</span>:            <a href="#line-168" class="ident">Internal</a>,</code></span>
+<span class="codeline" id="line-213"><code>	<span class="lit-string">`"UNAVAILABLE"`</span>:         <a href="#line-180" class="ident">Unavailable</a>,</code></span>
+<span class="codeline" id="line-214"><code>	<span class="lit-string">`"DATA_LOSS"`</span>:           <a href="#line-185" class="ident">DataLoss</a>,</code></span>
+<span class="codeline" id="line-215"><code>	<span class="lit-string">`"UNAUTHENTICATED"`</span>:     <a href="#line-193" class="ident">Unauthenticated</a>,</code></span>
+<span class="codeline" id="line-216"><code>}</code></span>
+<span class="codeline" id="line-217"><code></code></span>
+<span class="codeline" id="line-218"><code><span class="comment">// UnmarshalJSON unmarshals b into the Code.</span></code></span>
+<span class="codeline" id="line-219"><code><span class="keyword">func</span> (<label for="r0" class="ident">c</label> *<a href="#line-29" class="ident">Code</a>) <label for="r1" class="ident"><a href="../../../../use/google.golang.org/grpc/codes..Code.UnmarshalJSON.html" class="ident">UnmarshalJSON</a></label>(<label for="r2" class="ident">b</label> []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-220"><code>	<span class="comment">// From json.Unmarshaler: By convention, to approximate the behavior of</span></code></span>
+<span class="codeline" id="line-221"><code><span class="comment">	// Unmarshal itself, Unmarshalers implement UnmarshalJSON([]byte("null")) as</span></code></span>
+<span class="codeline" id="line-222"><code><span class="comment">	// a no-op.</span></code></span>
+<span class="codeline" id="line-223"><code>	<span class="keyword">if</span> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>(<label for="r2" class="ident">b</label>) == <span class="lit-string">"null"</span> {</code></span>
+<span class="codeline" id="line-224"><code>		<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-225"><code>	}</code></span>
+<span class="codeline" id="line-226"><code>	<span class="keyword">if</span> <label for="r0" class="ident">c</label> == <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-227"><code>		<span class="keyword">return</span> <a href="../../../../pkg/fmt.html" class="ident i0">fmt</a>.<a href="../../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"nil receiver passed to UnmarshalJSON"</span>)</code></span>
+<span class="codeline" id="line-228"><code>	}</code></span>
+<span class="codeline" id="line-229"><code></code></span>
+<span class="codeline" id="line-230"><code>	<span class="keyword">if</span> <label for="r3" class="ident">ci</label>, <label for="r4" class="ident">err</label> := <a href="../../../../pkg/strconv.html" class="ident i1">strconv</a>.<a href="../../../strconv/atoi.go.html#line-73" class="ident">ParseUint</a>(<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>(<label for="r2" class="ident">b</label>), <span class="lit-number">10</span>, <span class="lit-number">32</span>); <label for="r4" class="ident">err</label> == <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-231"><code>		<span class="keyword">if</span> <label for="r3" class="ident">ci</label> &gt;= <a href="#line-195" class="ident">_maxCode</a> {</code></span>
+<span class="codeline" id="line-232"><code>			<span class="keyword">return</span> <a href="../../../../pkg/fmt.html" class="ident i0">fmt</a>.<a href="../../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"invalid code: %q"</span>, <label for="r3" class="ident">ci</label>)</code></span>
+<span class="codeline" id="line-233"><code>		}</code></span>
+<span class="codeline" id="line-234"><code></code></span>
+<span class="codeline" id="line-235"><code>		*<label for="r0" class="ident">c</label> = <a href="#line-29" class="ident">Code</a>(<label for="r3" class="ident">ci</label>)</code></span>
+<span class="codeline" id="line-236"><code>		<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-237"><code>	}</code></span>
+<span class="codeline" id="line-238"><code></code></span>
+<span class="codeline" id="line-239"><code>	<span class="keyword">if</span> <label for="r5" class="ident">jc</label>, <label for="r6" class="ident">ok</label> := <a href="#line-198" class="ident">strToCode</a>[<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>(<label for="r2" class="ident">b</label>)]; <label for="r6" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-240"><code>		*<label for="r0" class="ident">c</label> = <label for="r5" class="ident">jc</label></code></span>
+<span class="codeline" id="line-241"><code>		<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-242"><code>	}</code></span>
+<span class="codeline" id="line-243"><code>	<span class="keyword">return</span> <a href="../../../../pkg/fmt.html" class="ident i0">fmt</a>.<a href="../../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"invalid code: %q"</span>, <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>(<label for="r2" class="ident">b</label>))</code></span>
+<span class="codeline" id="line-244"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

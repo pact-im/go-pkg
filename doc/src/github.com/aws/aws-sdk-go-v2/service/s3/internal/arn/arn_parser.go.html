@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: arn_parser.go in package github.com/aws/aws-sdk-go-v2/service/s3/internal/arn</title>
+<link href="../../../../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	arn_parser.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/s3/internal/arn.html">github.com/aws/aws-sdk-go-v2/service/s3/internal/arn</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="keyword">package</span> arn</code></span>
+<span class="codeline" id="line-2"><code></code></span>
+<span class="codeline" id="line-3"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-4"><code>	<label for="i0"><span class="lit-string i0">"fmt"</span></label></code></span>
+<span class="codeline" id="line-5"><code>	<label for="i1"><span class="lit-string i1">"strings"</span></label></code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code>	<a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws/arn.html" class="ident i2">awsarn</a> <label for="i2"><span class="lit-string i2">"github.com/aws/aws-sdk-go-v2/aws/arn"</span></label></code></span>
+<span class="codeline" id="line-8"><code>	<label for="i3"><span class="lit-string i3">"github.com/aws/aws-sdk-go-v2/service/internal/s3shared/arn"</span></label></code></span>
+<span class="codeline" id="line-9"><code>)</code></span>
+<span class="codeline" id="line-10"><code></code></span>
+<span class="codeline" id="line-11"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-12"><code>	<a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/s3/internal/arn.html#name-s3Namespace" class="ident">s3Namespace</a>              = <span class="lit-string">"s3"</span></code></span>
+<span class="codeline" id="line-13"><code>	<a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/s3/internal/arn.html#name-s3ObjectsLambdaNamespace" class="ident">s3ObjectsLambdaNamespace</a> = <span class="lit-string">"s3-object-lambda"</span></code></span>
+<span class="codeline" id="line-14"><code>	<a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/s3/internal/arn.html#name-s3OutpostsNamespace" class="ident">s3OutpostsNamespace</a>      = <span class="lit-string">"s3-outposts"</span></code></span>
+<span class="codeline" id="line-15"><code>)</code></span>
+<span class="codeline" id="line-16"><code></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">// ParseEndpointARN parses a given generic aws ARN into a s3 arn resource.</span></code></span>
+<span class="codeline" id="line-18"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/s3/internal/arn.html#name-ParseEndpointARN" class="ident">ParseEndpointARN</a></label>(<label for="r1" class="ident">v</label> <a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws/arn.html" class="ident i2">awsarn</a>.<a href="../../../../aws/arn/arn.go.html#line-28" class="ident">ARN</a>) (<a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/internal/s3shared/arn.html" class="ident i3">arn</a>.<a href="../../../internal/s3shared/arn/arn.go.html#line-27" class="ident">Resource</a>, <a href="../../../../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-19"><code>	<span class="keyword">return</span> <a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/internal/s3shared/arn.html" class="ident i3">arn</a>.<a href="../../../internal/s3shared/arn/arn.go.html#line-37" class="ident">ParseResource</a>(<label for="r1" class="ident">v</label>, <a href="#line-22" class="ident">accessPointResourceParser</a>)</code></span>
+<span class="codeline" id="line-20"><code>}</code></span>
+<span class="codeline" id="line-21"><code></code></span>
+<span class="codeline" id="line-22"><code><span class="keyword">func</span> <label for="r2" class="ident"><a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/s3/internal/arn.html#name-accessPointResourceParser" class="ident">accessPointResourceParser</a></label>(<label for="r3" class="ident">a</label> <a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws/arn.html" class="ident i2">awsarn</a>.<a href="../../../../aws/arn/arn.go.html#line-28" class="ident">ARN</a>) (<a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/internal/s3shared/arn.html" class="ident i3">arn</a>.<a href="../../../internal/s3shared/arn/arn.go.html#line-27" class="ident">Resource</a>, <a href="../../../../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-23"><code>	<label for="r4" class="ident">resParts</label> := <a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/internal/s3shared/arn.html" class="ident i3">arn</a>.<a href="../../../internal/s3shared/arn/arn.go.html#line-54" class="ident">SplitResource</a>(<label for="r3" class="ident">a</label>.<a href="../../../../aws/arn/arn.go.html#line-51" class="ident">Resource</a>)</code></span>
+<span class="codeline" id="line-24"><code></code></span>
+<span class="codeline" id="line-25"><code>	<span class="keyword">switch</span> <label for="r4" class="ident">resParts</label>[<span class="lit-number">0</span>] {</code></span>
+<span class="codeline" id="line-26"><code>	<span class="keyword">case</span> <span class="lit-string">"accesspoint"</span>:</code></span>
+<span class="codeline" id="line-27"><code>		<span class="keyword">switch</span> <label for="r3" class="ident">a</label>.<a href="../../../../aws/arn/arn.go.html#line-37" class="ident">Service</a> {</code></span>
+<span class="codeline" id="line-28"><code>		<span class="keyword">case</span> <a href="#line-12" class="ident">s3Namespace</a>:</code></span>
+<span class="codeline" id="line-29"><code>			<span class="keyword">return</span> <a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/internal/s3shared/arn.html" class="ident i3">arn</a>.<a href="../../../internal/s3shared/arn/accesspoint_arn.go.html#line-26" class="ident">ParseAccessPointResource</a>(<label for="r3" class="ident">a</label>, <label for="r4" class="ident">resParts</label>[<span class="lit-number">1</span>:])</code></span>
+<span class="codeline" id="line-30"><code>		<span class="keyword">case</span> <a href="#line-13" class="ident">s3ObjectsLambdaNamespace</a>:</code></span>
+<span class="codeline" id="line-31"><code>			<span class="keyword">return</span> <a href="#line-89" class="ident">parseS3ObjectLambdaAccessPointResource</a>(<label for="r3" class="ident">a</label>, <label for="r4" class="ident">resParts</label>)</code></span>
+<span class="codeline" id="line-32"><code>		<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-33"><code>			<span class="keyword">return</span> <a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/internal/s3shared/arn.html" class="ident i3">arn</a>.<a href="../../../internal/s3shared/arn/accesspoint_arn.go.html#line-10" class="ident">AccessPointARN</a>{}, <a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/internal/s3shared/arn.html" class="ident i3">arn</a>.<a href="../../../internal/s3shared/arn/arn.go.html#line-77" class="ident">InvalidARNError</a>{<a href="../../../internal/s3shared/arn/arn.go.html#line-78" class="ident">ARN</a>: <label for="r3" class="ident">a</label>, <a href="../../../internal/s3shared/arn/arn.go.html#line-79" class="ident">Reason</a>: <a href="../../../../../../../../pkg/fmt.html" class="ident i0">fmt</a>.<a href="../../../../../../../fmt/print.go.html#line-237" class="ident">Sprintf</a>(<span class="lit-string">"service is not %s or %s"</span>, <a href="#line-12" class="ident">s3Namespace</a>, <a href="#line-13" class="ident">s3ObjectsLambdaNamespace</a>)}</code></span>
+<span class="codeline" id="line-34"><code>		}</code></span>
+<span class="codeline" id="line-35"><code>	<span class="keyword">case</span> <span class="lit-string">"outpost"</span>:</code></span>
+<span class="codeline" id="line-36"><code>		<span class="keyword">if</span> <label for="r3" class="ident">a</label>.<a href="../../../../aws/arn/arn.go.html#line-37" class="ident">Service</a> != <a href="#line-14" class="ident">s3OutpostsNamespace</a> {</code></span>
+<span class="codeline" id="line-37"><code>			<span class="keyword">return</span> <a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/internal/s3shared/arn.html" class="ident i3">arn</a>.<a href="../../../internal/s3shared/arn/outpost_arn.go.html#line-84" class="ident">OutpostAccessPointARN</a>{}, <a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/internal/s3shared/arn.html" class="ident i3">arn</a>.<a href="../../../internal/s3shared/arn/arn.go.html#line-77" class="ident">InvalidARNError</a>{<a href="../../../internal/s3shared/arn/arn.go.html#line-78" class="ident">ARN</a>: <label for="r3" class="ident">a</label>, <a href="../../../internal/s3shared/arn/arn.go.html#line-79" class="ident">Reason</a>: <span class="lit-string">"service is not %s"</span>}</code></span>
+<span class="codeline" id="line-38"><code>		}</code></span>
+<span class="codeline" id="line-39"><code>		<span class="keyword">return</span> <a href="#line-45" class="ident">parseOutpostAccessPointResource</a>(<label for="r3" class="ident">a</label>, <label for="r4" class="ident">resParts</label>[<span class="lit-number">1</span>:])</code></span>
+<span class="codeline" id="line-40"><code>	<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-41"><code>		<span class="keyword">return</span> <a href="../../../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/internal/s3shared/arn.html" class="ident i3">arn</a>.<a href="../../../internal/s3shared/arn/arn.go.html#line-77" class="ident">InvalidARNError</a>{<a href="../../../internal/s3shared/arn/arn.go.html#line-78" class="ident">ARN</a>: <label for="r3" class="ident">a</label>, <a href="../../../internal/s3shared/arn/arn.go.html#line-79" class="ident">Reason</a>: <span class="lit-string">"unknown resource type"</span>}</code></span>
+<span class="codeline" id="line-42"><code>	}</code></span>
+<span class="codeline" id="line-43"><code>}</code></span>
+<span class="codeline" id="line-44"><code></code></span>
+<span class="codeline" id="line-45"><code><span class="keyword">func</span> <label for="r5" class="ident"><a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/s3/internal/arn.html#name-parseOutpostAccessPointResource" class="ident">parseOutpostAccessPointResource</a></label>(<label for="r6" class="ident">a</label> <a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws/arn.html" class="ident i2">awsarn</a>.<a href="../../../../aws/arn/arn.go.html#line-28" class="ident">ARN</a>, <label for="r7" class="ident">resParts</label> []<a href="../../../../../../../../pkg/builtin.html#name-string" class="ident">string</a>) (<a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/internal/s3shared/arn.html" class="ident i3">arn</a>.<a href="../../../internal/s3shared/arn/outpost_arn.go.html#line-84" class="ident">OutpostAccessPointARN</a>, <a href="../../../../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-46"><code>	<span class="comment">// outpost accesspoint arn is only valid if service is s3-outposts</span></code></span>
+<span class="codeline" id="line-47"><code>	<span class="keyword">if</span> <label for="r6" class="ident">a</label>.<a href="../../../../aws/arn/arn.go.html#line-37" class="ident">Service</a> != <span class="lit-string">"s3-outposts"</span> {</code></span>
+<span class="codeline" id="line-48"><code>		<span class="keyword">return</span> <a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/internal/s3shared/arn.html" class="ident i3">arn</a>.<a href="../../../internal/s3shared/arn/outpost_arn.go.html#line-84" class="ident">OutpostAccessPointARN</a>{}, <a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/internal/s3shared/arn.html" class="ident i3">arn</a>.<a href="../../../internal/s3shared/arn/arn.go.html#line-77" class="ident">InvalidARNError</a>{<a href="../../../internal/s3shared/arn/arn.go.html#line-78" class="ident">ARN</a>: <label for="r6" class="ident">a</label>, <a href="../../../internal/s3shared/arn/arn.go.html#line-79" class="ident">Reason</a>: <span class="lit-string">"service is not s3-outposts"</span>}</code></span>
+<span class="codeline" id="line-49"><code>	}</code></span>
+<span class="codeline" id="line-50"><code></code></span>
+<span class="codeline" id="line-51"><code>	<span class="keyword">if</span> <a href="../../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r7" class="ident">resParts</label>) == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-52"><code>		<span class="keyword">return</span> <a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/internal/s3shared/arn.html" class="ident i3">arn</a>.<a href="../../../internal/s3shared/arn/outpost_arn.go.html#line-84" class="ident">OutpostAccessPointARN</a>{}, <a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/internal/s3shared/arn.html" class="ident i3">arn</a>.<a href="../../../internal/s3shared/arn/arn.go.html#line-77" class="ident">InvalidARNError</a>{<a href="../../../internal/s3shared/arn/arn.go.html#line-78" class="ident">ARN</a>: <label for="r6" class="ident">a</label>, <a href="../../../internal/s3shared/arn/arn.go.html#line-79" class="ident">Reason</a>: <span class="lit-string">"outpost resource-id not set"</span>}</code></span>
+<span class="codeline" id="line-53"><code>	}</code></span>
+<span class="codeline" id="line-54"><code></code></span>
+<span class="codeline" id="line-55"><code>	<span class="keyword">if</span> <a href="../../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r7" class="ident">resParts</label>) &lt; <span class="lit-number">3</span> {</code></span>
+<span class="codeline" id="line-56"><code>		<span class="keyword">return</span> <a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/internal/s3shared/arn.html" class="ident i3">arn</a>.<a href="../../../internal/s3shared/arn/outpost_arn.go.html#line-84" class="ident">OutpostAccessPointARN</a>{}, <a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/internal/s3shared/arn.html" class="ident i3">arn</a>.<a href="../../../internal/s3shared/arn/arn.go.html#line-77" class="ident">InvalidARNError</a>{</code></span>
+<span class="codeline" id="line-57"><code>			<a href="../../../internal/s3shared/arn/arn.go.html#line-78" class="ident">ARN</a>: <label for="r6" class="ident">a</label>, <a href="../../../internal/s3shared/arn/arn.go.html#line-79" class="ident">Reason</a>: <span class="lit-string">"access-point resource not set in Outpost ARN"</span>,</code></span>
+<span class="codeline" id="line-58"><code>		}</code></span>
+<span class="codeline" id="line-59"><code>	}</code></span>
+<span class="codeline" id="line-60"><code></code></span>
+<span class="codeline" id="line-61"><code>	<label for="r8" class="ident">resID</label> := <a href="../../../../../../../../pkg/strings.html" class="ident i1">strings</a>.<a href="../../../../../../../strings/strings.go.html#line-1089" class="ident">TrimSpace</a>(<label for="r7" class="ident">resParts</label>[<span class="lit-number">0</span>])</code></span>
+<span class="codeline" id="line-62"><code>	<span class="keyword">if</span> <a href="../../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r8" class="ident">resID</label>) == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-63"><code>		<span class="keyword">return</span> <a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/internal/s3shared/arn.html" class="ident i3">arn</a>.<a href="../../../internal/s3shared/arn/outpost_arn.go.html#line-84" class="ident">OutpostAccessPointARN</a>{}, <a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/internal/s3shared/arn.html" class="ident i3">arn</a>.<a href="../../../internal/s3shared/arn/arn.go.html#line-77" class="ident">InvalidARNError</a>{<a href="../../../internal/s3shared/arn/arn.go.html#line-78" class="ident">ARN</a>: <label for="r6" class="ident">a</label>, <a href="../../../internal/s3shared/arn/arn.go.html#line-79" class="ident">Reason</a>: <span class="lit-string">"outpost resource-id not set"</span>}</code></span>
+<span class="codeline" id="line-64"><code>	}</code></span>
+<span class="codeline" id="line-65"><code></code></span>
+<span class="codeline" id="line-66"><code>	<span class="keyword">var</span> <label for="r9" class="ident">outpostAccessPointARN</label> = <a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/internal/s3shared/arn.html" class="ident i3">arn</a>.<a href="../../../internal/s3shared/arn/outpost_arn.go.html#line-84" class="ident">OutpostAccessPointARN</a>{}</code></span>
+<span class="codeline" id="line-67"><code>	<span class="keyword">switch</span> <label for="r7" class="ident">resParts</label>[<span class="lit-number">1</span>] {</code></span>
+<span class="codeline" id="line-68"><code>	<span class="keyword">case</span> <span class="lit-string">"accesspoint"</span>:</code></span>
+<span class="codeline" id="line-69"><code>		<span class="comment">// Do not allow region-less outpost access-point arns.</span></code></span>
+<span class="codeline" id="line-70"><code>		<span class="keyword">if</span> <a href="../../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r6" class="ident">a</label>.<a href="../../../../aws/arn/arn.go.html#line-41" class="ident">Region</a>) == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-71"><code>			<span class="keyword">return</span> <a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/internal/s3shared/arn.html" class="ident i3">arn</a>.<a href="../../../internal/s3shared/arn/outpost_arn.go.html#line-84" class="ident">OutpostAccessPointARN</a>{}, <a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/internal/s3shared/arn.html" class="ident i3">arn</a>.<a href="../../../internal/s3shared/arn/arn.go.html#line-77" class="ident">InvalidARNError</a>{<a href="../../../internal/s3shared/arn/arn.go.html#line-78" class="ident">ARN</a>: <label for="r6" class="ident">a</label>, <a href="../../../internal/s3shared/arn/arn.go.html#line-79" class="ident">Reason</a>: <span class="lit-string">"region is not set"</span>}</code></span>
+<span class="codeline" id="line-72"><code>		}</code></span>
+<span class="codeline" id="line-73"><code></code></span>
+<span class="codeline" id="line-74"><code>		<label for="r10" class="ident">accessPointARN</label>, <label for="r11" class="ident">err</label> := <a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/internal/s3shared/arn.html" class="ident i3">arn</a>.<a href="../../../internal/s3shared/arn/accesspoint_arn.go.html#line-26" class="ident">ParseAccessPointResource</a>(<label for="r6" class="ident">a</label>, <label for="r7" class="ident">resParts</label>[<span class="lit-number">2</span>:])</code></span>
+<span class="codeline" id="line-75"><code>		<span class="keyword">if</span> <label for="r11" class="ident">err</label> != <a href="../../../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-76"><code>			<span class="keyword">return</span> <a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/internal/s3shared/arn.html" class="ident i3">arn</a>.<a href="../../../internal/s3shared/arn/outpost_arn.go.html#line-84" class="ident">OutpostAccessPointARN</a>{}, <label for="r11" class="ident">err</label></code></span>
+<span class="codeline" id="line-77"><code>		}</code></span>
+<span class="codeline" id="line-78"><code>		<span class="comment">// set access-point arn</span></code></span>
+<span class="codeline" id="line-79"><code>		<label for="r9" class="ident">outpostAccessPointARN</label>.<a href="../../../internal/s3shared/arn/outpost_arn.go.html#line-85" class="ident">AccessPointARN</a> = <label for="r10" class="ident">accessPointARN</label></code></span>
+<span class="codeline" id="line-80"><code>	<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-81"><code>		<span class="keyword">return</span> <a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/internal/s3shared/arn.html" class="ident i3">arn</a>.<a href="../../../internal/s3shared/arn/outpost_arn.go.html#line-84" class="ident">OutpostAccessPointARN</a>{}, <a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/internal/s3shared/arn.html" class="ident i3">arn</a>.<a href="../../../internal/s3shared/arn/arn.go.html#line-77" class="ident">InvalidARNError</a>{<a href="../../../internal/s3shared/arn/arn.go.html#line-78" class="ident">ARN</a>: <label for="r6" class="ident">a</label>, <a href="../../../internal/s3shared/arn/arn.go.html#line-79" class="ident">Reason</a>: <span class="lit-string">"access-point resource not set in Outpost ARN"</span>}</code></span>
+<span class="codeline" id="line-82"><code>	}</code></span>
+<span class="codeline" id="line-83"><code></code></span>
+<span class="codeline" id="line-84"><code>	<span class="comment">// set outpost id</span></code></span>
+<span class="codeline" id="line-85"><code>	<label for="r9" class="ident">outpostAccessPointARN</label>.<a href="../../../internal/s3shared/arn/outpost_arn.go.html#line-86" class="ident">OutpostID</a> = <label for="r8" class="ident">resID</label></code></span>
+<span class="codeline" id="line-86"><code>	<span class="keyword">return</span> <label for="r9" class="ident">outpostAccessPointARN</label>, <a href="../../../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-87"><code>}</code></span>
+<span class="codeline" id="line-88"><code></code></span>
+<span class="codeline" id="line-89"><code><span class="keyword">func</span> <label for="r12" class="ident"><a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/s3/internal/arn.html#name-parseS3ObjectLambdaAccessPointResource" class="ident">parseS3ObjectLambdaAccessPointResource</a></label>(<label for="r13" class="ident">a</label> <a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws/arn.html" class="ident i2">awsarn</a>.<a href="../../../../aws/arn/arn.go.html#line-28" class="ident">ARN</a>, <label for="r14" class="ident">resParts</label> []<a href="../../../../../../../../pkg/builtin.html#name-string" class="ident">string</a>) (<a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/internal/s3shared/arn.html" class="ident i3">arn</a>.<a href="../../../internal/s3shared/arn/s3_object_lambda_arn.go.html#line-11" class="ident">S3ObjectLambdaAccessPointARN</a>, <a href="../../../../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-90"><code>	<span class="keyword">if</span> <label for="r13" class="ident">a</label>.<a href="../../../../aws/arn/arn.go.html#line-37" class="ident">Service</a> != <a href="#line-13" class="ident">s3ObjectsLambdaNamespace</a> {</code></span>
+<span class="codeline" id="line-91"><code>		<span class="keyword">return</span> <a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/internal/s3shared/arn.html" class="ident i3">arn</a>.<a href="../../../internal/s3shared/arn/s3_object_lambda_arn.go.html#line-11" class="ident">S3ObjectLambdaAccessPointARN</a>{}, <a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/internal/s3shared/arn.html" class="ident i3">arn</a>.<a href="../../../internal/s3shared/arn/arn.go.html#line-77" class="ident">InvalidARNError</a>{<a href="../../../internal/s3shared/arn/arn.go.html#line-78" class="ident">ARN</a>: <label for="r13" class="ident">a</label>, <a href="../../../internal/s3shared/arn/arn.go.html#line-79" class="ident">Reason</a>: <a href="../../../../../../../../pkg/fmt.html" class="ident i0">fmt</a>.<a href="../../../../../../../fmt/print.go.html#line-237" class="ident">Sprintf</a>(<span class="lit-string">"service is not %s"</span>, <a href="#line-13" class="ident">s3ObjectsLambdaNamespace</a>)}</code></span>
+<span class="codeline" id="line-92"><code>	}</code></span>
+<span class="codeline" id="line-93"><code></code></span>
+<span class="codeline" id="line-94"><code>	<span class="keyword">if</span> <a href="../../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r13" class="ident">a</label>.<a href="../../../../aws/arn/arn.go.html#line-41" class="ident">Region</a>) == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-95"><code>		<span class="keyword">return</span> <a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/internal/s3shared/arn.html" class="ident i3">arn</a>.<a href="../../../internal/s3shared/arn/s3_object_lambda_arn.go.html#line-11" class="ident">S3ObjectLambdaAccessPointARN</a>{}, <a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/internal/s3shared/arn.html" class="ident i3">arn</a>.<a href="../../../internal/s3shared/arn/arn.go.html#line-77" class="ident">InvalidARNError</a>{<a href="../../../internal/s3shared/arn/arn.go.html#line-78" class="ident">ARN</a>: <label for="r13" class="ident">a</label>, <a href="../../../internal/s3shared/arn/arn.go.html#line-79" class="ident">Reason</a>: <a href="../../../../../../../../pkg/fmt.html" class="ident i0">fmt</a>.<a href="../../../../../../../fmt/print.go.html#line-237" class="ident">Sprintf</a>(<span class="lit-string">"%s region not set"</span>, <a href="#line-13" class="ident">s3ObjectsLambdaNamespace</a>)}</code></span>
+<span class="codeline" id="line-96"><code>	}</code></span>
+<span class="codeline" id="line-97"><code></code></span>
+<span class="codeline" id="line-98"><code>	<label for="r15" class="ident">accessPointARN</label>, <label for="r16" class="ident">err</label> := <a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/internal/s3shared/arn.html" class="ident i3">arn</a>.<a href="../../../internal/s3shared/arn/accesspoint_arn.go.html#line-26" class="ident">ParseAccessPointResource</a>(<label for="r13" class="ident">a</label>, <label for="r14" class="ident">resParts</label>[<span class="lit-number">1</span>:])</code></span>
+<span class="codeline" id="line-99"><code>	<span class="keyword">if</span> <label for="r16" class="ident">err</label> != <a href="../../../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-100"><code>		<span class="keyword">return</span> <a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/internal/s3shared/arn.html" class="ident i3">arn</a>.<a href="../../../internal/s3shared/arn/s3_object_lambda_arn.go.html#line-11" class="ident">S3ObjectLambdaAccessPointARN</a>{}, <label for="r16" class="ident">err</label></code></span>
+<span class="codeline" id="line-101"><code>	}</code></span>
+<span class="codeline" id="line-102"><code></code></span>
+<span class="codeline" id="line-103"><code>	<span class="keyword">return</span> <a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/internal/s3shared/arn.html" class="ident i3">arn</a>.<a href="../../../internal/s3shared/arn/s3_object_lambda_arn.go.html#line-11" class="ident">S3ObjectLambdaAccessPointARN</a>{</code></span>
+<span class="codeline" id="line-104"><code>		<a href="../../../internal/s3shared/arn/s3_object_lambda_arn.go.html#line-12" class="ident">AccessPointARN</a>: <label for="r15" class="ident">accessPointARN</label>,</code></span>
+<span class="codeline" id="line-105"><code>	}, <a href="../../../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-106"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

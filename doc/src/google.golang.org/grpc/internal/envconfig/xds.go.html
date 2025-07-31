@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: xds.go in package google.golang.org/grpc/internal/envconfig</title>
+<link href="../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	xds.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../pkg/google.golang.org/grpc/internal/envconfig.html">google.golang.org/grpc/internal/envconfig</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0
+{background: brown; color: #eed;}
+</style><input id="i0" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">/*</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment"> * Copyright 2020 gRPC authors.</span></code></span>
+<span class="codeline" id="line-4"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-5"><code><span class="comment"> * Licensed under the Apache License, Version 2.0 (the "License");</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment"> * you may not use this file except in compliance with the License.</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment"> * You may obtain a copy of the License at</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment"> *     http://www.apache.org/licenses/LICENSE-2.0</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment"> * Unless required by applicable law or agreed to in writing, software</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment"> * distributed under the License is distributed on an "AS IS" BASIS,</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment"> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment"> * See the License for the specific language governing permissions and</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment"> * limitations under the License.</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment"> */</span></code></span>
+<span class="codeline" id="line-18"><code></code></span>
+<span class="codeline" id="line-19"><code><span class="keyword">package</span> envconfig</code></span>
+<span class="codeline" id="line-20"><code></code></span>
+<span class="codeline" id="line-21"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-22"><code>	<label for="i0"><span class="lit-string i0">"os"</span></label></code></span>
+<span class="codeline" id="line-23"><code>)</code></span>
+<span class="codeline" id="line-24"><code></code></span>
+<span class="codeline" id="line-25"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-26"><code>	<span class="comment">// XDSBootstrapFileNameEnv is the env variable to set bootstrap file name.</span></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">	// Do not use this and read from env directly. Its value is read and kept in</span></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">	// variable XDSBootstrapFileName.</span></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">	// When both bootstrap FileName and FileContent are set, FileName is used.</span></code></span>
+<span class="codeline" id="line-31"><code>	<a href="../../../../../pkg/google.golang.org/grpc/internal/envconfig.html#name-XDSBootstrapFileNameEnv" class="ident">XDSBootstrapFileNameEnv</a> = <span class="lit-string">"GRPC_XDS_BOOTSTRAP"</span></code></span>
+<span class="codeline" id="line-32"><code>	<span class="comment">// XDSBootstrapFileContentEnv is the env variable to set bootstrap file</span></code></span>
+<span class="codeline" id="line-33"><code><span class="comment">	// content. Do not use this and read from env directly. Its value is read</span></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">	// and kept in variable XDSBootstrapFileContent.</span></code></span>
+<span class="codeline" id="line-35"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">	// When both bootstrap FileName and FileContent are set, FileName is used.</span></code></span>
+<span class="codeline" id="line-37"><code>	<a href="../../../../../pkg/google.golang.org/grpc/internal/envconfig.html#name-XDSBootstrapFileContentEnv" class="ident">XDSBootstrapFileContentEnv</a> = <span class="lit-string">"GRPC_XDS_BOOTSTRAP_CONFIG"</span></code></span>
+<span class="codeline" id="line-38"><code>)</code></span>
+<span class="codeline" id="line-39"><code></code></span>
+<span class="codeline" id="line-40"><code><span class="keyword">var</span> (</code></span>
+<span class="codeline" id="line-41"><code>	<span class="comment">// XDSBootstrapFileName holds the name of the file which contains xDS</span></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">	// bootstrap configuration. Users can specify the location of the bootstrap</span></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">	// file by setting the environment variable "GRPC_XDS_BOOTSTRAP".</span></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-45"><code><span class="comment">	// When both bootstrap FileName and FileContent are set, FileName is used.</span></code></span>
+<span class="codeline" id="line-46"><code>	<a href="../../../../../pkg/google.golang.org/grpc/internal/envconfig.html#name-XDSBootstrapFileName" class="ident">XDSBootstrapFileName</a> = <a href="../../../../../pkg/os.html" class="ident i0">os</a>.<a href="../../../../os/env.go.html#line-101" class="ident">Getenv</a>(<a href="#line-31" class="ident">XDSBootstrapFileNameEnv</a>)</code></span>
+<span class="codeline" id="line-47"><code>	<span class="comment">// XDSBootstrapFileContent holds the content of the xDS bootstrap</span></code></span>
+<span class="codeline" id="line-48"><code><span class="comment">	// configuration. Users can specify the bootstrap config by setting the</span></code></span>
+<span class="codeline" id="line-49"><code><span class="comment">	// environment variable "GRPC_XDS_BOOTSTRAP_CONFIG".</span></code></span>
+<span class="codeline" id="line-50"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-51"><code><span class="comment">	// When both bootstrap FileName and FileContent are set, FileName is used.</span></code></span>
+<span class="codeline" id="line-52"><code>	<a href="../../../../../pkg/google.golang.org/grpc/internal/envconfig.html#name-XDSBootstrapFileContent" class="ident">XDSBootstrapFileContent</a> = <a href="../../../../../pkg/os.html" class="ident i0">os</a>.<a href="../../../../os/env.go.html#line-101" class="ident">Getenv</a>(<a href="#line-37" class="ident">XDSBootstrapFileContentEnv</a>)</code></span>
+<span class="codeline" id="line-53"><code>	<span class="comment">// XDSRingHash indicates whether ring hash support is enabled, which can be</span></code></span>
+<span class="codeline" id="line-54"><code><span class="comment">	// disabled by setting the environment variable</span></code></span>
+<span class="codeline" id="line-55"><code><span class="comment">	// "GRPC_XDS_EXPERIMENTAL_ENABLE_RING_HASH" to "false".</span></code></span>
+<span class="codeline" id="line-56"><code>	<a href="../../../../../pkg/google.golang.org/grpc/internal/envconfig.html#name-XDSRingHash" class="ident">XDSRingHash</a> = <a href="envconfig.go.html#line-41" class="ident">boolFromEnv</a>(<span class="lit-string">"GRPC_XDS_EXPERIMENTAL_ENABLE_RING_HASH"</span>, <a href="../../../../../pkg/builtin.html#name-true" class="ident">true</a>)</code></span>
+<span class="codeline" id="line-57"><code>	<span class="comment">// XDSClientSideSecurity is used to control processing of security</span></code></span>
+<span class="codeline" id="line-58"><code><span class="comment">	// configuration on the client-side.</span></code></span>
+<span class="codeline" id="line-59"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-60"><code><span class="comment">	// Note that there is no env var protection for the server-side because we</span></code></span>
+<span class="codeline" id="line-61"><code><span class="comment">	// have a brand new API on the server-side and users explicitly need to use</span></code></span>
+<span class="codeline" id="line-62"><code><span class="comment">	// the new API to get security integration on the server.</span></code></span>
+<span class="codeline" id="line-63"><code>	<a href="../../../../../pkg/google.golang.org/grpc/internal/envconfig.html#name-XDSClientSideSecurity" class="ident">XDSClientSideSecurity</a> = <a href="envconfig.go.html#line-41" class="ident">boolFromEnv</a>(<span class="lit-string">"GRPC_XDS_EXPERIMENTAL_SECURITY_SUPPORT"</span>, <a href="../../../../../pkg/builtin.html#name-true" class="ident">true</a>)</code></span>
+<span class="codeline" id="line-64"><code>	<span class="comment">// XDSAggregateAndDNS indicates whether processing of aggregated cluster</span></code></span>
+<span class="codeline" id="line-65"><code><span class="comment">	// and DNS cluster is enabled, which can be enabled by setting the</span></code></span>
+<span class="codeline" id="line-66"><code><span class="comment">	// environment variable</span></code></span>
+<span class="codeline" id="line-67"><code><span class="comment">	// "GRPC_XDS_EXPERIMENTAL_ENABLE_AGGREGATE_AND_LOGICAL_DNS_CLUSTER" to</span></code></span>
+<span class="codeline" id="line-68"><code><span class="comment">	// "true".</span></code></span>
+<span class="codeline" id="line-69"><code>	<a href="../../../../../pkg/google.golang.org/grpc/internal/envconfig.html#name-XDSAggregateAndDNS" class="ident">XDSAggregateAndDNS</a> = <a href="envconfig.go.html#line-41" class="ident">boolFromEnv</a>(<span class="lit-string">"GRPC_XDS_EXPERIMENTAL_ENABLE_AGGREGATE_AND_LOGICAL_DNS_CLUSTER"</span>, <a href="../../../../../pkg/builtin.html#name-true" class="ident">true</a>)</code></span>
+<span class="codeline" id="line-70"><code></code></span>
+<span class="codeline" id="line-71"><code>	<span class="comment">// XDSRBAC indicates whether xDS configured RBAC HTTP Filter is enabled,</span></code></span>
+<span class="codeline" id="line-72"><code><span class="comment">	// which can be disabled by setting the environment variable</span></code></span>
+<span class="codeline" id="line-73"><code><span class="comment">	// "GRPC_XDS_EXPERIMENTAL_RBAC" to "false".</span></code></span>
+<span class="codeline" id="line-74"><code>	<a href="../../../../../pkg/google.golang.org/grpc/internal/envconfig.html#name-XDSRBAC" class="ident">XDSRBAC</a> = <a href="envconfig.go.html#line-41" class="ident">boolFromEnv</a>(<span class="lit-string">"GRPC_XDS_EXPERIMENTAL_RBAC"</span>, <a href="../../../../../pkg/builtin.html#name-true" class="ident">true</a>)</code></span>
+<span class="codeline" id="line-75"><code>	<span class="comment">// XDSOutlierDetection indicates whether outlier detection support is</span></code></span>
+<span class="codeline" id="line-76"><code><span class="comment">	// enabled, which can be disabled by setting the environment variable</span></code></span>
+<span class="codeline" id="line-77"><code><span class="comment">	// "GRPC_EXPERIMENTAL_ENABLE_OUTLIER_DETECTION" to "false".</span></code></span>
+<span class="codeline" id="line-78"><code>	<a href="../../../../../pkg/google.golang.org/grpc/internal/envconfig.html#name-XDSOutlierDetection" class="ident">XDSOutlierDetection</a> = <a href="envconfig.go.html#line-41" class="ident">boolFromEnv</a>(<span class="lit-string">"GRPC_EXPERIMENTAL_ENABLE_OUTLIER_DETECTION"</span>, <a href="../../../../../pkg/builtin.html#name-true" class="ident">true</a>)</code></span>
+<span class="codeline" id="line-79"><code>	<span class="comment">// XDSFederation indicates whether federation support is enabled, which can</span></code></span>
+<span class="codeline" id="line-80"><code><span class="comment">	// be enabled by setting the environment variable</span></code></span>
+<span class="codeline" id="line-81"><code><span class="comment">	// "GRPC_EXPERIMENTAL_XDS_FEDERATION" to "true".</span></code></span>
+<span class="codeline" id="line-82"><code>	<a href="../../../../../pkg/google.golang.org/grpc/internal/envconfig.html#name-XDSFederation" class="ident">XDSFederation</a> = <a href="envconfig.go.html#line-41" class="ident">boolFromEnv</a>(<span class="lit-string">"GRPC_EXPERIMENTAL_XDS_FEDERATION"</span>, <a href="../../../../../pkg/builtin.html#name-false" class="ident">false</a>)</code></span>
+<span class="codeline" id="line-83"><code></code></span>
+<span class="codeline" id="line-84"><code>	<span class="comment">// XDSRLS indicates whether processing of Cluster Specifier plugins and</span></code></span>
+<span class="codeline" id="line-85"><code><span class="comment">	// support for the RLS CLuster Specifier is enabled, which can be enabled by</span></code></span>
+<span class="codeline" id="line-86"><code><span class="comment">	// setting the environment variable "GRPC_EXPERIMENTAL_XDS_RLS_LB" to</span></code></span>
+<span class="codeline" id="line-87"><code><span class="comment">	// "true".</span></code></span>
+<span class="codeline" id="line-88"><code>	<a href="../../../../../pkg/google.golang.org/grpc/internal/envconfig.html#name-XDSRLS" class="ident">XDSRLS</a> = <a href="envconfig.go.html#line-41" class="ident">boolFromEnv</a>(<span class="lit-string">"GRPC_EXPERIMENTAL_XDS_RLS_LB"</span>, <a href="../../../../../pkg/builtin.html#name-false" class="ident">false</a>)</code></span>
+<span class="codeline" id="line-89"><code></code></span>
+<span class="codeline" id="line-90"><code>	<span class="comment">// C2PResolverTestOnlyTrafficDirectorURI is the TD URI for testing.</span></code></span>
+<span class="codeline" id="line-91"><code>	<a href="../../../../../pkg/google.golang.org/grpc/internal/envconfig.html#name-C2PResolverTestOnlyTrafficDirectorURI" class="ident">C2PResolverTestOnlyTrafficDirectorURI</a> = <a href="../../../../../pkg/os.html" class="ident i0">os</a>.<a href="../../../../os/env.go.html#line-101" class="ident">Getenv</a>(<span class="lit-string">"GRPC_TEST_ONLY_GOOGLE_C2P_RESOLVER_TRAFFIC_DIRECTOR_URI"</span>)</code></span>
+<span class="codeline" id="line-92"><code>)</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

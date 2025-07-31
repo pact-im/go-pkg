@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: passthrough.go in package google.golang.org/grpc/internal/resolver/passthrough</title>
+<link href="../../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	passthrough.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../../pkg/google.golang.org/grpc/internal/resolver/passthrough.html">google.golang.org/grpc/internal/resolver/passthrough</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">/*</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment"> * Copyright 2017 gRPC authors.</span></code></span>
+<span class="codeline" id="line-4"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-5"><code><span class="comment"> * Licensed under the Apache License, Version 2.0 (the "License");</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment"> * you may not use this file except in compliance with the License.</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment"> * You may obtain a copy of the License at</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment"> *     http://www.apache.org/licenses/LICENSE-2.0</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment"> * Unless required by applicable law or agreed to in writing, software</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment"> * distributed under the License is distributed on an "AS IS" BASIS,</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment"> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment"> * See the License for the specific language governing permissions and</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment"> * limitations under the License.</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment"> */</span></code></span>
+<span class="codeline" id="line-18"><code></code></span>
+<div class="anchor" id="doc"><span class="codeline" id="line-19"><code><span class="comment">// Package passthrough implements a pass-through resolver. It sends the target</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">// name without scheme back to gRPC as resolved address.</span></code></span></div><span class="codeline" id="line-21"><code><span class="keyword">package</span> passthrough</code></span>
+<span class="codeline" id="line-22"><code></code></span>
+<span class="codeline" id="line-23"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-24"><code>	<label for="i0"><span class="lit-string i0">"errors"</span></label></code></span>
+<span class="codeline" id="line-25"><code></code></span>
+<span class="codeline" id="line-26"><code>	<label for="i1"><span class="lit-string i1">"google.golang.org/grpc/resolver"</span></label></code></span>
+<span class="codeline" id="line-27"><code>)</code></span>
+<span class="codeline" id="line-28"><code></code></span>
+<span class="codeline" id="line-29"><code><span class="keyword">const</span> <a href="../../../../../../pkg/google.golang.org/grpc/internal/resolver/passthrough.html#name-scheme" class="ident">scheme</a> = <span class="lit-string">"passthrough"</span></code></span>
+<span class="codeline" id="line-30"><code></code></span>
+<span class="codeline" id="line-31"><code><span class="keyword">type</span> <a href="../../../../../../pkg/google.golang.org/grpc/internal/resolver/passthrough.html#name-passthroughBuilder" class="ident">passthroughBuilder</a> <span class="keyword">struct</span>{}</code></span>
+<span class="codeline" id="line-32"><code></code></span>
+<span class="codeline" id="line-33"><code><span class="keyword">func</span> (*<a href="#line-31" class="ident">passthroughBuilder</a>) <label for="r0" class="ident"><a href="../../../../../../use/google.golang.org/grpc/internal/resolver/passthrough..passthroughBuilder^7ded5.Build.html" class="ident">Build</a></label>(<label for="r1" class="ident">target</label> <a href="../../../../../../pkg/google.golang.org/grpc/resolver.html" class="ident i1">resolver</a>.<a href="../../../resolver/resolver.go.html#line-246" class="ident">Target</a>, <label for="r2" class="ident">cc</label> <a href="../../../../../../pkg/google.golang.org/grpc/resolver.html" class="ident i1">resolver</a>.<a href="../../../resolver/resolver.go.html#line-204" class="ident">ClientConn</a>, <label for="r3" class="ident">opts</label> <a href="../../../../../../pkg/google.golang.org/grpc/resolver.html" class="ident i1">resolver</a>.<a href="../../../resolver/resolver.go.html#line-158" class="ident">BuildOptions</a>) (<a href="../../../../../../pkg/google.golang.org/grpc/resolver.html" class="ident i1">resolver</a>.<a href="../../../resolver/resolver.go.html#line-293" class="ident">Resolver</a>, <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-34"><code>	<span class="keyword">if</span> <label for="r1" class="ident">target</label>.<a href="../../../resolver/resolver.go.html#line-260" class="ident">Endpoint</a>() == <span class="lit-string">""</span> &amp;&amp; <label for="r3" class="ident">opts</label>.<a href="../../../resolver/resolver.go.html#line-179" class="ident">Dialer</a> == <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-35"><code>		<span class="keyword">return</span> <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../../../../pkg/errors.html" class="ident i0">errors</a>.<a href="../../../../../errors/errors.go.html#line-64" class="ident">New</a>(<span class="lit-string">"passthrough: received empty target in Build()"</span>)</code></span>
+<span class="codeline" id="line-36"><code>	}</code></span>
+<span class="codeline" id="line-37"><code>	<label for="r4" class="ident">r</label> := &amp;<a href="#line-49" class="ident">passthroughResolver</a>{</code></span>
+<span class="codeline" id="line-38"><code>		<a href="#line-50" class="ident">target</a>: <label for="r1" class="ident">target</label>,</code></span>
+<span class="codeline" id="line-39"><code>		<a href="#line-51" class="ident">cc</a>:     <label for="r2" class="ident">cc</label>,</code></span>
+<span class="codeline" id="line-40"><code>	}</code></span>
+<span class="codeline" id="line-41"><code>	<label for="r4" class="ident">r</label>.<a href="#line-54" class="ident">start</a>()</code></span>
+<span class="codeline" id="line-42"><code>	<span class="keyword">return</span> <label for="r4" class="ident">r</label>, <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-43"><code>}</code></span>
+<span class="codeline" id="line-44"><code></code></span>
+<span class="codeline" id="line-45"><code><span class="keyword">func</span> (*<a href="#line-31" class="ident">passthroughBuilder</a>) <label for="r5" class="ident"><a href="../../../../../../use/google.golang.org/grpc/internal/resolver/passthrough..passthroughBuilder^7ded5.Scheme.html" class="ident">Scheme</a></label>() <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-46"><code>	<span class="keyword">return</span> <a href="#line-29" class="ident">scheme</a></code></span>
+<span class="codeline" id="line-47"><code>}</code></span>
+<span class="codeline" id="line-48"><code></code></span>
+<span class="codeline" id="line-49"><code><span class="keyword">type</span> <a href="../../../../../../pkg/google.golang.org/grpc/internal/resolver/passthrough.html#name-passthroughResolver" class="ident">passthroughResolver</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-50"><code>	<a href="../../../../../../use/google.golang.org/grpc/internal/resolver/passthrough..passthroughResolver^0b684.target^34a04.html" class="ident">target</a> <a href="../../../../../../pkg/google.golang.org/grpc/resolver.html" class="ident i1">resolver</a>.<a href="../../../resolver/resolver.go.html#line-246" class="ident">Target</a></code></span>
+<span class="codeline" id="line-51"><code>	<a href="../../../../../../use/google.golang.org/grpc/internal/resolver/passthrough..passthroughResolver^0b684.cc^355b1.html" class="ident">cc</a>     <a href="../../../../../../pkg/google.golang.org/grpc/resolver.html" class="ident i1">resolver</a>.<a href="../../../resolver/resolver.go.html#line-204" class="ident">ClientConn</a></code></span>
+<span class="codeline" id="line-52"><code>}</code></span>
+<span class="codeline" id="line-53"><code></code></span>
+<span class="codeline" id="line-54"><code><span class="keyword">func</span> (<label for="r6" class="ident">r</label> *<a href="#line-49" class="ident">passthroughResolver</a>) <label for="r7" class="ident"><a href="../../../../../../use/google.golang.org/grpc/internal/resolver/passthrough..passthroughResolver^0b684.start^cced2.html" class="ident">start</a></label>() {</code></span>
+<span class="codeline" id="line-55"><code>	<label for="r6" class="ident">r</label>.<a href="#line-51" class="ident">cc</a>.<a href="../../../resolver/resolver.go.html#line-206" class="ident">UpdateState</a>(<a href="../../../../../../pkg/google.golang.org/grpc/resolver.html" class="ident i1">resolver</a>.<a href="../../../resolver/resolver.go.html#line-183" class="ident">State</a>{<a href="../../../resolver/resolver.go.html#line-185" class="ident">Addresses</a>: []<a href="../../../../../../pkg/google.golang.org/grpc/resolver.html" class="ident i1">resolver</a>.<a href="../../../resolver/resolver.go.html#line-104" class="ident">Address</a>{{<a href="../../../resolver/resolver.go.html#line-106" class="ident">Addr</a>: <label for="r6" class="ident">r</label>.<a href="#line-50" class="ident">target</a>.<a href="../../../resolver/resolver.go.html#line-260" class="ident">Endpoint</a>()}}})</code></span>
+<span class="codeline" id="line-56"><code>}</code></span>
+<span class="codeline" id="line-57"><code></code></span>
+<span class="codeline" id="line-58"><code><span class="keyword">func</span> (*<a href="#line-49" class="ident">passthroughResolver</a>) <label for="r8" class="ident"><a href="../../../../../../use/google.golang.org/grpc/internal/resolver/passthrough..passthroughResolver^0b684.ResolveNow.html" class="ident">ResolveNow</a></label>(<label for="r9" class="ident">o</label> <a href="../../../../../../pkg/google.golang.org/grpc/resolver.html" class="ident i1">resolver</a>.<a href="../../../resolver/resolver.go.html#line-289" class="ident">ResolveNowOptions</a>) {}</code></span>
+<span class="codeline" id="line-59"><code></code></span>
+<span class="codeline" id="line-60"><code><span class="keyword">func</span> (*<a href="#line-49" class="ident">passthroughResolver</a>) <label for="r10" class="ident"><a href="../../../../../../use/google.golang.org/grpc/internal/resolver/passthrough..passthroughResolver^0b684.Close.html" class="ident">Close</a></label>() {}</code></span>
+<span class="codeline" id="line-61"><code></code></span>
+<span class="codeline" id="line-62"><code><span class="keyword">func</span> <label for="r11" class="ident"><a href="../../../../../../pkg/google.golang.org/grpc/internal/resolver/passthrough.html#name-init" class="ident">init</a></label>() {</code></span>
+<span class="codeline" id="line-63"><code>	<a href="../../../../../../pkg/google.golang.org/grpc/resolver.html" class="ident i1">resolver</a>.<a href="../../../resolver/resolver.go.html#line-50" class="ident">Register</a>(&amp;<a href="#line-31" class="ident">passthroughBuilder</a>{})</code></span>
+<span class="codeline" id="line-64"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

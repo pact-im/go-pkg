@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: middleware_validate_output.go in package github.com/aws/aws-sdk-go-v2/service/internal/checksum</title>
+<link href="../../../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	middleware_validate_output.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/internal/checksum.html">github.com/aws/aws-sdk-go-v2/service/internal/checksum</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3,
+input[id=i4]:checked ~pre .i4,
+input[id=i5]:checked ~pre .i5,
+input[id=i6]:checked ~pre .i6
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+<input id="i4" type="radio" name="i"/>
+<input id="i5" type="radio" name="i"/>
+<input id="i6" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="keyword">package</span> checksum</code></span>
+<span class="codeline" id="line-2"><code></code></span>
+<span class="codeline" id="line-3"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-4"><code>	<label for="i0"><span class="lit-string i0">"context"</span></label></code></span>
+<span class="codeline" id="line-5"><code>	<label for="i1"><span class="lit-string i1">"fmt"</span></label></code></span>
+<span class="codeline" id="line-6"><code>	<label for="i2"><span class="lit-string i2">"strings"</span></label></code></span>
+<span class="codeline" id="line-7"><code></code></span>
+<span class="codeline" id="line-8"><code>	<label for="i3"><span class="lit-string i3">"github.com/aws/smithy-go"</span></label></code></span>
+<span class="codeline" id="line-9"><code>	<label for="i4"><span class="lit-string i4">"github.com/aws/smithy-go/logging"</span></label></code></span>
+<span class="codeline" id="line-10"><code>	<label for="i5"><span class="lit-string i5">"github.com/aws/smithy-go/middleware"</span></label></code></span>
+<span class="codeline" id="line-11"><code>	<a href="../../../../../../../pkg/github.com/aws/smithy-go/transport/http.html" class="ident i6">smithyhttp</a> <label for="i6"><span class="lit-string i6">"github.com/aws/smithy-go/transport/http"</span></label></code></span>
+<span class="codeline" id="line-12"><code>)</code></span>
+<span class="codeline" id="line-13"><code></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">// outputValidationAlgorithmsUsedKey is the metadata key for indexing the algorithms</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">// that were used, by the middleware's validation.</span></code></span>
+<span class="codeline" id="line-16"><code><span class="keyword">type</span> <a href="../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/internal/checksum.html#name-outputValidationAlgorithmsUsedKey" class="ident">outputValidationAlgorithmsUsedKey</a> <span class="keyword">struct</span>{}</code></span>
+<span class="codeline" id="line-17"><code></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">// GetOutputValidationAlgorithmsUsed returns the checksum algorithms used</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">// stored in the middleware Metadata. Returns false if no algorithms were</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">// stored in the Metadata.</span></code></span>
+<span class="codeline" id="line-21"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/internal/checksum.html#name-GetOutputValidationAlgorithmsUsed" class="ident">GetOutputValidationAlgorithmsUsed</a></label>(<label for="r1" class="ident">m</label> <a href="../../../../../../../pkg/github.com/aws/smithy-go/middleware.html" class="ident i5">middleware</a>.<a href="../../../../smithy-go/middleware/metadata.go.html#line-16" class="ident">Metadata</a>) ([]<a href="../../../../../../../pkg/builtin.html#name-string" class="ident">string</a>, <a href="../../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a>) {</code></span>
+<span class="codeline" id="line-22"><code>	<label for="r2" class="ident">vs</label>, <label for="r3" class="ident">ok</label> := <label for="r1" class="ident">m</label>.<a href="../../../../smithy-go/middleware/metadata.go.html#line-24" class="ident">Get</a>(<a href="#line-16" class="ident">outputValidationAlgorithmsUsedKey</a>{}).([]<a href="../../../../../../../pkg/builtin.html#name-string" class="ident">string</a>)</code></span>
+<span class="codeline" id="line-23"><code>	<span class="keyword">return</span> <label for="r2" class="ident">vs</label>, <label for="r3" class="ident">ok</label></code></span>
+<span class="codeline" id="line-24"><code>}</code></span>
+<span class="codeline" id="line-25"><code></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">// SetOutputValidationAlgorithmsUsed stores the checksum algorithms used in the</span></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">// middleware Metadata.</span></code></span>
+<span class="codeline" id="line-28"><code><span class="keyword">func</span> <label for="r4" class="ident"><a href="../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/internal/checksum.html#name-SetOutputValidationAlgorithmsUsed" class="ident">SetOutputValidationAlgorithmsUsed</a></label>(<label for="r5" class="ident">m</label> *<a href="../../../../../../../pkg/github.com/aws/smithy-go/middleware.html" class="ident i5">middleware</a>.<a href="../../../../smithy-go/middleware/metadata.go.html#line-16" class="ident">Metadata</a>, <label for="r6" class="ident">vs</label> []<a href="../../../../../../../pkg/builtin.html#name-string" class="ident">string</a>) {</code></span>
+<span class="codeline" id="line-29"><code>	<label for="r5" class="ident">m</label>.<a href="../../../../smithy-go/middleware/metadata.go.html#line-49" class="ident">Set</a>(<a href="#line-16" class="ident">outputValidationAlgorithmsUsedKey</a>{}, <label for="r6" class="ident">vs</label>)</code></span>
+<span class="codeline" id="line-30"><code>}</code></span>
+<span class="codeline" id="line-31"><code></code></span>
+<span class="codeline" id="line-32"><code><span class="comment">// validateOutputPayloadChecksum middleware computes payload checksum of the</span></code></span>
+<span class="codeline" id="line-33"><code><span class="comment">// received response and validates with checksum returned by the service.</span></code></span>
+<span class="codeline" id="line-34"><code><span class="keyword">type</span> <a href="../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/internal/checksum.html#name-validateOutputPayloadChecksum" class="ident">validateOutputPayloadChecksum</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-35"><code>	<span class="comment">// Algorithms represents a priority-ordered list of valid checksum</span></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">	// algorithm that should be validated when present in HTTP response</span></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">	// headers.</span></code></span>
+<span class="codeline" id="line-38"><code>	<a href="../../../../../../../use/github.com/aws/aws-sdk-go-v2/service/internal/checksum..validateOutputPayloadChecksum^cbb34.Algorithms.html" class="ident">Algorithms</a> []<a href="algorithms.go.html#line-18" class="ident">Algorithm</a></code></span>
+<span class="codeline" id="line-39"><code></code></span>
+<span class="codeline" id="line-40"><code>	<span class="comment">// IgnoreMultipartValidation indicates multipart checksums ending with "-#"</span></code></span>
+<span class="codeline" id="line-41"><code><span class="comment">	// will be ignored.</span></code></span>
+<span class="codeline" id="line-42"><code>	<a href="../../../../../../../use/github.com/aws/aws-sdk-go-v2/service/internal/checksum..validateOutputPayloadChecksum^cbb34.IgnoreMultipartValidation.html" class="ident">IgnoreMultipartValidation</a> <a href="../../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-43"><code></code></span>
+<span class="codeline" id="line-44"><code>	<span class="comment">// When set the middleware will log when output does not have checksum or</span></code></span>
+<span class="codeline" id="line-45"><code><span class="comment">	// algorithm to validate.</span></code></span>
+<span class="codeline" id="line-46"><code>	<a href="../../../../../../../use/github.com/aws/aws-sdk-go-v2/service/internal/checksum..validateOutputPayloadChecksum^cbb34.LogValidationSkipped.html" class="ident">LogValidationSkipped</a> <a href="../../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-47"><code></code></span>
+<span class="codeline" id="line-48"><code>	<span class="comment">// When set the middleware will log when the output contains a multipart</span></code></span>
+<span class="codeline" id="line-49"><code><span class="comment">	// checksum that was, skipped and not validated.</span></code></span>
+<span class="codeline" id="line-50"><code>	<a href="../../../../../../../use/github.com/aws/aws-sdk-go-v2/service/internal/checksum..validateOutputPayloadChecksum^cbb34.LogMultipartValidationSkipped.html" class="ident">LogMultipartValidationSkipped</a> <a href="../../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-51"><code>}</code></span>
+<span class="codeline" id="line-52"><code></code></span>
+<span class="codeline" id="line-53"><code><span class="keyword">func</span> (<label for="r7" class="ident">m</label> *<a href="#line-34" class="ident">validateOutputPayloadChecksum</a>) <label for="r8" class="ident"><a href="../../../../../../../use/github.com/aws/aws-sdk-go-v2/service/internal/checksum..validateOutputPayloadChecksum^cbb34.ID^38439.html" class="ident">ID</a></label>() <a href="../../../../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-54"><code>	<span class="keyword">return</span> <span class="lit-string">"AWSChecksum:ValidateOutputPayloadChecksum"</span></code></span>
+<span class="codeline" id="line-55"><code>}</code></span>
+<span class="codeline" id="line-56"><code></code></span>
+<span class="codeline" id="line-57"><code><span class="comment">// HandleDeserialize is a Deserialize middleware that wraps the HTTP response</span></code></span>
+<span class="codeline" id="line-58"><code><span class="comment">// body with an io.ReadCloser that will validate the its checksum.</span></code></span>
+<span class="codeline" id="line-59"><code><span class="keyword">func</span> (<label for="r9" class="ident">m</label> *<a href="#line-34" class="ident">validateOutputPayloadChecksum</a>) <label for="r10" class="ident"><a href="../../../../../../../use/github.com/aws/aws-sdk-go-v2/service/internal/checksum..validateOutputPayloadChecksum^cbb34.HandleDeserialize.html" class="ident">HandleDeserialize</a></label>(</code></span>
+<span class="codeline" id="line-60"><code>	<label for="r11" class="ident">ctx</label> <a href="../../../../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../../../../context/context.go.html#line-71" class="ident">Context</a>, <label for="r12" class="ident">in</label> <a href="../../../../../../../pkg/github.com/aws/smithy-go/middleware.html" class="ident i5">middleware</a>.<a href="../../../../smithy-go/middleware/step_deserialize.go.html#line-10" class="ident">DeserializeInput</a>, <label for="r13" class="ident">next</label> <a href="../../../../../../../pkg/github.com/aws/smithy-go/middleware.html" class="ident i5">middleware</a>.<a href="../../../../smithy-go/middleware/step_deserialize.go.html#line-25" class="ident">DeserializeHandler</a>,</code></span>
+<span class="codeline" id="line-61"><code>) (</code></span>
+<span class="codeline" id="line-62"><code>	<label for="r14" class="ident">out</label> <a href="../../../../../../../pkg/github.com/aws/smithy-go/middleware.html" class="ident i5">middleware</a>.<a href="../../../../smithy-go/middleware/step_deserialize.go.html#line-18" class="ident">DeserializeOutput</a>, <label for="r15" class="ident">metadata</label> <a href="../../../../../../../pkg/github.com/aws/smithy-go/middleware.html" class="ident i5">middleware</a>.<a href="../../../../smithy-go/middleware/metadata.go.html#line-16" class="ident">Metadata</a>, <label for="r16" class="ident">err</label> <a href="../../../../../../../pkg/builtin.html#name-error" class="ident">error</a>,</code></span>
+<span class="codeline" id="line-63"><code>) {</code></span>
+<span class="codeline" id="line-64"><code>	<label for="r14" class="ident">out</label>, <label for="r15" class="ident">metadata</label>, <label for="r16" class="ident">err</label> = <label for="r13" class="ident">next</label>.<a href="../../../../smithy-go/middleware/step_deserialize.go.html#line-26" class="ident">HandleDeserialize</a>(<label for="r11" class="ident">ctx</label>, <label for="r12" class="ident">in</label>)</code></span>
+<span class="codeline" id="line-65"><code>	<span class="keyword">if</span> <label for="r16" class="ident">err</label> != <a href="../../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-66"><code>		<span class="keyword">return</span> <label for="r14" class="ident">out</label>, <label for="r15" class="ident">metadata</label>, <label for="r16" class="ident">err</label></code></span>
+<span class="codeline" id="line-67"><code>	}</code></span>
+<span class="codeline" id="line-68"><code></code></span>
+<span class="codeline" id="line-69"><code>	<span class="comment">// If there is no validation mode specified nothing is supported.</span></code></span>
+<span class="codeline" id="line-70"><code>	<span class="keyword">if</span> <label for="r17" class="ident">mode</label> := <a href="middleware_setup_context.go.html#line-114" class="ident">getContextOutputValidationMode</a>(<label for="r11" class="ident">ctx</label>); <label for="r17" class="ident">mode</label> != <span class="lit-string">"ENABLED"</span> {</code></span>
+<span class="codeline" id="line-71"><code>		<span class="keyword">return</span> <label for="r14" class="ident">out</label>, <label for="r15" class="ident">metadata</label>, <label for="r16" class="ident">err</label></code></span>
+<span class="codeline" id="line-72"><code>	}</code></span>
+<span class="codeline" id="line-73"><code></code></span>
+<span class="codeline" id="line-74"><code>	<label for="r18" class="ident">response</label>, <label for="r19" class="ident">ok</label> := <label for="r14" class="ident">out</label>.<a href="../../../../smithy-go/middleware/step_deserialize.go.html#line-19" class="ident">RawResponse</a>.(*<a href="../../../../../../../pkg/github.com/aws/smithy-go/transport/http.html" class="ident i6">smithyhttp</a>.<a href="../../../../smithy-go/transport/http/response.go.html#line-10" class="ident">Response</a>)</code></span>
+<span class="codeline" id="line-75"><code>	<span class="keyword">if</span> !<label for="r19" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-76"><code>		<span class="keyword">return</span> <label for="r14" class="ident">out</label>, <label for="r15" class="ident">metadata</label>, &amp;<a href="../../../../../../../pkg/github.com/aws/smithy-go.html" class="ident i3">smithy</a>.<a href="../../../../smithy-go/errors.go.html#line-65" class="ident">DeserializationError</a>{</code></span>
+<span class="codeline" id="line-77"><code>			<a href="../../../../smithy-go/errors.go.html#line-66" class="ident">Err</a>: <a href="../../../../../../../pkg/fmt.html" class="ident i1">fmt</a>.<a href="../../../../../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"unknown transport type %T"</span>, <label for="r14" class="ident">out</label>.<a href="../../../../smithy-go/middleware/step_deserialize.go.html#line-19" class="ident">RawResponse</a>),</code></span>
+<span class="codeline" id="line-78"><code>		}</code></span>
+<span class="codeline" id="line-79"><code>	}</code></span>
+<span class="codeline" id="line-80"><code></code></span>
+<span class="codeline" id="line-81"><code>	<span class="keyword">var</span> <label for="r20" class="ident">expectedChecksum</label> <a href="../../../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-82"><code>	<span class="keyword">var</span> <label for="r21" class="ident">algorithmToUse</label> <a href="algorithms.go.html#line-18" class="ident">Algorithm</a></code></span>
+<span class="codeline" id="line-83"><code>	<span class="keyword">for</span> <label for="r22" class="ident">_</label>, <label for="r23" class="ident">algorithm</label> := <span class="keyword">range</span> <label for="r9" class="ident">m</label>.<a href="#line-38" class="ident">Algorithms</a> {</code></span>
+<span class="codeline" id="line-84"><code>		<label for="r24" class="ident">value</label> := <label for="r18" class="ident">response</label>.<a href="../../../../../../net/http/response.go.html#line-51" class="ident">Header</a>.<a href="../../../../../../net/http/header.go.html#line-49" class="ident">Get</a>(<a href="algorithms.go.html#line-117" class="ident">AlgorithmHTTPHeader</a>(<label for="r23" class="ident">algorithm</label>))</code></span>
+<span class="codeline" id="line-85"><code>		<span class="keyword">if</span> <a href="../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r24" class="ident">value</label>) == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-86"><code>			<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-87"><code>		}</code></span>
+<span class="codeline" id="line-88"><code></code></span>
+<span class="codeline" id="line-89"><code>		<label for="r20" class="ident">expectedChecksum</label> = <label for="r24" class="ident">value</label></code></span>
+<span class="codeline" id="line-90"><code>		<label for="r21" class="ident">algorithmToUse</label> = <label for="r23" class="ident">algorithm</label></code></span>
+<span class="codeline" id="line-91"><code>	}</code></span>
+<span class="codeline" id="line-92"><code></code></span>
+<span class="codeline" id="line-93"><code>	<span class="comment">// TODO this must validate the validation mode is set to enabled.</span></code></span>
+<span class="codeline" id="line-94"><code></code></span>
+<span class="codeline" id="line-95"><code>	<label for="r25" class="ident">logger</label> := <a href="../../../../../../../pkg/github.com/aws/smithy-go/middleware.html" class="ident i5">middleware</a>.<a href="../../../../smithy-go/middleware/logging.go.html#line-15" class="ident">GetLogger</a>(<label for="r11" class="ident">ctx</label>)</code></span>
+<span class="codeline" id="line-96"><code></code></span>
+<span class="codeline" id="line-97"><code>	<span class="comment">// Skip validation if no checksum algorithm or checksum is available.</span></code></span>
+<span class="codeline" id="line-98"><code>	<span class="keyword">if</span> <a href="../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r20" class="ident">expectedChecksum</label>) == <span class="lit-number">0</span> || <a href="../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r21" class="ident">algorithmToUse</label>) == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-99"><code>		<span class="keyword">if</span> <label for="r9" class="ident">m</label>.<a href="#line-46" class="ident">LogValidationSkipped</a> {</code></span>
+<span class="codeline" id="line-100"><code>			<span class="comment">// TODO this probably should have more information about the</span></code></span>
+<span class="codeline" id="line-101"><code><span class="comment">			// operation output that won't be validated.</span></code></span>
+<span class="codeline" id="line-102"><code>			<label for="r25" class="ident">logger</label>.<a href="../../../../smithy-go/logging/logger.go.html#line-21" class="ident">Logf</a>(<a href="../../../../../../../pkg/github.com/aws/smithy-go/logging.html" class="ident i4">logging</a>.<a href="../../../../smithy-go/logging/logger.go.html#line-14" class="ident">Warn</a>,</code></span>
+<span class="codeline" id="line-103"><code>				<span class="lit-string">"Response has no supported checksum. Not validating response payload."</span>)</code></span>
+<span class="codeline" id="line-104"><code>		}</code></span>
+<span class="codeline" id="line-105"><code>		<span class="keyword">return</span> <label for="r14" class="ident">out</label>, <label for="r15" class="ident">metadata</label>, <a href="../../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-106"><code>	}</code></span>
+<span class="codeline" id="line-107"><code></code></span>
+<span class="codeline" id="line-108"><code>	<span class="comment">// Ignore multipart validation</span></code></span>
+<span class="codeline" id="line-109"><code>	<span class="keyword">if</span> <label for="r9" class="ident">m</label>.<a href="#line-42" class="ident">IgnoreMultipartValidation</a> &amp;&amp; <a href="../../../../../../../pkg/strings.html" class="ident i2">strings</a>.<a href="../../../../../../strings/strings.go.html#line-62" class="ident">Contains</a>(<label for="r20" class="ident">expectedChecksum</label>, <span class="lit-string">"-"</span>) {</code></span>
+<span class="codeline" id="line-110"><code>		<span class="keyword">if</span> <label for="r9" class="ident">m</label>.<a href="#line-50" class="ident">LogMultipartValidationSkipped</a> {</code></span>
+<span class="codeline" id="line-111"><code>			<span class="comment">// TODO this probably should have more information about the</span></code></span>
+<span class="codeline" id="line-112"><code><span class="comment">			// operation output that won't be validated.</span></code></span>
+<span class="codeline" id="line-113"><code>			<label for="r25" class="ident">logger</label>.<a href="../../../../smithy-go/logging/logger.go.html#line-21" class="ident">Logf</a>(<a href="../../../../../../../pkg/github.com/aws/smithy-go/logging.html" class="ident i4">logging</a>.<a href="../../../../smithy-go/logging/logger.go.html#line-14" class="ident">Warn</a>, <span class="lit-string">"Skipped validation of multipart checksum."</span>)</code></span>
+<span class="codeline" id="line-114"><code>		}</code></span>
+<span class="codeline" id="line-115"><code>		<span class="keyword">return</span> <label for="r14" class="ident">out</label>, <label for="r15" class="ident">metadata</label>, <a href="../../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-116"><code>	}</code></span>
+<span class="codeline" id="line-117"><code></code></span>
+<span class="codeline" id="line-118"><code>	<label for="r26" class="ident">body</label>, <label for="r16" class="ident">err</label> := <a href="algorithms.go.html#line-259" class="ident">newValidateChecksumReader</a>(<label for="r18" class="ident">response</label>.<a href="../../../../../../net/http/response.go.html#line-72" class="ident">Body</a>, <label for="r21" class="ident">algorithmToUse</label>, <label for="r20" class="ident">expectedChecksum</label>)</code></span>
+<span class="codeline" id="line-119"><code>	<span class="keyword">if</span> <label for="r16" class="ident">err</label> != <a href="../../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-120"><code>		<span class="keyword">return</span> <label for="r14" class="ident">out</label>, <label for="r15" class="ident">metadata</label>, <a href="../../../../../../../pkg/fmt.html" class="ident i1">fmt</a>.<a href="../../../../../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"failed to create checksum validation reader, %w"</span>, <label for="r16" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-121"><code>	}</code></span>
+<span class="codeline" id="line-122"><code>	<label for="r18" class="ident">response</label>.<a href="../../../../../../net/http/response.go.html#line-72" class="ident">Body</a> = <label for="r26" class="ident">body</label></code></span>
+<span class="codeline" id="line-123"><code></code></span>
+<span class="codeline" id="line-124"><code>	<span class="comment">// Update the metadata to include the set of the checksum algorithms that</span></code></span>
+<span class="codeline" id="line-125"><code><span class="comment">	// will be validated.</span></code></span>
+<span class="codeline" id="line-126"><code>	<a href="#line-28" class="ident">SetOutputValidationAlgorithmsUsed</a>(&amp;<label for="r15" class="ident">metadata</label>, []<a href="../../../../../../../pkg/builtin.html#name-string" class="ident">string</a>{</code></span>
+<span class="codeline" id="line-127"><code>		<a href="../../../../../../../pkg/builtin.html#name-string" class="ident">string</a>(<label for="r21" class="ident">algorithmToUse</label>),</code></span>
+<span class="codeline" id="line-128"><code>	})</code></span>
+<span class="codeline" id="line-129"><code></code></span>
+<span class="codeline" id="line-130"><code>	<span class="keyword">return</span> <label for="r14" class="ident">out</label>, <label for="r15" class="ident">metadata</label>, <a href="../../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-131"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: element.go in package github.com/aws/smithy-go/encoding/xml</title>
+<link href="../../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	element.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../../pkg/github.com/aws/smithy-go/encoding/xml.html">github.com/aws/smithy-go/encoding/xml</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15]
+{background: #226; color: #ff8;}
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2009 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="comment">// Copied and modified from Go 1.14 stdlib's encoding/xml</span></code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">package</span> xml</code></span>
+<span class="codeline" id="line-8"><code></code></span>
+<span class="codeline" id="line-9"><code><span class="comment">// A Name represents an XML name (Local) annotated</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment">// with a name space identifier (Space).</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment">// In tokens returned by Decoder.Token, the Space identifier</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment">// is given as a canonical URL, not the short prefix used</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">// in the document being parsed.</span></code></span>
+<span class="codeline" id="line-14"><code><span class="keyword">type</span> <a href="../../../../../../pkg/github.com/aws/smithy-go/encoding/xml.html#name-Name" class="ident">Name</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-15"><code>	<a href="../../../../../../use/github.com/aws/smithy-go/encoding/xml..Name.Space.html" class="ident">Space</a>, <a href="../../../../../../use/github.com/aws/smithy-go/encoding/xml..Name.Local.html" class="ident">Local</a> <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-16"><code>}</code></span>
+<span class="codeline" id="line-17"><code></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">// An Attr represents an attribute in an XML element (Name=Value).</span></code></span>
+<span class="codeline" id="line-19"><code><span class="keyword">type</span> <a href="../../../../../../pkg/github.com/aws/smithy-go/encoding/xml.html#name-Attr" class="ident">Attr</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-20"><code>	<a href="../../../../../../use/github.com/aws/smithy-go/encoding/xml..Attr.Name.html" class="ident">Name</a>  <a href="#line-14" class="ident">Name</a></code></span>
+<span class="codeline" id="line-21"><code>	<a href="../../../../../../use/github.com/aws/smithy-go/encoding/xml..Attr.Value.html" class="ident">Value</a> <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-22"><code>}</code></span>
+<span class="codeline" id="line-23"><code></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">/*</span></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">NewAttribute returns a pointer to an attribute.</span></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">It takes in a local name aka attribute name, and value</span></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">representing the attribute value.</span></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">*/</span></code></span>
+<span class="codeline" id="line-29"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../../../pkg/github.com/aws/smithy-go/encoding/xml.html#name-NewAttribute" class="ident">NewAttribute</a></label>(<label for="r1" class="ident">local</label>, <label for="r2" class="ident">value</label> <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="#line-19" class="ident">Attr</a> {</code></span>
+<span class="codeline" id="line-30"><code>	<span class="keyword">return</span> <a href="#line-19" class="ident">Attr</a>{</code></span>
+<span class="codeline" id="line-31"><code>		<a href="#line-20" class="ident">Name</a>: <a href="#line-14" class="ident">Name</a>{</code></span>
+<span class="codeline" id="line-32"><code>			<a href="#line-15" class="ident">Local</a>: <label for="r1" class="ident">local</label>,</code></span>
+<span class="codeline" id="line-33"><code>		},</code></span>
+<span class="codeline" id="line-34"><code>		<a href="#line-21" class="ident">Value</a>: <label for="r2" class="ident">value</label>,</code></span>
+<span class="codeline" id="line-35"><code>	}</code></span>
+<span class="codeline" id="line-36"><code>}</code></span>
+<span class="codeline" id="line-37"><code></code></span>
+<span class="codeline" id="line-38"><code><span class="comment">/*</span></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">NewNamespaceAttribute returns a pointer to an attribute.</span></code></span>
+<span class="codeline" id="line-40"><code><span class="comment">It takes in a local name aka attribute name, and value</span></code></span>
+<span class="codeline" id="line-41"><code><span class="comment">representing the attribute value.</span></code></span>
+<span class="codeline" id="line-42"><code></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">NewNamespaceAttribute appends `xmlns:` in front of namespace</span></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">prefix.</span></code></span>
+<span class="codeline" id="line-45"><code></code></span>
+<span class="codeline" id="line-46"><code><span class="comment">For creating a name space attribute representing</span></code></span>
+<span class="codeline" id="line-47"><code><span class="comment">`xmlns:prefix="http://example.com`, the breakdown would be:</span></code></span>
+<span class="codeline" id="line-48"><code><span class="comment">local = "prefix"</span></code></span>
+<span class="codeline" id="line-49"><code><span class="comment">value = "http://example.com"</span></code></span>
+<span class="codeline" id="line-50"><code><span class="comment">*/</span></code></span>
+<span class="codeline" id="line-51"><code><span class="keyword">func</span> <label for="r3" class="ident"><a href="../../../../../../pkg/github.com/aws/smithy-go/encoding/xml.html#name-NewNamespaceAttribute" class="ident">NewNamespaceAttribute</a></label>(<label for="r4" class="ident">local</label>, <label for="r5" class="ident">value</label> <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="#line-19" class="ident">Attr</a> {</code></span>
+<span class="codeline" id="line-52"><code>	<label for="r6" class="ident">attr</label> := <a href="#line-29" class="ident">NewAttribute</a>(<label for="r4" class="ident">local</label>, <label for="r5" class="ident">value</label>)</code></span>
+<span class="codeline" id="line-53"><code></code></span>
+<span class="codeline" id="line-54"><code>	<span class="comment">// default name space identifier</span></code></span>
+<span class="codeline" id="line-55"><code>	<label for="r6" class="ident">attr</label>.<a href="#line-20" class="ident">Name</a>.<a href="#line-15" class="ident">Space</a> = <span class="lit-string">"xmlns"</span></code></span>
+<span class="codeline" id="line-56"><code>	<span class="keyword">return</span> <label for="r6" class="ident">attr</label></code></span>
+<span class="codeline" id="line-57"><code>}</code></span>
+<span class="codeline" id="line-58"><code></code></span>
+<span class="codeline" id="line-59"><code><span class="comment">// A StartElement represents an XML start element.</span></code></span>
+<span class="codeline" id="line-60"><code><span class="keyword">type</span> <a href="../../../../../../pkg/github.com/aws/smithy-go/encoding/xml.html#name-StartElement" class="ident">StartElement</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-61"><code>	<a href="../../../../../../use/github.com/aws/smithy-go/encoding/xml..StartElement.Name.html" class="ident">Name</a> <a href="#line-14" class="ident">Name</a></code></span>
+<span class="codeline" id="line-62"><code>	<a href="../../../../../../use/github.com/aws/smithy-go/encoding/xml..StartElement.Attr.html" class="ident">Attr</a> []<a href="#line-19" class="ident">Attr</a></code></span>
+<span class="codeline" id="line-63"><code>}</code></span>
+<span class="codeline" id="line-64"><code></code></span>
+<span class="codeline" id="line-65"><code><span class="comment">// Copy creates a new copy of StartElement.</span></code></span>
+<span class="codeline" id="line-66"><code><span class="keyword">func</span> (<label for="r7" class="ident">e</label> <a href="#line-60" class="ident">StartElement</a>) <label for="r8" class="ident"><a href="../../../../../../use/github.com/aws/smithy-go/encoding/xml..StartElement.Copy.html" class="ident">Copy</a></label>() <a href="#line-60" class="ident">StartElement</a> {</code></span>
+<span class="codeline" id="line-67"><code>	<label for="r9" class="ident">attrs</label> := <a href="../../../../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="#line-19" class="ident">Attr</a>, <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r7" class="ident">e</label>.<a href="#line-62" class="ident">Attr</a>))</code></span>
+<span class="codeline" id="line-68"><code>	<a href="../../../../../../pkg/builtin.html#name-copy" class="ident">copy</a>(<label for="r9" class="ident">attrs</label>, <label for="r7" class="ident">e</label>.<a href="#line-62" class="ident">Attr</a>)</code></span>
+<span class="codeline" id="line-69"><code>	<label for="r7" class="ident">e</label>.<a href="#line-62" class="ident">Attr</a> = <label for="r9" class="ident">attrs</label></code></span>
+<span class="codeline" id="line-70"><code>	<span class="keyword">return</span> <label for="r7" class="ident">e</label></code></span>
+<span class="codeline" id="line-71"><code>}</code></span>
+<span class="codeline" id="line-72"><code></code></span>
+<span class="codeline" id="line-73"><code><span class="comment">// End returns the corresponding XML end element.</span></code></span>
+<span class="codeline" id="line-74"><code><span class="keyword">func</span> (<label for="r10" class="ident">e</label> <a href="#line-60" class="ident">StartElement</a>) <label for="r11" class="ident"><a href="../../../../../../use/github.com/aws/smithy-go/encoding/xml..StartElement.End.html" class="ident">End</a></label>() <a href="#line-84" class="ident">EndElement</a> {</code></span>
+<span class="codeline" id="line-75"><code>	<span class="keyword">return</span> <a href="#line-84" class="ident">EndElement</a>{<label for="r10" class="ident">e</label>.<a href="#line-61" class="ident">Name</a>}</code></span>
+<span class="codeline" id="line-76"><code>}</code></span>
+<span class="codeline" id="line-77"><code></code></span>
+<span class="codeline" id="line-78"><code><span class="comment">// returns true if start element local name is empty</span></code></span>
+<span class="codeline" id="line-79"><code><span class="keyword">func</span> (<label for="r12" class="ident">e</label> <a href="#line-60" class="ident">StartElement</a>) <label for="r13" class="ident"><a href="../../../../../../use/github.com/aws/smithy-go/encoding/xml..StartElement.isZero^60dfd.html" class="ident">isZero</a></label>() <a href="../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-80"><code>	<span class="keyword">return</span> <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r12" class="ident">e</label>.<a href="#line-61" class="ident">Name</a>.<a href="#line-15" class="ident">Local</a>) == <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-81"><code>}</code></span>
+<span class="codeline" id="line-82"><code></code></span>
+<span class="codeline" id="line-83"><code><span class="comment">// An EndElement represents an XML end element.</span></code></span>
+<span class="codeline" id="line-84"><code><span class="keyword">type</span> <a href="../../../../../../pkg/github.com/aws/smithy-go/encoding/xml.html#name-EndElement" class="ident">EndElement</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-85"><code>	<a href="../../../../../../use/github.com/aws/smithy-go/encoding/xml..EndElement.Name.html" class="ident">Name</a> <a href="#line-14" class="ident">Name</a></code></span>
+<span class="codeline" id="line-86"><code>}</code></span>
+<span class="codeline" id="line-87"><code></code></span>
+<span class="codeline" id="line-88"><code><span class="comment">// returns true if end element local name is empty</span></code></span>
+<span class="codeline" id="line-89"><code><span class="keyword">func</span> (<label for="r14" class="ident">e</label> <a href="#line-84" class="ident">EndElement</a>) <label for="r15" class="ident"><a href="../../../../../../use/github.com/aws/smithy-go/encoding/xml..EndElement.isZero^60dfd.html" class="ident">isZero</a></label>() <a href="../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-90"><code>	<span class="keyword">return</span> <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r14" class="ident">e</label>.<a href="#line-85" class="ident">Name</a>.<a href="#line-15" class="ident">Local</a>) == <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-91"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

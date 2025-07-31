@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: gobuild.go in package go/printer</title>
+<link href="../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	gobuild.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../pkg/go/printer.html">go/printer</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30],
+input[id=r31]:checked ~pre label[for=r31],
+input[id=r32]:checked ~pre label[for=r32],
+input[id=r33]:checked ~pre label[for=r33],
+input[id=r34]:checked ~pre label[for=r34],
+input[id=r35]:checked ~pre label[for=r35],
+input[id=r36]:checked ~pre label[for=r36],
+input[id=r37]:checked ~pre label[for=r37]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="r31" type="radio" name="g"/>
+<input id="r32" type="radio" name="g"/>
+<input id="r33" type="radio" name="g"/>
+<input id="r34" type="radio" name="g"/>
+<input id="r35" type="radio" name="g"/>
+<input id="r36" type="radio" name="g"/>
+<input id="r37" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2020 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> printer</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-8"><code>	<label for="i0"><span class="lit-string i0">"go/build/constraint"</span></label></code></span>
+<span class="codeline" id="line-9"><code>	<label for="i1"><span class="lit-string i1">"slices"</span></label></code></span>
+<span class="codeline" id="line-10"><code>	<label for="i2"><span class="lit-string i2">"text/tabwriter"</span></label></code></span>
+<span class="codeline" id="line-11"><code>)</code></span>
+<span class="codeline" id="line-12"><code></code></span>
+<span class="codeline" id="line-13"><code><span class="keyword">func</span> (<label for="r0" class="ident">p</label> *<a href="printer.go.html#line-54" class="ident">printer</a>) <label for="r1" class="ident"><a href="../../../use/go/printer..printer^ba70e.fixGoBuildLines^0b653.html" class="ident">fixGoBuildLines</a></label>() {</code></span>
+<span class="codeline" id="line-14"><code>	<span class="keyword">if</span> <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r0" class="ident">p</label>.<a href="printer.go.html#line-69" class="ident">goBuild</a>)+<a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r0" class="ident">p</label>.<a href="printer.go.html#line-70" class="ident">plusBuild</a>) == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-15"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-16"><code>	}</code></span>
+<span class="codeline" id="line-17"><code></code></span>
+<span class="codeline" id="line-18"><code>	<span class="comment">// Find latest possible placement of //go:build and // +build comments.</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">	// That's just after the last blank line before we find a non-comment.</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">	// (We'll add another blank line after our comment block.)</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">	// When we start dropping // +build comments, we can skip over /* */ comments too.</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">	// Note that we are processing tabwriter input, so every comment</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">	// begins and ends with a tabwriter.Escape byte.</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">	// And some newlines have turned into \f bytes.</span></code></span>
+<span class="codeline" id="line-25"><code>	<label for="r2" class="ident">insert</label> := <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-26"><code>	<span class="keyword">for</span> <label for="r3" class="ident">pos</label> := <span class="lit-number">0</span>; ; {</code></span>
+<span class="codeline" id="line-27"><code>		<span class="comment">// Skip leading space at beginning of line.</span></code></span>
+<span class="codeline" id="line-28"><code>		<label for="r4" class="ident">blank</label> := <a href="../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-29"><code>		<span class="keyword">for</span> <label for="r3" class="ident">pos</label> &lt; <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r0" class="ident">p</label>.<a href="printer.go.html#line-60" class="ident">output</a>) &amp;&amp; (<label for="r0" class="ident">p</label>.<a href="printer.go.html#line-60" class="ident">output</a>[<label for="r3" class="ident">pos</label>] == <span class="lit-number">' '</span> || <label for="r0" class="ident">p</label>.<a href="printer.go.html#line-60" class="ident">output</a>[<label for="r3" class="ident">pos</label>] == <span class="lit-number">'\t'</span>) {</code></span>
+<span class="codeline" id="line-30"><code>			<label for="r3" class="ident">pos</label>++</code></span>
+<span class="codeline" id="line-31"><code>		}</code></span>
+<span class="codeline" id="line-32"><code>		<span class="comment">// Skip over // comment if any.</span></code></span>
+<span class="codeline" id="line-33"><code>		<span class="keyword">if</span> <label for="r3" class="ident">pos</label>+<span class="lit-number">3</span> &lt; <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r0" class="ident">p</label>.<a href="printer.go.html#line-60" class="ident">output</a>) &amp;&amp; <label for="r0" class="ident">p</label>.<a href="printer.go.html#line-60" class="ident">output</a>[<label for="r3" class="ident">pos</label>] == <a href="../../../pkg/text/tabwriter.html" class="ident i2">tabwriter</a>.<a href="../../text/tabwriter/tabwriter.go.html#line-427" class="ident">Escape</a> &amp;&amp; <label for="r0" class="ident">p</label>.<a href="printer.go.html#line-60" class="ident">output</a>[<label for="r3" class="ident">pos</label>+<span class="lit-number">1</span>] == <span class="lit-number">'/'</span> &amp;&amp; <label for="r0" class="ident">p</label>.<a href="printer.go.html#line-60" class="ident">output</a>[<label for="r3" class="ident">pos</label>+<span class="lit-number">2</span>] == <span class="lit-number">'/'</span> {</code></span>
+<span class="codeline" id="line-34"><code>			<label for="r4" class="ident">blank</label> = <a href="../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-35"><code>			<span class="keyword">for</span> <label for="r3" class="ident">pos</label> &lt; <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r0" class="ident">p</label>.<a href="printer.go.html#line-60" class="ident">output</a>) &amp;&amp; !<a href="#line-168" class="ident">isNL</a>(<label for="r0" class="ident">p</label>.<a href="printer.go.html#line-60" class="ident">output</a>[<label for="r3" class="ident">pos</label>]) {</code></span>
+<span class="codeline" id="line-36"><code>				<label for="r3" class="ident">pos</label>++</code></span>
+<span class="codeline" id="line-37"><code>			}</code></span>
+<span class="codeline" id="line-38"><code>		}</code></span>
+<span class="codeline" id="line-39"><code>		<span class="comment">// Skip over \n at end of line.</span></code></span>
+<span class="codeline" id="line-40"><code>		<span class="keyword">if</span> <label for="r3" class="ident">pos</label> &gt;= <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r0" class="ident">p</label>.<a href="printer.go.html#line-60" class="ident">output</a>) || !<a href="#line-168" class="ident">isNL</a>(<label for="r0" class="ident">p</label>.<a href="printer.go.html#line-60" class="ident">output</a>[<label for="r3" class="ident">pos</label>]) {</code></span>
+<span class="codeline" id="line-41"><code>			<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-42"><code>		}</code></span>
+<span class="codeline" id="line-43"><code>		<label for="r3" class="ident">pos</label>++</code></span>
+<span class="codeline" id="line-44"><code></code></span>
+<span class="codeline" id="line-45"><code>		<span class="keyword">if</span> <label for="r4" class="ident">blank</label> {</code></span>
+<span class="codeline" id="line-46"><code>			<label for="r2" class="ident">insert</label> = <label for="r3" class="ident">pos</label></code></span>
+<span class="codeline" id="line-47"><code>		}</code></span>
+<span class="codeline" id="line-48"><code>	}</code></span>
+<span class="codeline" id="line-49"><code></code></span>
+<span class="codeline" id="line-50"><code>	<span class="comment">// If there is a //go:build comment before the place we identified,</span></code></span>
+<span class="codeline" id="line-51"><code><span class="comment">	// use that point instead. (Earlier in the file is always fine.)</span></code></span>
+<span class="codeline" id="line-52"><code>	<span class="keyword">if</span> <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r0" class="ident">p</label>.<a href="printer.go.html#line-69" class="ident">goBuild</a>) &gt; <span class="lit-number">0</span> &amp;&amp; <label for="r0" class="ident">p</label>.<a href="printer.go.html#line-69" class="ident">goBuild</a>[<span class="lit-number">0</span>] &lt; <label for="r2" class="ident">insert</label> {</code></span>
+<span class="codeline" id="line-53"><code>		<label for="r2" class="ident">insert</label> = <label for="r0" class="ident">p</label>.<a href="printer.go.html#line-69" class="ident">goBuild</a>[<span class="lit-number">0</span>]</code></span>
+<span class="codeline" id="line-54"><code>	} <span class="keyword">else</span> <span class="keyword">if</span> <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r0" class="ident">p</label>.<a href="printer.go.html#line-70" class="ident">plusBuild</a>) &gt; <span class="lit-number">0</span> &amp;&amp; <label for="r0" class="ident">p</label>.<a href="printer.go.html#line-70" class="ident">plusBuild</a>[<span class="lit-number">0</span>] &lt; <label for="r2" class="ident">insert</label> {</code></span>
+<span class="codeline" id="line-55"><code>		<label for="r2" class="ident">insert</label> = <label for="r0" class="ident">p</label>.<a href="printer.go.html#line-70" class="ident">plusBuild</a>[<span class="lit-number">0</span>]</code></span>
+<span class="codeline" id="line-56"><code>	}</code></span>
+<span class="codeline" id="line-57"><code></code></span>
+<span class="codeline" id="line-58"><code>	<span class="keyword">var</span> <label for="r5" class="ident">x</label> <a href="../../../pkg/go/build/constraint.html" class="ident i0">constraint</a>.<a href="../build/constraint/expr.go.html#line-25" class="ident">Expr</a></code></span>
+<span class="codeline" id="line-59"><code>	<span class="keyword">switch</span> <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r0" class="ident">p</label>.<a href="printer.go.html#line-69" class="ident">goBuild</a>) {</code></span>
+<span class="codeline" id="line-60"><code>	<span class="keyword">case</span> <span class="lit-number">0</span>:</code></span>
+<span class="codeline" id="line-61"><code>		<span class="comment">// Synthesize //go:build expression from // +build lines.</span></code></span>
+<span class="codeline" id="line-62"><code>		<span class="keyword">for</span> <label for="r6" class="ident">_</label>, <label for="r7" class="ident">pos</label> := <span class="keyword">range</span> <label for="r0" class="ident">p</label>.<a href="printer.go.html#line-70" class="ident">plusBuild</a> {</code></span>
+<span class="codeline" id="line-63"><code>			<label for="r8" class="ident">y</label>, <label for="r9" class="ident">err</label> := <a href="../../../pkg/go/build/constraint.html" class="ident i0">constraint</a>.<a href="../build/constraint/expr.go.html#line-153" class="ident">Parse</a>(<label for="r0" class="ident">p</label>.<a href="#line-157" class="ident">commentTextAt</a>(<label for="r7" class="ident">pos</label>))</code></span>
+<span class="codeline" id="line-64"><code>			<span class="keyword">if</span> <label for="r9" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-65"><code>				<label for="r5" class="ident">x</label> = <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-66"><code>				<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-67"><code>			}</code></span>
+<span class="codeline" id="line-68"><code>			<span class="keyword">if</span> <label for="r5" class="ident">x</label> == <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-69"><code>				<label for="r5" class="ident">x</label> = <label for="r8" class="ident">y</label></code></span>
+<span class="codeline" id="line-70"><code>			} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-71"><code>				<label for="r5" class="ident">x</label> = &amp;<a href="../../../pkg/go/build/constraint.html" class="ident i0">constraint</a>.<a href="../build/constraint/expr.go.html#line-80" class="ident">AndExpr</a>{<a href="../build/constraint/expr.go.html#line-81" class="ident">X</a>: <label for="r5" class="ident">x</label>, <a href="../build/constraint/expr.go.html#line-81" class="ident">Y</a>: <label for="r8" class="ident">y</label>}</code></span>
+<span class="codeline" id="line-72"><code>			}</code></span>
+<span class="codeline" id="line-73"><code>		}</code></span>
+<span class="codeline" id="line-74"><code>	<span class="keyword">case</span> <span class="lit-number">1</span>:</code></span>
+<span class="codeline" id="line-75"><code>		<span class="comment">// Parse //go:build expression.</span></code></span>
+<span class="codeline" id="line-76"><code>		<label for="r5" class="ident">x</label>, _ = <a href="../../../pkg/go/build/constraint.html" class="ident i0">constraint</a>.<a href="../build/constraint/expr.go.html#line-153" class="ident">Parse</a>(<label for="r0" class="ident">p</label>.<a href="#line-157" class="ident">commentTextAt</a>(<label for="r0" class="ident">p</label>.<a href="printer.go.html#line-69" class="ident">goBuild</a>[<span class="lit-number">0</span>]))</code></span>
+<span class="codeline" id="line-77"><code>	}</code></span>
+<span class="codeline" id="line-78"><code></code></span>
+<span class="codeline" id="line-79"><code>	<span class="keyword">var</span> <label for="r10" class="ident">block</label> []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
+<span class="codeline" id="line-80"><code>	<span class="keyword">if</span> <label for="r5" class="ident">x</label> == <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-81"><code>		<span class="comment">// Don't have a valid //go:build expression to treat as truth.</span></code></span>
+<span class="codeline" id="line-82"><code><span class="comment">		// Bring all the lines together but leave them alone.</span></code></span>
+<span class="codeline" id="line-83"><code><span class="comment">		// Note that these are already tabwriter-escaped.</span></code></span>
+<span class="codeline" id="line-84"><code>		<span class="keyword">for</span> <label for="r11" class="ident">_</label>, <label for="r12" class="ident">pos</label> := <span class="keyword">range</span> <label for="r0" class="ident">p</label>.<a href="printer.go.html#line-69" class="ident">goBuild</a> {</code></span>
+<span class="codeline" id="line-85"><code>			<label for="r10" class="ident">block</label> = <a href="../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r10" class="ident">block</label>, <label for="r0" class="ident">p</label>.<a href="#line-146" class="ident">lineAt</a>(<label for="r12" class="ident">pos</label>)...)</code></span>
+<span class="codeline" id="line-86"><code>		}</code></span>
+<span class="codeline" id="line-87"><code>		<span class="keyword">for</span> <label for="r13" class="ident">_</label>, <label for="r14" class="ident">pos</label> := <span class="keyword">range</span> <label for="r0" class="ident">p</label>.<a href="printer.go.html#line-70" class="ident">plusBuild</a> {</code></span>
+<span class="codeline" id="line-88"><code>			<label for="r10" class="ident">block</label> = <a href="../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r10" class="ident">block</label>, <label for="r0" class="ident">p</label>.<a href="#line-146" class="ident">lineAt</a>(<label for="r14" class="ident">pos</label>)...)</code></span>
+<span class="codeline" id="line-89"><code>		}</code></span>
+<span class="codeline" id="line-90"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-91"><code>		<label for="r10" class="ident">block</label> = <a href="../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r10" class="ident">block</label>, <a href="../../../pkg/text/tabwriter.html" class="ident i2">tabwriter</a>.<a href="../../text/tabwriter/tabwriter.go.html#line-427" class="ident">Escape</a>)</code></span>
+<span class="codeline" id="line-92"><code>		<label for="r10" class="ident">block</label> = <a href="../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r10" class="ident">block</label>, <span class="lit-string">"//go:build "</span>...)</code></span>
+<span class="codeline" id="line-93"><code>		<label for="r10" class="ident">block</label> = <a href="../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r10" class="ident">block</label>, <label for="r5" class="ident">x</label>.<a href="../build/constraint/expr.go.html#line-28" class="ident">String</a>()...)</code></span>
+<span class="codeline" id="line-94"><code>		<label for="r10" class="ident">block</label> = <a href="../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r10" class="ident">block</label>, <a href="../../../pkg/text/tabwriter.html" class="ident i2">tabwriter</a>.<a href="../../text/tabwriter/tabwriter.go.html#line-427" class="ident">Escape</a>, <span class="lit-number">'\n'</span>)</code></span>
+<span class="codeline" id="line-95"><code>		<span class="keyword">if</span> <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r0" class="ident">p</label>.<a href="printer.go.html#line-70" class="ident">plusBuild</a>) &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-96"><code>			<label for="r15" class="ident">lines</label>, <label for="r16" class="ident">err</label> := <a href="../../../pkg/go/build/constraint.html" class="ident i0">constraint</a>.<a href="../build/constraint/expr.go.html#line-473" class="ident">PlusBuildLines</a>(<label for="r5" class="ident">x</label>)</code></span>
+<span class="codeline" id="line-97"><code>			<span class="keyword">if</span> <label for="r16" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-98"><code>				<label for="r15" class="ident">lines</label> = []<a href="../../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"// +build error: "</span> + <label for="r16" class="ident">err</label>.Error()}</code></span>
+<span class="codeline" id="line-99"><code>			}</code></span>
+<span class="codeline" id="line-100"><code>			<span class="keyword">for</span> <label for="r17" class="ident">_</label>, <label for="r18" class="ident">line</label> := <span class="keyword">range</span> <label for="r15" class="ident">lines</label> {</code></span>
+<span class="codeline" id="line-101"><code>				<label for="r10" class="ident">block</label> = <a href="../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r10" class="ident">block</label>, <a href="../../../pkg/text/tabwriter.html" class="ident i2">tabwriter</a>.<a href="../../text/tabwriter/tabwriter.go.html#line-427" class="ident">Escape</a>)</code></span>
+<span class="codeline" id="line-102"><code>				<label for="r10" class="ident">block</label> = <a href="../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r10" class="ident">block</label>, <label for="r18" class="ident">line</label>...)</code></span>
+<span class="codeline" id="line-103"><code>				<label for="r10" class="ident">block</label> = <a href="../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r10" class="ident">block</label>, <a href="../../../pkg/text/tabwriter.html" class="ident i2">tabwriter</a>.<a href="../../text/tabwriter/tabwriter.go.html#line-427" class="ident">Escape</a>, <span class="lit-number">'\n'</span>)</code></span>
+<span class="codeline" id="line-104"><code>			}</code></span>
+<span class="codeline" id="line-105"><code>		}</code></span>
+<span class="codeline" id="line-106"><code>	}</code></span>
+<span class="codeline" id="line-107"><code>	<label for="r10" class="ident">block</label> = <a href="../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r10" class="ident">block</label>, <span class="lit-number">'\n'</span>)</code></span>
+<span class="codeline" id="line-108"><code></code></span>
+<span class="codeline" id="line-109"><code>	<span class="comment">// Build sorted list of lines to delete from remainder of output.</span></code></span>
+<span class="codeline" id="line-110"><code>	<label for="r19" class="ident">toDelete</label> := <a href="../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r0" class="ident">p</label>.<a href="printer.go.html#line-69" class="ident">goBuild</a>, <label for="r0" class="ident">p</label>.<a href="printer.go.html#line-70" class="ident">plusBuild</a>...)</code></span>
+<span class="codeline" id="line-111"><code>	<a href="../../../pkg/slices.html" class="ident i1">slices</a>.<a href="../../slices/sort.go.html#line-16" class="ident">Sort</a>(<label for="r19" class="ident">toDelete</label>)</code></span>
+<span class="codeline" id="line-112"><code></code></span>
+<span class="codeline" id="line-113"><code>	<span class="comment">// Collect output after insertion point, with lines deleted, into after.</span></code></span>
+<span class="codeline" id="line-114"><code>	<span class="keyword">var</span> <label for="r20" class="ident">after</label> []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
+<span class="codeline" id="line-115"><code>	<label for="r21" class="ident">start</label> := <label for="r2" class="ident">insert</label></code></span>
+<span class="codeline" id="line-116"><code>	<span class="keyword">for</span> <label for="r22" class="ident">_</label>, <label for="r23" class="ident">end</label> := <span class="keyword">range</span> <label for="r19" class="ident">toDelete</label> {</code></span>
+<span class="codeline" id="line-117"><code>		<span class="keyword">if</span> <label for="r23" class="ident">end</label> &lt; <label for="r21" class="ident">start</label> {</code></span>
+<span class="codeline" id="line-118"><code>			<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-119"><code>		}</code></span>
+<span class="codeline" id="line-120"><code>		<label for="r20" class="ident">after</label> = <a href="#line-138" class="ident">appendLines</a>(<label for="r20" class="ident">after</label>, <label for="r0" class="ident">p</label>.<a href="printer.go.html#line-60" class="ident">output</a>[<label for="r21" class="ident">start</label>:<label for="r23" class="ident">end</label>])</code></span>
+<span class="codeline" id="line-121"><code>		<label for="r21" class="ident">start</label> = <label for="r23" class="ident">end</label> + <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r0" class="ident">p</label>.<a href="#line-146" class="ident">lineAt</a>(<label for="r23" class="ident">end</label>))</code></span>
+<span class="codeline" id="line-122"><code>	}</code></span>
+<span class="codeline" id="line-123"><code>	<label for="r20" class="ident">after</label> = <a href="#line-138" class="ident">appendLines</a>(<label for="r20" class="ident">after</label>, <label for="r0" class="ident">p</label>.<a href="printer.go.html#line-60" class="ident">output</a>[<label for="r21" class="ident">start</label>:])</code></span>
+<span class="codeline" id="line-124"><code>	<span class="keyword">if</span> <label for="r24" class="ident">n</label> := <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r20" class="ident">after</label>); <label for="r24" class="ident">n</label> &gt;= <span class="lit-number">2</span> &amp;&amp; <a href="#line-168" class="ident">isNL</a>(<label for="r20" class="ident">after</label>[<label for="r24" class="ident">n</label>-<span class="lit-number">1</span>]) &amp;&amp; <a href="#line-168" class="ident">isNL</a>(<label for="r20" class="ident">after</label>[<label for="r24" class="ident">n</label>-<span class="lit-number">2</span>]) {</code></span>
+<span class="codeline" id="line-125"><code>		<label for="r20" class="ident">after</label> = <label for="r20" class="ident">after</label>[:<label for="r24" class="ident">n</label>-<span class="lit-number">1</span>]</code></span>
+<span class="codeline" id="line-126"><code>	}</code></span>
+<span class="codeline" id="line-127"><code></code></span>
+<span class="codeline" id="line-128"><code>	<label for="r0" class="ident">p</label>.<a href="printer.go.html#line-60" class="ident">output</a> = <label for="r0" class="ident">p</label>.<a href="printer.go.html#line-60" class="ident">output</a>[:<label for="r2" class="ident">insert</label>]</code></span>
+<span class="codeline" id="line-129"><code>	<label for="r0" class="ident">p</label>.<a href="printer.go.html#line-60" class="ident">output</a> = <a href="../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r0" class="ident">p</label>.<a href="printer.go.html#line-60" class="ident">output</a>, <label for="r10" class="ident">block</label>...)</code></span>
+<span class="codeline" id="line-130"><code>	<label for="r0" class="ident">p</label>.<a href="printer.go.html#line-60" class="ident">output</a> = <a href="../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r0" class="ident">p</label>.<a href="printer.go.html#line-60" class="ident">output</a>, <label for="r20" class="ident">after</label>...)</code></span>
+<span class="codeline" id="line-131"><code>}</code></span>
+<span class="codeline" id="line-132"><code></code></span>
+<span class="codeline" id="line-133"><code><span class="comment">// appendLines is like append(x, y...)</span></code></span>
+<span class="codeline" id="line-134"><code><span class="comment">// but it avoids creating doubled blank lines,</span></code></span>
+<span class="codeline" id="line-135"><code><span class="comment">// which would not be gofmt-standard output.</span></code></span>
+<span class="codeline" id="line-136"><code><span class="comment">// It assumes that only whole blocks of lines are being appended,</span></code></span>
+<span class="codeline" id="line-137"><code><span class="comment">// not line fragments.</span></code></span>
+<span class="codeline" id="line-138"><code><span class="keyword">func</span> <label for="r25" class="ident"><a href="../../../pkg/go/printer.html#name-appendLines" class="ident">appendLines</a></label>(<label for="r26" class="ident">x</label>, <label for="r27" class="ident">y</label> []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a> {</code></span>
+<span class="codeline" id="line-139"><code>	<span class="keyword">if</span> <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r27" class="ident">y</label>) &gt; <span class="lit-number">0</span> &amp;&amp; <a href="#line-168" class="ident">isNL</a>(<label for="r27" class="ident">y</label>[<span class="lit-number">0</span>]) &amp;&amp; <span class="comment">// y starts in blank line</span></code></span>
+<span class="codeline" id="line-140"><code>		(<a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r26" class="ident">x</label>) == <span class="lit-number">0</span> || <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r26" class="ident">x</label>) &gt;= <span class="lit-number">2</span> &amp;&amp; <a href="#line-168" class="ident">isNL</a>(<label for="r26" class="ident">x</label>[<a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r26" class="ident">x</label>)-<span class="lit-number">1</span>]) &amp;&amp; <a href="#line-168" class="ident">isNL</a>(<label for="r26" class="ident">x</label>[<a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r26" class="ident">x</label>)-<span class="lit-number">2</span>])) { <span class="comment">// x is empty or ends in blank line</span></code></span>
+<span class="codeline" id="line-141"><code>		<label for="r27" class="ident">y</label> = <label for="r27" class="ident">y</label>[<span class="lit-number">1</span>:] <span class="comment">// delete y's leading blank line</span></code></span>
+<span class="codeline" id="line-142"><code>	}</code></span>
+<span class="codeline" id="line-143"><code>	<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r26" class="ident">x</label>, <label for="r27" class="ident">y</label>...)</code></span>
+<span class="codeline" id="line-144"><code>}</code></span>
+<span class="codeline" id="line-145"><code></code></span>
+<span class="codeline" id="line-146"><code><span class="keyword">func</span> (<label for="r28" class="ident">p</label> *<a href="printer.go.html#line-54" class="ident">printer</a>) <label for="r29" class="ident"><a href="../../../use/go/printer..printer^ba70e.lineAt^8266b.html" class="ident">lineAt</a></label>(<label for="r30" class="ident">start</label> <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>) []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a> {</code></span>
+<span class="codeline" id="line-147"><code>	<label for="r31" class="ident">pos</label> := <label for="r30" class="ident">start</label></code></span>
+<span class="codeline" id="line-148"><code>	<span class="keyword">for</span> <label for="r31" class="ident">pos</label> &lt; <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r28" class="ident">p</label>.<a href="printer.go.html#line-60" class="ident">output</a>) &amp;&amp; !<a href="#line-168" class="ident">isNL</a>(<label for="r28" class="ident">p</label>.<a href="printer.go.html#line-60" class="ident">output</a>[<label for="r31" class="ident">pos</label>]) {</code></span>
+<span class="codeline" id="line-149"><code>		<label for="r31" class="ident">pos</label>++</code></span>
+<span class="codeline" id="line-150"><code>	}</code></span>
+<span class="codeline" id="line-151"><code>	<span class="keyword">if</span> <label for="r31" class="ident">pos</label> &lt; <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r28" class="ident">p</label>.<a href="printer.go.html#line-60" class="ident">output</a>) {</code></span>
+<span class="codeline" id="line-152"><code>		<label for="r31" class="ident">pos</label>++</code></span>
+<span class="codeline" id="line-153"><code>	}</code></span>
+<span class="codeline" id="line-154"><code>	<span class="keyword">return</span> <label for="r28" class="ident">p</label>.<a href="printer.go.html#line-60" class="ident">output</a>[<label for="r30" class="ident">start</label>:<label for="r31" class="ident">pos</label>]</code></span>
+<span class="codeline" id="line-155"><code>}</code></span>
+<span class="codeline" id="line-156"><code></code></span>
+<span class="codeline" id="line-157"><code><span class="keyword">func</span> (<label for="r32" class="ident">p</label> *<a href="printer.go.html#line-54" class="ident">printer</a>) <label for="r33" class="ident"><a href="../../../use/go/printer..printer^ba70e.commentTextAt^4fac3.html" class="ident">commentTextAt</a></label>(<label for="r34" class="ident">start</label> <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>) <a href="../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-158"><code>	<span class="keyword">if</span> <label for="r34" class="ident">start</label> &lt; <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r32" class="ident">p</label>.<a href="printer.go.html#line-60" class="ident">output</a>) &amp;&amp; <label for="r32" class="ident">p</label>.<a href="printer.go.html#line-60" class="ident">output</a>[<label for="r34" class="ident">start</label>] == <a href="../../../pkg/text/tabwriter.html" class="ident i2">tabwriter</a>.<a href="../../text/tabwriter/tabwriter.go.html#line-427" class="ident">Escape</a> {</code></span>
+<span class="codeline" id="line-159"><code>		<label for="r34" class="ident">start</label>++</code></span>
+<span class="codeline" id="line-160"><code>	}</code></span>
+<span class="codeline" id="line-161"><code>	<label for="r35" class="ident">pos</label> := <label for="r34" class="ident">start</label></code></span>
+<span class="codeline" id="line-162"><code>	<span class="keyword">for</span> <label for="r35" class="ident">pos</label> &lt; <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r32" class="ident">p</label>.<a href="printer.go.html#line-60" class="ident">output</a>) &amp;&amp; <label for="r32" class="ident">p</label>.<a href="printer.go.html#line-60" class="ident">output</a>[<label for="r35" class="ident">pos</label>] != <a href="../../../pkg/text/tabwriter.html" class="ident i2">tabwriter</a>.<a href="../../text/tabwriter/tabwriter.go.html#line-427" class="ident">Escape</a> &amp;&amp; !<a href="#line-168" class="ident">isNL</a>(<label for="r32" class="ident">p</label>.<a href="printer.go.html#line-60" class="ident">output</a>[<label for="r35" class="ident">pos</label>]) {</code></span>
+<span class="codeline" id="line-163"><code>		<label for="r35" class="ident">pos</label>++</code></span>
+<span class="codeline" id="line-164"><code>	}</code></span>
+<span class="codeline" id="line-165"><code>	<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>(<label for="r32" class="ident">p</label>.<a href="printer.go.html#line-60" class="ident">output</a>[<label for="r34" class="ident">start</label>:<label for="r35" class="ident">pos</label>])</code></span>
+<span class="codeline" id="line-166"><code>}</code></span>
+<span class="codeline" id="line-167"><code></code></span>
+<span class="codeline" id="line-168"><code><span class="keyword">func</span> <label for="r36" class="ident"><a href="../../../pkg/go/printer.html#name-isNL" class="ident">isNL</a></label>(<label for="r37" class="ident">b</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-169"><code>	<span class="keyword">return</span> <label for="r37" class="ident">b</label> == <span class="lit-number">'\n'</span> || <label for="r37" class="ident">b</label> == <span class="lit-number">'\f'</span></code></span>
+<span class="codeline" id="line-170"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

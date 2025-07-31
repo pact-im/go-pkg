@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: defaults.go in package crypto/tls</title>
+<link href="../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	defaults.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../pkg/crypto/tls.html">crypto/tls</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2024 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> tls</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-8"><code>	<label for="i0"><span class="lit-string i0">"internal/godebug"</span></label></code></span>
+<span class="codeline" id="line-9"><code>	<label for="i1"><span class="lit-string i1">"slices"</span></label></code></span>
+<span class="codeline" id="line-10"><code>	<a href="../../../pkg/unsafe.html" class="ident i2">_</a> <label for="i2"><span class="lit-string i2">"unsafe"</span></label> <span class="comment">// for linkname</span></code></span>
+<span class="codeline" id="line-11"><code>)</code></span>
+<span class="codeline" id="line-12"><code></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">// Defaults are collected in this file to allow distributions to more easily patch</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">// them to apply local policies.</span></code></span>
+<span class="codeline" id="line-15"><code></code></span>
+<span class="codeline" id="line-16"><code><span class="keyword">var</span> <a href="../../../pkg/crypto/tls.html#name-tlsmlkem" class="ident">tlsmlkem</a> = <a href="../../../pkg/internal/godebug.html" class="ident i0">godebug</a>.<a href="../../internal/godebug/godebug.go.html#line-93" class="ident">New</a>(<span class="lit-string">"tlsmlkem"</span>)</code></span>
+<span class="codeline" id="line-17"><code></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">// defaultCurvePreferences is the default set of supported key exchanges, as</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">// well as the preference order.</span></code></span>
+<span class="codeline" id="line-20"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../pkg/crypto/tls.html#name-defaultCurvePreferences" class="ident">defaultCurvePreferences</a></label>() []<a href="common.go.html#line-145" class="ident">CurveID</a> {</code></span>
+<span class="codeline" id="line-21"><code>	<span class="keyword">if</span> <a href="#line-16" class="ident">tlsmlkem</a>.<a href="../../internal/godebug/godebug.go.html#line-157" class="ident">Value</a>() == <span class="lit-string">"0"</span> {</code></span>
+<span class="codeline" id="line-22"><code>		<span class="keyword">return</span> []<a href="common.go.html#line-145" class="ident">CurveID</a>{<a href="common.go.html#line-151" class="ident">X25519</a>, <a href="common.go.html#line-148" class="ident">CurveP256</a>, <a href="common.go.html#line-149" class="ident">CurveP384</a>, <a href="common.go.html#line-150" class="ident">CurveP521</a>}</code></span>
+<span class="codeline" id="line-23"><code>	}</code></span>
+<span class="codeline" id="line-24"><code>	<span class="keyword">return</span> []<a href="common.go.html#line-145" class="ident">CurveID</a>{<a href="common.go.html#line-152" class="ident">X25519MLKEM768</a>, <a href="common.go.html#line-151" class="ident">X25519</a>, <a href="common.go.html#line-148" class="ident">CurveP256</a>, <a href="common.go.html#line-149" class="ident">CurveP384</a>, <a href="common.go.html#line-150" class="ident">CurveP521</a>}</code></span>
+<span class="codeline" id="line-25"><code>}</code></span>
+<span class="codeline" id="line-26"><code></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">// defaultSupportedSignatureAlgorithms contains the signature and hash algorithms that</span></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">// the code advertises as supported in a TLS 1.2+ ClientHello and in a TLS 1.2+</span></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">// CertificateRequest. The two fields are merged to match with TLS 1.3.</span></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">// Note that in TLS 1.2, the ECDSA algorithms are not constrained to P-256, etc.</span></code></span>
+<span class="codeline" id="line-31"><code><span class="keyword">var</span> <a href="../../../pkg/crypto/tls.html#name-defaultSupportedSignatureAlgorithms" class="ident">defaultSupportedSignatureAlgorithms</a> = []<a href="common.go.html#line-388" class="ident">SignatureScheme</a>{</code></span>
+<span class="codeline" id="line-32"><code>	<a href="common.go.html#line-397" class="ident">PSSWithSHA256</a>,</code></span>
+<span class="codeline" id="line-33"><code>	<a href="common.go.html#line-402" class="ident">ECDSAWithP256AndSHA256</a>,</code></span>
+<span class="codeline" id="line-34"><code>	<a href="common.go.html#line-407" class="ident">Ed25519</a>,</code></span>
+<span class="codeline" id="line-35"><code>	<a href="common.go.html#line-398" class="ident">PSSWithSHA384</a>,</code></span>
+<span class="codeline" id="line-36"><code>	<a href="common.go.html#line-399" class="ident">PSSWithSHA512</a>,</code></span>
+<span class="codeline" id="line-37"><code>	<a href="common.go.html#line-392" class="ident">PKCS1WithSHA256</a>,</code></span>
+<span class="codeline" id="line-38"><code>	<a href="common.go.html#line-393" class="ident">PKCS1WithSHA384</a>,</code></span>
+<span class="codeline" id="line-39"><code>	<a href="common.go.html#line-394" class="ident">PKCS1WithSHA512</a>,</code></span>
+<span class="codeline" id="line-40"><code>	<a href="common.go.html#line-403" class="ident">ECDSAWithP384AndSHA384</a>,</code></span>
+<span class="codeline" id="line-41"><code>	<a href="common.go.html#line-404" class="ident">ECDSAWithP521AndSHA512</a>,</code></span>
+<span class="codeline" id="line-42"><code>	<a href="common.go.html#line-410" class="ident">PKCS1WithSHA1</a>,</code></span>
+<span class="codeline" id="line-43"><code>	<a href="common.go.html#line-411" class="ident">ECDSAWithSHA1</a>,</code></span>
+<span class="codeline" id="line-44"><code>}</code></span>
+<span class="codeline" id="line-45"><code></code></span>
+<span class="codeline" id="line-46"><code><span class="keyword">var</span> <a href="../../../pkg/crypto/tls.html#name-tlsrsakex" class="ident">tlsrsakex</a> = <a href="../../../pkg/internal/godebug.html" class="ident i0">godebug</a>.<a href="../../internal/godebug/godebug.go.html#line-93" class="ident">New</a>(<span class="lit-string">"tlsrsakex"</span>)</code></span>
+<span class="codeline" id="line-47"><code><span class="keyword">var</span> <a href="../../../pkg/crypto/tls.html#name-tls3des" class="ident">tls3des</a> = <a href="../../../pkg/internal/godebug.html" class="ident i0">godebug</a>.<a href="../../internal/godebug/godebug.go.html#line-93" class="ident">New</a>(<span class="lit-string">"tls3des"</span>)</code></span>
+<span class="codeline" id="line-48"><code></code></span>
+<span class="codeline" id="line-49"><code><span class="keyword">func</span> <label for="r1" class="ident"><a href="../../../pkg/crypto/tls.html#name-defaultCipherSuites" class="ident">defaultCipherSuites</a></label>() []<a href="../../../pkg/builtin.html#name-uint16" class="ident">uint16</a> {</code></span>
+<span class="codeline" id="line-50"><code>	<label for="r2" class="ident">suites</label> := <a href="../../../pkg/slices.html" class="ident i1">slices</a>.<a href="../../slices/slices.go.html#line-348" class="ident">Clone</a>(<a href="cipher_suites.go.html#line-283" class="ident">cipherSuitesPreferenceOrder</a>)</code></span>
+<span class="codeline" id="line-51"><code>	<span class="keyword">return</span> <a href="../../../pkg/slices.html" class="ident i1">slices</a>.<a href="../../slices/slices.go.html#line-236" class="ident">DeleteFunc</a>(<label for="r2" class="ident">suites</label>, <span class="keyword">func</span>(<label for="r3" class="ident">c</label> <a href="../../../pkg/builtin.html#name-uint16" class="ident">uint16</a>) <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-52"><code>		<span class="keyword">return</span> <a href="cipher_suites.go.html#line-338" class="ident">disabledCipherSuites</a>[<label for="r3" class="ident">c</label>] ||</code></span>
+<span class="codeline" id="line-53"><code>			<a href="#line-46" class="ident">tlsrsakex</a>.<a href="../../internal/godebug/godebug.go.html#line-157" class="ident">Value</a>() != <span class="lit-string">"1"</span> &amp;&amp; <a href="cipher_suites.go.html#line-352" class="ident">rsaKexCiphers</a>[<label for="r3" class="ident">c</label>] ||</code></span>
+<span class="codeline" id="line-54"><code>			<a href="#line-47" class="ident">tls3des</a>.<a href="../../internal/godebug/godebug.go.html#line-157" class="ident">Value</a>() != <span class="lit-string">"1"</span> &amp;&amp; <a href="cipher_suites.go.html#line-364" class="ident">tdesCiphers</a>[<label for="r3" class="ident">c</label>]</code></span>
+<span class="codeline" id="line-55"><code>	})</code></span>
+<span class="codeline" id="line-56"><code>}</code></span>
+<span class="codeline" id="line-57"><code></code></span>
+<span class="codeline" id="line-58"><code><span class="comment">// defaultCipherSuitesTLS13 is also the preference order, since there are no</span></code></span>
+<span class="codeline" id="line-59"><code><span class="comment">// disabled by default TLS 1.3 cipher suites. The same AES vs ChaCha20 logic as</span></code></span>
+<span class="codeline" id="line-60"><code><span class="comment">// cipherSuitesPreferenceOrder applies.</span></code></span>
+<span class="codeline" id="line-61"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-62"><code><span class="comment">// defaultCipherSuitesTLS13 should be an internal detail,</span></code></span>
+<span class="codeline" id="line-63"><code><span class="comment">// but widely used packages access it using linkname.</span></code></span>
+<span class="codeline" id="line-64"><code><span class="comment">// Notable members of the hall of shame include:</span></code></span>
+<span class="codeline" id="line-65"><code><span class="comment">//   - github.com/quic-go/quic-go</span></code></span>
+<span class="codeline" id="line-66"><code><span class="comment">//   - github.com/sagernet/quic-go</span></code></span>
+<span class="codeline" id="line-67"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-68"><code><span class="comment">// Do not remove or change the type signature.</span></code></span>
+<span class="codeline" id="line-69"><code><span class="comment">// See go.dev/issue/67401.</span></code></span>
+<span class="codeline" id="line-70"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-71"><code><span class="comment">//go:linkname defaultCipherSuitesTLS13</span></code></span>
+<span class="codeline" id="line-72"><code><span class="keyword">var</span> <a href="../../../pkg/crypto/tls.html#name-defaultCipherSuitesTLS13" class="ident">defaultCipherSuitesTLS13</a> = []<a href="../../../pkg/builtin.html#name-uint16" class="ident">uint16</a>{</code></span>
+<span class="codeline" id="line-73"><code>	<a href="cipher_suites.go.html#line-708" class="ident">TLS_AES_128_GCM_SHA256</a>,</code></span>
+<span class="codeline" id="line-74"><code>	<a href="cipher_suites.go.html#line-709" class="ident">TLS_AES_256_GCM_SHA384</a>,</code></span>
+<span class="codeline" id="line-75"><code>	<a href="cipher_suites.go.html#line-710" class="ident">TLS_CHACHA20_POLY1305_SHA256</a>,</code></span>
+<span class="codeline" id="line-76"><code>}</code></span>
+<span class="codeline" id="line-77"><code></code></span>
+<span class="codeline" id="line-78"><code><span class="comment">// defaultCipherSuitesTLS13NoAES should be an internal detail,</span></code></span>
+<span class="codeline" id="line-79"><code><span class="comment">// but widely used packages access it using linkname.</span></code></span>
+<span class="codeline" id="line-80"><code><span class="comment">// Notable members of the hall of shame include:</span></code></span>
+<span class="codeline" id="line-81"><code><span class="comment">//   - github.com/quic-go/quic-go</span></code></span>
+<span class="codeline" id="line-82"><code><span class="comment">//   - github.com/sagernet/quic-go</span></code></span>
+<span class="codeline" id="line-83"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-84"><code><span class="comment">// Do not remove or change the type signature.</span></code></span>
+<span class="codeline" id="line-85"><code><span class="comment">// See go.dev/issue/67401.</span></code></span>
+<span class="codeline" id="line-86"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-87"><code><span class="comment">//go:linkname defaultCipherSuitesTLS13NoAES</span></code></span>
+<span class="codeline" id="line-88"><code><span class="keyword">var</span> <a href="../../../pkg/crypto/tls.html#name-defaultCipherSuitesTLS13NoAES" class="ident">defaultCipherSuitesTLS13NoAES</a> = []<a href="../../../pkg/builtin.html#name-uint16" class="ident">uint16</a>{</code></span>
+<span class="codeline" id="line-89"><code>	<a href="cipher_suites.go.html#line-710" class="ident">TLS_CHACHA20_POLY1305_SHA256</a>,</code></span>
+<span class="codeline" id="line-90"><code>	<a href="cipher_suites.go.html#line-708" class="ident">TLS_AES_128_GCM_SHA256</a>,</code></span>
+<span class="codeline" id="line-91"><code>	<a href="cipher_suites.go.html#line-709" class="ident">TLS_AES_256_GCM_SHA384</a>,</code></span>
+<span class="codeline" id="line-92"><code>}</code></span>
+<span class="codeline" id="line-93"><code></code></span>
+<span class="codeline" id="line-94"><code><span class="comment">// The FIPS-only policies below match BoringSSL's</span></code></span>
+<span class="codeline" id="line-95"><code><span class="comment">// ssl_compliance_policy_fips_202205, which is based on NIST SP 800-52r2, with</span></code></span>
+<span class="codeline" id="line-96"><code><span class="comment">// minor changes per https://go.dev/issue/71757.</span></code></span>
+<span class="codeline" id="line-97"><code><span class="comment">// https://cs.opensource.google/boringssl/boringssl/+/master:ssl/ssl_lib.cc;l=3289;drc=ea7a88fa</span></code></span>
+<span class="codeline" id="line-98"><code></code></span>
+<span class="codeline" id="line-99"><code><span class="keyword">var</span> <a href="../../../pkg/crypto/tls.html#name-defaultSupportedVersionsFIPS" class="ident">defaultSupportedVersionsFIPS</a> = []<a href="../../../pkg/builtin.html#name-uint16" class="ident">uint16</a>{</code></span>
+<span class="codeline" id="line-100"><code>	<a href="common.go.html#line-35" class="ident">VersionTLS12</a>,</code></span>
+<span class="codeline" id="line-101"><code>	<a href="common.go.html#line-36" class="ident">VersionTLS13</a>,</code></span>
+<span class="codeline" id="line-102"><code>}</code></span>
+<span class="codeline" id="line-103"><code></code></span>
+<span class="codeline" id="line-104"><code><span class="comment">// defaultCurvePreferencesFIPS are the FIPS-allowed curves,</span></code></span>
+<span class="codeline" id="line-105"><code><span class="comment">// in preference order (most preferable first).</span></code></span>
+<span class="codeline" id="line-106"><code><span class="keyword">var</span> <a href="../../../pkg/crypto/tls.html#name-defaultCurvePreferencesFIPS" class="ident">defaultCurvePreferencesFIPS</a> = []<a href="common.go.html#line-145" class="ident">CurveID</a>{<a href="common.go.html#line-148" class="ident">CurveP256</a>, <a href="common.go.html#line-149" class="ident">CurveP384</a>, <a href="common.go.html#line-150" class="ident">CurveP521</a>}</code></span>
+<span class="codeline" id="line-107"><code></code></span>
+<span class="codeline" id="line-108"><code><span class="comment">// defaultSupportedSignatureAlgorithmsFIPS currently are a subset of</span></code></span>
+<span class="codeline" id="line-109"><code><span class="comment">// defaultSupportedSignatureAlgorithms without Ed25519 and SHA-1.</span></code></span>
+<span class="codeline" id="line-110"><code><span class="keyword">var</span> <a href="../../../pkg/crypto/tls.html#name-defaultSupportedSignatureAlgorithmsFIPS" class="ident">defaultSupportedSignatureAlgorithmsFIPS</a> = []<a href="common.go.html#line-388" class="ident">SignatureScheme</a>{</code></span>
+<span class="codeline" id="line-111"><code>	<a href="common.go.html#line-397" class="ident">PSSWithSHA256</a>,</code></span>
+<span class="codeline" id="line-112"><code>	<a href="common.go.html#line-398" class="ident">PSSWithSHA384</a>,</code></span>
+<span class="codeline" id="line-113"><code>	<a href="common.go.html#line-399" class="ident">PSSWithSHA512</a>,</code></span>
+<span class="codeline" id="line-114"><code>	<a href="common.go.html#line-392" class="ident">PKCS1WithSHA256</a>,</code></span>
+<span class="codeline" id="line-115"><code>	<a href="common.go.html#line-402" class="ident">ECDSAWithP256AndSHA256</a>,</code></span>
+<span class="codeline" id="line-116"><code>	<a href="common.go.html#line-393" class="ident">PKCS1WithSHA384</a>,</code></span>
+<span class="codeline" id="line-117"><code>	<a href="common.go.html#line-403" class="ident">ECDSAWithP384AndSHA384</a>,</code></span>
+<span class="codeline" id="line-118"><code>	<a href="common.go.html#line-394" class="ident">PKCS1WithSHA512</a>,</code></span>
+<span class="codeline" id="line-119"><code>	<a href="common.go.html#line-404" class="ident">ECDSAWithP521AndSHA512</a>,</code></span>
+<span class="codeline" id="line-120"><code>}</code></span>
+<span class="codeline" id="line-121"><code></code></span>
+<span class="codeline" id="line-122"><code><span class="comment">// defaultCipherSuitesFIPS are the FIPS-allowed cipher suites.</span></code></span>
+<span class="codeline" id="line-123"><code><span class="keyword">var</span> <a href="../../../pkg/crypto/tls.html#name-defaultCipherSuitesFIPS" class="ident">defaultCipherSuitesFIPS</a> = []<a href="../../../pkg/builtin.html#name-uint16" class="ident">uint16</a>{</code></span>
+<span class="codeline" id="line-124"><code>	<a href="cipher_suites.go.html#line-700" class="ident">TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256</a>,</code></span>
+<span class="codeline" id="line-125"><code>	<a href="cipher_suites.go.html#line-702" class="ident">TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384</a>,</code></span>
+<span class="codeline" id="line-126"><code>	<a href="cipher_suites.go.html#line-701" class="ident">TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256</a>,</code></span>
+<span class="codeline" id="line-127"><code>	<a href="cipher_suites.go.html#line-703" class="ident">TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384</a>,</code></span>
+<span class="codeline" id="line-128"><code>}</code></span>
+<span class="codeline" id="line-129"><code></code></span>
+<span class="codeline" id="line-130"><code><span class="comment">// defaultCipherSuitesTLS13FIPS are the FIPS-allowed cipher suites for TLS 1.3.</span></code></span>
+<span class="codeline" id="line-131"><code><span class="keyword">var</span> <a href="../../../pkg/crypto/tls.html#name-defaultCipherSuitesTLS13FIPS" class="ident">defaultCipherSuitesTLS13FIPS</a> = []<a href="../../../pkg/builtin.html#name-uint16" class="ident">uint16</a>{</code></span>
+<span class="codeline" id="line-132"><code>	<a href="cipher_suites.go.html#line-708" class="ident">TLS_AES_128_GCM_SHA256</a>,</code></span>
+<span class="codeline" id="line-133"><code>	<a href="cipher_suites.go.html#line-709" class="ident">TLS_AES_256_GCM_SHA384</a>,</code></span>
+<span class="codeline" id="line-134"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

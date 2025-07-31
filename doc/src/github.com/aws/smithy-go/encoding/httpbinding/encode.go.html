@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: encode.go in package github.com/aws/smithy-go/encoding/httpbinding</title>
+<link href="../../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	encode.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../../pkg/github.com/aws/smithy-go/encoding/httpbinding.html">github.com/aws/smithy-go/encoding/httpbinding</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30],
+input[id=r31]:checked ~pre label[for=r31],
+input[id=r32]:checked ~pre label[for=r32],
+input[id=r33]:checked ~pre label[for=r33],
+input[id=r34]:checked ~pre label[for=r34],
+input[id=r35]:checked ~pre label[for=r35],
+input[id=r36]:checked ~pre label[for=r36]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3,
+input[id=i4]:checked ~pre .i4
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="r31" type="radio" name="g"/>
+<input id="r32" type="radio" name="g"/>
+<input id="r33" type="radio" name="g"/>
+<input id="r34" type="radio" name="g"/>
+<input id="r35" type="radio" name="g"/>
+<input id="r36" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+<input id="i4" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="keyword">package</span> httpbinding</code></span>
+<span class="codeline" id="line-2"><code></code></span>
+<span class="codeline" id="line-3"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-4"><code>	<label for="i0"><span class="lit-string i0">"fmt"</span></label></code></span>
+<span class="codeline" id="line-5"><code>	<label for="i1"><span class="lit-string i1">"net/http"</span></label></code></span>
+<span class="codeline" id="line-6"><code>	<label for="i2"><span class="lit-string i2">"net/url"</span></label></code></span>
+<span class="codeline" id="line-7"><code>	<label for="i3"><span class="lit-string i3">"strconv"</span></label></code></span>
+<span class="codeline" id="line-8"><code>	<label for="i4"><span class="lit-string i4">"strings"</span></label></code></span>
+<span class="codeline" id="line-9"><code>)</code></span>
+<span class="codeline" id="line-10"><code></code></span>
+<span class="codeline" id="line-11"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-12"><code>	<a href="../../../../../../pkg/github.com/aws/smithy-go/encoding/httpbinding.html#name-contentLengthHeader" class="ident">contentLengthHeader</a> = <span class="lit-string">"Content-Length"</span></code></span>
+<span class="codeline" id="line-13"><code>	<a href="../../../../../../pkg/github.com/aws/smithy-go/encoding/httpbinding.html#name-floatNaN" class="ident">floatNaN</a>            = <span class="lit-string">"NaN"</span></code></span>
+<span class="codeline" id="line-14"><code>	<a href="../../../../../../pkg/github.com/aws/smithy-go/encoding/httpbinding.html#name-floatInfinity" class="ident">floatInfinity</a>       = <span class="lit-string">"Infinity"</span></code></span>
+<span class="codeline" id="line-15"><code>	<a href="../../../../../../pkg/github.com/aws/smithy-go/encoding/httpbinding.html#name-floatNegInfinity" class="ident">floatNegInfinity</a>    = <span class="lit-string">"-Infinity"</span></code></span>
+<span class="codeline" id="line-16"><code>)</code></span>
+<span class="codeline" id="line-17"><code></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">// An Encoder provides encoding of REST URI path, query, and header components</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">// of an HTTP request. Can also encode a stream as the payload.</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">// Does not support SetFields.</span></code></span>
+<span class="codeline" id="line-22"><code><span class="keyword">type</span> <a href="../../../../../../pkg/github.com/aws/smithy-go/encoding/httpbinding.html#name-Encoder" class="ident">Encoder</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-23"><code>	<a href="../../../../../../use/github.com/aws/smithy-go/encoding/httpbinding..Encoder.path^a0af9.html" class="ident">path</a>, <a href="../../../../../../use/github.com/aws/smithy-go/encoding/httpbinding..Encoder.rawPath^39cb7.html" class="ident">rawPath</a>, <a href="../../../../../../use/github.com/aws/smithy-go/encoding/httpbinding..Encoder.pathBuffer^574a7.html" class="ident">pathBuffer</a> []<a href="../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
+<span class="codeline" id="line-24"><code></code></span>
+<span class="codeline" id="line-25"><code>	<a href="../../../../../../use/github.com/aws/smithy-go/encoding/httpbinding..Encoder.query^a8b77.html" class="ident">query</a>  <a href="../../../../../../pkg/net/url.html" class="ident i2">url</a>.<a href="../../../../../net/url/url.go.html#line-917" class="ident">Values</a></code></span>
+<span class="codeline" id="line-26"><code>	<a href="../../../../../../use/github.com/aws/smithy-go/encoding/httpbinding..Encoder.header^1e058.html" class="ident">header</a> <a href="../../../../../../pkg/net/http.html" class="ident i1">http</a>.<a href="../../../../../net/http/header.go.html#line-24" class="ident">Header</a></code></span>
+<span class="codeline" id="line-27"><code>}</code></span>
+<span class="codeline" id="line-28"><code></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">// NewEncoder creates a new encoder from the passed in request. All query and</span></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">// header values will be added on top of the request's existing values. Overwriting</span></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">// duplicate values.</span></code></span>
+<span class="codeline" id="line-32"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../../../pkg/github.com/aws/smithy-go/encoding/httpbinding.html#name-NewEncoder" class="ident">NewEncoder</a></label>(<label for="r1" class="ident">path</label>, <label for="r2" class="ident">query</label> <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r3" class="ident">headers</label> <a href="../../../../../../pkg/net/http.html" class="ident i1">http</a>.<a href="../../../../../net/http/header.go.html#line-24" class="ident">Header</a>) (*<a href="#line-22" class="ident">Encoder</a>, <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-33"><code>	<label for="r4" class="ident">parseQuery</label>, <label for="r5" class="ident">err</label> := <a href="../../../../../../pkg/net/url.html" class="ident i2">url</a>.<a href="../../../../../net/url/url.go.html#line-964" class="ident">ParseQuery</a>(<label for="r2" class="ident">query</label>)</code></span>
+<span class="codeline" id="line-34"><code>	<span class="keyword">if</span> <label for="r5" class="ident">err</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-35"><code>		<span class="keyword">return</span> <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../../../../pkg/fmt.html" class="ident i0">fmt</a>.<a href="../../../../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"failed to parse query string: %w"</span>, <label for="r5" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-36"><code>	}</code></span>
+<span class="codeline" id="line-37"><code></code></span>
+<span class="codeline" id="line-38"><code>	<label for="r6" class="ident">e</label> := &amp;<a href="#line-22" class="ident">Encoder</a>{</code></span>
+<span class="codeline" id="line-39"><code>		<a href="#line-23" class="ident">path</a>:    []<a href="../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>(<label for="r1" class="ident">path</label>),</code></span>
+<span class="codeline" id="line-40"><code>		<a href="#line-23" class="ident">rawPath</a>: []<a href="../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>(<label for="r1" class="ident">path</label>),</code></span>
+<span class="codeline" id="line-41"><code>		<a href="#line-25" class="ident">query</a>:   <label for="r4" class="ident">parseQuery</label>,</code></span>
+<span class="codeline" id="line-42"><code>		<a href="#line-26" class="ident">header</a>:  <label for="r3" class="ident">headers</label>.<a href="../../../../../net/http/header.go.html#line-94" class="ident">Clone</a>(),</code></span>
+<span class="codeline" id="line-43"><code>	}</code></span>
+<span class="codeline" id="line-44"><code></code></span>
+<span class="codeline" id="line-45"><code>	<span class="keyword">return</span> <label for="r6" class="ident">e</label>, <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-46"><code>}</code></span>
+<span class="codeline" id="line-47"><code></code></span>
+<span class="codeline" id="line-48"><code><span class="comment">// Encode returns a REST protocol encoder for encoding HTTP bindings.</span></code></span>
+<span class="codeline" id="line-49"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-50"><code><span class="comment">// Due net/http requiring `Content-Length` to be specified on the http.Request#ContentLength directly. Encode</span></code></span>
+<span class="codeline" id="line-51"><code><span class="comment">// will look for whether the header is present, and if so will remove it and set the respective value on http.Request.</span></code></span>
+<span class="codeline" id="line-52"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-53"><code><span class="comment">// Returns any error occurring during encoding.</span></code></span>
+<span class="codeline" id="line-54"><code><span class="keyword">func</span> (<label for="r7" class="ident">e</label> *<a href="#line-22" class="ident">Encoder</a>) <label for="r8" class="ident"><a href="../../../../../../use/github.com/aws/smithy-go/encoding/httpbinding..Encoder.Encode.html" class="ident">Encode</a></label>(<label for="r9" class="ident">req</label> *<a href="../../../../../../pkg/net/http.html" class="ident i1">http</a>.<a href="../../../../../net/http/request.go.html#line-113" class="ident">Request</a>) (*<a href="../../../../../../pkg/net/http.html" class="ident i1">http</a>.<a href="../../../../../net/http/request.go.html#line-113" class="ident">Request</a>, <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-55"><code>	<label for="r9" class="ident">req</label>.<a href="../../../../../net/http/request.go.html#line-130" class="ident">URL</a>.<a href="../../../../../net/url/url.go.html#line-376" class="ident">Path</a>, <label for="r9" class="ident">req</label>.<a href="../../../../../net/http/request.go.html#line-130" class="ident">URL</a>.<a href="../../../../../net/url/url.go.html#line-377" class="ident">RawPath</a> = <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>(<label for="r7" class="ident">e</label>.<a href="#line-23" class="ident">path</a>), <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>(<label for="r7" class="ident">e</label>.<a href="#line-23" class="ident">rawPath</a>)</code></span>
+<span class="codeline" id="line-56"><code>	<label for="r9" class="ident">req</label>.<a href="../../../../../net/http/request.go.html#line-130" class="ident">URL</a>.<a href="../../../../../net/url/url.go.html#line-380" class="ident">RawQuery</a> = <label for="r7" class="ident">e</label>.<a href="#line-25" class="ident">query</a>.<a href="../../../../../net/url/url.go.html#line-1003" class="ident">Encode</a>()</code></span>
+<span class="codeline" id="line-57"><code></code></span>
+<span class="codeline" id="line-58"><code>	<span class="comment">// net/http ignores Content-Length header and requires it to be set on http.Request</span></code></span>
+<span class="codeline" id="line-59"><code>	<span class="keyword">if</span> <label for="r10" class="ident">v</label> := <label for="r7" class="ident">e</label>.<a href="#line-26" class="ident">header</a>.<a href="../../../../../net/http/header.go.html#line-49" class="ident">Get</a>(<a href="#line-12" class="ident">contentLengthHeader</a>); <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r10" class="ident">v</label>) &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-60"><code>		<label for="r11" class="ident">iv</label>, <label for="r12" class="ident">err</label> := <a href="../../../../../../pkg/strconv.html" class="ident i3">strconv</a>.<a href="../../../../../strconv/atoi.go.html#line-197" class="ident">ParseInt</a>(<label for="r10" class="ident">v</label>, <span class="lit-number">10</span>, <span class="lit-number">64</span>)</code></span>
+<span class="codeline" id="line-61"><code>		<span class="keyword">if</span> <label for="r12" class="ident">err</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-62"><code>			<span class="keyword">return</span> <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r12" class="ident">err</label></code></span>
+<span class="codeline" id="line-63"><code>		}</code></span>
+<span class="codeline" id="line-64"><code>		<label for="r9" class="ident">req</label>.<a href="../../../../../net/http/request.go.html#line-205" class="ident">ContentLength</a> = <label for="r11" class="ident">iv</label></code></span>
+<span class="codeline" id="line-65"><code>		<label for="r7" class="ident">e</label>.<a href="#line-26" class="ident">header</a>.<a href="../../../../../net/http/header.go.html#line-80" class="ident">Del</a>(<a href="#line-12" class="ident">contentLengthHeader</a>)</code></span>
+<span class="codeline" id="line-66"><code>	}</code></span>
+<span class="codeline" id="line-67"><code></code></span>
+<span class="codeline" id="line-68"><code>	<label for="r9" class="ident">req</label>.<a href="../../../../../net/http/request.go.html#line-172" class="ident">Header</a> = <label for="r7" class="ident">e</label>.<a href="#line-26" class="ident">header</a></code></span>
+<span class="codeline" id="line-69"><code></code></span>
+<span class="codeline" id="line-70"><code>	<span class="keyword">return</span> <label for="r9" class="ident">req</label>, <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-71"><code>}</code></span>
+<span class="codeline" id="line-72"><code></code></span>
+<span class="codeline" id="line-73"><code><span class="comment">// AddHeader returns a HeaderValue for appending to the given header name</span></code></span>
+<span class="codeline" id="line-74"><code><span class="keyword">func</span> (<label for="r13" class="ident">e</label> *<a href="#line-22" class="ident">Encoder</a>) <label for="r14" class="ident"><a href="../../../../../../use/github.com/aws/smithy-go/encoding/httpbinding..Encoder.AddHeader.html" class="ident">AddHeader</a></label>(<label for="r15" class="ident">key</label> <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="header.go.html#line-33" class="ident">HeaderValue</a> {</code></span>
+<span class="codeline" id="line-75"><code>	<span class="keyword">return</span> <a href="header.go.html#line-39" class="ident">newHeaderValue</a>(<label for="r13" class="ident">e</label>.<a href="#line-26" class="ident">header</a>, <label for="r15" class="ident">key</label>, <a href="../../../../../../pkg/builtin.html#name-true" class="ident">true</a>)</code></span>
+<span class="codeline" id="line-76"><code>}</code></span>
+<span class="codeline" id="line-77"><code></code></span>
+<span class="codeline" id="line-78"><code><span class="comment">// SetHeader returns a HeaderValue for setting the given header name</span></code></span>
+<span class="codeline" id="line-79"><code><span class="keyword">func</span> (<label for="r16" class="ident">e</label> *<a href="#line-22" class="ident">Encoder</a>) <label for="r17" class="ident"><a href="../../../../../../use/github.com/aws/smithy-go/encoding/httpbinding..Encoder.SetHeader.html" class="ident">SetHeader</a></label>(<label for="r18" class="ident">key</label> <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="header.go.html#line-33" class="ident">HeaderValue</a> {</code></span>
+<span class="codeline" id="line-80"><code>	<span class="keyword">return</span> <a href="header.go.html#line-39" class="ident">newHeaderValue</a>(<label for="r16" class="ident">e</label>.<a href="#line-26" class="ident">header</a>, <label for="r18" class="ident">key</label>, <a href="../../../../../../pkg/builtin.html#name-false" class="ident">false</a>)</code></span>
+<span class="codeline" id="line-81"><code>}</code></span>
+<span class="codeline" id="line-82"><code></code></span>
+<span class="codeline" id="line-83"><code><span class="comment">// Headers returns a Header used for encoding headers with the given prefix</span></code></span>
+<span class="codeline" id="line-84"><code><span class="keyword">func</span> (<label for="r19" class="ident">e</label> *<a href="#line-22" class="ident">Encoder</a>) <label for="r20" class="ident"><a href="../../../../../../use/github.com/aws/smithy-go/encoding/httpbinding..Encoder.Headers.html" class="ident">Headers</a></label>(<label for="r21" class="ident">prefix</label> <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="header.go.html#line-13" class="ident">Headers</a> {</code></span>
+<span class="codeline" id="line-85"><code>	<span class="keyword">return</span> <a href="header.go.html#line-13" class="ident">Headers</a>{</code></span>
+<span class="codeline" id="line-86"><code>		<a href="header.go.html#line-14" class="ident">header</a>: <label for="r19" class="ident">e</label>.<a href="#line-26" class="ident">header</a>,</code></span>
+<span class="codeline" id="line-87"><code>		<a href="header.go.html#line-15" class="ident">prefix</a>: <a href="../../../../../../pkg/strings.html" class="ident i4">strings</a>.<a href="../../../../../strings/strings.go.html#line-1089" class="ident">TrimSpace</a>(<label for="r21" class="ident">prefix</label>),</code></span>
+<span class="codeline" id="line-88"><code>	}</code></span>
+<span class="codeline" id="line-89"><code>}</code></span>
+<span class="codeline" id="line-90"><code></code></span>
+<span class="codeline" id="line-91"><code><span class="comment">// HasHeader returns if a header with the key specified exists with one or</span></code></span>
+<span class="codeline" id="line-92"><code><span class="comment">// more value.</span></code></span>
+<span class="codeline" id="line-93"><code><span class="keyword">func</span> (<label for="r22" class="ident">e</label> <a href="#line-22" class="ident">Encoder</a>) <label for="r23" class="ident"><a href="../../../../../../use/github.com/aws/smithy-go/encoding/httpbinding..Encoder.HasHeader.html" class="ident">HasHeader</a></label>(<label for="r24" class="ident">key</label> <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-94"><code>	<span class="keyword">return</span> <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r22" class="ident">e</label>.<a href="#line-26" class="ident">header</a>[<label for="r24" class="ident">key</label>]) != <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-95"><code>}</code></span>
+<span class="codeline" id="line-96"><code></code></span>
+<span class="codeline" id="line-97"><code><span class="comment">// SetURI returns a URIValue used for setting the given path key</span></code></span>
+<span class="codeline" id="line-98"><code><span class="keyword">func</span> (<label for="r25" class="ident">e</label> *<a href="#line-22" class="ident">Encoder</a>) <label for="r26" class="ident"><a href="../../../../../../use/github.com/aws/smithy-go/encoding/httpbinding..Encoder.SetURI.html" class="ident">SetURI</a></label>(<label for="r27" class="ident">key</label> <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="uri.go.html#line-11" class="ident">URIValue</a> {</code></span>
+<span class="codeline" id="line-99"><code>	<span class="keyword">return</span> <a href="uri.go.html#line-17" class="ident">newURIValue</a>(&amp;<label for="r25" class="ident">e</label>.<a href="#line-23" class="ident">path</a>, &amp;<label for="r25" class="ident">e</label>.<a href="#line-23" class="ident">rawPath</a>, &amp;<label for="r25" class="ident">e</label>.<a href="#line-23" class="ident">pathBuffer</a>, <label for="r27" class="ident">key</label>)</code></span>
+<span class="codeline" id="line-100"><code>}</code></span>
+<span class="codeline" id="line-101"><code></code></span>
+<span class="codeline" id="line-102"><code><span class="comment">// SetQuery returns a QueryValue used for setting the given query key</span></code></span>
+<span class="codeline" id="line-103"><code><span class="keyword">func</span> (<label for="r28" class="ident">e</label> *<a href="#line-22" class="ident">Encoder</a>) <label for="r29" class="ident"><a href="../../../../../../use/github.com/aws/smithy-go/encoding/httpbinding..Encoder.SetQuery.html" class="ident">SetQuery</a></label>(<label for="r30" class="ident">key</label> <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="query.go.html#line-12" class="ident">QueryValue</a> {</code></span>
+<span class="codeline" id="line-104"><code>	<span class="keyword">return</span> <a href="query.go.html#line-20" class="ident">NewQueryValue</a>(<label for="r28" class="ident">e</label>.<a href="#line-25" class="ident">query</a>, <label for="r30" class="ident">key</label>, <a href="../../../../../../pkg/builtin.html#name-false" class="ident">false</a>)</code></span>
+<span class="codeline" id="line-105"><code>}</code></span>
+<span class="codeline" id="line-106"><code></code></span>
+<span class="codeline" id="line-107"><code><span class="comment">// AddQuery returns a QueryValue used for appending the given query key</span></code></span>
+<span class="codeline" id="line-108"><code><span class="keyword">func</span> (<label for="r31" class="ident">e</label> *<a href="#line-22" class="ident">Encoder</a>) <label for="r32" class="ident"><a href="../../../../../../use/github.com/aws/smithy-go/encoding/httpbinding..Encoder.AddQuery.html" class="ident">AddQuery</a></label>(<label for="r33" class="ident">key</label> <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="query.go.html#line-12" class="ident">QueryValue</a> {</code></span>
+<span class="codeline" id="line-109"><code>	<span class="keyword">return</span> <a href="query.go.html#line-20" class="ident">NewQueryValue</a>(<label for="r31" class="ident">e</label>.<a href="#line-25" class="ident">query</a>, <label for="r33" class="ident">key</label>, <a href="../../../../../../pkg/builtin.html#name-true" class="ident">true</a>)</code></span>
+<span class="codeline" id="line-110"><code>}</code></span>
+<span class="codeline" id="line-111"><code></code></span>
+<span class="codeline" id="line-112"><code><span class="comment">// HasQuery returns if a query with the key specified exists with one or</span></code></span>
+<span class="codeline" id="line-113"><code><span class="comment">// more values.</span></code></span>
+<span class="codeline" id="line-114"><code><span class="keyword">func</span> (<label for="r34" class="ident">e</label> *<a href="#line-22" class="ident">Encoder</a>) <label for="r35" class="ident"><a href="../../../../../../use/github.com/aws/smithy-go/encoding/httpbinding..Encoder.HasQuery.html" class="ident">HasQuery</a></label>(<label for="r36" class="ident">key</label> <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-115"><code>	<span class="keyword">return</span> <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r34" class="ident">e</label>.<a href="#line-25" class="ident">query</a>.<a href="../../../../../net/url/url.go.html#line-923" class="ident">Get</a>(<label for="r36" class="ident">key</label>)) != <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-116"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

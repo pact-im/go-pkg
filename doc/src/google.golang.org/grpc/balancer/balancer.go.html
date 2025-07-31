@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: balancer.go in package google.golang.org/grpc/balancer</title>
+<link href="../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	balancer.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../pkg/google.golang.org/grpc/balancer.html">google.golang.org/grpc/balancer</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3,
+input[id=i4]:checked ~pre .i4,
+input[id=i5]:checked ~pre .i5,
+input[id=i6]:checked ~pre .i6,
+input[id=i7]:checked ~pre .i7,
+input[id=i8]:checked ~pre .i8,
+input[id=i9]:checked ~pre .i9,
+input[id=i10]:checked ~pre .i10,
+input[id=i11]:checked ~pre .i11
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+<input id="i4" type="radio" name="i"/>
+<input id="i5" type="radio" name="i"/>
+<input id="i6" type="radio" name="i"/>
+<input id="i7" type="radio" name="i"/>
+<input id="i8" type="radio" name="i"/>
+<input id="i9" type="radio" name="i"/>
+<input id="i10" type="radio" name="i"/>
+<input id="i11" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">/*</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment"> * Copyright 2017 gRPC authors.</span></code></span>
+<span class="codeline" id="line-4"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-5"><code><span class="comment"> * Licensed under the Apache License, Version 2.0 (the "License");</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment"> * you may not use this file except in compliance with the License.</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment"> * You may obtain a copy of the License at</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment"> *     http://www.apache.org/licenses/LICENSE-2.0</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment"> * Unless required by applicable law or agreed to in writing, software</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment"> * distributed under the License is distributed on an "AS IS" BASIS,</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment"> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment"> * See the License for the specific language governing permissions and</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment"> * limitations under the License.</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment"> */</span></code></span>
+<span class="codeline" id="line-18"><code></code></span>
+<div class="anchor" id="doc"><span class="codeline" id="line-19"><code><span class="comment">// Package balancer defines APIs for load balancing in gRPC.</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">// All APIs in this package are experimental.</span></code></span></div><span class="codeline" id="line-21"><code><span class="keyword">package</span> balancer</code></span>
+<span class="codeline" id="line-22"><code></code></span>
+<span class="codeline" id="line-23"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-24"><code>	<label for="i0"><span class="lit-string i0">"context"</span></label></code></span>
+<span class="codeline" id="line-25"><code>	<label for="i1"><span class="lit-string i1">"encoding/json"</span></label></code></span>
+<span class="codeline" id="line-26"><code>	<label for="i2"><span class="lit-string i2">"errors"</span></label></code></span>
+<span class="codeline" id="line-27"><code>	<label for="i3"><span class="lit-string i3">"net"</span></label></code></span>
+<span class="codeline" id="line-28"><code>	<label for="i4"><span class="lit-string i4">"strings"</span></label></code></span>
+<span class="codeline" id="line-29"><code></code></span>
+<span class="codeline" id="line-30"><code>	<label for="i5"><span class="lit-string i5">"google.golang.org/grpc/channelz"</span></label></code></span>
+<span class="codeline" id="line-31"><code>	<label for="i6"><span class="lit-string i6">"google.golang.org/grpc/connectivity"</span></label></code></span>
+<span class="codeline" id="line-32"><code>	<label for="i7"><span class="lit-string i7">"google.golang.org/grpc/credentials"</span></label></code></span>
+<span class="codeline" id="line-33"><code>	<label for="i8"><span class="lit-string i8">"google.golang.org/grpc/internal"</span></label></code></span>
+<span class="codeline" id="line-34"><code>	<label for="i9"><span class="lit-string i9">"google.golang.org/grpc/metadata"</span></label></code></span>
+<span class="codeline" id="line-35"><code>	<label for="i10"><span class="lit-string i10">"google.golang.org/grpc/resolver"</span></label></code></span>
+<span class="codeline" id="line-36"><code>	<label for="i11"><span class="lit-string i11">"google.golang.org/grpc/serviceconfig"</span></label></code></span>
+<span class="codeline" id="line-37"><code>)</code></span>
+<span class="codeline" id="line-38"><code></code></span>
+<span class="codeline" id="line-39"><code><span class="keyword">var</span> (</code></span>
+<span class="codeline" id="line-40"><code>	<span class="comment">// m is a map from name to balancer builder.</span></code></span>
+<span class="codeline" id="line-41"><code>	<a href="../../../../pkg/google.golang.org/grpc/balancer.html#name-m" class="ident">m</a> = <a href="../../../../pkg/builtin.html#name-make" class="ident">make</a>(<span class="keyword">map</span>[<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>]<a href="#line-213" class="ident">Builder</a>)</code></span>
+<span class="codeline" id="line-42"><code>)</code></span>
+<span class="codeline" id="line-43"><code></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">// Register registers the balancer builder to the balancer map. b.Name</span></code></span>
+<span class="codeline" id="line-45"><code><span class="comment">// (lowercased) will be used as the name registered with this builder.  If the</span></code></span>
+<span class="codeline" id="line-46"><code><span class="comment">// Builder implements ConfigParser, ParseConfig will be called when new service</span></code></span>
+<span class="codeline" id="line-47"><code><span class="comment">// configs are received by the resolver, and the result will be provided to the</span></code></span>
+<span class="codeline" id="line-48"><code><span class="comment">// Balancer in UpdateClientConnState.</span></code></span>
+<span class="codeline" id="line-49"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-50"><code><span class="comment">// NOTE: this function must only be called during initialization time (i.e. in</span></code></span>
+<span class="codeline" id="line-51"><code><span class="comment">// an init() function), and is not thread-safe. If multiple Balancers are</span></code></span>
+<span class="codeline" id="line-52"><code><span class="comment">// registered with the same name, the one registered last will take effect.</span></code></span>
+<span class="codeline" id="line-53"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../pkg/google.golang.org/grpc/balancer.html#name-Register" class="ident">Register</a></label>(<label for="r1" class="ident">b</label> <a href="#line-213" class="ident">Builder</a>) {</code></span>
+<span class="codeline" id="line-54"><code>	<a href="#line-41" class="ident">m</a>[<a href="../../../../pkg/strings.html" class="ident i4">strings</a>.<a href="../../../strings/strings.go.html#line-723" class="ident">ToLower</a>(<label for="r1" class="ident">b</label>.<a href="#line-218" class="ident">Name</a>())] = <label for="r1" class="ident">b</label></code></span>
+<span class="codeline" id="line-55"><code>}</code></span>
+<span class="codeline" id="line-56"><code></code></span>
+<span class="codeline" id="line-57"><code><span class="comment">// unregisterForTesting deletes the balancer with the given name from the</span></code></span>
+<span class="codeline" id="line-58"><code><span class="comment">// balancer map.</span></code></span>
+<span class="codeline" id="line-59"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-60"><code><span class="comment">// This function is not thread-safe.</span></code></span>
+<span class="codeline" id="line-61"><code><span class="keyword">func</span> <label for="r2" class="ident"><a href="../../../../pkg/google.golang.org/grpc/balancer.html#name-unregisterForTesting" class="ident">unregisterForTesting</a></label>(<label for="r3" class="ident">name</label> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>) {</code></span>
+<span class="codeline" id="line-62"><code>	<a href="../../../../pkg/builtin.html#name-delete" class="ident">delete</a>(<a href="#line-41" class="ident">m</a>, <label for="r3" class="ident">name</label>)</code></span>
+<span class="codeline" id="line-63"><code>}</code></span>
+<span class="codeline" id="line-64"><code></code></span>
+<span class="codeline" id="line-65"><code><span class="keyword">func</span> <label for="r4" class="ident"><a href="../../../../pkg/google.golang.org/grpc/balancer.html#name-init" class="ident">init</a></label>() {</code></span>
+<span class="codeline" id="line-66"><code>	<a href="../../../../pkg/google.golang.org/grpc/internal.html" class="ident i8">internal</a>.<a href="../internal/internal.go.html#line-37" class="ident">BalancerUnregister</a> = <a href="#line-61" class="ident">unregisterForTesting</a></code></span>
+<span class="codeline" id="line-67"><code>}</code></span>
+<span class="codeline" id="line-68"><code></code></span>
+<span class="codeline" id="line-69"><code><span class="comment">// Get returns the resolver builder registered with the given name.</span></code></span>
+<span class="codeline" id="line-70"><code><span class="comment">// Note that the compare is done in a case-insensitive fashion.</span></code></span>
+<span class="codeline" id="line-71"><code><span class="comment">// If no builder is register with the name, nil will be returned.</span></code></span>
+<span class="codeline" id="line-72"><code><span class="keyword">func</span> <label for="r5" class="ident"><a href="../../../../pkg/google.golang.org/grpc/balancer.html#name-Get" class="ident">Get</a></label>(<label for="r6" class="ident">name</label> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="#line-213" class="ident">Builder</a> {</code></span>
+<span class="codeline" id="line-73"><code>	<span class="keyword">if</span> <label for="r7" class="ident">b</label>, <label for="r8" class="ident">ok</label> := <a href="#line-41" class="ident">m</a>[<a href="../../../../pkg/strings.html" class="ident i4">strings</a>.<a href="../../../strings/strings.go.html#line-723" class="ident">ToLower</a>(<label for="r6" class="ident">name</label>)]; <label for="r8" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-74"><code>		<span class="keyword">return</span> <label for="r7" class="ident">b</label></code></span>
+<span class="codeline" id="line-75"><code>	}</code></span>
+<span class="codeline" id="line-76"><code>	<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-77"><code>}</code></span>
+<span class="codeline" id="line-78"><code></code></span>
+<span class="codeline" id="line-79"><code><span class="comment">// A SubConn represents a single connection to a gRPC backend service.</span></code></span>
+<span class="codeline" id="line-80"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-81"><code><span class="comment">// Each SubConn contains a list of addresses.</span></code></span>
+<span class="codeline" id="line-82"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-83"><code><span class="comment">// All SubConns start in IDLE, and will not try to connect. To trigger the</span></code></span>
+<span class="codeline" id="line-84"><code><span class="comment">// connecting, Balancers must call Connect.  If a connection re-enters IDLE,</span></code></span>
+<span class="codeline" id="line-85"><code><span class="comment">// Balancers must call Connect again to trigger a new connection attempt.</span></code></span>
+<span class="codeline" id="line-86"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-87"><code><span class="comment">// gRPC will try to connect to the addresses in sequence, and stop trying the</span></code></span>
+<span class="codeline" id="line-88"><code><span class="comment">// remainder once the first connection is successful. If an attempt to connect</span></code></span>
+<span class="codeline" id="line-89"><code><span class="comment">// to all addresses encounters an error, the SubConn will enter</span></code></span>
+<span class="codeline" id="line-90"><code><span class="comment">// TRANSIENT_FAILURE for a backoff period, and then transition to IDLE.</span></code></span>
+<span class="codeline" id="line-91"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-92"><code><span class="comment">// Once established, if a connection is lost, the SubConn will transition</span></code></span>
+<span class="codeline" id="line-93"><code><span class="comment">// directly to IDLE.</span></code></span>
+<span class="codeline" id="line-94"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-95"><code><span class="comment">// This interface is to be implemented by gRPC. Users should not need their own</span></code></span>
+<span class="codeline" id="line-96"><code><span class="comment">// implementation of this interface. For situations like testing, any</span></code></span>
+<span class="codeline" id="line-97"><code><span class="comment">// implementations should embed this interface. This allows gRPC to add new</span></code></span>
+<span class="codeline" id="line-98"><code><span class="comment">// methods to this interface.</span></code></span>
+<span class="codeline" id="line-99"><code><span class="keyword">type</span> <a href="../../../../pkg/google.golang.org/grpc/balancer.html#name-SubConn" class="ident">SubConn</a> <span class="keyword">interface</span> {</code></span>
+<span class="codeline" id="line-100"><code>	<span class="comment">// UpdateAddresses updates the addresses used in this SubConn.</span></code></span>
+<span class="codeline" id="line-101"><code><span class="comment">	// gRPC checks if currently-connected address is still in the new list.</span></code></span>
+<span class="codeline" id="line-102"><code><span class="comment">	// If it's in the list, the connection will be kept.</span></code></span>
+<span class="codeline" id="line-103"><code><span class="comment">	// If it's not in the list, the connection will gracefully closed, and</span></code></span>
+<span class="codeline" id="line-104"><code><span class="comment">	// a new connection will be created.</span></code></span>
+<span class="codeline" id="line-105"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-106"><code><span class="comment">	// This will trigger a state transition for the SubConn.</span></code></span>
+<span class="codeline" id="line-107"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-108"><code><span class="comment">	// Deprecated: This method is now part of the ClientConn interface and will</span></code></span>
+<span class="codeline" id="line-109"><code><span class="comment">	// eventually be removed from here.</span></code></span>
+<span class="codeline" id="line-110"><code>	<a href="../../../../imp/google.golang.org/grpc/balancer.SubConn.html#name-UpdateAddresses" class="ident">UpdateAddresses</a>([]<a href="../../../../pkg/google.golang.org/grpc/resolver.html" class="ident i10">resolver</a>.<a href="../resolver/resolver.go.html#line-104" class="ident">Address</a>)</code></span>
+<span class="codeline" id="line-111"><code>	<span class="comment">// Connect starts the connecting for this SubConn.</span></code></span>
+<span class="codeline" id="line-112"><code>	<a href="../../../../imp/google.golang.org/grpc/balancer.SubConn.html#name-Connect" class="ident">Connect</a>()</code></span>
+<span class="codeline" id="line-113"><code>	<span class="comment">// GetOrBuildProducer returns a reference to the existing Producer for this</span></code></span>
+<span class="codeline" id="line-114"><code><span class="comment">	// ProducerBuilder in this SubConn, or, if one does not currently exist,</span></code></span>
+<span class="codeline" id="line-115"><code><span class="comment">	// creates a new one and returns it.  Returns a close function which must</span></code></span>
+<span class="codeline" id="line-116"><code><span class="comment">	// be called when the Producer is no longer needed.</span></code></span>
+<span class="codeline" id="line-117"><code>	<a href="../../../../imp/google.golang.org/grpc/balancer.SubConn.html#name-GetOrBuildProducer" class="ident">GetOrBuildProducer</a>(<a href="#line-390" class="ident">ProducerBuilder</a>) (p <a href="#line-403" class="ident">Producer</a>, close <span class="keyword">func</span>())</code></span>
+<span class="codeline" id="line-118"><code>}</code></span>
+<span class="codeline" id="line-119"><code></code></span>
+<span class="codeline" id="line-120"><code><span class="comment">// NewSubConnOptions contains options to create new SubConn.</span></code></span>
+<span class="codeline" id="line-121"><code><span class="keyword">type</span> <a href="../../../../pkg/google.golang.org/grpc/balancer.html#name-NewSubConnOptions" class="ident">NewSubConnOptions</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-122"><code>	<span class="comment">// CredsBundle is the credentials bundle that will be used in the created</span></code></span>
+<span class="codeline" id="line-123"><code><span class="comment">	// SubConn. If it's nil, the original creds from grpc DialOptions will be</span></code></span>
+<span class="codeline" id="line-124"><code><span class="comment">	// used.</span></code></span>
+<span class="codeline" id="line-125"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-126"><code><span class="comment">	// Deprecated: Use the Attributes field in resolver.Address to pass</span></code></span>
+<span class="codeline" id="line-127"><code><span class="comment">	// arbitrary data to the credential handshaker.</span></code></span>
+<span class="codeline" id="line-128"><code>	<a href="../../../../use/google.golang.org/grpc/balancer..NewSubConnOptions.CredsBundle.html" class="ident">CredsBundle</a> <a href="../../../../pkg/google.golang.org/grpc/credentials.html" class="ident i7">credentials</a>.<a href="../credentials/credentials.go.html#line-180" class="ident">Bundle</a></code></span>
+<span class="codeline" id="line-129"><code>	<span class="comment">// HealthCheckEnabled indicates whether health check service should be</span></code></span>
+<span class="codeline" id="line-130"><code><span class="comment">	// enabled on this SubConn</span></code></span>
+<span class="codeline" id="line-131"><code>	<a href="../../../../use/google.golang.org/grpc/balancer..NewSubConnOptions.HealthCheckEnabled.html" class="ident">HealthCheckEnabled</a> <a href="../../../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-132"><code>}</code></span>
+<span class="codeline" id="line-133"><code></code></span>
+<span class="codeline" id="line-134"><code><span class="comment">// State contains the balancer's state relevant to the gRPC ClientConn.</span></code></span>
+<span class="codeline" id="line-135"><code><span class="keyword">type</span> <a href="../../../../pkg/google.golang.org/grpc/balancer.html#name-State" class="ident">State</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-136"><code>	<span class="comment">// State contains the connectivity state of the balancer, which is used to</span></code></span>
+<span class="codeline" id="line-137"><code><span class="comment">	// determine the state of the ClientConn.</span></code></span>
+<span class="codeline" id="line-138"><code>	<a href="../../../../use/google.golang.org/grpc/balancer..State.ConnectivityState.html" class="ident">ConnectivityState</a> <a href="../../../../pkg/google.golang.org/grpc/connectivity.html" class="ident i6">connectivity</a>.<a href="../connectivity/connectivity.go.html#line-31" class="ident">State</a></code></span>
+<span class="codeline" id="line-139"><code>	<span class="comment">// Picker is used to choose connections (SubConns) for RPCs.</span></code></span>
+<span class="codeline" id="line-140"><code>	<a href="../../../../use/google.golang.org/grpc/balancer..State.Picker.html" class="ident">Picker</a> <a href="#line-304" class="ident">Picker</a></code></span>
+<span class="codeline" id="line-141"><code>}</code></span>
+<span class="codeline" id="line-142"><code></code></span>
+<span class="codeline" id="line-143"><code><span class="comment">// ClientConn represents a gRPC ClientConn.</span></code></span>
+<span class="codeline" id="line-144"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-145"><code><span class="comment">// This interface is to be implemented by gRPC. Users should not need a</span></code></span>
+<span class="codeline" id="line-146"><code><span class="comment">// brand new implementation of this interface. For the situations like</span></code></span>
+<span class="codeline" id="line-147"><code><span class="comment">// testing, the new implementation should embed this interface. This allows</span></code></span>
+<span class="codeline" id="line-148"><code><span class="comment">// gRPC to add new methods to this interface.</span></code></span>
+<span class="codeline" id="line-149"><code><span class="keyword">type</span> <a href="../../../../pkg/google.golang.org/grpc/balancer.html#name-ClientConn" class="ident">ClientConn</a> <span class="keyword">interface</span> {</code></span>
+<span class="codeline" id="line-150"><code>	<span class="comment">// NewSubConn is called by balancer to create a new SubConn.</span></code></span>
+<span class="codeline" id="line-151"><code><span class="comment">	// It doesn't block and wait for the connections to be established.</span></code></span>
+<span class="codeline" id="line-152"><code><span class="comment">	// Behaviors of the SubConn can be controlled by options.</span></code></span>
+<span class="codeline" id="line-153"><code>	<a href="../../../../imp/google.golang.org/grpc/balancer.ClientConn.html#name-NewSubConn" class="ident">NewSubConn</a>([]<a href="../../../../pkg/google.golang.org/grpc/resolver.html" class="ident i10">resolver</a>.<a href="../resolver/resolver.go.html#line-104" class="ident">Address</a>, <a href="#line-121" class="ident">NewSubConnOptions</a>) (<a href="#line-99" class="ident">SubConn</a>, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
+<span class="codeline" id="line-154"><code>	<span class="comment">// RemoveSubConn removes the SubConn from ClientConn.</span></code></span>
+<span class="codeline" id="line-155"><code><span class="comment">	// The SubConn will be shutdown.</span></code></span>
+<span class="codeline" id="line-156"><code>	<a href="../../../../imp/google.golang.org/grpc/balancer.ClientConn.html#name-RemoveSubConn" class="ident">RemoveSubConn</a>(<a href="#line-99" class="ident">SubConn</a>)</code></span>
+<span class="codeline" id="line-157"><code>	<span class="comment">// UpdateAddresses updates the addresses used in the passed in SubConn.</span></code></span>
+<span class="codeline" id="line-158"><code><span class="comment">	// gRPC checks if the currently connected address is still in the new list.</span></code></span>
+<span class="codeline" id="line-159"><code><span class="comment">	// If so, the connection will be kept. Else, the connection will be</span></code></span>
+<span class="codeline" id="line-160"><code><span class="comment">	// gracefully closed, and a new connection will be created.</span></code></span>
+<span class="codeline" id="line-161"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-162"><code><span class="comment">	// This will trigger a state transition for the SubConn.</span></code></span>
+<span class="codeline" id="line-163"><code>	<a href="../../../../imp/google.golang.org/grpc/balancer.ClientConn.html#name-UpdateAddresses" class="ident">UpdateAddresses</a>(<a href="#line-99" class="ident">SubConn</a>, []<a href="../../../../pkg/google.golang.org/grpc/resolver.html" class="ident i10">resolver</a>.<a href="../resolver/resolver.go.html#line-104" class="ident">Address</a>)</code></span>
+<span class="codeline" id="line-164"><code></code></span>
+<span class="codeline" id="line-165"><code>	<span class="comment">// UpdateState notifies gRPC that the balancer's internal state has</span></code></span>
+<span class="codeline" id="line-166"><code><span class="comment">	// changed.</span></code></span>
+<span class="codeline" id="line-167"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-168"><code><span class="comment">	// gRPC will update the connectivity state of the ClientConn, and will call</span></code></span>
+<span class="codeline" id="line-169"><code><span class="comment">	// Pick on the new Picker to pick new SubConns.</span></code></span>
+<span class="codeline" id="line-170"><code>	<a href="../../../../imp/google.golang.org/grpc/balancer.ClientConn.html#name-UpdateState" class="ident">UpdateState</a>(<a href="#line-135" class="ident">State</a>)</code></span>
+<span class="codeline" id="line-171"><code></code></span>
+<span class="codeline" id="line-172"><code>	<span class="comment">// ResolveNow is called by balancer to notify gRPC to do a name resolving.</span></code></span>
+<span class="codeline" id="line-173"><code>	<a href="../../../../imp/google.golang.org/grpc/balancer.ClientConn.html#name-ResolveNow" class="ident">ResolveNow</a>(<a href="../../../../pkg/google.golang.org/grpc/resolver.html" class="ident i10">resolver</a>.<a href="../resolver/resolver.go.html#line-289" class="ident">ResolveNowOptions</a>)</code></span>
+<span class="codeline" id="line-174"><code></code></span>
+<span class="codeline" id="line-175"><code>	<span class="comment">// Target returns the dial target for this ClientConn.</span></code></span>
+<span class="codeline" id="line-176"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-177"><code><span class="comment">	// Deprecated: Use the Target field in the BuildOptions instead.</span></code></span>
+<span class="codeline" id="line-178"><code>	<a href="../../../../imp/google.golang.org/grpc/balancer.ClientConn.html#name-Target" class="ident">Target</a>() <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-179"><code>}</code></span>
+<span class="codeline" id="line-180"><code></code></span>
+<span class="codeline" id="line-181"><code><span class="comment">// BuildOptions contains additional information for Build.</span></code></span>
+<span class="codeline" id="line-182"><code><span class="keyword">type</span> <a href="../../../../pkg/google.golang.org/grpc/balancer.html#name-BuildOptions" class="ident">BuildOptions</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-183"><code>	<span class="comment">// DialCreds is the transport credentials to use when communicating with a</span></code></span>
+<span class="codeline" id="line-184"><code><span class="comment">	// remote load balancer server. Balancer implementations which do not</span></code></span>
+<span class="codeline" id="line-185"><code><span class="comment">	// communicate with a remote load balancer server can ignore this field.</span></code></span>
+<span class="codeline" id="line-186"><code>	<a href="../../../../use/google.golang.org/grpc/balancer..BuildOptions.DialCreds.html" class="ident">DialCreds</a> <a href="../../../../pkg/google.golang.org/grpc/credentials.html" class="ident i7">credentials</a>.<a href="../credentials/credentials.go.html#line-129" class="ident">TransportCredentials</a></code></span>
+<span class="codeline" id="line-187"><code>	<span class="comment">// CredsBundle is the credentials bundle to use when communicating with a</span></code></span>
+<span class="codeline" id="line-188"><code><span class="comment">	// remote load balancer server. Balancer implementations which do not</span></code></span>
+<span class="codeline" id="line-189"><code><span class="comment">	// communicate with a remote load balancer server can ignore this field.</span></code></span>
+<span class="codeline" id="line-190"><code>	<a href="../../../../use/google.golang.org/grpc/balancer..BuildOptions.CredsBundle.html" class="ident">CredsBundle</a> <a href="../../../../pkg/google.golang.org/grpc/credentials.html" class="ident i7">credentials</a>.<a href="../credentials/credentials.go.html#line-180" class="ident">Bundle</a></code></span>
+<span class="codeline" id="line-191"><code>	<span class="comment">// Dialer is the custom dialer to use when communicating with a remote load</span></code></span>
+<span class="codeline" id="line-192"><code><span class="comment">	// balancer server. Balancer implementations which do not communicate with a</span></code></span>
+<span class="codeline" id="line-193"><code><span class="comment">	// remote load balancer server can ignore this field.</span></code></span>
+<span class="codeline" id="line-194"><code>	<a href="../../../../use/google.golang.org/grpc/balancer..BuildOptions.Dialer.html" class="ident">Dialer</a> <span class="keyword">func</span>(<a href="../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../context/context.go.html#line-71" class="ident">Context</a>, <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>) (<a href="../../../../pkg/net.html" class="ident i3">net</a>.<a href="../../../net/net.go.html#line-124" class="ident">Conn</a>, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
+<span class="codeline" id="line-195"><code>	<span class="comment">// Authority is the server name to use as part of the authentication</span></code></span>
+<span class="codeline" id="line-196"><code><span class="comment">	// handshake when communicating with a remote load balancer server. Balancer</span></code></span>
+<span class="codeline" id="line-197"><code><span class="comment">	// implementations which do not communicate with a remote load balancer</span></code></span>
+<span class="codeline" id="line-198"><code><span class="comment">	// server can ignore this field.</span></code></span>
+<span class="codeline" id="line-199"><code>	<a href="../../../../use/google.golang.org/grpc/balancer..BuildOptions.Authority.html" class="ident">Authority</a> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-200"><code>	<span class="comment">// ChannelzParentID is the parent ClientConn's channelz ID.</span></code></span>
+<span class="codeline" id="line-201"><code>	<a href="../../../../use/google.golang.org/grpc/balancer..BuildOptions.ChannelzParentID.html" class="ident">ChannelzParentID</a> *<a href="../../../../pkg/google.golang.org/grpc/channelz.html" class="ident i5">channelz</a>.<a href="../channelz/channelz.go.html#line-36" class="ident">Identifier</a></code></span>
+<span class="codeline" id="line-202"><code>	<span class="comment">// CustomUserAgent is the custom user agent set on the parent ClientConn.</span></code></span>
+<span class="codeline" id="line-203"><code><span class="comment">	// The balancer should set the same custom user agent if it creates a</span></code></span>
+<span class="codeline" id="line-204"><code><span class="comment">	// ClientConn.</span></code></span>
+<span class="codeline" id="line-205"><code>	<a href="../../../../use/google.golang.org/grpc/balancer..BuildOptions.CustomUserAgent.html" class="ident">CustomUserAgent</a> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-206"><code>	<span class="comment">// Target contains the parsed address info of the dial target. It is the</span></code></span>
+<span class="codeline" id="line-207"><code><span class="comment">	// same resolver.Target as passed to the resolver. See the documentation for</span></code></span>
+<span class="codeline" id="line-208"><code><span class="comment">	// the resolver.Target type for details about what it contains.</span></code></span>
+<span class="codeline" id="line-209"><code>	<a href="../../../../use/google.golang.org/grpc/balancer..BuildOptions.Target.html" class="ident">Target</a> <a href="../../../../pkg/google.golang.org/grpc/resolver.html" class="ident i10">resolver</a>.<a href="../resolver/resolver.go.html#line-246" class="ident">Target</a></code></span>
+<span class="codeline" id="line-210"><code>}</code></span>
+<span class="codeline" id="line-211"><code></code></span>
+<span class="codeline" id="line-212"><code><span class="comment">// Builder creates a balancer.</span></code></span>
+<span class="codeline" id="line-213"><code><span class="keyword">type</span> <a href="../../../../pkg/google.golang.org/grpc/balancer.html#name-Builder" class="ident">Builder</a> <span class="keyword">interface</span> {</code></span>
+<span class="codeline" id="line-214"><code>	<span class="comment">// Build creates a new balancer with the ClientConn.</span></code></span>
+<span class="codeline" id="line-215"><code>	<a href="../../../../imp/google.golang.org/grpc/balancer.Builder.html#name-Build" class="ident">Build</a>(cc <a href="#line-149" class="ident">ClientConn</a>, opts <a href="#line-182" class="ident">BuildOptions</a>) <a href="#line-335" class="ident">Balancer</a></code></span>
+<span class="codeline" id="line-216"><code>	<span class="comment">// Name returns the name of balancers built by this builder.</span></code></span>
+<span class="codeline" id="line-217"><code><span class="comment">	// It will be used to pick balancers (for example in service config).</span></code></span>
+<span class="codeline" id="line-218"><code>	<a href="../../../../imp/google.golang.org/grpc/balancer.Builder.html#name-Name" class="ident">Name</a>() <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-219"><code>}</code></span>
+<span class="codeline" id="line-220"><code></code></span>
+<span class="codeline" id="line-221"><code><span class="comment">// ConfigParser parses load balancer configs.</span></code></span>
+<span class="codeline" id="line-222"><code><span class="keyword">type</span> <a href="../../../../pkg/google.golang.org/grpc/balancer.html#name-ConfigParser" class="ident">ConfigParser</a> <span class="keyword">interface</span> {</code></span>
+<span class="codeline" id="line-223"><code>	<span class="comment">// ParseConfig parses the JSON load balancer config provided into an</span></code></span>
+<span class="codeline" id="line-224"><code><span class="comment">	// internal form or returns an error if the config is invalid.  For future</span></code></span>
+<span class="codeline" id="line-225"><code><span class="comment">	// compatibility reasons, unknown fields in the config should be ignored.</span></code></span>
+<span class="codeline" id="line-226"><code>	<a href="../../../../imp/google.golang.org/grpc/balancer.ConfigParser.html#name-ParseConfig" class="ident">ParseConfig</a>(LoadBalancingConfigJSON <a href="../../../../pkg/encoding/json.html" class="ident i1">json</a>.<a href="../../../encoding/json/stream.go.html#line-259" class="ident">RawMessage</a>) (<a href="../../../../pkg/google.golang.org/grpc/serviceconfig.html" class="ident i11">serviceconfig</a>.<a href="../serviceconfig/serviceconfig.go.html#line-35" class="ident">LoadBalancingConfig</a>, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
+<span class="codeline" id="line-227"><code>}</code></span>
+<span class="codeline" id="line-228"><code></code></span>
+<span class="codeline" id="line-229"><code><span class="comment">// PickInfo contains additional information for the Pick operation.</span></code></span>
+<span class="codeline" id="line-230"><code><span class="keyword">type</span> <a href="../../../../pkg/google.golang.org/grpc/balancer.html#name-PickInfo" class="ident">PickInfo</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-231"><code>	<span class="comment">// FullMethodName is the method name that NewClientStream() is called</span></code></span>
+<span class="codeline" id="line-232"><code><span class="comment">	// with. The canonical format is /service/Method.</span></code></span>
+<span class="codeline" id="line-233"><code>	<a href="../../../../use/google.golang.org/grpc/balancer..PickInfo.FullMethodName.html" class="ident">FullMethodName</a> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-234"><code>	<span class="comment">// Ctx is the RPC's context, and may contain relevant RPC-level information</span></code></span>
+<span class="codeline" id="line-235"><code><span class="comment">	// like the outgoing header metadata.</span></code></span>
+<span class="codeline" id="line-236"><code>	<a href="../../../../use/google.golang.org/grpc/balancer..PickInfo.Ctx.html" class="ident">Ctx</a> <a href="../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../context/context.go.html#line-71" class="ident">Context</a></code></span>
+<span class="codeline" id="line-237"><code>}</code></span>
+<span class="codeline" id="line-238"><code></code></span>
+<span class="codeline" id="line-239"><code><span class="comment">// DoneInfo contains additional information for done.</span></code></span>
+<span class="codeline" id="line-240"><code><span class="keyword">type</span> <a href="../../../../pkg/google.golang.org/grpc/balancer.html#name-DoneInfo" class="ident">DoneInfo</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-241"><code>	<span class="comment">// Err is the rpc error the RPC finished with. It could be nil.</span></code></span>
+<span class="codeline" id="line-242"><code>	<a href="../../../../use/google.golang.org/grpc/balancer..DoneInfo.Err.html" class="ident">Err</a> <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-243"><code>	<span class="comment">// Trailer contains the metadata from the RPC's trailer, if present.</span></code></span>
+<span class="codeline" id="line-244"><code>	<a href="../../../../use/google.golang.org/grpc/balancer..DoneInfo.Trailer.html" class="ident">Trailer</a> <a href="../../../../pkg/google.golang.org/grpc/metadata.html" class="ident i9">metadata</a>.<a href="../metadata/metadata.go.html#line-39" class="ident">MD</a></code></span>
+<span class="codeline" id="line-245"><code>	<span class="comment">// BytesSent indicates if any bytes have been sent to the server.</span></code></span>
+<span class="codeline" id="line-246"><code>	<a href="../../../../use/google.golang.org/grpc/balancer..DoneInfo.BytesSent.html" class="ident">BytesSent</a> <a href="../../../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-247"><code>	<span class="comment">// BytesReceived indicates if any byte has been received from the server.</span></code></span>
+<span class="codeline" id="line-248"><code>	<a href="../../../../use/google.golang.org/grpc/balancer..DoneInfo.BytesReceived.html" class="ident">BytesReceived</a> <a href="../../../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-249"><code>	<span class="comment">// ServerLoad is the load received from server. It's usually sent as part of</span></code></span>
+<span class="codeline" id="line-250"><code><span class="comment">	// trailing metadata.</span></code></span>
+<span class="codeline" id="line-251"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-252"><code><span class="comment">	// The only supported type now is *orca_v3.LoadReport.</span></code></span>
+<span class="codeline" id="line-253"><code>	<a href="../../../../use/google.golang.org/grpc/balancer..DoneInfo.ServerLoad.html" class="ident">ServerLoad</a> <span class="keyword">interface</span>{}</code></span>
+<span class="codeline" id="line-254"><code>}</code></span>
+<span class="codeline" id="line-255"><code></code></span>
+<span class="codeline" id="line-256"><code><span class="keyword">var</span> (</code></span>
+<span class="codeline" id="line-257"><code>	<span class="comment">// ErrNoSubConnAvailable indicates no SubConn is available for pick().</span></code></span>
+<span class="codeline" id="line-258"><code><span class="comment">	// gRPC will block the RPC until a new picker is available via UpdateState().</span></code></span>
+<span class="codeline" id="line-259"><code>	<a href="../../../../pkg/google.golang.org/grpc/balancer.html#name-ErrNoSubConnAvailable" class="ident">ErrNoSubConnAvailable</a> = <a href="../../../../pkg/errors.html" class="ident i2">errors</a>.<a href="../../../errors/errors.go.html#line-64" class="ident">New</a>(<span class="lit-string">"no SubConn is available"</span>)</code></span>
+<span class="codeline" id="line-260"><code>	<span class="comment">// ErrTransientFailure indicates all SubConns are in TransientFailure.</span></code></span>
+<span class="codeline" id="line-261"><code><span class="comment">	// WaitForReady RPCs will block, non-WaitForReady RPCs will fail.</span></code></span>
+<span class="codeline" id="line-262"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-263"><code><span class="comment">	// Deprecated: return an appropriate error based on the last resolution or</span></code></span>
+<span class="codeline" id="line-264"><code><span class="comment">	// connection attempt instead.  The behavior is the same for any non-gRPC</span></code></span>
+<span class="codeline" id="line-265"><code><span class="comment">	// status error.</span></code></span>
+<span class="codeline" id="line-266"><code>	<a href="../../../../pkg/google.golang.org/grpc/balancer.html#name-ErrTransientFailure" class="ident">ErrTransientFailure</a> = <a href="../../../../pkg/errors.html" class="ident i2">errors</a>.<a href="../../../errors/errors.go.html#line-64" class="ident">New</a>(<span class="lit-string">"all SubConns are in TransientFailure"</span>)</code></span>
+<span class="codeline" id="line-267"><code>)</code></span>
+<span class="codeline" id="line-268"><code></code></span>
+<span class="codeline" id="line-269"><code><span class="comment">// PickResult contains information related to a connection chosen for an RPC.</span></code></span>
+<span class="codeline" id="line-270"><code><span class="keyword">type</span> <a href="../../../../pkg/google.golang.org/grpc/balancer.html#name-PickResult" class="ident">PickResult</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-271"><code>	<span class="comment">// SubConn is the connection to use for this pick, if its state is Ready.</span></code></span>
+<span class="codeline" id="line-272"><code><span class="comment">	// If the state is not Ready, gRPC will block the RPC until a new Picker is</span></code></span>
+<span class="codeline" id="line-273"><code><span class="comment">	// provided by the balancer (using ClientConn.UpdateState).  The SubConn</span></code></span>
+<span class="codeline" id="line-274"><code><span class="comment">	// must be one returned by ClientConn.NewSubConn.</span></code></span>
+<span class="codeline" id="line-275"><code>	<a href="../../../../use/google.golang.org/grpc/balancer..PickResult.SubConn.html" class="ident">SubConn</a> <a href="#line-99" class="ident">SubConn</a></code></span>
+<span class="codeline" id="line-276"><code></code></span>
+<span class="codeline" id="line-277"><code>	<span class="comment">// Done is called when the RPC is completed.  If the SubConn is not ready,</span></code></span>
+<span class="codeline" id="line-278"><code><span class="comment">	// this will be called with a nil parameter.  If the SubConn is not a valid</span></code></span>
+<span class="codeline" id="line-279"><code><span class="comment">	// type, Done may not be called.  May be nil if the balancer does not wish</span></code></span>
+<span class="codeline" id="line-280"><code><span class="comment">	// to be notified when the RPC completes.</span></code></span>
+<span class="codeline" id="line-281"><code>	<a href="../../../../use/google.golang.org/grpc/balancer..PickResult.Done.html" class="ident">Done</a> <span class="keyword">func</span>(<a href="#line-240" class="ident">DoneInfo</a>)</code></span>
+<span class="codeline" id="line-282"><code></code></span>
+<span class="codeline" id="line-283"><code>	<span class="comment">// Metadata provides a way for LB policies to inject arbitrary per-call</span></code></span>
+<span class="codeline" id="line-284"><code><span class="comment">	// metadata. Any metadata returned here will be merged with existing</span></code></span>
+<span class="codeline" id="line-285"><code><span class="comment">	// metadata added by the client application.</span></code></span>
+<span class="codeline" id="line-286"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-287"><code><span class="comment">	// LB policies with child policies are responsible for propagating metadata</span></code></span>
+<span class="codeline" id="line-288"><code><span class="comment">	// injected by their children to the ClientConn, as part of Pick().</span></code></span>
+<span class="codeline" id="line-289"><code>	<a href="../../../../use/google.golang.org/grpc/balancer..PickResult.Metatada.html" class="ident">Metatada</a> <a href="../../../../pkg/google.golang.org/grpc/metadata.html" class="ident i9">metadata</a>.<a href="../metadata/metadata.go.html#line-39" class="ident">MD</a></code></span>
+<span class="codeline" id="line-290"><code>}</code></span>
+<span class="codeline" id="line-291"><code></code></span>
+<span class="codeline" id="line-292"><code><span class="comment">// TransientFailureError returns e.  It exists for backward compatibility and</span></code></span>
+<span class="codeline" id="line-293"><code><span class="comment">// will be deleted soon.</span></code></span>
+<span class="codeline" id="line-294"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-295"><code><span class="comment">// Deprecated: no longer necessary, picker errors are treated this way by</span></code></span>
+<span class="codeline" id="line-296"><code><span class="comment">// default.</span></code></span>
+<span class="codeline" id="line-297"><code><span class="keyword">func</span> <label for="r9" class="ident"><a href="../../../../pkg/google.golang.org/grpc/balancer.html#name-TransientFailureError" class="ident">TransientFailureError</a></label>(<label for="r10" class="ident">e</label> <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a> { <span class="keyword">return</span> <label for="r10" class="ident">e</label> }</code></span>
+<span class="codeline" id="line-298"><code></code></span>
+<span class="codeline" id="line-299"><code><span class="comment">// Picker is used by gRPC to pick a SubConn to send an RPC.</span></code></span>
+<span class="codeline" id="line-300"><code><span class="comment">// Balancer is expected to generate a new picker from its snapshot every time its</span></code></span>
+<span class="codeline" id="line-301"><code><span class="comment">// internal state has changed.</span></code></span>
+<span class="codeline" id="line-302"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-303"><code><span class="comment">// The pickers used by gRPC can be updated by ClientConn.UpdateState().</span></code></span>
+<span class="codeline" id="line-304"><code><span class="keyword">type</span> <a href="../../../../pkg/google.golang.org/grpc/balancer.html#name-Picker" class="ident">Picker</a> <span class="keyword">interface</span> {</code></span>
+<span class="codeline" id="line-305"><code>	<span class="comment">// Pick returns the connection to use for this RPC and related information.</span></code></span>
+<span class="codeline" id="line-306"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-307"><code><span class="comment">	// Pick should not block.  If the balancer needs to do I/O or any blocking</span></code></span>
+<span class="codeline" id="line-308"><code><span class="comment">	// or time-consuming work to service this call, it should return</span></code></span>
+<span class="codeline" id="line-309"><code><span class="comment">	// ErrNoSubConnAvailable, and the Pick call will be repeated by gRPC when</span></code></span>
+<span class="codeline" id="line-310"><code><span class="comment">	// the Picker is updated (using ClientConn.UpdateState).</span></code></span>
+<span class="codeline" id="line-311"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-312"><code><span class="comment">	// If an error is returned:</span></code></span>
+<span class="codeline" id="line-313"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-314"><code><span class="comment">	// - If the error is ErrNoSubConnAvailable, gRPC will block until a new</span></code></span>
+<span class="codeline" id="line-315"><code><span class="comment">	//   Picker is provided by the balancer (using ClientConn.UpdateState).</span></code></span>
+<span class="codeline" id="line-316"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-317"><code><span class="comment">	// - If the error is a status error (implemented by the grpc/status</span></code></span>
+<span class="codeline" id="line-318"><code><span class="comment">	//   package), gRPC will terminate the RPC with the code and message</span></code></span>
+<span class="codeline" id="line-319"><code><span class="comment">	//   provided.</span></code></span>
+<span class="codeline" id="line-320"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-321"><code><span class="comment">	// - For all other errors, wait for ready RPCs will wait, but non-wait for</span></code></span>
+<span class="codeline" id="line-322"><code><span class="comment">	//   ready RPCs will be terminated with this error's Error() string and</span></code></span>
+<span class="codeline" id="line-323"><code><span class="comment">	//   status code Unavailable.</span></code></span>
+<span class="codeline" id="line-324"><code>	<a href="../../../../imp/google.golang.org/grpc/balancer.Picker.html#name-Pick" class="ident">Pick</a>(info <a href="#line-230" class="ident">PickInfo</a>) (<a href="#line-270" class="ident">PickResult</a>, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
+<span class="codeline" id="line-325"><code>}</code></span>
+<span class="codeline" id="line-326"><code></code></span>
+<span class="codeline" id="line-327"><code><span class="comment">// Balancer takes input from gRPC, manages SubConns, and collects and aggregates</span></code></span>
+<span class="codeline" id="line-328"><code><span class="comment">// the connectivity states.</span></code></span>
+<span class="codeline" id="line-329"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-330"><code><span class="comment">// It also generates and updates the Picker used by gRPC to pick SubConns for RPCs.</span></code></span>
+<span class="codeline" id="line-331"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-332"><code><span class="comment">// UpdateClientConnState, ResolverError, UpdateSubConnState, and Close are</span></code></span>
+<span class="codeline" id="line-333"><code><span class="comment">// guaranteed to be called synchronously from the same goroutine.  There's no</span></code></span>
+<span class="codeline" id="line-334"><code><span class="comment">// guarantee on picker.Pick, it may be called anytime.</span></code></span>
+<span class="codeline" id="line-335"><code><span class="keyword">type</span> <a href="../../../../pkg/google.golang.org/grpc/balancer.html#name-Balancer" class="ident">Balancer</a> <span class="keyword">interface</span> {</code></span>
+<span class="codeline" id="line-336"><code>	<span class="comment">// UpdateClientConnState is called by gRPC when the state of the ClientConn</span></code></span>
+<span class="codeline" id="line-337"><code><span class="comment">	// changes.  If the error returned is ErrBadResolverState, the ClientConn</span></code></span>
+<span class="codeline" id="line-338"><code><span class="comment">	// will begin calling ResolveNow on the active name resolver with</span></code></span>
+<span class="codeline" id="line-339"><code><span class="comment">	// exponential backoff until a subsequent call to UpdateClientConnState</span></code></span>
+<span class="codeline" id="line-340"><code><span class="comment">	// returns a nil error.  Any other errors are currently ignored.</span></code></span>
+<span class="codeline" id="line-341"><code>	<a href="../../../../imp/google.golang.org/grpc/balancer.Balancer.html#name-UpdateClientConnState" class="ident">UpdateClientConnState</a>(<a href="#line-377" class="ident">ClientConnState</a>) <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-342"><code>	<span class="comment">// ResolverError is called by gRPC when the name resolver reports an error.</span></code></span>
+<span class="codeline" id="line-343"><code>	<a href="../../../../imp/google.golang.org/grpc/balancer.Balancer.html#name-ResolverError" class="ident">ResolverError</a>(<a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
+<span class="codeline" id="line-344"><code>	<span class="comment">// UpdateSubConnState is called by gRPC when the state of a SubConn</span></code></span>
+<span class="codeline" id="line-345"><code><span class="comment">	// changes.</span></code></span>
+<span class="codeline" id="line-346"><code>	<a href="../../../../imp/google.golang.org/grpc/balancer.Balancer.html#name-UpdateSubConnState" class="ident">UpdateSubConnState</a>(<a href="#line-99" class="ident">SubConn</a>, <a href="#line-367" class="ident">SubConnState</a>)</code></span>
+<span class="codeline" id="line-347"><code>	<span class="comment">// Close closes the balancer. The balancer is not required to call</span></code></span>
+<span class="codeline" id="line-348"><code><span class="comment">	// ClientConn.RemoveSubConn for its existing SubConns.</span></code></span>
+<span class="codeline" id="line-349"><code>	<a href="../../../../imp/google.golang.org/grpc/balancer.Balancer.html#name-Close" class="ident">Close</a>()</code></span>
+<span class="codeline" id="line-350"><code>}</code></span>
+<span class="codeline" id="line-351"><code></code></span>
+<span class="codeline" id="line-352"><code><span class="comment">// ExitIdler is an optional interface for balancers to implement.  If</span></code></span>
+<span class="codeline" id="line-353"><code><span class="comment">// implemented, ExitIdle will be called when ClientConn.Connect is called, if</span></code></span>
+<span class="codeline" id="line-354"><code><span class="comment">// the ClientConn is idle.  If unimplemented, ClientConn.Connect will cause</span></code></span>
+<span class="codeline" id="line-355"><code><span class="comment">// all SubConns to connect.</span></code></span>
+<span class="codeline" id="line-356"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-357"><code><span class="comment">// Notice: it will be required for all balancers to implement this in a future</span></code></span>
+<span class="codeline" id="line-358"><code><span class="comment">// release.</span></code></span>
+<span class="codeline" id="line-359"><code><span class="keyword">type</span> <a href="../../../../pkg/google.golang.org/grpc/balancer.html#name-ExitIdler" class="ident">ExitIdler</a> <span class="keyword">interface</span> {</code></span>
+<span class="codeline" id="line-360"><code>	<span class="comment">// ExitIdle instructs the LB policy to reconnect to backends / exit the</span></code></span>
+<span class="codeline" id="line-361"><code><span class="comment">	// IDLE state, if appropriate and possible.  Note that SubConns that enter</span></code></span>
+<span class="codeline" id="line-362"><code><span class="comment">	// the IDLE state will not reconnect until SubConn.Connect is called.</span></code></span>
+<span class="codeline" id="line-363"><code>	<a href="../../../../imp/google.golang.org/grpc/balancer.ExitIdler.html#name-ExitIdle" class="ident">ExitIdle</a>()</code></span>
+<span class="codeline" id="line-364"><code>}</code></span>
+<span class="codeline" id="line-365"><code></code></span>
+<span class="codeline" id="line-366"><code><span class="comment">// SubConnState describes the state of a SubConn.</span></code></span>
+<span class="codeline" id="line-367"><code><span class="keyword">type</span> <a href="../../../../pkg/google.golang.org/grpc/balancer.html#name-SubConnState" class="ident">SubConnState</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-368"><code>	<span class="comment">// ConnectivityState is the connectivity state of the SubConn.</span></code></span>
+<span class="codeline" id="line-369"><code>	<a href="../../../../use/google.golang.org/grpc/balancer..SubConnState.ConnectivityState.html" class="ident">ConnectivityState</a> <a href="../../../../pkg/google.golang.org/grpc/connectivity.html" class="ident i6">connectivity</a>.<a href="../connectivity/connectivity.go.html#line-31" class="ident">State</a></code></span>
+<span class="codeline" id="line-370"><code>	<span class="comment">// ConnectionError is set if the ConnectivityState is TransientFailure,</span></code></span>
+<span class="codeline" id="line-371"><code><span class="comment">	// describing the reason the SubConn failed.  Otherwise, it is nil.</span></code></span>
+<span class="codeline" id="line-372"><code>	<a href="../../../../use/google.golang.org/grpc/balancer..SubConnState.ConnectionError.html" class="ident">ConnectionError</a> <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-373"><code>}</code></span>
+<span class="codeline" id="line-374"><code></code></span>
+<span class="codeline" id="line-375"><code><span class="comment">// ClientConnState describes the state of a ClientConn relevant to the</span></code></span>
+<span class="codeline" id="line-376"><code><span class="comment">// balancer.</span></code></span>
+<span class="codeline" id="line-377"><code><span class="keyword">type</span> <a href="../../../../pkg/google.golang.org/grpc/balancer.html#name-ClientConnState" class="ident">ClientConnState</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-378"><code>	<a href="../../../../use/google.golang.org/grpc/balancer..ClientConnState.ResolverState.html" class="ident">ResolverState</a> <a href="../../../../pkg/google.golang.org/grpc/resolver.html" class="ident i10">resolver</a>.<a href="../resolver/resolver.go.html#line-183" class="ident">State</a></code></span>
+<span class="codeline" id="line-379"><code>	<span class="comment">// The parsed load balancing configuration returned by the builder's</span></code></span>
+<span class="codeline" id="line-380"><code><span class="comment">	// ParseConfig method, if implemented.</span></code></span>
+<span class="codeline" id="line-381"><code>	<a href="../../../../use/google.golang.org/grpc/balancer..ClientConnState.BalancerConfig.html" class="ident">BalancerConfig</a> <a href="../../../../pkg/google.golang.org/grpc/serviceconfig.html" class="ident i11">serviceconfig</a>.<a href="../serviceconfig/serviceconfig.go.html#line-35" class="ident">LoadBalancingConfig</a></code></span>
+<span class="codeline" id="line-382"><code>}</code></span>
+<span class="codeline" id="line-383"><code></code></span>
+<span class="codeline" id="line-384"><code><span class="comment">// ErrBadResolverState may be returned by UpdateClientConnState to indicate a</span></code></span>
+<span class="codeline" id="line-385"><code><span class="comment">// problem with the provided name resolver data.</span></code></span>
+<span class="codeline" id="line-386"><code><span class="keyword">var</span> <a href="../../../../pkg/google.golang.org/grpc/balancer.html#name-ErrBadResolverState" class="ident">ErrBadResolverState</a> = <a href="../../../../pkg/errors.html" class="ident i2">errors</a>.<a href="../../../errors/errors.go.html#line-64" class="ident">New</a>(<span class="lit-string">"bad resolver state"</span>)</code></span>
+<span class="codeline" id="line-387"><code></code></span>
+<span class="codeline" id="line-388"><code><span class="comment">// A ProducerBuilder is a simple constructor for a Producer.  It is used by the</span></code></span>
+<span class="codeline" id="line-389"><code><span class="comment">// SubConn to create producers when needed.</span></code></span>
+<span class="codeline" id="line-390"><code><span class="keyword">type</span> <a href="../../../../pkg/google.golang.org/grpc/balancer.html#name-ProducerBuilder" class="ident">ProducerBuilder</a> <span class="keyword">interface</span> {</code></span>
+<span class="codeline" id="line-391"><code>	<span class="comment">// Build creates a Producer.  The first parameter is always a</span></code></span>
+<span class="codeline" id="line-392"><code><span class="comment">	// grpc.ClientConnInterface (a type to allow creating RPCs/streams on the</span></code></span>
+<span class="codeline" id="line-393"><code><span class="comment">	// associated SubConn), but is declared as interface{} to avoid a</span></code></span>
+<span class="codeline" id="line-394"><code><span class="comment">	// dependency cycle.  Should also return a close function that will be</span></code></span>
+<span class="codeline" id="line-395"><code><span class="comment">	// called when all references to the Producer have been given up.</span></code></span>
+<span class="codeline" id="line-396"><code>	<a href="../../../../imp/google.golang.org/grpc/balancer.ProducerBuilder.html#name-Build" class="ident">Build</a>(grpcClientConnInterface <span class="keyword">interface</span>{}) (p <a href="#line-403" class="ident">Producer</a>, close <span class="keyword">func</span>())</code></span>
+<span class="codeline" id="line-397"><code>}</code></span>
+<span class="codeline" id="line-398"><code></code></span>
+<span class="codeline" id="line-399"><code><span class="comment">// A Producer is a type shared among potentially many consumers.  It is</span></code></span>
+<span class="codeline" id="line-400"><code><span class="comment">// associated with a SubConn, and an implementation will typically contain</span></code></span>
+<span class="codeline" id="line-401"><code><span class="comment">// other methods to provide additional functionality, e.g. configuration or</span></code></span>
+<span class="codeline" id="line-402"><code><span class="comment">// subscription registration.</span></code></span>
+<span class="codeline" id="line-403"><code><span class="keyword">type</span> <a href="../../../../pkg/google.golang.org/grpc/balancer.html#name-Producer" class="ident">Producer</a> <span class="keyword">interface</span> {</code></span>
+<span class="codeline" id="line-404"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

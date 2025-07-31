@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: pickfirst.go in package google.golang.org/grpc</title>
+<link href="../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	pickfirst.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../pkg/google.golang.org/grpc.html">google.golang.org/grpc</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">/*</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment"> * Copyright 2017 gRPC authors.</span></code></span>
+<span class="codeline" id="line-4"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-5"><code><span class="comment"> * Licensed under the Apache License, Version 2.0 (the "License");</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment"> * you may not use this file except in compliance with the License.</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment"> * You may obtain a copy of the License at</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment"> *     http://www.apache.org/licenses/LICENSE-2.0</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment"> * Unless required by applicable law or agreed to in writing, software</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment"> * distributed under the License is distributed on an "AS IS" BASIS,</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment"> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment"> * See the License for the specific language governing permissions and</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment"> * limitations under the License.</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment"> */</span></code></span>
+<span class="codeline" id="line-18"><code></code></span>
+<span class="codeline" id="line-19"><code><span class="keyword">package</span> grpc</code></span>
+<span class="codeline" id="line-20"><code></code></span>
+<span class="codeline" id="line-21"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-22"><code>	<label for="i0"><span class="lit-string i0">"errors"</span></label></code></span>
+<span class="codeline" id="line-23"><code>	<label for="i1"><span class="lit-string i1">"fmt"</span></label></code></span>
+<span class="codeline" id="line-24"><code></code></span>
+<span class="codeline" id="line-25"><code>	<label for="i2"><span class="lit-string i2">"google.golang.org/grpc/balancer"</span></label></code></span>
+<span class="codeline" id="line-26"><code>	<label for="i3"><span class="lit-string i3">"google.golang.org/grpc/connectivity"</span></label></code></span>
+<span class="codeline" id="line-27"><code>)</code></span>
+<span class="codeline" id="line-28"><code></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">// PickFirstBalancerName is the name of the pick_first balancer.</span></code></span>
+<span class="codeline" id="line-30"><code><span class="keyword">const</span> <a href="../../../pkg/google.golang.org/grpc.html#name-PickFirstBalancerName" class="ident">PickFirstBalancerName</a> = <span class="lit-string">"pick_first"</span></code></span>
+<span class="codeline" id="line-31"><code></code></span>
+<span class="codeline" id="line-32"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../pkg/google.golang.org/grpc.html#name-newPickfirstBuilder" class="ident">newPickfirstBuilder</a></label>() <a href="../../../pkg/google.golang.org/grpc/balancer.html" class="ident i2">balancer</a>.<a href="balancer/balancer.go.html#line-213" class="ident">Builder</a> {</code></span>
+<span class="codeline" id="line-33"><code>	<span class="keyword">return</span> &amp;<a href="#line-36" class="ident">pickfirstBuilder</a>{}</code></span>
+<span class="codeline" id="line-34"><code>}</code></span>
+<span class="codeline" id="line-35"><code></code></span>
+<span class="codeline" id="line-36"><code><span class="keyword">type</span> <a href="../../../pkg/google.golang.org/grpc.html#name-pickfirstBuilder" class="ident">pickfirstBuilder</a> <span class="keyword">struct</span>{}</code></span>
+<span class="codeline" id="line-37"><code></code></span>
+<span class="codeline" id="line-38"><code><span class="keyword">func</span> (*<a href="#line-36" class="ident">pickfirstBuilder</a>) <label for="r1" class="ident"><a href="../../../use/google.golang.org/grpc..pickfirstBuilder^8f465.Build.html" class="ident">Build</a></label>(<label for="r2" class="ident">cc</label> <a href="../../../pkg/google.golang.org/grpc/balancer.html" class="ident i2">balancer</a>.<a href="balancer/balancer.go.html#line-149" class="ident">ClientConn</a>, <label for="r3" class="ident">opt</label> <a href="../../../pkg/google.golang.org/grpc/balancer.html" class="ident i2">balancer</a>.<a href="balancer/balancer.go.html#line-182" class="ident">BuildOptions</a>) <a href="../../../pkg/google.golang.org/grpc/balancer.html" class="ident i2">balancer</a>.<a href="balancer/balancer.go.html#line-335" class="ident">Balancer</a> {</code></span>
+<span class="codeline" id="line-39"><code>	<span class="keyword">return</span> &amp;<a href="#line-46" class="ident">pickfirstBalancer</a>{<a href="#line-48" class="ident">cc</a>: <label for="r2" class="ident">cc</label>}</code></span>
+<span class="codeline" id="line-40"><code>}</code></span>
+<span class="codeline" id="line-41"><code></code></span>
+<span class="codeline" id="line-42"><code><span class="keyword">func</span> (*<a href="#line-36" class="ident">pickfirstBuilder</a>) <label for="r4" class="ident"><a href="../../../use/google.golang.org/grpc..pickfirstBuilder^8f465.Name.html" class="ident">Name</a></label>() <a href="../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-43"><code>	<span class="keyword">return</span> <a href="#line-30" class="ident">PickFirstBalancerName</a></code></span>
+<span class="codeline" id="line-44"><code>}</code></span>
+<span class="codeline" id="line-45"><code></code></span>
+<span class="codeline" id="line-46"><code><span class="keyword">type</span> <a href="../../../pkg/google.golang.org/grpc.html#name-pickfirstBalancer" class="ident">pickfirstBalancer</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-47"><code>	<a href="../../../use/google.golang.org/grpc..pickfirstBalancer^2663e.state^4ba69.html" class="ident">state</a>   <a href="../../../pkg/google.golang.org/grpc/connectivity.html" class="ident i3">connectivity</a>.<a href="connectivity/connectivity.go.html#line-31" class="ident">State</a></code></span>
+<span class="codeline" id="line-48"><code>	<a href="../../../use/google.golang.org/grpc..pickfirstBalancer^2663e.cc^355b1.html" class="ident">cc</a>      <a href="../../../pkg/google.golang.org/grpc/balancer.html" class="ident i2">balancer</a>.<a href="balancer/balancer.go.html#line-149" class="ident">ClientConn</a></code></span>
+<span class="codeline" id="line-49"><code>	<a href="../../../use/google.golang.org/grpc..pickfirstBalancer^2663e.subConn^2ed49.html" class="ident">subConn</a> <a href="../../../pkg/google.golang.org/grpc/balancer.html" class="ident i2">balancer</a>.<a href="balancer/balancer.go.html#line-99" class="ident">SubConn</a></code></span>
+<span class="codeline" id="line-50"><code>}</code></span>
+<span class="codeline" id="line-51"><code></code></span>
+<span class="codeline" id="line-52"><code><span class="keyword">func</span> (<label for="r5" class="ident">b</label> *<a href="#line-46" class="ident">pickfirstBalancer</a>) <label for="r6" class="ident"><a href="../../../use/google.golang.org/grpc..pickfirstBalancer^2663e.ResolverError.html" class="ident">ResolverError</a></label>(<label for="r7" class="ident">err</label> <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-53"><code>	<span class="keyword">if</span> <a href="server.go.html#line-87" class="ident">logger</a>.<a href="grpclog/loggerv2.go.html#line-66" class="ident">V</a>(<span class="lit-number">2</span>) {</code></span>
+<span class="codeline" id="line-54"><code>		<a href="server.go.html#line-87" class="ident">logger</a>.<a href="grpclog/loggerv2.go.html#line-40" class="ident">Infof</a>(<span class="lit-string">"pickfirstBalancer: ResolverError called with error: %v"</span>, <label for="r7" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-55"><code>	}</code></span>
+<span class="codeline" id="line-56"><code>	<span class="keyword">if</span> <label for="r5" class="ident">b</label>.<a href="#line-49" class="ident">subConn</a> == <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-57"><code>		<label for="r5" class="ident">b</label>.<a href="#line-47" class="ident">state</a> = <a href="../../../pkg/google.golang.org/grpc/connectivity.html" class="ident i3">connectivity</a>.<a href="connectivity/connectivity.go.html#line-59" class="ident">TransientFailure</a></code></span>
+<span class="codeline" id="line-58"><code>	}</code></span>
+<span class="codeline" id="line-59"><code></code></span>
+<span class="codeline" id="line-60"><code>	<span class="keyword">if</span> <label for="r5" class="ident">b</label>.<a href="#line-47" class="ident">state</a> != <a href="../../../pkg/google.golang.org/grpc/connectivity.html" class="ident i3">connectivity</a>.<a href="connectivity/connectivity.go.html#line-59" class="ident">TransientFailure</a> {</code></span>
+<span class="codeline" id="line-61"><code>		<span class="comment">// The picker will not change since the balancer does not currently</span></code></span>
+<span class="codeline" id="line-62"><code><span class="comment">		// report an error.</span></code></span>
+<span class="codeline" id="line-63"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-64"><code>	}</code></span>
+<span class="codeline" id="line-65"><code>	<label for="r5" class="ident">b</label>.<a href="#line-48" class="ident">cc</a>.<a href="balancer/balancer.go.html#line-170" class="ident">UpdateState</a>(<a href="../../../pkg/google.golang.org/grpc/balancer.html" class="ident i2">balancer</a>.<a href="balancer/balancer.go.html#line-135" class="ident">State</a>{</code></span>
+<span class="codeline" id="line-66"><code>		<a href="balancer/balancer.go.html#line-138" class="ident">ConnectivityState</a>: <a href="../../../pkg/google.golang.org/grpc/connectivity.html" class="ident i3">connectivity</a>.<a href="connectivity/connectivity.go.html#line-59" class="ident">TransientFailure</a>,</code></span>
+<span class="codeline" id="line-67"><code>		<a href="balancer/balancer.go.html#line-140" class="ident">Picker</a>:            &amp;<a href="#line-161" class="ident">picker</a>{<a href="#line-163" class="ident">err</a>: <a href="../../../pkg/fmt.html" class="ident i1">fmt</a>.<a href="../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"name resolver error: %v"</span>, <label for="r7" class="ident">err</label>)},</code></span>
+<span class="codeline" id="line-68"><code>	})</code></span>
+<span class="codeline" id="line-69"><code>}</code></span>
+<span class="codeline" id="line-70"><code></code></span>
+<span class="codeline" id="line-71"><code><span class="keyword">func</span> (<label for="r8" class="ident">b</label> *<a href="#line-46" class="ident">pickfirstBalancer</a>) <label for="r9" class="ident"><a href="../../../use/google.golang.org/grpc..pickfirstBalancer^2663e.UpdateClientConnState.html" class="ident">UpdateClientConnState</a></label>(<label for="r10" class="ident">state</label> <a href="../../../pkg/google.golang.org/grpc/balancer.html" class="ident i2">balancer</a>.<a href="balancer/balancer.go.html#line-377" class="ident">ClientConnState</a>) <a href="../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-72"><code>	<span class="keyword">if</span> <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r10" class="ident">state</label>.<a href="balancer/balancer.go.html#line-378" class="ident">ResolverState</a>.<a href="resolver/resolver.go.html#line-185" class="ident">Addresses</a>) == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-73"><code>		<span class="comment">// The resolver reported an empty address list. Treat it like an error by</span></code></span>
+<span class="codeline" id="line-74"><code><span class="comment">		// calling b.ResolverError.</span></code></span>
+<span class="codeline" id="line-75"><code>		<span class="keyword">if</span> <label for="r8" class="ident">b</label>.<a href="#line-49" class="ident">subConn</a> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-76"><code>			<span class="comment">// Remove the old subConn. All addresses were removed, so it is no longer</span></code></span>
+<span class="codeline" id="line-77"><code><span class="comment">			// valid.</span></code></span>
+<span class="codeline" id="line-78"><code>			<label for="r8" class="ident">b</label>.<a href="#line-48" class="ident">cc</a>.<a href="balancer/balancer.go.html#line-156" class="ident">RemoveSubConn</a>(<label for="r8" class="ident">b</label>.<a href="#line-49" class="ident">subConn</a>)</code></span>
+<span class="codeline" id="line-79"><code>			<label for="r8" class="ident">b</label>.<a href="#line-49" class="ident">subConn</a> = <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-80"><code>		}</code></span>
+<span class="codeline" id="line-81"><code>		<label for="r8" class="ident">b</label>.<a href="#line-52" class="ident">ResolverError</a>(<a href="../../../pkg/errors.html" class="ident i0">errors</a>.<a href="../../errors/errors.go.html#line-64" class="ident">New</a>(<span class="lit-string">"produced zero addresses"</span>))</code></span>
+<span class="codeline" id="line-82"><code>		<span class="keyword">return</span> <a href="../../../pkg/google.golang.org/grpc/balancer.html" class="ident i2">balancer</a>.<a href="balancer/balancer.go.html#line-386" class="ident">ErrBadResolverState</a></code></span>
+<span class="codeline" id="line-83"><code>	}</code></span>
+<span class="codeline" id="line-84"><code></code></span>
+<span class="codeline" id="line-85"><code>	<span class="keyword">if</span> <label for="r8" class="ident">b</label>.<a href="#line-49" class="ident">subConn</a> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-86"><code>		<label for="r8" class="ident">b</label>.<a href="#line-48" class="ident">cc</a>.<a href="balancer/balancer.go.html#line-163" class="ident">UpdateAddresses</a>(<label for="r8" class="ident">b</label>.<a href="#line-49" class="ident">subConn</a>, <label for="r10" class="ident">state</label>.<a href="balancer/balancer.go.html#line-378" class="ident">ResolverState</a>.<a href="resolver/resolver.go.html#line-185" class="ident">Addresses</a>)</code></span>
+<span class="codeline" id="line-87"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-88"><code>	}</code></span>
+<span class="codeline" id="line-89"><code></code></span>
+<span class="codeline" id="line-90"><code>	<label for="r11" class="ident">subConn</label>, <label for="r12" class="ident">err</label> := <label for="r8" class="ident">b</label>.<a href="#line-48" class="ident">cc</a>.<a href="balancer/balancer.go.html#line-153" class="ident">NewSubConn</a>(<label for="r10" class="ident">state</label>.<a href="balancer/balancer.go.html#line-378" class="ident">ResolverState</a>.<a href="resolver/resolver.go.html#line-185" class="ident">Addresses</a>, <a href="../../../pkg/google.golang.org/grpc/balancer.html" class="ident i2">balancer</a>.<a href="balancer/balancer.go.html#line-121" class="ident">NewSubConnOptions</a>{})</code></span>
+<span class="codeline" id="line-91"><code>	<span class="keyword">if</span> <label for="r12" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-92"><code>		<span class="keyword">if</span> <a href="server.go.html#line-87" class="ident">logger</a>.<a href="grpclog/loggerv2.go.html#line-66" class="ident">V</a>(<span class="lit-number">2</span>) {</code></span>
+<span class="codeline" id="line-93"><code>			<a href="server.go.html#line-87" class="ident">logger</a>.<a href="grpclog/loggerv2.go.html#line-52" class="ident">Errorf</a>(<span class="lit-string">"pickfirstBalancer: failed to NewSubConn: %v"</span>, <label for="r12" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-94"><code>		}</code></span>
+<span class="codeline" id="line-95"><code>		<label for="r8" class="ident">b</label>.<a href="#line-47" class="ident">state</a> = <a href="../../../pkg/google.golang.org/grpc/connectivity.html" class="ident i3">connectivity</a>.<a href="connectivity/connectivity.go.html#line-59" class="ident">TransientFailure</a></code></span>
+<span class="codeline" id="line-96"><code>		<label for="r8" class="ident">b</label>.<a href="#line-48" class="ident">cc</a>.<a href="balancer/balancer.go.html#line-170" class="ident">UpdateState</a>(<a href="../../../pkg/google.golang.org/grpc/balancer.html" class="ident i2">balancer</a>.<a href="balancer/balancer.go.html#line-135" class="ident">State</a>{</code></span>
+<span class="codeline" id="line-97"><code>			<a href="balancer/balancer.go.html#line-138" class="ident">ConnectivityState</a>: <a href="../../../pkg/google.golang.org/grpc/connectivity.html" class="ident i3">connectivity</a>.<a href="connectivity/connectivity.go.html#line-59" class="ident">TransientFailure</a>,</code></span>
+<span class="codeline" id="line-98"><code>			<a href="balancer/balancer.go.html#line-140" class="ident">Picker</a>:            &amp;<a href="#line-161" class="ident">picker</a>{<a href="#line-163" class="ident">err</a>: <a href="../../../pkg/fmt.html" class="ident i1">fmt</a>.<a href="../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"error creating connection: %v"</span>, <label for="r12" class="ident">err</label>)},</code></span>
+<span class="codeline" id="line-99"><code>		})</code></span>
+<span class="codeline" id="line-100"><code>		<span class="keyword">return</span> <a href="../../../pkg/google.golang.org/grpc/balancer.html" class="ident i2">balancer</a>.<a href="balancer/balancer.go.html#line-386" class="ident">ErrBadResolverState</a></code></span>
+<span class="codeline" id="line-101"><code>	}</code></span>
+<span class="codeline" id="line-102"><code>	<label for="r8" class="ident">b</label>.<a href="#line-49" class="ident">subConn</a> = <label for="r11" class="ident">subConn</label></code></span>
+<span class="codeline" id="line-103"><code>	<label for="r8" class="ident">b</label>.<a href="#line-47" class="ident">state</a> = <a href="../../../pkg/google.golang.org/grpc/connectivity.html" class="ident i3">connectivity</a>.<a href="connectivity/connectivity.go.html#line-53" class="ident">Idle</a></code></span>
+<span class="codeline" id="line-104"><code>	<label for="r8" class="ident">b</label>.<a href="#line-48" class="ident">cc</a>.<a href="balancer/balancer.go.html#line-170" class="ident">UpdateState</a>(<a href="../../../pkg/google.golang.org/grpc/balancer.html" class="ident i2">balancer</a>.<a href="balancer/balancer.go.html#line-135" class="ident">State</a>{</code></span>
+<span class="codeline" id="line-105"><code>		<a href="balancer/balancer.go.html#line-138" class="ident">ConnectivityState</a>: <a href="../../../pkg/google.golang.org/grpc/connectivity.html" class="ident i3">connectivity</a>.<a href="connectivity/connectivity.go.html#line-55" class="ident">Connecting</a>,</code></span>
+<span class="codeline" id="line-106"><code>		<a href="balancer/balancer.go.html#line-140" class="ident">Picker</a>:            &amp;<a href="#line-161" class="ident">picker</a>{<a href="#line-163" class="ident">err</a>: <a href="../../../pkg/google.golang.org/grpc/balancer.html" class="ident i2">balancer</a>.<a href="balancer/balancer.go.html#line-259" class="ident">ErrNoSubConnAvailable</a>},</code></span>
+<span class="codeline" id="line-107"><code>	})</code></span>
+<span class="codeline" id="line-108"><code>	<label for="r8" class="ident">b</label>.<a href="#line-49" class="ident">subConn</a>.<a href="balancer/balancer.go.html#line-112" class="ident">Connect</a>()</code></span>
+<span class="codeline" id="line-109"><code>	<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-110"><code>}</code></span>
+<span class="codeline" id="line-111"><code></code></span>
+<span class="codeline" id="line-112"><code><span class="keyword">func</span> (<label for="r13" class="ident">b</label> *<a href="#line-46" class="ident">pickfirstBalancer</a>) <label for="r14" class="ident"><a href="../../../use/google.golang.org/grpc..pickfirstBalancer^2663e.UpdateSubConnState.html" class="ident">UpdateSubConnState</a></label>(<label for="r15" class="ident">subConn</label> <a href="../../../pkg/google.golang.org/grpc/balancer.html" class="ident i2">balancer</a>.<a href="balancer/balancer.go.html#line-99" class="ident">SubConn</a>, <label for="r16" class="ident">state</label> <a href="../../../pkg/google.golang.org/grpc/balancer.html" class="ident i2">balancer</a>.<a href="balancer/balancer.go.html#line-367" class="ident">SubConnState</a>) {</code></span>
+<span class="codeline" id="line-113"><code>	<span class="keyword">if</span> <a href="server.go.html#line-87" class="ident">logger</a>.<a href="grpclog/loggerv2.go.html#line-66" class="ident">V</a>(<span class="lit-number">2</span>) {</code></span>
+<span class="codeline" id="line-114"><code>		<a href="server.go.html#line-87" class="ident">logger</a>.<a href="grpclog/loggerv2.go.html#line-40" class="ident">Infof</a>(<span class="lit-string">"pickfirstBalancer: UpdateSubConnState: %p, %v"</span>, <label for="r15" class="ident">subConn</label>, <label for="r16" class="ident">state</label>)</code></span>
+<span class="codeline" id="line-115"><code>	}</code></span>
+<span class="codeline" id="line-116"><code>	<span class="keyword">if</span> <label for="r13" class="ident">b</label>.<a href="#line-49" class="ident">subConn</a> != <label for="r15" class="ident">subConn</label> {</code></span>
+<span class="codeline" id="line-117"><code>		<span class="keyword">if</span> <a href="server.go.html#line-87" class="ident">logger</a>.<a href="grpclog/loggerv2.go.html#line-66" class="ident">V</a>(<span class="lit-number">2</span>) {</code></span>
+<span class="codeline" id="line-118"><code>			<a href="server.go.html#line-87" class="ident">logger</a>.<a href="grpclog/loggerv2.go.html#line-40" class="ident">Infof</a>(<span class="lit-string">"pickfirstBalancer: ignored state change because subConn is not recognized"</span>)</code></span>
+<span class="codeline" id="line-119"><code>		}</code></span>
+<span class="codeline" id="line-120"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-121"><code>	}</code></span>
+<span class="codeline" id="line-122"><code>	<label for="r13" class="ident">b</label>.<a href="#line-47" class="ident">state</a> = <label for="r16" class="ident">state</label>.<a href="balancer/balancer.go.html#line-369" class="ident">ConnectivityState</a></code></span>
+<span class="codeline" id="line-123"><code>	<span class="keyword">if</span> <label for="r16" class="ident">state</label>.<a href="balancer/balancer.go.html#line-369" class="ident">ConnectivityState</a> == <a href="../../../pkg/google.golang.org/grpc/connectivity.html" class="ident i3">connectivity</a>.<a href="connectivity/connectivity.go.html#line-61" class="ident">Shutdown</a> {</code></span>
+<span class="codeline" id="line-124"><code>		<label for="r13" class="ident">b</label>.<a href="#line-49" class="ident">subConn</a> = <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-125"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-126"><code>	}</code></span>
+<span class="codeline" id="line-127"><code></code></span>
+<span class="codeline" id="line-128"><code>	<span class="keyword">switch</span> <label for="r16" class="ident">state</label>.<a href="balancer/balancer.go.html#line-369" class="ident">ConnectivityState</a> {</code></span>
+<span class="codeline" id="line-129"><code>	<span class="keyword">case</span> <a href="../../../pkg/google.golang.org/grpc/connectivity.html" class="ident i3">connectivity</a>.<a href="connectivity/connectivity.go.html#line-57" class="ident">Ready</a>:</code></span>
+<span class="codeline" id="line-130"><code>		<label for="r13" class="ident">b</label>.<a href="#line-48" class="ident">cc</a>.<a href="balancer/balancer.go.html#line-170" class="ident">UpdateState</a>(<a href="../../../pkg/google.golang.org/grpc/balancer.html" class="ident i2">balancer</a>.<a href="balancer/balancer.go.html#line-135" class="ident">State</a>{</code></span>
+<span class="codeline" id="line-131"><code>			<a href="balancer/balancer.go.html#line-138" class="ident">ConnectivityState</a>: <label for="r16" class="ident">state</label>.<a href="balancer/balancer.go.html#line-369" class="ident">ConnectivityState</a>,</code></span>
+<span class="codeline" id="line-132"><code>			<a href="balancer/balancer.go.html#line-140" class="ident">Picker</a>:            &amp;<a href="#line-161" class="ident">picker</a>{<a href="#line-162" class="ident">result</a>: <a href="../../../pkg/google.golang.org/grpc/balancer.html" class="ident i2">balancer</a>.<a href="balancer/balancer.go.html#line-270" class="ident">PickResult</a>{<a href="balancer/balancer.go.html#line-275" class="ident">SubConn</a>: <label for="r15" class="ident">subConn</label>}},</code></span>
+<span class="codeline" id="line-133"><code>		})</code></span>
+<span class="codeline" id="line-134"><code>	<span class="keyword">case</span> <a href="../../../pkg/google.golang.org/grpc/connectivity.html" class="ident i3">connectivity</a>.<a href="connectivity/connectivity.go.html#line-55" class="ident">Connecting</a>:</code></span>
+<span class="codeline" id="line-135"><code>		<label for="r13" class="ident">b</label>.<a href="#line-48" class="ident">cc</a>.<a href="balancer/balancer.go.html#line-170" class="ident">UpdateState</a>(<a href="../../../pkg/google.golang.org/grpc/balancer.html" class="ident i2">balancer</a>.<a href="balancer/balancer.go.html#line-135" class="ident">State</a>{</code></span>
+<span class="codeline" id="line-136"><code>			<a href="balancer/balancer.go.html#line-138" class="ident">ConnectivityState</a>: <label for="r16" class="ident">state</label>.<a href="balancer/balancer.go.html#line-369" class="ident">ConnectivityState</a>,</code></span>
+<span class="codeline" id="line-137"><code>			<a href="balancer/balancer.go.html#line-140" class="ident">Picker</a>:            &amp;<a href="#line-161" class="ident">picker</a>{<a href="#line-163" class="ident">err</a>: <a href="../../../pkg/google.golang.org/grpc/balancer.html" class="ident i2">balancer</a>.<a href="balancer/balancer.go.html#line-259" class="ident">ErrNoSubConnAvailable</a>},</code></span>
+<span class="codeline" id="line-138"><code>		})</code></span>
+<span class="codeline" id="line-139"><code>	<span class="keyword">case</span> <a href="../../../pkg/google.golang.org/grpc/connectivity.html" class="ident i3">connectivity</a>.<a href="connectivity/connectivity.go.html#line-53" class="ident">Idle</a>:</code></span>
+<span class="codeline" id="line-140"><code>		<label for="r13" class="ident">b</label>.<a href="#line-48" class="ident">cc</a>.<a href="balancer/balancer.go.html#line-170" class="ident">UpdateState</a>(<a href="../../../pkg/google.golang.org/grpc/balancer.html" class="ident i2">balancer</a>.<a href="balancer/balancer.go.html#line-135" class="ident">State</a>{</code></span>
+<span class="codeline" id="line-141"><code>			<a href="balancer/balancer.go.html#line-138" class="ident">ConnectivityState</a>: <label for="r16" class="ident">state</label>.<a href="balancer/balancer.go.html#line-369" class="ident">ConnectivityState</a>,</code></span>
+<span class="codeline" id="line-142"><code>			<a href="balancer/balancer.go.html#line-140" class="ident">Picker</a>:            &amp;<a href="#line-172" class="ident">idlePicker</a>{<a href="#line-173" class="ident">subConn</a>: <label for="r15" class="ident">subConn</label>},</code></span>
+<span class="codeline" id="line-143"><code>		})</code></span>
+<span class="codeline" id="line-144"><code>	<span class="keyword">case</span> <a href="../../../pkg/google.golang.org/grpc/connectivity.html" class="ident i3">connectivity</a>.<a href="connectivity/connectivity.go.html#line-59" class="ident">TransientFailure</a>:</code></span>
+<span class="codeline" id="line-145"><code>		<label for="r13" class="ident">b</label>.<a href="#line-48" class="ident">cc</a>.<a href="balancer/balancer.go.html#line-170" class="ident">UpdateState</a>(<a href="../../../pkg/google.golang.org/grpc/balancer.html" class="ident i2">balancer</a>.<a href="balancer/balancer.go.html#line-135" class="ident">State</a>{</code></span>
+<span class="codeline" id="line-146"><code>			<a href="balancer/balancer.go.html#line-138" class="ident">ConnectivityState</a>: <label for="r16" class="ident">state</label>.<a href="balancer/balancer.go.html#line-369" class="ident">ConnectivityState</a>,</code></span>
+<span class="codeline" id="line-147"><code>			<a href="balancer/balancer.go.html#line-140" class="ident">Picker</a>:            &amp;<a href="#line-161" class="ident">picker</a>{<a href="#line-163" class="ident">err</a>: <label for="r16" class="ident">state</label>.<a href="balancer/balancer.go.html#line-372" class="ident">ConnectionError</a>},</code></span>
+<span class="codeline" id="line-148"><code>		})</code></span>
+<span class="codeline" id="line-149"><code>	}</code></span>
+<span class="codeline" id="line-150"><code>}</code></span>
+<span class="codeline" id="line-151"><code></code></span>
+<span class="codeline" id="line-152"><code><span class="keyword">func</span> (<label for="r17" class="ident">b</label> *<a href="#line-46" class="ident">pickfirstBalancer</a>) <label for="r18" class="ident"><a href="../../../use/google.golang.org/grpc..pickfirstBalancer^2663e.Close.html" class="ident">Close</a></label>() {</code></span>
+<span class="codeline" id="line-153"><code>}</code></span>
+<span class="codeline" id="line-154"><code></code></span>
+<span class="codeline" id="line-155"><code><span class="keyword">func</span> (<label for="r19" class="ident">b</label> *<a href="#line-46" class="ident">pickfirstBalancer</a>) <label for="r20" class="ident"><a href="../../../use/google.golang.org/grpc..pickfirstBalancer^2663e.ExitIdle.html" class="ident">ExitIdle</a></label>() {</code></span>
+<span class="codeline" id="line-156"><code>	<span class="keyword">if</span> <label for="r19" class="ident">b</label>.<a href="#line-49" class="ident">subConn</a> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> &amp;&amp; <label for="r19" class="ident">b</label>.<a href="#line-47" class="ident">state</a> == <a href="../../../pkg/google.golang.org/grpc/connectivity.html" class="ident i3">connectivity</a>.<a href="connectivity/connectivity.go.html#line-53" class="ident">Idle</a> {</code></span>
+<span class="codeline" id="line-157"><code>		<label for="r19" class="ident">b</label>.<a href="#line-49" class="ident">subConn</a>.<a href="balancer/balancer.go.html#line-112" class="ident">Connect</a>()</code></span>
+<span class="codeline" id="line-158"><code>	}</code></span>
+<span class="codeline" id="line-159"><code>}</code></span>
+<span class="codeline" id="line-160"><code></code></span>
+<span class="codeline" id="line-161"><code><span class="keyword">type</span> <a href="../../../pkg/google.golang.org/grpc.html#name-picker" class="ident">picker</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-162"><code>	<a href="../../../use/google.golang.org/grpc..picker^cb031.result^f6a21.html" class="ident">result</a> <a href="../../../pkg/google.golang.org/grpc/balancer.html" class="ident i2">balancer</a>.<a href="balancer/balancer.go.html#line-270" class="ident">PickResult</a></code></span>
+<span class="codeline" id="line-163"><code>	<a href="../../../use/google.golang.org/grpc..picker^cb031.err^d9eb2.html" class="ident">err</a>    <a href="../../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-164"><code>}</code></span>
+<span class="codeline" id="line-165"><code></code></span>
+<span class="codeline" id="line-166"><code><span class="keyword">func</span> (<label for="r21" class="ident">p</label> *<a href="#line-161" class="ident">picker</a>) <label for="r22" class="ident"><a href="../../../use/google.golang.org/grpc..picker^cb031.Pick.html" class="ident">Pick</a></label>(<a href="../../../pkg/google.golang.org/grpc/balancer.html" class="ident i2">balancer</a>.<a href="balancer/balancer.go.html#line-230" class="ident">PickInfo</a>) (<a href="../../../pkg/google.golang.org/grpc/balancer.html" class="ident i2">balancer</a>.<a href="balancer/balancer.go.html#line-270" class="ident">PickResult</a>, <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-167"><code>	<span class="keyword">return</span> <label for="r21" class="ident">p</label>.<a href="#line-162" class="ident">result</a>, <label for="r21" class="ident">p</label>.<a href="#line-163" class="ident">err</a></code></span>
+<span class="codeline" id="line-168"><code>}</code></span>
+<span class="codeline" id="line-169"><code></code></span>
+<span class="codeline" id="line-170"><code><span class="comment">// idlePicker is used when the SubConn is IDLE and kicks the SubConn into</span></code></span>
+<span class="codeline" id="line-171"><code><span class="comment">// CONNECTING when Pick is called.</span></code></span>
+<span class="codeline" id="line-172"><code><span class="keyword">type</span> <a href="../../../pkg/google.golang.org/grpc.html#name-idlePicker" class="ident">idlePicker</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-173"><code>	<a href="../../../use/google.golang.org/grpc..idlePicker^c383c.subConn^2ed49.html" class="ident">subConn</a> <a href="../../../pkg/google.golang.org/grpc/balancer.html" class="ident i2">balancer</a>.<a href="balancer/balancer.go.html#line-99" class="ident">SubConn</a></code></span>
+<span class="codeline" id="line-174"><code>}</code></span>
+<span class="codeline" id="line-175"><code></code></span>
+<span class="codeline" id="line-176"><code><span class="keyword">func</span> (<label for="r23" class="ident">i</label> *<a href="#line-172" class="ident">idlePicker</a>) <label for="r24" class="ident"><a href="../../../use/google.golang.org/grpc..idlePicker^c383c.Pick.html" class="ident">Pick</a></label>(<a href="../../../pkg/google.golang.org/grpc/balancer.html" class="ident i2">balancer</a>.<a href="balancer/balancer.go.html#line-230" class="ident">PickInfo</a>) (<a href="../../../pkg/google.golang.org/grpc/balancer.html" class="ident i2">balancer</a>.<a href="balancer/balancer.go.html#line-270" class="ident">PickResult</a>, <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-177"><code>	<label for="r23" class="ident">i</label>.<a href="#line-173" class="ident">subConn</a>.<a href="balancer/balancer.go.html#line-112" class="ident">Connect</a>()</code></span>
+<span class="codeline" id="line-178"><code>	<span class="keyword">return</span> <a href="../../../pkg/google.golang.org/grpc/balancer.html" class="ident i2">balancer</a>.<a href="balancer/balancer.go.html#line-270" class="ident">PickResult</a>{}, <a href="../../../pkg/google.golang.org/grpc/balancer.html" class="ident i2">balancer</a>.<a href="balancer/balancer.go.html#line-259" class="ident">ErrNoSubConnAvailable</a></code></span>
+<span class="codeline" id="line-179"><code>}</code></span>
+<span class="codeline" id="line-180"><code></code></span>
+<span class="codeline" id="line-181"><code><span class="keyword">func</span> <label for="r25" class="ident"><a href="../../../pkg/google.golang.org/grpc.html#name-init" class="ident">init</a></label>() {</code></span>
+<span class="codeline" id="line-182"><code>	<a href="../../../pkg/google.golang.org/grpc/balancer.html" class="ident i2">balancer</a>.<a href="balancer/balancer.go.html#line-53" class="ident">Register</a>(<a href="#line-32" class="ident">newPickfirstBuilder</a>())</code></span>
+<span class="codeline" id="line-183"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

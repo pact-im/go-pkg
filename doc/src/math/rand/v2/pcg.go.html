@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: pcg.go in package math/rand/v2</title>
+<link href="../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	pcg.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../pkg/math/rand/v2.html">math/rand/v2</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2023 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> rand</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-8"><code>	<label for="i0"><span class="lit-string i0">"errors"</span></label></code></span>
+<span class="codeline" id="line-9"><code>	<label for="i1"><span class="lit-string i1">"internal/byteorder"</span></label></code></span>
+<span class="codeline" id="line-10"><code>	<label for="i2"><span class="lit-string i2">"math/bits"</span></label></code></span>
+<span class="codeline" id="line-11"><code>)</code></span>
+<span class="codeline" id="line-12"><code></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">// https://numpy.org/devdocs/reference/random/upgrading-pcg64.html</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">// https://github.com/imneme/pcg-cpp/commit/871d0494ee9c9a7b7c43f753e3d8ca47c26f8005</span></code></span>
+<span class="codeline" id="line-15"><code></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">// A PCG is a PCG generator with 128 bits of internal state.</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">// A zero PCG is equivalent to NewPCG(0, 0).</span></code></span>
+<span class="codeline" id="line-18"><code><span class="keyword">type</span> <a href="../../../../pkg/math/rand/v2.html#name-PCG" class="ident">PCG</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-19"><code>	<a href="../../../../use/math/rand/v2..PCG.hi^8f434.html" class="ident">hi</a> <a href="../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a></code></span>
+<span class="codeline" id="line-20"><code>	<a href="../../../../use/math/rand/v2..PCG.lo^9294a.html" class="ident">lo</a> <a href="../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a></code></span>
+<span class="codeline" id="line-21"><code>}</code></span>
+<span class="codeline" id="line-22"><code></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">// NewPCG returns a new PCG seeded with the given values.</span></code></span>
+<span class="codeline" id="line-24"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../pkg/math/rand/v2.html#name-NewPCG" class="ident">NewPCG</a></label>(<label for="r1" class="ident">seed1</label>, <label for="r2" class="ident">seed2</label> <a href="../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>) *<a href="#line-18" class="ident">PCG</a> {</code></span>
+<span class="codeline" id="line-25"><code>	<span class="keyword">return</span> &amp;<a href="#line-18" class="ident">PCG</a>{<label for="r1" class="ident">seed1</label>, <label for="r2" class="ident">seed2</label>}</code></span>
+<span class="codeline" id="line-26"><code>}</code></span>
+<span class="codeline" id="line-27"><code></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">// Seed resets the PCG to behave the same way as NewPCG(seed1, seed2).</span></code></span>
+<span class="codeline" id="line-29"><code><span class="keyword">func</span> (<label for="r3" class="ident">p</label> *<a href="#line-18" class="ident">PCG</a>) <label for="r4" class="ident"><a href="../../../../use/math/rand/v2..PCG.Seed.html" class="ident">Seed</a></label>(<label for="r5" class="ident">seed1</label>, <label for="r6" class="ident">seed2</label> <a href="../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>) {</code></span>
+<span class="codeline" id="line-30"><code>	<label for="r3" class="ident">p</label>.<a href="#line-19" class="ident">hi</a> = <label for="r5" class="ident">seed1</label></code></span>
+<span class="codeline" id="line-31"><code>	<label for="r3" class="ident">p</label>.<a href="#line-20" class="ident">lo</a> = <label for="r6" class="ident">seed2</label></code></span>
+<span class="codeline" id="line-32"><code>}</code></span>
+<span class="codeline" id="line-33"><code></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">// AppendBinary implements the [encoding.BinaryAppender] interface.</span></code></span>
+<span class="codeline" id="line-35"><code><span class="keyword">func</span> (<label for="r7" class="ident">p</label> *<a href="#line-18" class="ident">PCG</a>) <label for="r8" class="ident"><a href="../../../../use/math/rand/v2..PCG.AppendBinary.html" class="ident">AppendBinary</a></label>(<label for="r9" class="ident">b</label> []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) ([]<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-36"><code>	<label for="r9" class="ident">b</label> = <a href="../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r9" class="ident">b</label>, <span class="lit-string">"pcg:"</span>...)</code></span>
+<span class="codeline" id="line-37"><code>	<label for="r9" class="ident">b</label> = <a href="../../../../pkg/internal/byteorder.html" class="ident i1">byteorder</a>.<a href="../../../internal/byteorder/byteorder.go.html#line-138" class="ident">BEAppendUint64</a>(<label for="r9" class="ident">b</label>, <label for="r7" class="ident">p</label>.<a href="#line-19" class="ident">hi</a>)</code></span>
+<span class="codeline" id="line-38"><code>	<label for="r9" class="ident">b</label> = <a href="../../../../pkg/internal/byteorder.html" class="ident i1">byteorder</a>.<a href="../../../internal/byteorder/byteorder.go.html#line-138" class="ident">BEAppendUint64</a>(<label for="r9" class="ident">b</label>, <label for="r7" class="ident">p</label>.<a href="#line-20" class="ident">lo</a>)</code></span>
+<span class="codeline" id="line-39"><code>	<span class="keyword">return</span> <label for="r9" class="ident">b</label>, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-40"><code>}</code></span>
+<span class="codeline" id="line-41"><code></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">// MarshalBinary implements the [encoding.BinaryMarshaler] interface.</span></code></span>
+<span class="codeline" id="line-43"><code><span class="keyword">func</span> (<label for="r10" class="ident">p</label> *<a href="#line-18" class="ident">PCG</a>) <label for="r11" class="ident"><a href="../../../../use/math/rand/v2..PCG.MarshalBinary.html" class="ident">MarshalBinary</a></label>() ([]<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-44"><code>	<span class="keyword">return</span> <label for="r10" class="ident">p</label>.<a href="#line-35" class="ident">AppendBinary</a>(<a href="../../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <span class="lit-number">0</span>, <span class="lit-number">20</span>))</code></span>
+<span class="codeline" id="line-45"><code>}</code></span>
+<span class="codeline" id="line-46"><code></code></span>
+<span class="codeline" id="line-47"><code><span class="keyword">var</span> <a href="../../../../pkg/math/rand/v2.html#name-errUnmarshalPCG" class="ident">errUnmarshalPCG</a> = <a href="../../../../pkg/errors.html" class="ident i0">errors</a>.<a href="../../../errors/errors.go.html#line-64" class="ident">New</a>(<span class="lit-string">"invalid PCG encoding"</span>)</code></span>
+<span class="codeline" id="line-48"><code></code></span>
+<span class="codeline" id="line-49"><code><span class="comment">// UnmarshalBinary implements the [encoding.BinaryUnmarshaler] interface.</span></code></span>
+<span class="codeline" id="line-50"><code><span class="keyword">func</span> (<label for="r12" class="ident">p</label> *<a href="#line-18" class="ident">PCG</a>) <label for="r13" class="ident"><a href="../../../../use/math/rand/v2..PCG.UnmarshalBinary.html" class="ident">UnmarshalBinary</a></label>(<label for="r14" class="ident">data</label> []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-51"><code>	<span class="keyword">if</span> <a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r14" class="ident">data</label>) != <span class="lit-number">20</span> || <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>(<label for="r14" class="ident">data</label>[:<span class="lit-number">4</span>]) != <span class="lit-string">"pcg:"</span> {</code></span>
+<span class="codeline" id="line-52"><code>		<span class="keyword">return</span> <a href="#line-47" class="ident">errUnmarshalPCG</a></code></span>
+<span class="codeline" id="line-53"><code>	}</code></span>
+<span class="codeline" id="line-54"><code>	<label for="r12" class="ident">p</label>.<a href="#line-19" class="ident">hi</a> = <a href="../../../../pkg/internal/byteorder.html" class="ident i1">byteorder</a>.<a href="../../../internal/byteorder/byteorder.go.html#line-120" class="ident">BEUint64</a>(<label for="r14" class="ident">data</label>[<span class="lit-number">4</span>:])</code></span>
+<span class="codeline" id="line-55"><code>	<label for="r12" class="ident">p</label>.<a href="#line-20" class="ident">lo</a> = <a href="../../../../pkg/internal/byteorder.html" class="ident i1">byteorder</a>.<a href="../../../internal/byteorder/byteorder.go.html#line-120" class="ident">BEUint64</a>(<label for="r14" class="ident">data</label>[<span class="lit-number">4</span>+<span class="lit-number">8</span>:])</code></span>
+<span class="codeline" id="line-56"><code>	<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-57"><code>}</code></span>
+<span class="codeline" id="line-58"><code></code></span>
+<span class="codeline" id="line-59"><code><span class="keyword">func</span> (<label for="r15" class="ident">p</label> *<a href="#line-18" class="ident">PCG</a>) <label for="r16" class="ident"><a href="../../../../use/math/rand/v2..PCG.next^c6c1c.html" class="ident">next</a></label>() (<label for="r17" class="ident">hi</label>, <label for="r18" class="ident">lo</label> <a href="../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>) {</code></span>
+<span class="codeline" id="line-60"><code>	<span class="comment">// https://github.com/imneme/pcg-cpp/blob/428802d1a5/include/pcg_random.hpp#L161</span></code></span>
+<span class="codeline" id="line-61"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-62"><code><span class="comment">	// Numpy's PCG multiplies by the 64-bit value cheapMul</span></code></span>
+<span class="codeline" id="line-63"><code><span class="comment">	// instead of the 128-bit value used here and in the official PCG code.</span></code></span>
+<span class="codeline" id="line-64"><code><span class="comment">	// This does not seem worthwhile, at least for Go: not having any high</span></code></span>
+<span class="codeline" id="line-65"><code><span class="comment">	// bits in the multiplier reduces the effect of low bits on the highest bits,</span></code></span>
+<span class="codeline" id="line-66"><code><span class="comment">	// and it only saves 1 multiply out of 3.</span></code></span>
+<span class="codeline" id="line-67"><code><span class="comment">	// (On 32-bit systems, it saves 1 out of 6, since Mul64 is doing 4.)</span></code></span>
+<span class="codeline" id="line-68"><code>	<span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-69"><code>		<label for="r19" class="ident">mulHi</label> = <span class="lit-number">2549297995355413924</span></code></span>
+<span class="codeline" id="line-70"><code>		<label for="r20" class="ident">mulLo</label> = <span class="lit-number">4865540595714422341</span></code></span>
+<span class="codeline" id="line-71"><code>		<label for="r21" class="ident">incHi</label> = <span class="lit-number">6364136223846793005</span></code></span>
+<span class="codeline" id="line-72"><code>		<label for="r22" class="ident">incLo</label> = <span class="lit-number">1442695040888963407</span></code></span>
+<span class="codeline" id="line-73"><code>	)</code></span>
+<span class="codeline" id="line-74"><code></code></span>
+<span class="codeline" id="line-75"><code>	<span class="comment">// state = state * mul + inc</span></code></span>
+<span class="codeline" id="line-76"><code>	<label for="r17" class="ident">hi</label>, <label for="r18" class="ident">lo</label> = <a href="../../../../pkg/math/bits.html" class="ident i2">bits</a>.<a href="../../bits/bits.go.html#line-470" class="ident">Mul64</a>(<label for="r15" class="ident">p</label>.<a href="#line-20" class="ident">lo</a>, <label for="r20" class="ident">mulLo</label>)</code></span>
+<span class="codeline" id="line-77"><code>	<label for="r17" class="ident">hi</label> += <label for="r15" class="ident">p</label>.<a href="#line-19" class="ident">hi</a>*<label for="r20" class="ident">mulLo</label> + <label for="r15" class="ident">p</label>.<a href="#line-20" class="ident">lo</a>*<label for="r19" class="ident">mulHi</label></code></span>
+<span class="codeline" id="line-78"><code>	<label for="r18" class="ident">lo</label>, <label for="r23" class="ident">c</label> := <a href="../../../../pkg/math/bits.html" class="ident i2">bits</a>.<a href="../../bits/bits.go.html#line-386" class="ident">Add64</a>(<label for="r18" class="ident">lo</label>, <label for="r22" class="ident">incLo</label>, <span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-79"><code>	<label for="r17" class="ident">hi</label>, _ = <a href="../../../../pkg/math/bits.html" class="ident i2">bits</a>.<a href="../../bits/bits.go.html#line-386" class="ident">Add64</a>(<label for="r17" class="ident">hi</label>, <label for="r21" class="ident">incHi</label>, <label for="r23" class="ident">c</label>)</code></span>
+<span class="codeline" id="line-80"><code>	<label for="r15" class="ident">p</label>.<a href="#line-20" class="ident">lo</a> = <label for="r18" class="ident">lo</label></code></span>
+<span class="codeline" id="line-81"><code>	<label for="r15" class="ident">p</label>.<a href="#line-19" class="ident">hi</a> = <label for="r17" class="ident">hi</label></code></span>
+<span class="codeline" id="line-82"><code>	<span class="keyword">return</span> <label for="r17" class="ident">hi</label>, <label for="r18" class="ident">lo</label></code></span>
+<span class="codeline" id="line-83"><code>}</code></span>
+<span class="codeline" id="line-84"><code></code></span>
+<span class="codeline" id="line-85"><code><span class="comment">// Uint64 return a uniformly-distributed random uint64 value.</span></code></span>
+<span class="codeline" id="line-86"><code><span class="keyword">func</span> (<label for="r24" class="ident">p</label> *<a href="#line-18" class="ident">PCG</a>) <label for="r25" class="ident"><a href="../../../../use/math/rand/v2..PCG.Uint64.html" class="ident">Uint64</a></label>() <a href="../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a> {</code></span>
+<span class="codeline" id="line-87"><code>	<label for="r26" class="ident">hi</label>, <label for="r27" class="ident">lo</label> := <label for="r24" class="ident">p</label>.<a href="#line-59" class="ident">next</a>()</code></span>
+<span class="codeline" id="line-88"><code></code></span>
+<span class="codeline" id="line-89"><code>	<span class="comment">// XSL-RR would be</span></code></span>
+<span class="codeline" id="line-90"><code><span class="comment">	//	hi, lo := p.next()</span></code></span>
+<span class="codeline" id="line-91"><code><span class="comment">	//	return bits.RotateLeft64(lo^hi, -int(hi&gt;&gt;58))</span></code></span>
+<span class="codeline" id="line-92"><code><span class="comment">	// but Numpy uses DXSM and O'Neill suggests doing the same.</span></code></span>
+<span class="codeline" id="line-93"><code><span class="comment">	// See https://github.com/golang/go/issues/21835#issuecomment-739065688</span></code></span>
+<span class="codeline" id="line-94"><code><span class="comment">	// and following comments.</span></code></span>
+<span class="codeline" id="line-95"><code></code></span>
+<span class="codeline" id="line-96"><code>	<span class="comment">// DXSM "double xorshift multiply"</span></code></span>
+<span class="codeline" id="line-97"><code><span class="comment">	// https://github.com/imneme/pcg-cpp/blob/428802d1a5/include/pcg_random.hpp#L1015</span></code></span>
+<span class="codeline" id="line-98"><code></code></span>
+<span class="codeline" id="line-99"><code>	<span class="comment">// https://github.com/imneme/pcg-cpp/blob/428802d1a5/include/pcg_random.hpp#L176</span></code></span>
+<span class="codeline" id="line-100"><code>	<span class="keyword">const</span> <label for="r28" class="ident">cheapMul</label> = <span class="lit-number">0xda942042e4dd58b5</span></code></span>
+<span class="codeline" id="line-101"><code>	<label for="r26" class="ident">hi</label> ^= <label for="r26" class="ident">hi</label> &gt;&gt; <span class="lit-number">32</span></code></span>
+<span class="codeline" id="line-102"><code>	<label for="r26" class="ident">hi</label> *= <label for="r28" class="ident">cheapMul</label></code></span>
+<span class="codeline" id="line-103"><code>	<label for="r26" class="ident">hi</label> ^= <label for="r26" class="ident">hi</label> &gt;&gt; <span class="lit-number">48</span></code></span>
+<span class="codeline" id="line-104"><code>	<label for="r26" class="ident">hi</label> *= (<label for="r27" class="ident">lo</label> | <span class="lit-number">1</span>)</code></span>
+<span class="codeline" id="line-105"><code>	<span class="keyword">return</span> <label for="r26" class="ident">hi</label></code></span>
+<span class="codeline" id="line-106"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

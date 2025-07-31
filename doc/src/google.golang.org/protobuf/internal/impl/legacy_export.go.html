@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: legacy_export.go in package google.golang.org/protobuf/internal/impl</title>
+<link href="../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	legacy_export.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../pkg/google.golang.org/protobuf/internal/impl.html">google.golang.org/protobuf/internal/impl</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3,
+input[id=i4]:checked ~pre .i4,
+input[id=i5]:checked ~pre .i5,
+input[id=i6]:checked ~pre .i6,
+input[id=i7]:checked ~pre .i7
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+<input id="i4" type="radio" name="i"/>
+<input id="i5" type="radio" name="i"/>
+<input id="i6" type="radio" name="i"/>
+<input id="i7" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2019 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> impl</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-8"><code>	<label for="i0"><span class="lit-string i0">"encoding/binary"</span></label></code></span>
+<span class="codeline" id="line-9"><code>	<label for="i1"><span class="lit-string i1">"encoding/json"</span></label></code></span>
+<span class="codeline" id="line-10"><code>	<label for="i2"><span class="lit-string i2">"hash/crc32"</span></label></code></span>
+<span class="codeline" id="line-11"><code>	<label for="i3"><span class="lit-string i3">"math"</span></label></code></span>
+<span class="codeline" id="line-12"><code>	<label for="i4"><span class="lit-string i4">"reflect"</span></label></code></span>
+<span class="codeline" id="line-13"><code></code></span>
+<span class="codeline" id="line-14"><code>	<label for="i5"><span class="lit-string i5">"google.golang.org/protobuf/internal/errors"</span></label></code></span>
+<span class="codeline" id="line-15"><code>	<label for="i6"><span class="lit-string i6">"google.golang.org/protobuf/reflect/protoreflect"</span></label></code></span>
+<span class="codeline" id="line-16"><code>	<label for="i7"><span class="lit-string i7">"google.golang.org/protobuf/runtime/protoiface"</span></label></code></span>
+<span class="codeline" id="line-17"><code>)</code></span>
+<span class="codeline" id="line-18"><code></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">// These functions exist to support exported APIs in generated protobufs.</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">// While these are deprecated, they cannot be removed for compatibility reasons.</span></code></span>
+<span class="codeline" id="line-21"><code></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">// LegacyEnumName returns the name of enums used in legacy code.</span></code></span>
+<span class="codeline" id="line-23"><code><span class="keyword">func</span> (<a href="api_export.go.html#line-21" class="ident">Export</a>) <label for="r0" class="ident"><a href="../../../../../use/google.golang.org/protobuf/internal/impl..Export.LegacyEnumName.html" class="ident">LegacyEnumName</a></label>(<label for="r1" class="ident">ed</label> <a href="../../../../../pkg/google.golang.org/protobuf/reflect/protoreflect.html" class="ident i6">protoreflect</a>.<a href="../../reflect/protoreflect/type.go.html#line-536" class="ident">EnumDescriptor</a>) <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-24"><code>	<span class="keyword">return</span> <a href="legacy_enum.go.html#line-21" class="ident">legacyEnumName</a>(<label for="r1" class="ident">ed</label>)</code></span>
+<span class="codeline" id="line-25"><code>}</code></span>
+<span class="codeline" id="line-26"><code></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">// LegacyMessageTypeOf returns the protoreflect.MessageType for m,</span></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">// with name used as the message name if necessary.</span></code></span>
+<span class="codeline" id="line-29"><code><span class="keyword">func</span> (<a href="api_export.go.html#line-21" class="ident">Export</a>) <label for="r2" class="ident"><a href="../../../../../use/google.golang.org/protobuf/internal/impl..Export.LegacyMessageTypeOf.html" class="ident">LegacyMessageTypeOf</a></label>(<label for="r3" class="ident">m</label> <a href="../../../../../pkg/google.golang.org/protobuf/runtime/protoiface.html" class="ident i7">protoiface</a>.<a href="../../runtime/protoiface/legacy.go.html#line-7" class="ident">MessageV1</a>, <label for="r4" class="ident">name</label> <a href="../../../../../pkg/google.golang.org/protobuf/reflect/protoreflect.html" class="ident i6">protoreflect</a>.<a href="../../reflect/protoreflect/proto.go.html#line-442" class="ident">FullName</a>) <a href="../../../../../pkg/google.golang.org/protobuf/reflect/protoreflect.html" class="ident i6">protoreflect</a>.<a href="../../reflect/protoreflect/type.go.html#line-237" class="ident">MessageType</a> {</code></span>
+<span class="codeline" id="line-30"><code>	<span class="keyword">if</span> <label for="r5" class="ident">mv</label> := (<a href="api_export.go.html#line-21" class="ident">Export</a>{}).<a href="api_export.go.html#line-110" class="ident">protoMessageV2Of</a>(<label for="r3" class="ident">m</label>); <label for="r5" class="ident">mv</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-31"><code>		<span class="keyword">return</span> <label for="r5" class="ident">mv</label>.<a href="../../reflect/protoreflect/proto.go.html#line-146" class="ident">ProtoReflect</a>().<a href="../../reflect/protoreflect/value.go.html#line-48" class="ident">Type</a>()</code></span>
+<span class="codeline" id="line-32"><code>	}</code></span>
+<span class="codeline" id="line-33"><code>	<span class="keyword">return</span> <a href="legacy_message.go.html#line-36" class="ident">legacyLoadMessageType</a>(<a href="../../../../../pkg/reflect.html" class="ident i4">reflect</a>.<a href="../../../../reflect/type.go.html#line-1302" class="ident">TypeOf</a>(<label for="r3" class="ident">m</label>), <label for="r4" class="ident">name</label>)</code></span>
+<span class="codeline" id="line-34"><code>}</code></span>
+<span class="codeline" id="line-35"><code></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">// UnmarshalJSONEnum unmarshals an enum from a JSON-encoded input.</span></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">// The input can either be a string representing the enum value by name,</span></code></span>
+<span class="codeline" id="line-38"><code><span class="comment">// or a number representing the enum number itself.</span></code></span>
+<span class="codeline" id="line-39"><code><span class="keyword">func</span> (<a href="api_export.go.html#line-21" class="ident">Export</a>) <label for="r6" class="ident"><a href="../../../../../use/google.golang.org/protobuf/internal/impl..Export.UnmarshalJSONEnum.html" class="ident">UnmarshalJSONEnum</a></label>(<label for="r7" class="ident">ed</label> <a href="../../../../../pkg/google.golang.org/protobuf/reflect/protoreflect.html" class="ident i6">protoreflect</a>.<a href="../../reflect/protoreflect/type.go.html#line-536" class="ident">EnumDescriptor</a>, <label for="r8" class="ident">b</label> []<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) (<a href="../../../../../pkg/google.golang.org/protobuf/reflect/protoreflect.html" class="ident i6">protoreflect</a>.<a href="../../reflect/protoreflect/proto.go.html#line-400" class="ident">EnumNumber</a>, <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-40"><code>	<span class="keyword">if</span> <label for="r8" class="ident">b</label>[<span class="lit-number">0</span>] == <span class="lit-number">'"'</span> {</code></span>
+<span class="codeline" id="line-41"><code>		<span class="keyword">var</span> <label for="r9" class="ident">name</label> <a href="../../../../../pkg/google.golang.org/protobuf/reflect/protoreflect.html" class="ident i6">protoreflect</a>.<a href="../../reflect/protoreflect/proto.go.html#line-416" class="ident">Name</a></code></span>
+<span class="codeline" id="line-42"><code>		<span class="keyword">if</span> <label for="r10" class="ident">err</label> := <a href="../../../../../pkg/encoding/json.html" class="ident i1">json</a>.<a href="../../../../encoding/json/decode.go.html#line-97" class="ident">Unmarshal</a>(<label for="r8" class="ident">b</label>, &amp;<label for="r9" class="ident">name</label>); <label for="r10" class="ident">err</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-43"><code>			<span class="keyword">return</span> <span class="lit-number">0</span>, <a href="../../../../../pkg/google.golang.org/protobuf/internal/errors.html" class="ident i5">errors</a>.<a href="../errors/errors.go.html#line-20" class="ident">New</a>(<span class="lit-string">"invalid input for enum %v: %s"</span>, <label for="r7" class="ident">ed</label>.<a href="../../reflect/protoreflect/type.go.html#line-65" class="ident">FullName</a>(), <label for="r8" class="ident">b</label>)</code></span>
+<span class="codeline" id="line-44"><code>		}</code></span>
+<span class="codeline" id="line-45"><code>		<label for="r11" class="ident">ev</label> := <label for="r7" class="ident">ed</label>.<a href="../../reflect/protoreflect/type.go.html#line-540" class="ident">Values</a>().<a href="../../reflect/protoreflect/type.go.html#line-601" class="ident">ByName</a>(<label for="r9" class="ident">name</label>)</code></span>
+<span class="codeline" id="line-46"><code>		<span class="keyword">if</span> <label for="r11" class="ident">ev</label> == <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-47"><code>			<span class="keyword">return</span> <span class="lit-number">0</span>, <a href="../../../../../pkg/google.golang.org/protobuf/internal/errors.html" class="ident i5">errors</a>.<a href="../errors/errors.go.html#line-20" class="ident">New</a>(<span class="lit-string">"invalid value for enum %v: %s"</span>, <label for="r7" class="ident">ed</label>.<a href="../../reflect/protoreflect/type.go.html#line-65" class="ident">FullName</a>(), <label for="r9" class="ident">name</label>)</code></span>
+<span class="codeline" id="line-48"><code>		}</code></span>
+<span class="codeline" id="line-49"><code>		<span class="keyword">return</span> <label for="r11" class="ident">ev</label>.<a href="../../reflect/protoreflect/type.go.html#line-587" class="ident">Number</a>(), <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-50"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-51"><code>		<span class="keyword">var</span> <label for="r12" class="ident">num</label> <a href="../../../../../pkg/google.golang.org/protobuf/reflect/protoreflect.html" class="ident i6">protoreflect</a>.<a href="../../reflect/protoreflect/proto.go.html#line-400" class="ident">EnumNumber</a></code></span>
+<span class="codeline" id="line-52"><code>		<span class="keyword">if</span> <label for="r13" class="ident">err</label> := <a href="../../../../../pkg/encoding/json.html" class="ident i1">json</a>.<a href="../../../../encoding/json/decode.go.html#line-97" class="ident">Unmarshal</a>(<label for="r8" class="ident">b</label>, &amp;<label for="r12" class="ident">num</label>); <label for="r13" class="ident">err</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-53"><code>			<span class="keyword">return</span> <span class="lit-number">0</span>, <a href="../../../../../pkg/google.golang.org/protobuf/internal/errors.html" class="ident i5">errors</a>.<a href="../errors/errors.go.html#line-20" class="ident">New</a>(<span class="lit-string">"invalid input for enum %v: %s"</span>, <label for="r7" class="ident">ed</label>.<a href="../../reflect/protoreflect/type.go.html#line-65" class="ident">FullName</a>(), <label for="r8" class="ident">b</label>)</code></span>
+<span class="codeline" id="line-54"><code>		}</code></span>
+<span class="codeline" id="line-55"><code>		<span class="keyword">return</span> <label for="r12" class="ident">num</label>, <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-56"><code>	}</code></span>
+<span class="codeline" id="line-57"><code>}</code></span>
+<span class="codeline" id="line-58"><code></code></span>
+<span class="codeline" id="line-59"><code><span class="comment">// CompressGZIP compresses the input as a GZIP-encoded file.</span></code></span>
+<span class="codeline" id="line-60"><code><span class="comment">// The current implementation does no compression.</span></code></span>
+<span class="codeline" id="line-61"><code><span class="keyword">func</span> (<a href="api_export.go.html#line-21" class="ident">Export</a>) <label for="r14" class="ident"><a href="../../../../../use/google.golang.org/protobuf/internal/impl..Export.CompressGZIP.html" class="ident">CompressGZIP</a></label>(<label for="r15" class="ident">in</label> []<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) (<label for="r16" class="ident">out</label> []<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) {</code></span>
+<span class="codeline" id="line-62"><code>	<span class="comment">// RFC 1952, section 2.3.1.</span></code></span>
+<span class="codeline" id="line-63"><code>	<span class="keyword">var</span> <label for="r17" class="ident">gzipHeader</label> = [<span class="lit-number">10</span>]<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>{<span class="lit-number">0x1f</span>, <span class="lit-number">0x8b</span>, <span class="lit-number">0x08</span>, <span class="lit-number">0x00</span>, <span class="lit-number">0x00</span>, <span class="lit-number">0x00</span>, <span class="lit-number">0x00</span>, <span class="lit-number">0x00</span>, <span class="lit-number">0x00</span>, <span class="lit-number">0xff</span>}</code></span>
+<span class="codeline" id="line-64"><code></code></span>
+<span class="codeline" id="line-65"><code>	<span class="comment">// RFC 1951, section 3.2.4.</span></code></span>
+<span class="codeline" id="line-66"><code>	<span class="keyword">var</span> <label for="r18" class="ident">blockHeader</label> [<span class="lit-number">5</span>]<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
+<span class="codeline" id="line-67"><code>	<span class="keyword">const</span> <label for="r19" class="ident">maxBlockSize</label> = <a href="../../../../../pkg/math.html" class="ident i3">math</a>.<a href="../../../../math/const.go.html#line-54" class="ident">MaxUint16</a></code></span>
+<span class="codeline" id="line-68"><code>	<label for="r20" class="ident">numBlocks</label> := <span class="lit-number">1</span> + <a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r15" class="ident">in</label>)/<label for="r19" class="ident">maxBlockSize</label></code></span>
+<span class="codeline" id="line-69"><code></code></span>
+<span class="codeline" id="line-70"><code>	<span class="comment">// RFC 1952, section 2.3.1.</span></code></span>
+<span class="codeline" id="line-71"><code>	<span class="keyword">var</span> <label for="r21" class="ident">gzipFooter</label> [<span class="lit-number">8</span>]<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
+<span class="codeline" id="line-72"><code>	<a href="../../../../../pkg/encoding/binary.html" class="ident i0">binary</a>.<a href="../../../../encoding/binary/binary.go.html#line-61" class="ident">LittleEndian</a>.<a href="../../../../encoding/binary/binary.go.html#line-96" class="ident">PutUint32</a>(<label for="r21" class="ident">gzipFooter</label>[<span class="lit-number">0</span>:<span class="lit-number">4</span>], <a href="../../../../../pkg/hash/crc32.html" class="ident i2">crc32</a>.<a href="../../../../hash/crc32/crc32.go.html#line-238" class="ident">ChecksumIEEE</a>(<label for="r15" class="ident">in</label>))</code></span>
+<span class="codeline" id="line-73"><code>	<a href="../../../../../pkg/encoding/binary.html" class="ident i0">binary</a>.<a href="../../../../encoding/binary/binary.go.html#line-61" class="ident">LittleEndian</a>.<a href="../../../../encoding/binary/binary.go.html#line-96" class="ident">PutUint32</a>(<label for="r21" class="ident">gzipFooter</label>[<span class="lit-number">4</span>:<span class="lit-number">8</span>], <a href="../../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a>(<a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r15" class="ident">in</label>)))</code></span>
+<span class="codeline" id="line-74"><code></code></span>
+<span class="codeline" id="line-75"><code>	<span class="comment">// Encode the input without compression using raw DEFLATE blocks.</span></code></span>
+<span class="codeline" id="line-76"><code>	<label for="r16" class="ident">out</label> = <a href="../../../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <span class="lit-number">0</span>, <a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r17" class="ident">gzipHeader</label>)+<a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r18" class="ident">blockHeader</label>)*<label for="r20" class="ident">numBlocks</label>+<a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r15" class="ident">in</label>)+<a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r21" class="ident">gzipFooter</label>))</code></span>
+<span class="codeline" id="line-77"><code>	<label for="r16" class="ident">out</label> = <a href="../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r16" class="ident">out</label>, <label for="r17" class="ident">gzipHeader</label>[:]...)</code></span>
+<span class="codeline" id="line-78"><code>	<span class="keyword">for</span> <label for="r18" class="ident">blockHeader</label>[<span class="lit-number">0</span>] == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-79"><code>		<label for="r22" class="ident">blockSize</label> := <label for="r19" class="ident">maxBlockSize</label></code></span>
+<span class="codeline" id="line-80"><code>		<span class="keyword">if</span> <label for="r22" class="ident">blockSize</label> &gt; <a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r15" class="ident">in</label>) {</code></span>
+<span class="codeline" id="line-81"><code>			<label for="r18" class="ident">blockHeader</label>[<span class="lit-number">0</span>] = <span class="lit-number">0x01</span> <span class="comment">// final bit per RFC 1951, section 3.2.3.</span></code></span>
+<span class="codeline" id="line-82"><code>			<label for="r22" class="ident">blockSize</label> = <a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r15" class="ident">in</label>)</code></span>
+<span class="codeline" id="line-83"><code>		}</code></span>
+<span class="codeline" id="line-84"><code>		<a href="../../../../../pkg/encoding/binary.html" class="ident i0">binary</a>.<a href="../../../../encoding/binary/binary.go.html#line-61" class="ident">LittleEndian</a>.<a href="../../../../encoding/binary/binary.go.html#line-75" class="ident">PutUint16</a>(<label for="r18" class="ident">blockHeader</label>[<span class="lit-number">1</span>:<span class="lit-number">3</span>], <a href="../../../../../pkg/builtin.html#name-uint16" class="ident">uint16</a>(<label for="r22" class="ident">blockSize</label>))</code></span>
+<span class="codeline" id="line-85"><code>		<a href="../../../../../pkg/encoding/binary.html" class="ident i0">binary</a>.<a href="../../../../encoding/binary/binary.go.html#line-61" class="ident">LittleEndian</a>.<a href="../../../../encoding/binary/binary.go.html#line-75" class="ident">PutUint16</a>(<label for="r18" class="ident">blockHeader</label>[<span class="lit-number">3</span>:<span class="lit-number">5</span>], ^<a href="../../../../../pkg/builtin.html#name-uint16" class="ident">uint16</a>(<label for="r22" class="ident">blockSize</label>))</code></span>
+<span class="codeline" id="line-86"><code>		<label for="r16" class="ident">out</label> = <a href="../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r16" class="ident">out</label>, <label for="r18" class="ident">blockHeader</label>[:]...)</code></span>
+<span class="codeline" id="line-87"><code>		<label for="r16" class="ident">out</label> = <a href="../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r16" class="ident">out</label>, <label for="r15" class="ident">in</label>[:<label for="r22" class="ident">blockSize</label>]...)</code></span>
+<span class="codeline" id="line-88"><code>		<label for="r15" class="ident">in</label> = <label for="r15" class="ident">in</label>[<label for="r22" class="ident">blockSize</label>:]</code></span>
+<span class="codeline" id="line-89"><code>	}</code></span>
+<span class="codeline" id="line-90"><code>	<label for="r16" class="ident">out</label> = <a href="../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r16" class="ident">out</label>, <label for="r21" class="ident">gzipFooter</label>[:]...)</code></span>
+<span class="codeline" id="line-91"><code>	<span class="keyword">return</span> <label for="r16" class="ident">out</label></code></span>
+<span class="codeline" id="line-92"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

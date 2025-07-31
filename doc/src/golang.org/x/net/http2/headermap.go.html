@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: headermap.go in package golang.org/x/net/http2</title>
+<link href="../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	headermap.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../pkg/golang.org/x/net/http2.html">golang.org/x/net/http2</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2014 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> http2</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-8"><code>	<label for="i0"><span class="lit-string i0">"net/http"</span></label></code></span>
+<span class="codeline" id="line-9"><code>	<label for="i1"><span class="lit-string i1">"sync"</span></label></code></span>
+<span class="codeline" id="line-10"><code>)</code></span>
+<span class="codeline" id="line-11"><code></code></span>
+<span class="codeline" id="line-12"><code><span class="keyword">var</span> (</code></span>
+<span class="codeline" id="line-13"><code>	<a href="../../../../../pkg/golang.org/x/net/http2.html#name-commonBuildOnce" class="ident">commonBuildOnce</a>   <a href="../../../../../pkg/sync.html" class="ident i1">sync</a>.<a href="../../../../sync/once.go.html#line-20" class="ident">Once</a></code></span>
+<span class="codeline" id="line-14"><code>	<a href="../../../../../pkg/golang.org/x/net/http2.html#name-commonLowerHeader" class="ident">commonLowerHeader</a> <span class="keyword">map</span>[<a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>]<a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a> <span class="comment">// Go-Canonical-Case -&gt; lower-case</span></code></span>
+<span class="codeline" id="line-15"><code>	<a href="../../../../../pkg/golang.org/x/net/http2.html#name-commonCanonHeader" class="ident">commonCanonHeader</a> <span class="keyword">map</span>[<a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>]<a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a> <span class="comment">// lower-case -&gt; Go-Canonical-Case</span></code></span>
+<span class="codeline" id="line-16"><code>)</code></span>
+<span class="codeline" id="line-17"><code></code></span>
+<span class="codeline" id="line-18"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../../pkg/golang.org/x/net/http2.html#name-buildCommonHeaderMapsOnce" class="ident">buildCommonHeaderMapsOnce</a></label>() {</code></span>
+<span class="codeline" id="line-19"><code>	<a href="#line-13" class="ident">commonBuildOnce</a>.<a href="../../../../sync/once.go.html#line-52" class="ident">Do</a>(<a href="#line-22" class="ident">buildCommonHeaderMaps</a>)</code></span>
+<span class="codeline" id="line-20"><code>}</code></span>
+<span class="codeline" id="line-21"><code></code></span>
+<span class="codeline" id="line-22"><code><span class="keyword">func</span> <label for="r1" class="ident"><a href="../../../../../pkg/golang.org/x/net/http2.html#name-buildCommonHeaderMaps" class="ident">buildCommonHeaderMaps</a></label>() {</code></span>
+<span class="codeline" id="line-23"><code>	<label for="r2" class="ident">common</label> := []<a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>{</code></span>
+<span class="codeline" id="line-24"><code>		<span class="lit-string">"accept"</span>,</code></span>
+<span class="codeline" id="line-25"><code>		<span class="lit-string">"accept-charset"</span>,</code></span>
+<span class="codeline" id="line-26"><code>		<span class="lit-string">"accept-encoding"</span>,</code></span>
+<span class="codeline" id="line-27"><code>		<span class="lit-string">"accept-language"</span>,</code></span>
+<span class="codeline" id="line-28"><code>		<span class="lit-string">"accept-ranges"</span>,</code></span>
+<span class="codeline" id="line-29"><code>		<span class="lit-string">"age"</span>,</code></span>
+<span class="codeline" id="line-30"><code>		<span class="lit-string">"access-control-allow-credentials"</span>,</code></span>
+<span class="codeline" id="line-31"><code>		<span class="lit-string">"access-control-allow-headers"</span>,</code></span>
+<span class="codeline" id="line-32"><code>		<span class="lit-string">"access-control-allow-methods"</span>,</code></span>
+<span class="codeline" id="line-33"><code>		<span class="lit-string">"access-control-allow-origin"</span>,</code></span>
+<span class="codeline" id="line-34"><code>		<span class="lit-string">"access-control-expose-headers"</span>,</code></span>
+<span class="codeline" id="line-35"><code>		<span class="lit-string">"access-control-max-age"</span>,</code></span>
+<span class="codeline" id="line-36"><code>		<span class="lit-string">"access-control-request-headers"</span>,</code></span>
+<span class="codeline" id="line-37"><code>		<span class="lit-string">"access-control-request-method"</span>,</code></span>
+<span class="codeline" id="line-38"><code>		<span class="lit-string">"allow"</span>,</code></span>
+<span class="codeline" id="line-39"><code>		<span class="lit-string">"authorization"</span>,</code></span>
+<span class="codeline" id="line-40"><code>		<span class="lit-string">"cache-control"</span>,</code></span>
+<span class="codeline" id="line-41"><code>		<span class="lit-string">"content-disposition"</span>,</code></span>
+<span class="codeline" id="line-42"><code>		<span class="lit-string">"content-encoding"</span>,</code></span>
+<span class="codeline" id="line-43"><code>		<span class="lit-string">"content-language"</span>,</code></span>
+<span class="codeline" id="line-44"><code>		<span class="lit-string">"content-length"</span>,</code></span>
+<span class="codeline" id="line-45"><code>		<span class="lit-string">"content-location"</span>,</code></span>
+<span class="codeline" id="line-46"><code>		<span class="lit-string">"content-range"</span>,</code></span>
+<span class="codeline" id="line-47"><code>		<span class="lit-string">"content-type"</span>,</code></span>
+<span class="codeline" id="line-48"><code>		<span class="lit-string">"cookie"</span>,</code></span>
+<span class="codeline" id="line-49"><code>		<span class="lit-string">"date"</span>,</code></span>
+<span class="codeline" id="line-50"><code>		<span class="lit-string">"etag"</span>,</code></span>
+<span class="codeline" id="line-51"><code>		<span class="lit-string">"expect"</span>,</code></span>
+<span class="codeline" id="line-52"><code>		<span class="lit-string">"expires"</span>,</code></span>
+<span class="codeline" id="line-53"><code>		<span class="lit-string">"from"</span>,</code></span>
+<span class="codeline" id="line-54"><code>		<span class="lit-string">"host"</span>,</code></span>
+<span class="codeline" id="line-55"><code>		<span class="lit-string">"if-match"</span>,</code></span>
+<span class="codeline" id="line-56"><code>		<span class="lit-string">"if-modified-since"</span>,</code></span>
+<span class="codeline" id="line-57"><code>		<span class="lit-string">"if-none-match"</span>,</code></span>
+<span class="codeline" id="line-58"><code>		<span class="lit-string">"if-unmodified-since"</span>,</code></span>
+<span class="codeline" id="line-59"><code>		<span class="lit-string">"last-modified"</span>,</code></span>
+<span class="codeline" id="line-60"><code>		<span class="lit-string">"link"</span>,</code></span>
+<span class="codeline" id="line-61"><code>		<span class="lit-string">"location"</span>,</code></span>
+<span class="codeline" id="line-62"><code>		<span class="lit-string">"max-forwards"</span>,</code></span>
+<span class="codeline" id="line-63"><code>		<span class="lit-string">"origin"</span>,</code></span>
+<span class="codeline" id="line-64"><code>		<span class="lit-string">"proxy-authenticate"</span>,</code></span>
+<span class="codeline" id="line-65"><code>		<span class="lit-string">"proxy-authorization"</span>,</code></span>
+<span class="codeline" id="line-66"><code>		<span class="lit-string">"range"</span>,</code></span>
+<span class="codeline" id="line-67"><code>		<span class="lit-string">"referer"</span>,</code></span>
+<span class="codeline" id="line-68"><code>		<span class="lit-string">"refresh"</span>,</code></span>
+<span class="codeline" id="line-69"><code>		<span class="lit-string">"retry-after"</span>,</code></span>
+<span class="codeline" id="line-70"><code>		<span class="lit-string">"server"</span>,</code></span>
+<span class="codeline" id="line-71"><code>		<span class="lit-string">"set-cookie"</span>,</code></span>
+<span class="codeline" id="line-72"><code>		<span class="lit-string">"strict-transport-security"</span>,</code></span>
+<span class="codeline" id="line-73"><code>		<span class="lit-string">"trailer"</span>,</code></span>
+<span class="codeline" id="line-74"><code>		<span class="lit-string">"transfer-encoding"</span>,</code></span>
+<span class="codeline" id="line-75"><code>		<span class="lit-string">"user-agent"</span>,</code></span>
+<span class="codeline" id="line-76"><code>		<span class="lit-string">"vary"</span>,</code></span>
+<span class="codeline" id="line-77"><code>		<span class="lit-string">"via"</span>,</code></span>
+<span class="codeline" id="line-78"><code>		<span class="lit-string">"www-authenticate"</span>,</code></span>
+<span class="codeline" id="line-79"><code>		<span class="lit-string">"x-forwarded-for"</span>,</code></span>
+<span class="codeline" id="line-80"><code>		<span class="lit-string">"x-forwarded-proto"</span>,</code></span>
+<span class="codeline" id="line-81"><code>	}</code></span>
+<span class="codeline" id="line-82"><code>	<a href="#line-14" class="ident">commonLowerHeader</a> = <a href="../../../../../pkg/builtin.html#name-make" class="ident">make</a>(<span class="keyword">map</span>[<a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>]<a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>, <a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r2" class="ident">common</label>))</code></span>
+<span class="codeline" id="line-83"><code>	<a href="#line-15" class="ident">commonCanonHeader</a> = <a href="../../../../../pkg/builtin.html#name-make" class="ident">make</a>(<span class="keyword">map</span>[<a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>]<a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>, <a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r2" class="ident">common</label>))</code></span>
+<span class="codeline" id="line-84"><code>	<span class="keyword">for</span> <label for="r3" class="ident">_</label>, <label for="r4" class="ident">v</label> := <span class="keyword">range</span> <label for="r2" class="ident">common</label> {</code></span>
+<span class="codeline" id="line-85"><code>		<label for="r5" class="ident">chk</label> := <a href="../../../../../pkg/net/http.html" class="ident i0">http</a>.<a href="../../../../net/http/header.go.html#line-234" class="ident">CanonicalHeaderKey</a>(<label for="r4" class="ident">v</label>)</code></span>
+<span class="codeline" id="line-86"><code>		<a href="#line-14" class="ident">commonLowerHeader</a>[<label for="r5" class="ident">chk</label>] = <label for="r4" class="ident">v</label></code></span>
+<span class="codeline" id="line-87"><code>		<a href="#line-15" class="ident">commonCanonHeader</a>[<label for="r4" class="ident">v</label>] = <label for="r5" class="ident">chk</label></code></span>
+<span class="codeline" id="line-88"><code>	}</code></span>
+<span class="codeline" id="line-89"><code>}</code></span>
+<span class="codeline" id="line-90"><code></code></span>
+<span class="codeline" id="line-91"><code><span class="keyword">func</span> <label for="r6" class="ident"><a href="../../../../../pkg/golang.org/x/net/http2.html#name-lowerHeader" class="ident">lowerHeader</a></label>(<label for="r7" class="ident">v</label> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>) (<label for="r8" class="ident">lower</label> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r9" class="ident">ascii</label> <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a>) {</code></span>
+<span class="codeline" id="line-92"><code>	<a href="#line-18" class="ident">buildCommonHeaderMapsOnce</a>()</code></span>
+<span class="codeline" id="line-93"><code>	<span class="keyword">if</span> <label for="r10" class="ident">s</label>, <label for="r11" class="ident">ok</label> := <a href="#line-14" class="ident">commonLowerHeader</a>[<label for="r7" class="ident">v</label>]; <label for="r11" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-94"><code>		<span class="keyword">return</span> <label for="r10" class="ident">s</label>, <a href="../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-95"><code>	}</code></span>
+<span class="codeline" id="line-96"><code>	<span class="keyword">return</span> <a href="ascii.go.html#line-48" class="ident">asciiToLower</a>(<label for="r7" class="ident">v</label>)</code></span>
+<span class="codeline" id="line-97"><code>}</code></span>
+<span class="codeline" id="line-98"><code></code></span>
+<span class="codeline" id="line-99"><code><span class="keyword">func</span> <label for="r12" class="ident"><a href="../../../../../pkg/golang.org/x/net/http2.html#name-canonicalHeader" class="ident">canonicalHeader</a></label>(<label for="r13" class="ident">v</label> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-100"><code>	<a href="#line-18" class="ident">buildCommonHeaderMapsOnce</a>()</code></span>
+<span class="codeline" id="line-101"><code>	<span class="keyword">if</span> <label for="r14" class="ident">s</label>, <label for="r15" class="ident">ok</label> := <a href="#line-15" class="ident">commonCanonHeader</a>[<label for="r13" class="ident">v</label>]; <label for="r15" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-102"><code>		<span class="keyword">return</span> <label for="r14" class="ident">s</label></code></span>
+<span class="codeline" id="line-103"><code>	}</code></span>
+<span class="codeline" id="line-104"><code>	<span class="keyword">return</span> <a href="../../../../../pkg/net/http.html" class="ident i0">http</a>.<a href="../../../../net/http/header.go.html#line-234" class="ident">CanonicalHeaderKey</a>(<label for="r13" class="ident">v</label>)</code></span>
+<span class="codeline" id="line-105"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

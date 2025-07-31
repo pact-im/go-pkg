@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: keccakf_amd64.s in package golang.org/x/crypto/sha3</title>
+<link href="../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	keccakf_amd64.s
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../pkg/golang.org/x/crypto/sha3.html">golang.org/x/crypto/sha3</a>
+</code></pre>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code>// Copyright 2015 The Go Authors. All rights reserved.</code></span>
+<span class="codeline" id="line-2"><code>// Use of this source code is governed by a BSD-style</code></span>
+<span class="codeline" id="line-3"><code>// license that can be found in the LICENSE file.</code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code>//go:build amd64 &amp;&amp; !purego &amp;&amp; gc</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code>// This code was translated into a form compatible with 6a from the public</code></span>
+<span class="codeline" id="line-8"><code>// domain sources at https://github.com/gvanas/KeccakCodePackage</code></span>
+<span class="codeline" id="line-9"><code></code></span>
+<span class="codeline" id="line-10"><code>// Offsets in state</code></span>
+<span class="codeline" id="line-11"><code>#define _ba  (0*8)</code></span>
+<span class="codeline" id="line-12"><code>#define _be  (1*8)</code></span>
+<span class="codeline" id="line-13"><code>#define _bi  (2*8)</code></span>
+<span class="codeline" id="line-14"><code>#define _bo  (3*8)</code></span>
+<span class="codeline" id="line-15"><code>#define _bu  (4*8)</code></span>
+<span class="codeline" id="line-16"><code>#define _ga  (5*8)</code></span>
+<span class="codeline" id="line-17"><code>#define _ge  (6*8)</code></span>
+<span class="codeline" id="line-18"><code>#define _gi  (7*8)</code></span>
+<span class="codeline" id="line-19"><code>#define _go  (8*8)</code></span>
+<span class="codeline" id="line-20"><code>#define _gu  (9*8)</code></span>
+<span class="codeline" id="line-21"><code>#define _ka (10*8)</code></span>
+<span class="codeline" id="line-22"><code>#define _ke (11*8)</code></span>
+<span class="codeline" id="line-23"><code>#define _ki (12*8)</code></span>
+<span class="codeline" id="line-24"><code>#define _ko (13*8)</code></span>
+<span class="codeline" id="line-25"><code>#define _ku (14*8)</code></span>
+<span class="codeline" id="line-26"><code>#define _ma (15*8)</code></span>
+<span class="codeline" id="line-27"><code>#define _me (16*8)</code></span>
+<span class="codeline" id="line-28"><code>#define _mi (17*8)</code></span>
+<span class="codeline" id="line-29"><code>#define _mo (18*8)</code></span>
+<span class="codeline" id="line-30"><code>#define _mu (19*8)</code></span>
+<span class="codeline" id="line-31"><code>#define _sa (20*8)</code></span>
+<span class="codeline" id="line-32"><code>#define _se (21*8)</code></span>
+<span class="codeline" id="line-33"><code>#define _si (22*8)</code></span>
+<span class="codeline" id="line-34"><code>#define _so (23*8)</code></span>
+<span class="codeline" id="line-35"><code>#define _su (24*8)</code></span>
+<span class="codeline" id="line-36"><code></code></span>
+<span class="codeline" id="line-37"><code>// Temporary registers</code></span>
+<span class="codeline" id="line-38"><code>#define rT1  AX</code></span>
+<span class="codeline" id="line-39"><code></code></span>
+<span class="codeline" id="line-40"><code>// Round vars</code></span>
+<span class="codeline" id="line-41"><code>#define rpState DI</code></span>
+<span class="codeline" id="line-42"><code>#define rpStack SP</code></span>
+<span class="codeline" id="line-43"><code></code></span>
+<span class="codeline" id="line-44"><code>#define rDa BX</code></span>
+<span class="codeline" id="line-45"><code>#define rDe CX</code></span>
+<span class="codeline" id="line-46"><code>#define rDi DX</code></span>
+<span class="codeline" id="line-47"><code>#define rDo R8</code></span>
+<span class="codeline" id="line-48"><code>#define rDu R9</code></span>
+<span class="codeline" id="line-49"><code></code></span>
+<span class="codeline" id="line-50"><code>#define rBa R10</code></span>
+<span class="codeline" id="line-51"><code>#define rBe R11</code></span>
+<span class="codeline" id="line-52"><code>#define rBi R12</code></span>
+<span class="codeline" id="line-53"><code>#define rBo R13</code></span>
+<span class="codeline" id="line-54"><code>#define rBu R14</code></span>
+<span class="codeline" id="line-55"><code></code></span>
+<span class="codeline" id="line-56"><code>#define rCa SI</code></span>
+<span class="codeline" id="line-57"><code>#define rCe BP</code></span>
+<span class="codeline" id="line-58"><code>#define rCi rBi</code></span>
+<span class="codeline" id="line-59"><code>#define rCo rBo</code></span>
+<span class="codeline" id="line-60"><code>#define rCu R15</code></span>
+<span class="codeline" id="line-61"><code></code></span>
+<span class="codeline" id="line-62"><code>#define MOVQ_RBI_RCE MOVQ rBi, rCe</code></span>
+<span class="codeline" id="line-63"><code>#define XORQ_RT1_RCA XORQ rT1, rCa</code></span>
+<span class="codeline" id="line-64"><code>#define XORQ_RT1_RCE XORQ rT1, rCe</code></span>
+<span class="codeline" id="line-65"><code>#define XORQ_RBA_RCU XORQ rBa, rCu</code></span>
+<span class="codeline" id="line-66"><code>#define XORQ_RBE_RCU XORQ rBe, rCu</code></span>
+<span class="codeline" id="line-67"><code>#define XORQ_RDU_RCU XORQ rDu, rCu</code></span>
+<span class="codeline" id="line-68"><code>#define XORQ_RDA_RCA XORQ rDa, rCa</code></span>
+<span class="codeline" id="line-69"><code>#define XORQ_RDE_RCE XORQ rDe, rCe</code></span>
+<span class="codeline" id="line-70"><code></code></span>
+<span class="codeline" id="line-71"><code>#define mKeccakRound(iState, oState, rc, B_RBI_RCE, G_RT1_RCA, G_RT1_RCE, G_RBA_RCU, K_RT1_RCA, K_RT1_RCE, K_RBA_RCU, M_RT1_RCA, M_RT1_RCE, M_RBE_RCU, S_RDU_RCU, S_RDA_RCA, S_RDE_RCE) \</code></span>
+<span class="codeline" id="line-72"><code>	/* Prepare round */    \</code></span>
+<span class="codeline" id="line-73"><code>	MOVQ rCe, rDa;         \</code></span>
+<span class="codeline" id="line-74"><code>	ROLQ $1, rDa;          \</code></span>
+<span class="codeline" id="line-75"><code>	                       \</code></span>
+<span class="codeline" id="line-76"><code>	MOVQ _bi(iState), rCi; \</code></span>
+<span class="codeline" id="line-77"><code>	XORQ _gi(iState), rDi; \</code></span>
+<span class="codeline" id="line-78"><code>	XORQ rCu, rDa;         \</code></span>
+<span class="codeline" id="line-79"><code>	XORQ _ki(iState), rCi; \</code></span>
+<span class="codeline" id="line-80"><code>	XORQ _mi(iState), rDi; \</code></span>
+<span class="codeline" id="line-81"><code>	XORQ rDi, rCi;         \</code></span>
+<span class="codeline" id="line-82"><code>	                       \</code></span>
+<span class="codeline" id="line-83"><code>	MOVQ rCi, rDe;         \</code></span>
+<span class="codeline" id="line-84"><code>	ROLQ $1, rDe;          \</code></span>
+<span class="codeline" id="line-85"><code>	                       \</code></span>
+<span class="codeline" id="line-86"><code>	MOVQ _bo(iState), rCo; \</code></span>
+<span class="codeline" id="line-87"><code>	XORQ _go(iState), rDo; \</code></span>
+<span class="codeline" id="line-88"><code>	XORQ rCa, rDe;         \</code></span>
+<span class="codeline" id="line-89"><code>	XORQ _ko(iState), rCo; \</code></span>
+<span class="codeline" id="line-90"><code>	XORQ _mo(iState), rDo; \</code></span>
+<span class="codeline" id="line-91"><code>	XORQ rDo, rCo;         \</code></span>
+<span class="codeline" id="line-92"><code>	                       \</code></span>
+<span class="codeline" id="line-93"><code>	MOVQ rCo, rDi;         \</code></span>
+<span class="codeline" id="line-94"><code>	ROLQ $1, rDi;          \</code></span>
+<span class="codeline" id="line-95"><code>	                       \</code></span>
+<span class="codeline" id="line-96"><code>	MOVQ rCu, rDo;         \</code></span>
+<span class="codeline" id="line-97"><code>	XORQ rCe, rDi;         \</code></span>
+<span class="codeline" id="line-98"><code>	ROLQ $1, rDo;          \</code></span>
+<span class="codeline" id="line-99"><code>	                       \</code></span>
+<span class="codeline" id="line-100"><code>	MOVQ rCa, rDu;         \</code></span>
+<span class="codeline" id="line-101"><code>	XORQ rCi, rDo;         \</code></span>
+<span class="codeline" id="line-102"><code>	ROLQ $1, rDu;          \</code></span>
+<span class="codeline" id="line-103"><code>	                       \</code></span>
+<span class="codeline" id="line-104"><code>	/* Result b */         \</code></span>
+<span class="codeline" id="line-105"><code>	MOVQ _ba(iState), rBa; \</code></span>
+<span class="codeline" id="line-106"><code>	MOVQ _ge(iState), rBe; \</code></span>
+<span class="codeline" id="line-107"><code>	XORQ rCo, rDu;         \</code></span>
+<span class="codeline" id="line-108"><code>	MOVQ _ki(iState), rBi; \</code></span>
+<span class="codeline" id="line-109"><code>	MOVQ _mo(iState), rBo; \</code></span>
+<span class="codeline" id="line-110"><code>	MOVQ _su(iState), rBu; \</code></span>
+<span class="codeline" id="line-111"><code>	XORQ rDe, rBe;         \</code></span>
+<span class="codeline" id="line-112"><code>	ROLQ $44, rBe;         \</code></span>
+<span class="codeline" id="line-113"><code>	XORQ rDi, rBi;         \</code></span>
+<span class="codeline" id="line-114"><code>	XORQ rDa, rBa;         \</code></span>
+<span class="codeline" id="line-115"><code>	ROLQ $43, rBi;         \</code></span>
+<span class="codeline" id="line-116"><code>	                       \</code></span>
+<span class="codeline" id="line-117"><code>	MOVQ rBe, rCa;         \</code></span>
+<span class="codeline" id="line-118"><code>	MOVQ rc, rT1;          \</code></span>
+<span class="codeline" id="line-119"><code>	ORQ  rBi, rCa;         \</code></span>
+<span class="codeline" id="line-120"><code>	XORQ rBa, rT1;         \</code></span>
+<span class="codeline" id="line-121"><code>	XORQ rT1, rCa;         \</code></span>
+<span class="codeline" id="line-122"><code>	MOVQ rCa, _ba(oState); \</code></span>
+<span class="codeline" id="line-123"><code>	                       \</code></span>
+<span class="codeline" id="line-124"><code>	XORQ rDu, rBu;         \</code></span>
+<span class="codeline" id="line-125"><code>	ROLQ $14, rBu;         \</code></span>
+<span class="codeline" id="line-126"><code>	MOVQ rBa, rCu;         \</code></span>
+<span class="codeline" id="line-127"><code>	ANDQ rBe, rCu;         \</code></span>
+<span class="codeline" id="line-128"><code>	XORQ rBu, rCu;         \</code></span>
+<span class="codeline" id="line-129"><code>	MOVQ rCu, _bu(oState); \</code></span>
+<span class="codeline" id="line-130"><code>	                       \</code></span>
+<span class="codeline" id="line-131"><code>	XORQ rDo, rBo;         \</code></span>
+<span class="codeline" id="line-132"><code>	ROLQ $21, rBo;         \</code></span>
+<span class="codeline" id="line-133"><code>	MOVQ rBo, rT1;         \</code></span>
+<span class="codeline" id="line-134"><code>	ANDQ rBu, rT1;         \</code></span>
+<span class="codeline" id="line-135"><code>	XORQ rBi, rT1;         \</code></span>
+<span class="codeline" id="line-136"><code>	MOVQ rT1, _bi(oState); \</code></span>
+<span class="codeline" id="line-137"><code>	                       \</code></span>
+<span class="codeline" id="line-138"><code>	NOTQ rBi;              \</code></span>
+<span class="codeline" id="line-139"><code>	ORQ  rBa, rBu;         \</code></span>
+<span class="codeline" id="line-140"><code>	ORQ  rBo, rBi;         \</code></span>
+<span class="codeline" id="line-141"><code>	XORQ rBo, rBu;         \</code></span>
+<span class="codeline" id="line-142"><code>	XORQ rBe, rBi;         \</code></span>
+<span class="codeline" id="line-143"><code>	MOVQ rBu, _bo(oState); \</code></span>
+<span class="codeline" id="line-144"><code>	MOVQ rBi, _be(oState); \</code></span>
+<span class="codeline" id="line-145"><code>	B_RBI_RCE;             \</code></span>
+<span class="codeline" id="line-146"><code>	                       \</code></span>
+<span class="codeline" id="line-147"><code>	/* Result g */         \</code></span>
+<span class="codeline" id="line-148"><code>	MOVQ _gu(iState), rBe; \</code></span>
+<span class="codeline" id="line-149"><code>	XORQ rDu, rBe;         \</code></span>
+<span class="codeline" id="line-150"><code>	MOVQ _ka(iState), rBi; \</code></span>
+<span class="codeline" id="line-151"><code>	ROLQ $20, rBe;         \</code></span>
+<span class="codeline" id="line-152"><code>	XORQ rDa, rBi;         \</code></span>
+<span class="codeline" id="line-153"><code>	ROLQ $3, rBi;          \</code></span>
+<span class="codeline" id="line-154"><code>	MOVQ _bo(iState), rBa; \</code></span>
+<span class="codeline" id="line-155"><code>	MOVQ rBe, rT1;         \</code></span>
+<span class="codeline" id="line-156"><code>	ORQ  rBi, rT1;         \</code></span>
+<span class="codeline" id="line-157"><code>	XORQ rDo, rBa;         \</code></span>
+<span class="codeline" id="line-158"><code>	MOVQ _me(iState), rBo; \</code></span>
+<span class="codeline" id="line-159"><code>	MOVQ _si(iState), rBu; \</code></span>
+<span class="codeline" id="line-160"><code>	ROLQ $28, rBa;         \</code></span>
+<span class="codeline" id="line-161"><code>	XORQ rBa, rT1;         \</code></span>
+<span class="codeline" id="line-162"><code>	MOVQ rT1, _ga(oState); \</code></span>
+<span class="codeline" id="line-163"><code>	G_RT1_RCA;             \</code></span>
+<span class="codeline" id="line-164"><code>	                       \</code></span>
+<span class="codeline" id="line-165"><code>	XORQ rDe, rBo;         \</code></span>
+<span class="codeline" id="line-166"><code>	ROLQ $45, rBo;         \</code></span>
+<span class="codeline" id="line-167"><code>	MOVQ rBi, rT1;         \</code></span>
+<span class="codeline" id="line-168"><code>	ANDQ rBo, rT1;         \</code></span>
+<span class="codeline" id="line-169"><code>	XORQ rBe, rT1;         \</code></span>
+<span class="codeline" id="line-170"><code>	MOVQ rT1, _ge(oState); \</code></span>
+<span class="codeline" id="line-171"><code>	G_RT1_RCE;             \</code></span>
+<span class="codeline" id="line-172"><code>	                       \</code></span>
+<span class="codeline" id="line-173"><code>	XORQ rDi, rBu;         \</code></span>
+<span class="codeline" id="line-174"><code>	ROLQ $61, rBu;         \</code></span>
+<span class="codeline" id="line-175"><code>	MOVQ rBu, rT1;         \</code></span>
+<span class="codeline" id="line-176"><code>	ORQ  rBa, rT1;         \</code></span>
+<span class="codeline" id="line-177"><code>	XORQ rBo, rT1;         \</code></span>
+<span class="codeline" id="line-178"><code>	MOVQ rT1, _go(oState); \</code></span>
+<span class="codeline" id="line-179"><code>	                       \</code></span>
+<span class="codeline" id="line-180"><code>	ANDQ rBe, rBa;         \</code></span>
+<span class="codeline" id="line-181"><code>	XORQ rBu, rBa;         \</code></span>
+<span class="codeline" id="line-182"><code>	MOVQ rBa, _gu(oState); \</code></span>
+<span class="codeline" id="line-183"><code>	NOTQ rBu;              \</code></span>
+<span class="codeline" id="line-184"><code>	G_RBA_RCU;             \</code></span>
+<span class="codeline" id="line-185"><code>	                       \</code></span>
+<span class="codeline" id="line-186"><code>	ORQ  rBu, rBo;         \</code></span>
+<span class="codeline" id="line-187"><code>	XORQ rBi, rBo;         \</code></span>
+<span class="codeline" id="line-188"><code>	MOVQ rBo, _gi(oState); \</code></span>
+<span class="codeline" id="line-189"><code>	                       \</code></span>
+<span class="codeline" id="line-190"><code>	/* Result k */         \</code></span>
+<span class="codeline" id="line-191"><code>	MOVQ _be(iState), rBa; \</code></span>
+<span class="codeline" id="line-192"><code>	MOVQ _gi(iState), rBe; \</code></span>
+<span class="codeline" id="line-193"><code>	MOVQ _ko(iState), rBi; \</code></span>
+<span class="codeline" id="line-194"><code>	MOVQ _mu(iState), rBo; \</code></span>
+<span class="codeline" id="line-195"><code>	MOVQ _sa(iState), rBu; \</code></span>
+<span class="codeline" id="line-196"><code>	XORQ rDi, rBe;         \</code></span>
+<span class="codeline" id="line-197"><code>	ROLQ $6, rBe;          \</code></span>
+<span class="codeline" id="line-198"><code>	XORQ rDo, rBi;         \</code></span>
+<span class="codeline" id="line-199"><code>	ROLQ $25, rBi;         \</code></span>
+<span class="codeline" id="line-200"><code>	MOVQ rBe, rT1;         \</code></span>
+<span class="codeline" id="line-201"><code>	ORQ  rBi, rT1;         \</code></span>
+<span class="codeline" id="line-202"><code>	XORQ rDe, rBa;         \</code></span>
+<span class="codeline" id="line-203"><code>	ROLQ $1, rBa;          \</code></span>
+<span class="codeline" id="line-204"><code>	XORQ rBa, rT1;         \</code></span>
+<span class="codeline" id="line-205"><code>	MOVQ rT1, _ka(oState); \</code></span>
+<span class="codeline" id="line-206"><code>	K_RT1_RCA;             \</code></span>
+<span class="codeline" id="line-207"><code>	                       \</code></span>
+<span class="codeline" id="line-208"><code>	XORQ rDu, rBo;         \</code></span>
+<span class="codeline" id="line-209"><code>	ROLQ $8, rBo;          \</code></span>
+<span class="codeline" id="line-210"><code>	MOVQ rBi, rT1;         \</code></span>
+<span class="codeline" id="line-211"><code>	ANDQ rBo, rT1;         \</code></span>
+<span class="codeline" id="line-212"><code>	XORQ rBe, rT1;         \</code></span>
+<span class="codeline" id="line-213"><code>	MOVQ rT1, _ke(oState); \</code></span>
+<span class="codeline" id="line-214"><code>	K_RT1_RCE;             \</code></span>
+<span class="codeline" id="line-215"><code>	                       \</code></span>
+<span class="codeline" id="line-216"><code>	XORQ rDa, rBu;         \</code></span>
+<span class="codeline" id="line-217"><code>	ROLQ $18, rBu;         \</code></span>
+<span class="codeline" id="line-218"><code>	NOTQ rBo;              \</code></span>
+<span class="codeline" id="line-219"><code>	MOVQ rBo, rT1;         \</code></span>
+<span class="codeline" id="line-220"><code>	ANDQ rBu, rT1;         \</code></span>
+<span class="codeline" id="line-221"><code>	XORQ rBi, rT1;         \</code></span>
+<span class="codeline" id="line-222"><code>	MOVQ rT1, _ki(oState); \</code></span>
+<span class="codeline" id="line-223"><code>	                       \</code></span>
+<span class="codeline" id="line-224"><code>	MOVQ rBu, rT1;         \</code></span>
+<span class="codeline" id="line-225"><code>	ORQ  rBa, rT1;         \</code></span>
+<span class="codeline" id="line-226"><code>	XORQ rBo, rT1;         \</code></span>
+<span class="codeline" id="line-227"><code>	MOVQ rT1, _ko(oState); \</code></span>
+<span class="codeline" id="line-228"><code>	                       \</code></span>
+<span class="codeline" id="line-229"><code>	ANDQ rBe, rBa;         \</code></span>
+<span class="codeline" id="line-230"><code>	XORQ rBu, rBa;         \</code></span>
+<span class="codeline" id="line-231"><code>	MOVQ rBa, _ku(oState); \</code></span>
+<span class="codeline" id="line-232"><code>	K_RBA_RCU;             \</code></span>
+<span class="codeline" id="line-233"><code>	                       \</code></span>
+<span class="codeline" id="line-234"><code>	/* Result m */         \</code></span>
+<span class="codeline" id="line-235"><code>	MOVQ _ga(iState), rBe; \</code></span>
+<span class="codeline" id="line-236"><code>	XORQ rDa, rBe;         \</code></span>
+<span class="codeline" id="line-237"><code>	MOVQ _ke(iState), rBi; \</code></span>
+<span class="codeline" id="line-238"><code>	ROLQ $36, rBe;         \</code></span>
+<span class="codeline" id="line-239"><code>	XORQ rDe, rBi;         \</code></span>
+<span class="codeline" id="line-240"><code>	MOVQ _bu(iState), rBa; \</code></span>
+<span class="codeline" id="line-241"><code>	ROLQ $10, rBi;         \</code></span>
+<span class="codeline" id="line-242"><code>	MOVQ rBe, rT1;         \</code></span>
+<span class="codeline" id="line-243"><code>	MOVQ _mi(iState), rBo; \</code></span>
+<span class="codeline" id="line-244"><code>	ANDQ rBi, rT1;         \</code></span>
+<span class="codeline" id="line-245"><code>	XORQ rDu, rBa;         \</code></span>
+<span class="codeline" id="line-246"><code>	MOVQ _so(iState), rBu; \</code></span>
+<span class="codeline" id="line-247"><code>	ROLQ $27, rBa;         \</code></span>
+<span class="codeline" id="line-248"><code>	XORQ rBa, rT1;         \</code></span>
+<span class="codeline" id="line-249"><code>	MOVQ rT1, _ma(oState); \</code></span>
+<span class="codeline" id="line-250"><code>	M_RT1_RCA;             \</code></span>
+<span class="codeline" id="line-251"><code>	                       \</code></span>
+<span class="codeline" id="line-252"><code>	XORQ rDi, rBo;         \</code></span>
+<span class="codeline" id="line-253"><code>	ROLQ $15, rBo;         \</code></span>
+<span class="codeline" id="line-254"><code>	MOVQ rBi, rT1;         \</code></span>
+<span class="codeline" id="line-255"><code>	ORQ  rBo, rT1;         \</code></span>
+<span class="codeline" id="line-256"><code>	XORQ rBe, rT1;         \</code></span>
+<span class="codeline" id="line-257"><code>	MOVQ rT1, _me(oState); \</code></span>
+<span class="codeline" id="line-258"><code>	M_RT1_RCE;             \</code></span>
+<span class="codeline" id="line-259"><code>	                       \</code></span>
+<span class="codeline" id="line-260"><code>	XORQ rDo, rBu;         \</code></span>
+<span class="codeline" id="line-261"><code>	ROLQ $56, rBu;         \</code></span>
+<span class="codeline" id="line-262"><code>	NOTQ rBo;              \</code></span>
+<span class="codeline" id="line-263"><code>	MOVQ rBo, rT1;         \</code></span>
+<span class="codeline" id="line-264"><code>	ORQ  rBu, rT1;         \</code></span>
+<span class="codeline" id="line-265"><code>	XORQ rBi, rT1;         \</code></span>
+<span class="codeline" id="line-266"><code>	MOVQ rT1, _mi(oState); \</code></span>
+<span class="codeline" id="line-267"><code>	                       \</code></span>
+<span class="codeline" id="line-268"><code>	ORQ  rBa, rBe;         \</code></span>
+<span class="codeline" id="line-269"><code>	XORQ rBu, rBe;         \</code></span>
+<span class="codeline" id="line-270"><code>	MOVQ rBe, _mu(oState); \</code></span>
+<span class="codeline" id="line-271"><code>	                       \</code></span>
+<span class="codeline" id="line-272"><code>	ANDQ rBa, rBu;         \</code></span>
+<span class="codeline" id="line-273"><code>	XORQ rBo, rBu;         \</code></span>
+<span class="codeline" id="line-274"><code>	MOVQ rBu, _mo(oState); \</code></span>
+<span class="codeline" id="line-275"><code>	M_RBE_RCU;             \</code></span>
+<span class="codeline" id="line-276"><code>	                       \</code></span>
+<span class="codeline" id="line-277"><code>	/* Result s */         \</code></span>
+<span class="codeline" id="line-278"><code>	MOVQ _bi(iState), rBa; \</code></span>
+<span class="codeline" id="line-279"><code>	MOVQ _go(iState), rBe; \</code></span>
+<span class="codeline" id="line-280"><code>	MOVQ _ku(iState), rBi; \</code></span>
+<span class="codeline" id="line-281"><code>	XORQ rDi, rBa;         \</code></span>
+<span class="codeline" id="line-282"><code>	MOVQ _ma(iState), rBo; \</code></span>
+<span class="codeline" id="line-283"><code>	ROLQ $62, rBa;         \</code></span>
+<span class="codeline" id="line-284"><code>	XORQ rDo, rBe;         \</code></span>
+<span class="codeline" id="line-285"><code>	MOVQ _se(iState), rBu; \</code></span>
+<span class="codeline" id="line-286"><code>	ROLQ $55, rBe;         \</code></span>
+<span class="codeline" id="line-287"><code>	                       \</code></span>
+<span class="codeline" id="line-288"><code>	XORQ rDu, rBi;         \</code></span>
+<span class="codeline" id="line-289"><code>	MOVQ rBa, rDu;         \</code></span>
+<span class="codeline" id="line-290"><code>	XORQ rDe, rBu;         \</code></span>
+<span class="codeline" id="line-291"><code>	ROLQ $2, rBu;          \</code></span>
+<span class="codeline" id="line-292"><code>	ANDQ rBe, rDu;         \</code></span>
+<span class="codeline" id="line-293"><code>	XORQ rBu, rDu;         \</code></span>
+<span class="codeline" id="line-294"><code>	MOVQ rDu, _su(oState); \</code></span>
+<span class="codeline" id="line-295"><code>	                       \</code></span>
+<span class="codeline" id="line-296"><code>	ROLQ $39, rBi;         \</code></span>
+<span class="codeline" id="line-297"><code>	S_RDU_RCU;             \</code></span>
+<span class="codeline" id="line-298"><code>	NOTQ rBe;              \</code></span>
+<span class="codeline" id="line-299"><code>	XORQ rDa, rBo;         \</code></span>
+<span class="codeline" id="line-300"><code>	MOVQ rBe, rDa;         \</code></span>
+<span class="codeline" id="line-301"><code>	ANDQ rBi, rDa;         \</code></span>
+<span class="codeline" id="line-302"><code>	XORQ rBa, rDa;         \</code></span>
+<span class="codeline" id="line-303"><code>	MOVQ rDa, _sa(oState); \</code></span>
+<span class="codeline" id="line-304"><code>	S_RDA_RCA;             \</code></span>
+<span class="codeline" id="line-305"><code>	                       \</code></span>
+<span class="codeline" id="line-306"><code>	ROLQ $41, rBo;         \</code></span>
+<span class="codeline" id="line-307"><code>	MOVQ rBi, rDe;         \</code></span>
+<span class="codeline" id="line-308"><code>	ORQ  rBo, rDe;         \</code></span>
+<span class="codeline" id="line-309"><code>	XORQ rBe, rDe;         \</code></span>
+<span class="codeline" id="line-310"><code>	MOVQ rDe, _se(oState); \</code></span>
+<span class="codeline" id="line-311"><code>	S_RDE_RCE;             \</code></span>
+<span class="codeline" id="line-312"><code>	                       \</code></span>
+<span class="codeline" id="line-313"><code>	MOVQ rBo, rDi;         \</code></span>
+<span class="codeline" id="line-314"><code>	MOVQ rBu, rDo;         \</code></span>
+<span class="codeline" id="line-315"><code>	ANDQ rBu, rDi;         \</code></span>
+<span class="codeline" id="line-316"><code>	ORQ  rBa, rDo;         \</code></span>
+<span class="codeline" id="line-317"><code>	XORQ rBi, rDi;         \</code></span>
+<span class="codeline" id="line-318"><code>	XORQ rBo, rDo;         \</code></span>
+<span class="codeline" id="line-319"><code>	MOVQ rDi, _si(oState); \</code></span>
+<span class="codeline" id="line-320"><code>	MOVQ rDo, _so(oState)  \</code></span>
+<span class="codeline" id="line-321"><code></code></span>
+<span class="codeline" id="line-322"><code>// func keccakF1600(a *[25]uint64)</code></span>
+<span class="codeline" id="line-323"><code>TEXT ·keccakF1600(SB), 0, $200-8</code></span>
+<span class="codeline" id="line-324"><code>	MOVQ a+0(FP), rpState</code></span>
+<span class="codeline" id="line-325"><code></code></span>
+<span class="codeline" id="line-326"><code>	// Convert the user state into an internal state</code></span>
+<span class="codeline" id="line-327"><code>	NOTQ _be(rpState)</code></span>
+<span class="codeline" id="line-328"><code>	NOTQ _bi(rpState)</code></span>
+<span class="codeline" id="line-329"><code>	NOTQ _go(rpState)</code></span>
+<span class="codeline" id="line-330"><code>	NOTQ _ki(rpState)</code></span>
+<span class="codeline" id="line-331"><code>	NOTQ _mi(rpState)</code></span>
+<span class="codeline" id="line-332"><code>	NOTQ _sa(rpState)</code></span>
+<span class="codeline" id="line-333"><code></code></span>
+<span class="codeline" id="line-334"><code>	// Execute the KeccakF permutation</code></span>
+<span class="codeline" id="line-335"><code>	MOVQ _ba(rpState), rCa</code></span>
+<span class="codeline" id="line-336"><code>	MOVQ _be(rpState), rCe</code></span>
+<span class="codeline" id="line-337"><code>	MOVQ _bu(rpState), rCu</code></span>
+<span class="codeline" id="line-338"><code></code></span>
+<span class="codeline" id="line-339"><code>	XORQ _ga(rpState), rCa</code></span>
+<span class="codeline" id="line-340"><code>	XORQ _ge(rpState), rCe</code></span>
+<span class="codeline" id="line-341"><code>	XORQ _gu(rpState), rCu</code></span>
+<span class="codeline" id="line-342"><code></code></span>
+<span class="codeline" id="line-343"><code>	XORQ _ka(rpState), rCa</code></span>
+<span class="codeline" id="line-344"><code>	XORQ _ke(rpState), rCe</code></span>
+<span class="codeline" id="line-345"><code>	XORQ _ku(rpState), rCu</code></span>
+<span class="codeline" id="line-346"><code></code></span>
+<span class="codeline" id="line-347"><code>	XORQ _ma(rpState), rCa</code></span>
+<span class="codeline" id="line-348"><code>	XORQ _me(rpState), rCe</code></span>
+<span class="codeline" id="line-349"><code>	XORQ _mu(rpState), rCu</code></span>
+<span class="codeline" id="line-350"><code></code></span>
+<span class="codeline" id="line-351"><code>	XORQ _sa(rpState), rCa</code></span>
+<span class="codeline" id="line-352"><code>	XORQ _se(rpState), rCe</code></span>
+<span class="codeline" id="line-353"><code>	MOVQ _si(rpState), rDi</code></span>
+<span class="codeline" id="line-354"><code>	MOVQ _so(rpState), rDo</code></span>
+<span class="codeline" id="line-355"><code>	XORQ _su(rpState), rCu</code></span>
+<span class="codeline" id="line-356"><code></code></span>
+<span class="codeline" id="line-357"><code>	mKeccakRound(rpState, rpStack, $0x0000000000000001, MOVQ_RBI_RCE, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBA_RCU, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBA_RCU, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBE_RCU, XORQ_RDU_RCU, XORQ_RDA_RCA, XORQ_RDE_RCE)</code></span>
+<span class="codeline" id="line-358"><code>	mKeccakRound(rpStack, rpState, $0x0000000000008082, MOVQ_RBI_RCE, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBA_RCU, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBA_RCU, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBE_RCU, XORQ_RDU_RCU, XORQ_RDA_RCA, XORQ_RDE_RCE)</code></span>
+<span class="codeline" id="line-359"><code>	mKeccakRound(rpState, rpStack, $0x800000000000808a, MOVQ_RBI_RCE, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBA_RCU, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBA_RCU, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBE_RCU, XORQ_RDU_RCU, XORQ_RDA_RCA, XORQ_RDE_RCE)</code></span>
+<span class="codeline" id="line-360"><code>	mKeccakRound(rpStack, rpState, $0x8000000080008000, MOVQ_RBI_RCE, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBA_RCU, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBA_RCU, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBE_RCU, XORQ_RDU_RCU, XORQ_RDA_RCA, XORQ_RDE_RCE)</code></span>
+<span class="codeline" id="line-361"><code>	mKeccakRound(rpState, rpStack, $0x000000000000808b, MOVQ_RBI_RCE, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBA_RCU, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBA_RCU, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBE_RCU, XORQ_RDU_RCU, XORQ_RDA_RCA, XORQ_RDE_RCE)</code></span>
+<span class="codeline" id="line-362"><code>	mKeccakRound(rpStack, rpState, $0x0000000080000001, MOVQ_RBI_RCE, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBA_RCU, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBA_RCU, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBE_RCU, XORQ_RDU_RCU, XORQ_RDA_RCA, XORQ_RDE_RCE)</code></span>
+<span class="codeline" id="line-363"><code>	mKeccakRound(rpState, rpStack, $0x8000000080008081, MOVQ_RBI_RCE, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBA_RCU, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBA_RCU, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBE_RCU, XORQ_RDU_RCU, XORQ_RDA_RCA, XORQ_RDE_RCE)</code></span>
+<span class="codeline" id="line-364"><code>	mKeccakRound(rpStack, rpState, $0x8000000000008009, MOVQ_RBI_RCE, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBA_RCU, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBA_RCU, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBE_RCU, XORQ_RDU_RCU, XORQ_RDA_RCA, XORQ_RDE_RCE)</code></span>
+<span class="codeline" id="line-365"><code>	mKeccakRound(rpState, rpStack, $0x000000000000008a, MOVQ_RBI_RCE, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBA_RCU, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBA_RCU, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBE_RCU, XORQ_RDU_RCU, XORQ_RDA_RCA, XORQ_RDE_RCE)</code></span>
+<span class="codeline" id="line-366"><code>	mKeccakRound(rpStack, rpState, $0x0000000000000088, MOVQ_RBI_RCE, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBA_RCU, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBA_RCU, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBE_RCU, XORQ_RDU_RCU, XORQ_RDA_RCA, XORQ_RDE_RCE)</code></span>
+<span class="codeline" id="line-367"><code>	mKeccakRound(rpState, rpStack, $0x0000000080008009, MOVQ_RBI_RCE, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBA_RCU, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBA_RCU, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBE_RCU, XORQ_RDU_RCU, XORQ_RDA_RCA, XORQ_RDE_RCE)</code></span>
+<span class="codeline" id="line-368"><code>	mKeccakRound(rpStack, rpState, $0x000000008000000a, MOVQ_RBI_RCE, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBA_RCU, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBA_RCU, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBE_RCU, XORQ_RDU_RCU, XORQ_RDA_RCA, XORQ_RDE_RCE)</code></span>
+<span class="codeline" id="line-369"><code>	mKeccakRound(rpState, rpStack, $0x000000008000808b, MOVQ_RBI_RCE, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBA_RCU, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBA_RCU, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBE_RCU, XORQ_RDU_RCU, XORQ_RDA_RCA, XORQ_RDE_RCE)</code></span>
+<span class="codeline" id="line-370"><code>	mKeccakRound(rpStack, rpState, $0x800000000000008b, MOVQ_RBI_RCE, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBA_RCU, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBA_RCU, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBE_RCU, XORQ_RDU_RCU, XORQ_RDA_RCA, XORQ_RDE_RCE)</code></span>
+<span class="codeline" id="line-371"><code>	mKeccakRound(rpState, rpStack, $0x8000000000008089, MOVQ_RBI_RCE, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBA_RCU, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBA_RCU, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBE_RCU, XORQ_RDU_RCU, XORQ_RDA_RCA, XORQ_RDE_RCE)</code></span>
+<span class="codeline" id="line-372"><code>	mKeccakRound(rpStack, rpState, $0x8000000000008003, MOVQ_RBI_RCE, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBA_RCU, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBA_RCU, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBE_RCU, XORQ_RDU_RCU, XORQ_RDA_RCA, XORQ_RDE_RCE)</code></span>
+<span class="codeline" id="line-373"><code>	mKeccakRound(rpState, rpStack, $0x8000000000008002, MOVQ_RBI_RCE, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBA_RCU, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBA_RCU, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBE_RCU, XORQ_RDU_RCU, XORQ_RDA_RCA, XORQ_RDE_RCE)</code></span>
+<span class="codeline" id="line-374"><code>	mKeccakRound(rpStack, rpState, $0x8000000000000080, MOVQ_RBI_RCE, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBA_RCU, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBA_RCU, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBE_RCU, XORQ_RDU_RCU, XORQ_RDA_RCA, XORQ_RDE_RCE)</code></span>
+<span class="codeline" id="line-375"><code>	mKeccakRound(rpState, rpStack, $0x000000000000800a, MOVQ_RBI_RCE, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBA_RCU, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBA_RCU, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBE_RCU, XORQ_RDU_RCU, XORQ_RDA_RCA, XORQ_RDE_RCE)</code></span>
+<span class="codeline" id="line-376"><code>	mKeccakRound(rpStack, rpState, $0x800000008000000a, MOVQ_RBI_RCE, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBA_RCU, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBA_RCU, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBE_RCU, XORQ_RDU_RCU, XORQ_RDA_RCA, XORQ_RDE_RCE)</code></span>
+<span class="codeline" id="line-377"><code>	mKeccakRound(rpState, rpStack, $0x8000000080008081, MOVQ_RBI_RCE, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBA_RCU, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBA_RCU, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBE_RCU, XORQ_RDU_RCU, XORQ_RDA_RCA, XORQ_RDE_RCE)</code></span>
+<span class="codeline" id="line-378"><code>	mKeccakRound(rpStack, rpState, $0x8000000000008080, MOVQ_RBI_RCE, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBA_RCU, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBA_RCU, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBE_RCU, XORQ_RDU_RCU, XORQ_RDA_RCA, XORQ_RDE_RCE)</code></span>
+<span class="codeline" id="line-379"><code>	mKeccakRound(rpState, rpStack, $0x0000000080000001, MOVQ_RBI_RCE, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBA_RCU, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBA_RCU, XORQ_RT1_RCA, XORQ_RT1_RCE, XORQ_RBE_RCU, XORQ_RDU_RCU, XORQ_RDA_RCA, XORQ_RDE_RCE)</code></span>
+<span class="codeline" id="line-380"><code>	mKeccakRound(rpStack, rpState, $0x8000000080008008, NOP, NOP, NOP, NOP, NOP, NOP, NOP, NOP, NOP, NOP, NOP, NOP, NOP)</code></span>
+<span class="codeline" id="line-381"><code></code></span>
+<span class="codeline" id="line-382"><code>	// Revert the internal state to the user state</code></span>
+<span class="codeline" id="line-383"><code>	NOTQ _be(rpState)</code></span>
+<span class="codeline" id="line-384"><code>	NOTQ _bi(rpState)</code></span>
+<span class="codeline" id="line-385"><code>	NOTQ _go(rpState)</code></span>
+<span class="codeline" id="line-386"><code>	NOTQ _ki(rpState)</code></span>
+<span class="codeline" id="line-387"><code>	NOTQ _mi(rpState)</code></span>
+<span class="codeline" id="line-388"><code>	NOTQ _sa(rpState)</code></span>
+<span class="codeline" id="line-389"><code></code></span>
+<span class="codeline" id="line-390"><code>	RET</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

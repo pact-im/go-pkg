@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: config_selector.go in package google.golang.org/grpc/internal/resolver</title>
+<link href="../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	config_selector.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../pkg/google.golang.org/grpc/internal/resolver.html">google.golang.org/grpc/internal/resolver</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3,
+input[id=i4]:checked ~pre .i4
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+<input id="i4" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">/*</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment"> * Copyright 2020 gRPC authors.</span></code></span>
+<span class="codeline" id="line-4"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-5"><code><span class="comment"> * Licensed under the Apache License, Version 2.0 (the "License");</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment"> * you may not use this file except in compliance with the License.</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment"> * You may obtain a copy of the License at</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment"> *     http://www.apache.org/licenses/LICENSE-2.0</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment"> * Unless required by applicable law or agreed to in writing, software</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment"> * distributed under the License is distributed on an "AS IS" BASIS,</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment"> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment"> * See the License for the specific language governing permissions and</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment"> * limitations under the License.</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment"> */</span></code></span>
+<span class="codeline" id="line-18"><code></code></span>
+<div class="anchor" id="doc"><span class="codeline" id="line-19"><code><span class="comment">// Package resolver provides internal resolver-related functionality.</span></code></span></div><span class="codeline" id="line-20"><code><span class="keyword">package</span> resolver</code></span>
+<span class="codeline" id="line-21"><code></code></span>
+<span class="codeline" id="line-22"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-23"><code>	<label for="i0"><span class="lit-string i0">"context"</span></label></code></span>
+<span class="codeline" id="line-24"><code>	<label for="i1"><span class="lit-string i1">"sync"</span></label></code></span>
+<span class="codeline" id="line-25"><code></code></span>
+<span class="codeline" id="line-26"><code>	<label for="i2"><span class="lit-string i2">"google.golang.org/grpc/internal/serviceconfig"</span></label></code></span>
+<span class="codeline" id="line-27"><code>	<label for="i3"><span class="lit-string i3">"google.golang.org/grpc/metadata"</span></label></code></span>
+<span class="codeline" id="line-28"><code>	<label for="i4"><span class="lit-string i4">"google.golang.org/grpc/resolver"</span></label></code></span>
+<span class="codeline" id="line-29"><code>)</code></span>
+<span class="codeline" id="line-30"><code></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">// ConfigSelector controls what configuration to use for every RPC.</span></code></span>
+<span class="codeline" id="line-32"><code><span class="keyword">type</span> <a href="../../../../../pkg/google.golang.org/grpc/internal/resolver.html#name-ConfigSelector" class="ident">ConfigSelector</a> <span class="keyword">interface</span> {</code></span>
+<span class="codeline" id="line-33"><code>	<span class="comment">// Selects the configuration for the RPC, or terminates it using the error.</span></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">	// This error will be converted by the gRPC library to a status error with</span></code></span>
+<span class="codeline" id="line-35"><code><span class="comment">	// code UNKNOWN if it is not returned as a status error.</span></code></span>
+<span class="codeline" id="line-36"><code>	<a href="../../../../../imp/google.golang.org/grpc/internal/resolver.ConfigSelector.html#name-SelectConfig" class="ident">SelectConfig</a>(<a href="#line-40" class="ident">RPCInfo</a>) (*<a href="#line-49" class="ident">RPCConfig</a>, <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
+<span class="codeline" id="line-37"><code>}</code></span>
+<span class="codeline" id="line-38"><code></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">// RPCInfo contains RPC information needed by a ConfigSelector.</span></code></span>
+<span class="codeline" id="line-40"><code><span class="keyword">type</span> <a href="../../../../../pkg/google.golang.org/grpc/internal/resolver.html#name-RPCInfo" class="ident">RPCInfo</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-41"><code>	<span class="comment">// Context is the user's context for the RPC and contains headers and</span></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">	// application timeout.  It is passed for interception purposes and for</span></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">	// efficiency reasons.  SelectConfig should not be blocking.</span></code></span>
+<span class="codeline" id="line-44"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/resolver..RPCInfo.Context.html" class="ident">Context</a> <a href="../../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../../context/context.go.html#line-71" class="ident">Context</a></code></span>
+<span class="codeline" id="line-45"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/resolver..RPCInfo.Method.html" class="ident">Method</a>  <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a> <span class="comment">// i.e. "/Service/Method"</span></code></span>
+<span class="codeline" id="line-46"><code>}</code></span>
+<span class="codeline" id="line-47"><code></code></span>
+<span class="codeline" id="line-48"><code><span class="comment">// RPCConfig describes the configuration to use for each RPC.</span></code></span>
+<span class="codeline" id="line-49"><code><span class="keyword">type</span> <a href="../../../../../pkg/google.golang.org/grpc/internal/resolver.html#name-RPCConfig" class="ident">RPCConfig</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-50"><code>	<span class="comment">// The context to use for the remainder of the RPC; can pass info to LB</span></code></span>
+<span class="codeline" id="line-51"><code><span class="comment">	// policy or affect timeout or metadata.</span></code></span>
+<span class="codeline" id="line-52"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/resolver..RPCConfig.Context.html" class="ident">Context</a>      <a href="../../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../../context/context.go.html#line-71" class="ident">Context</a></code></span>
+<span class="codeline" id="line-53"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/resolver..RPCConfig.MethodConfig.html" class="ident">MethodConfig</a> <a href="../../../../../pkg/google.golang.org/grpc/internal/serviceconfig.html" class="ident i2">serviceconfig</a>.<a href="../serviceconfig/serviceconfig.go.html#line-130" class="ident">MethodConfig</a> <span class="comment">// configuration to use for this RPC</span></code></span>
+<span class="codeline" id="line-54"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/resolver..RPCConfig.OnCommitted.html" class="ident">OnCommitted</a>  <span class="keyword">func</span>()                     <span class="comment">// Called when the RPC has been committed (retries no longer possible)</span></code></span>
+<span class="codeline" id="line-55"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/resolver..RPCConfig.Interceptor.html" class="ident">Interceptor</a>  <a href="#line-108" class="ident">ClientInterceptor</a></code></span>
+<span class="codeline" id="line-56"><code>}</code></span>
+<span class="codeline" id="line-57"><code></code></span>
+<span class="codeline" id="line-58"><code><span class="comment">// ClientStream is the same as grpc.ClientStream, but defined here for circular</span></code></span>
+<span class="codeline" id="line-59"><code><span class="comment">// dependency reasons.</span></code></span>
+<span class="codeline" id="line-60"><code><span class="keyword">type</span> <a href="../../../../../pkg/google.golang.org/grpc/internal/resolver.html#name-ClientStream" class="ident">ClientStream</a> <span class="keyword">interface</span> {</code></span>
+<span class="codeline" id="line-61"><code>	<span class="comment">// Header returns the header metadata received from the server if there</span></code></span>
+<span class="codeline" id="line-62"><code><span class="comment">	// is any. It blocks if the metadata is not ready to read.</span></code></span>
+<span class="codeline" id="line-63"><code>	<a href="../../../../../imp/google.golang.org/grpc/internal/resolver.ClientStream.html#name-Header" class="ident">Header</a>() (<a href="../../../../../pkg/google.golang.org/grpc/metadata.html" class="ident i3">metadata</a>.<a href="../../metadata/metadata.go.html#line-39" class="ident">MD</a>, <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
+<span class="codeline" id="line-64"><code>	<span class="comment">// Trailer returns the trailer metadata from the server, if there is any.</span></code></span>
+<span class="codeline" id="line-65"><code><span class="comment">	// It must only be called after stream.CloseAndRecv has returned, or</span></code></span>
+<span class="codeline" id="line-66"><code><span class="comment">	// stream.Recv has returned a non-nil error (including io.EOF).</span></code></span>
+<span class="codeline" id="line-67"><code>	<a href="../../../../../imp/google.golang.org/grpc/internal/resolver.ClientStream.html#name-Trailer" class="ident">Trailer</a>() <a href="../../../../../pkg/google.golang.org/grpc/metadata.html" class="ident i3">metadata</a>.<a href="../../metadata/metadata.go.html#line-39" class="ident">MD</a></code></span>
+<span class="codeline" id="line-68"><code>	<span class="comment">// CloseSend closes the send direction of the stream. It closes the stream</span></code></span>
+<span class="codeline" id="line-69"><code><span class="comment">	// when non-nil error is met. It is also not safe to call CloseSend</span></code></span>
+<span class="codeline" id="line-70"><code><span class="comment">	// concurrently with SendMsg.</span></code></span>
+<span class="codeline" id="line-71"><code>	<a href="../../../../../imp/google.golang.org/grpc/internal/resolver.ClientStream.html#name-CloseSend" class="ident">CloseSend</a>() <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-72"><code>	<span class="comment">// Context returns the context for this stream.</span></code></span>
+<span class="codeline" id="line-73"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-74"><code><span class="comment">	// It should not be called until after Header or RecvMsg has returned. Once</span></code></span>
+<span class="codeline" id="line-75"><code><span class="comment">	// called, subsequent client-side retries are disabled.</span></code></span>
+<span class="codeline" id="line-76"><code>	<a href="../../../../../imp/google.golang.org/grpc/internal/resolver.ClientStream.html#name-Context" class="ident">Context</a>() <a href="../../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../../context/context.go.html#line-71" class="ident">Context</a></code></span>
+<span class="codeline" id="line-77"><code>	<span class="comment">// SendMsg is generally called by generated code. On error, SendMsg aborts</span></code></span>
+<span class="codeline" id="line-78"><code><span class="comment">	// the stream. If the error was generated by the client, the status is</span></code></span>
+<span class="codeline" id="line-79"><code><span class="comment">	// returned directly; otherwise, io.EOF is returned and the status of</span></code></span>
+<span class="codeline" id="line-80"><code><span class="comment">	// the stream may be discovered using RecvMsg.</span></code></span>
+<span class="codeline" id="line-81"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-82"><code><span class="comment">	// SendMsg blocks until:</span></code></span>
+<span class="codeline" id="line-83"><code><span class="comment">	//   - There is sufficient flow control to schedule m with the transport, or</span></code></span>
+<span class="codeline" id="line-84"><code><span class="comment">	//   - The stream is done, or</span></code></span>
+<span class="codeline" id="line-85"><code><span class="comment">	//   - The stream breaks.</span></code></span>
+<span class="codeline" id="line-86"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-87"><code><span class="comment">	// SendMsg does not wait until the message is received by the server. An</span></code></span>
+<span class="codeline" id="line-88"><code><span class="comment">	// untimely stream closure may result in lost messages. To ensure delivery,</span></code></span>
+<span class="codeline" id="line-89"><code><span class="comment">	// users should ensure the RPC completed successfully using RecvMsg.</span></code></span>
+<span class="codeline" id="line-90"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-91"><code><span class="comment">	// It is safe to have a goroutine calling SendMsg and another goroutine</span></code></span>
+<span class="codeline" id="line-92"><code><span class="comment">	// calling RecvMsg on the same stream at the same time, but it is not safe</span></code></span>
+<span class="codeline" id="line-93"><code><span class="comment">	// to call SendMsg on the same stream in different goroutines. It is also</span></code></span>
+<span class="codeline" id="line-94"><code><span class="comment">	// not safe to call CloseSend concurrently with SendMsg.</span></code></span>
+<span class="codeline" id="line-95"><code>	<a href="../../../../../imp/google.golang.org/grpc/internal/resolver.ClientStream.html#name-SendMsg" class="ident">SendMsg</a>(m <span class="keyword">interface</span>{}) <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-96"><code>	<span class="comment">// RecvMsg blocks until it receives a message into m or the stream is</span></code></span>
+<span class="codeline" id="line-97"><code><span class="comment">	// done. It returns io.EOF when the stream completes successfully. On</span></code></span>
+<span class="codeline" id="line-98"><code><span class="comment">	// any other error, the stream is aborted and the error contains the RPC</span></code></span>
+<span class="codeline" id="line-99"><code><span class="comment">	// status.</span></code></span>
+<span class="codeline" id="line-100"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-101"><code><span class="comment">	// It is safe to have a goroutine calling SendMsg and another goroutine</span></code></span>
+<span class="codeline" id="line-102"><code><span class="comment">	// calling RecvMsg on the same stream at the same time, but it is not</span></code></span>
+<span class="codeline" id="line-103"><code><span class="comment">	// safe to call RecvMsg on the same stream in different goroutines.</span></code></span>
+<span class="codeline" id="line-104"><code>	<a href="../../../../../imp/google.golang.org/grpc/internal/resolver.ClientStream.html#name-RecvMsg" class="ident">RecvMsg</a>(m <span class="keyword">interface</span>{}) <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-105"><code>}</code></span>
+<span class="codeline" id="line-106"><code></code></span>
+<span class="codeline" id="line-107"><code><span class="comment">// ClientInterceptor is an interceptor for gRPC client streams.</span></code></span>
+<span class="codeline" id="line-108"><code><span class="keyword">type</span> <a href="../../../../../pkg/google.golang.org/grpc/internal/resolver.html#name-ClientInterceptor" class="ident">ClientInterceptor</a> <span class="keyword">interface</span> {</code></span>
+<span class="codeline" id="line-109"><code>	<span class="comment">// NewStream produces a ClientStream for an RPC which may optionally use</span></code></span>
+<span class="codeline" id="line-110"><code><span class="comment">	// the provided function to produce a stream for delegation.  Note:</span></code></span>
+<span class="codeline" id="line-111"><code><span class="comment">	// RPCInfo.Context should not be used (will be nil).</span></code></span>
+<span class="codeline" id="line-112"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-113"><code><span class="comment">	// done is invoked when the RPC is finished using its connection, or could</span></code></span>
+<span class="codeline" id="line-114"><code><span class="comment">	// not be assigned a connection.  RPC operations may still occur on</span></code></span>
+<span class="codeline" id="line-115"><code><span class="comment">	// ClientStream after done is called, since the interceptor is invoked by</span></code></span>
+<span class="codeline" id="line-116"><code><span class="comment">	// application-layer operations.  done must never be nil when called.</span></code></span>
+<span class="codeline" id="line-117"><code>	<a href="../../../../../imp/google.golang.org/grpc/internal/resolver.ClientInterceptor.html#name-NewStream" class="ident">NewStream</a>(ctx <a href="../../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../../context/context.go.html#line-71" class="ident">Context</a>, ri <a href="#line-40" class="ident">RPCInfo</a>, done <span class="keyword">func</span>(), newStream <span class="keyword">func</span>(ctx <a href="../../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../../context/context.go.html#line-71" class="ident">Context</a>, done <span class="keyword">func</span>()) (<a href="#line-60" class="ident">ClientStream</a>, <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>)) (<a href="#line-60" class="ident">ClientStream</a>, <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
+<span class="codeline" id="line-118"><code>}</code></span>
+<span class="codeline" id="line-119"><code></code></span>
+<span class="codeline" id="line-120"><code><span class="comment">// ServerInterceptor is an interceptor for incoming RPC's on gRPC server side.</span></code></span>
+<span class="codeline" id="line-121"><code><span class="keyword">type</span> <a href="../../../../../pkg/google.golang.org/grpc/internal/resolver.html#name-ServerInterceptor" class="ident">ServerInterceptor</a> <span class="keyword">interface</span> {</code></span>
+<span class="codeline" id="line-122"><code>	<span class="comment">// AllowRPC checks if an incoming RPC is allowed to proceed based on</span></code></span>
+<span class="codeline" id="line-123"><code><span class="comment">	// information about connection RPC was received on, and HTTP Headers. This</span></code></span>
+<span class="codeline" id="line-124"><code><span class="comment">	// information will be piped into context.</span></code></span>
+<span class="codeline" id="line-125"><code>	<a href="../../../../../imp/google.golang.org/grpc/internal/resolver.ServerInterceptor.html#name-AllowRPC" class="ident">AllowRPC</a>(ctx <a href="../../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../../context/context.go.html#line-71" class="ident">Context</a>) <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a> <span class="comment">// TODO: Make this a real interceptor for filters such as rate limiting.</span></code></span>
+<span class="codeline" id="line-126"><code>}</code></span>
+<span class="codeline" id="line-127"><code></code></span>
+<span class="codeline" id="line-128"><code><span class="keyword">type</span> <a href="../../../../../pkg/google.golang.org/grpc/internal/resolver.html#name-csKeyType" class="ident">csKeyType</a> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-129"><code></code></span>
+<span class="codeline" id="line-130"><code><span class="keyword">const</span> <a href="../../../../../pkg/google.golang.org/grpc/internal/resolver.html#name-csKey" class="ident">csKey</a> = <a href="#line-128" class="ident">csKeyType</a>(<span class="lit-string">"grpc.internal.resolver.configSelector"</span>)</code></span>
+<span class="codeline" id="line-131"><code></code></span>
+<span class="codeline" id="line-132"><code><span class="comment">// SetConfigSelector sets the config selector in state and returns the new</span></code></span>
+<span class="codeline" id="line-133"><code><span class="comment">// state.</span></code></span>
+<span class="codeline" id="line-134"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../../pkg/google.golang.org/grpc/internal/resolver.html#name-SetConfigSelector" class="ident">SetConfigSelector</a></label>(<label for="r1" class="ident">state</label> <a href="../../../../../pkg/google.golang.org/grpc/resolver.html" class="ident i4">resolver</a>.<a href="../../resolver/resolver.go.html#line-183" class="ident">State</a>, <label for="r2" class="ident">cs</label> <a href="#line-32" class="ident">ConfigSelector</a>) <a href="../../../../../pkg/google.golang.org/grpc/resolver.html" class="ident i4">resolver</a>.<a href="../../resolver/resolver.go.html#line-183" class="ident">State</a> {</code></span>
+<span class="codeline" id="line-135"><code>	<label for="r1" class="ident">state</label>.<a href="../../resolver/resolver.go.html#line-194" class="ident">Attributes</a> = <label for="r1" class="ident">state</label>.<a href="../../resolver/resolver.go.html#line-194" class="ident">Attributes</a>.<a href="../../attributes/attributes.go.html#line-47" class="ident">WithValue</a>(<a href="#line-130" class="ident">csKey</a>, <label for="r2" class="ident">cs</label>)</code></span>
+<span class="codeline" id="line-136"><code>	<span class="keyword">return</span> <label for="r1" class="ident">state</label></code></span>
+<span class="codeline" id="line-137"><code>}</code></span>
+<span class="codeline" id="line-138"><code></code></span>
+<span class="codeline" id="line-139"><code><span class="comment">// GetConfigSelector retrieves the config selector from state, if present, and</span></code></span>
+<span class="codeline" id="line-140"><code><span class="comment">// returns it or nil if absent.</span></code></span>
+<span class="codeline" id="line-141"><code><span class="keyword">func</span> <label for="r3" class="ident"><a href="../../../../../pkg/google.golang.org/grpc/internal/resolver.html#name-GetConfigSelector" class="ident">GetConfigSelector</a></label>(<label for="r4" class="ident">state</label> <a href="../../../../../pkg/google.golang.org/grpc/resolver.html" class="ident i4">resolver</a>.<a href="../../resolver/resolver.go.html#line-183" class="ident">State</a>) <a href="#line-32" class="ident">ConfigSelector</a> {</code></span>
+<span class="codeline" id="line-142"><code>	<label for="r5" class="ident">cs</label>, <label for="r6" class="ident">_</label> := <label for="r4" class="ident">state</label>.<a href="../../resolver/resolver.go.html#line-194" class="ident">Attributes</a>.<a href="../../attributes/attributes.go.html#line-61" class="ident">Value</a>(<a href="#line-130" class="ident">csKey</a>).(<a href="#line-32" class="ident">ConfigSelector</a>)</code></span>
+<span class="codeline" id="line-143"><code>	<span class="keyword">return</span> <label for="r5" class="ident">cs</label></code></span>
+<span class="codeline" id="line-144"><code>}</code></span>
+<span class="codeline" id="line-145"><code></code></span>
+<span class="codeline" id="line-146"><code><span class="comment">// SafeConfigSelector allows for safe switching of ConfigSelector</span></code></span>
+<span class="codeline" id="line-147"><code><span class="comment">// implementations such that previous values are guaranteed to not be in use</span></code></span>
+<span class="codeline" id="line-148"><code><span class="comment">// when UpdateConfigSelector returns.</span></code></span>
+<span class="codeline" id="line-149"><code><span class="keyword">type</span> <a href="../../../../../pkg/google.golang.org/grpc/internal/resolver.html#name-SafeConfigSelector" class="ident">SafeConfigSelector</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-150"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/resolver..SafeConfigSelector.mu^19503.html" class="ident">mu</a> <a href="../../../../../pkg/sync.html" class="ident i1">sync</a>.<a href="../../../../sync/rwmutex.go.html#line-39" class="ident">RWMutex</a></code></span>
+<span class="codeline" id="line-151"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/resolver..SafeConfigSelector.cs^3b8b9.html" class="ident">cs</a> <a href="#line-32" class="ident">ConfigSelector</a></code></span>
+<span class="codeline" id="line-152"><code>}</code></span>
+<span class="codeline" id="line-153"><code></code></span>
+<span class="codeline" id="line-154"><code><span class="comment">// UpdateConfigSelector swaps to the provided ConfigSelector and blocks until</span></code></span>
+<span class="codeline" id="line-155"><code><span class="comment">// all uses of the previous ConfigSelector have completed.</span></code></span>
+<span class="codeline" id="line-156"><code><span class="keyword">func</span> (<label for="r7" class="ident">scs</label> *<a href="#line-149" class="ident">SafeConfigSelector</a>) <label for="r8" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/resolver..SafeConfigSelector.UpdateConfigSelector.html" class="ident">UpdateConfigSelector</a></label>(<label for="r9" class="ident">cs</label> <a href="#line-32" class="ident">ConfigSelector</a>) {</code></span>
+<span class="codeline" id="line-157"><code>	<label for="r7" class="ident">scs</label>.<a href="#line-150" class="ident">mu</a>.<a href="../../../../sync/rwmutex.go.html#line-144" class="ident">Lock</a>()</code></span>
+<span class="codeline" id="line-158"><code>	<span class="keyword">defer</span> <label for="r7" class="ident">scs</label>.<a href="#line-150" class="ident">mu</a>.<a href="../../../../sync/rwmutex.go.html#line-201" class="ident">Unlock</a>()</code></span>
+<span class="codeline" id="line-159"><code>	<label for="r7" class="ident">scs</label>.<a href="#line-151" class="ident">cs</a> = <label for="r9" class="ident">cs</label></code></span>
+<span class="codeline" id="line-160"><code>}</code></span>
+<span class="codeline" id="line-161"><code></code></span>
+<span class="codeline" id="line-162"><code><span class="comment">// SelectConfig defers to the current ConfigSelector in scs.</span></code></span>
+<span class="codeline" id="line-163"><code><span class="keyword">func</span> (<label for="r10" class="ident">scs</label> *<a href="#line-149" class="ident">SafeConfigSelector</a>) <label for="r11" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/resolver..SafeConfigSelector.SelectConfig.html" class="ident">SelectConfig</a></label>(<label for="r12" class="ident">r</label> <a href="#line-40" class="ident">RPCInfo</a>) (*<a href="#line-49" class="ident">RPCConfig</a>, <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-164"><code>	<label for="r10" class="ident">scs</label>.<a href="#line-150" class="ident">mu</a>.<a href="../../../../sync/rwmutex.go.html#line-67" class="ident">RLock</a>()</code></span>
+<span class="codeline" id="line-165"><code>	<span class="keyword">defer</span> <label for="r10" class="ident">scs</label>.<a href="#line-150" class="ident">mu</a>.<a href="../../../../sync/rwmutex.go.html#line-114" class="ident">RUnlock</a>()</code></span>
+<span class="codeline" id="line-166"><code>	<span class="keyword">return</span> <label for="r10" class="ident">scs</label>.<a href="#line-151" class="ident">cs</a>.<a href="#line-36" class="ident">SelectConfig</a>(<label for="r12" class="ident">r</label>)</code></span>
+<span class="codeline" id="line-167"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

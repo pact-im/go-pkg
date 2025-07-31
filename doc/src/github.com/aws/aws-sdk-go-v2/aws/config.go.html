@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: config.go in package github.com/aws/aws-sdk-go-v2/aws</title>
+<link href="../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	config.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws.html">github.com/aws/aws-sdk-go-v2/aws</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="keyword">package</span> aws</code></span>
+<span class="codeline" id="line-2"><code></code></span>
+<span class="codeline" id="line-3"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-4"><code>	<label for="i0"><span class="lit-string i0">"net/http"</span></label></code></span>
+<span class="codeline" id="line-5"><code></code></span>
+<span class="codeline" id="line-6"><code>	<a href="../../../../../pkg/github.com/aws/smithy-go/auth/bearer.html" class="ident i1">smithybearer</a> <label for="i1"><span class="lit-string i1">"github.com/aws/smithy-go/auth/bearer"</span></label></code></span>
+<span class="codeline" id="line-7"><code>	<label for="i2"><span class="lit-string i2">"github.com/aws/smithy-go/logging"</span></label></code></span>
+<span class="codeline" id="line-8"><code>	<label for="i3"><span class="lit-string i3">"github.com/aws/smithy-go/middleware"</span></label></code></span>
+<span class="codeline" id="line-9"><code>)</code></span>
+<span class="codeline" id="line-10"><code></code></span>
+<span class="codeline" id="line-11"><code><span class="comment">// HTTPClient provides the interface to provide custom HTTPClients. Generally</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment">// *http.Client is sufficient for most use cases. The HTTPClient should not</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">// follow 301 or 302 redirects.</span></code></span>
+<span class="codeline" id="line-14"><code><span class="keyword">type</span> <a href="../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws.html#name-HTTPClient" class="ident">HTTPClient</a> <span class="keyword">interface</span> {</code></span>
+<span class="codeline" id="line-15"><code>	<a href="../../../../../imp/github.com/aws/aws-sdk-go-v2/aws.HTTPClient.html#name-Do" class="ident">Do</a>(*<a href="../../../../../pkg/net/http.html" class="ident i0">http</a>.<a href="../../../../net/http/request.go.html#line-113" class="ident">Request</a>) (*<a href="../../../../../pkg/net/http.html" class="ident i0">http</a>.<a href="../../../../net/http/response.go.html#line-35" class="ident">Response</a>, <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
+<span class="codeline" id="line-16"><code>}</code></span>
+<span class="codeline" id="line-17"><code></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">// A Config provides service configuration for service clients.</span></code></span>
+<span class="codeline" id="line-19"><code><span class="keyword">type</span> <a href="../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws.html#name-Config" class="ident">Config</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-20"><code>	<span class="comment">// The region to send requests to. This parameter is required and must</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">	// be configured globally or on a per-client basis unless otherwise</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">	// noted. A full list of regions is found in the "Regions and Endpoints"</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">	// document.</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">	// See http://docs.aws.amazon.com/general/latest/gr/rande.html for</span></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">	// information on AWS regions.</span></code></span>
+<span class="codeline" id="line-27"><code>	<a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws..Config.Region.html" class="ident">Region</a> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-28"><code></code></span>
+<span class="codeline" id="line-29"><code>	<span class="comment">// The credentials object to use when signing requests.</span></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">	// Use the LoadDefaultConfig to load configuration from all the SDK's supported</span></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">	// sources, and resolve credentials using the SDK's default credential chain.</span></code></span>
+<span class="codeline" id="line-32"><code>	<a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws..Config.Credentials.html" class="ident">Credentials</a> <a href="credentials.go.html#line-119" class="ident">CredentialsProvider</a></code></span>
+<span class="codeline" id="line-33"><code></code></span>
+<span class="codeline" id="line-34"><code>	<span class="comment">// The Bearer Authentication token provider to use for authenticating API</span></code></span>
+<span class="codeline" id="line-35"><code><span class="comment">	// operation calls with a Bearer Authentication token. The API clients and</span></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">	// operation must support Bearer Authentication scheme in order for the</span></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">	// token provider to be used. API clients created with NewFromConfig will</span></code></span>
+<span class="codeline" id="line-38"><code><span class="comment">	// automatically be configured with this option, if the API client support</span></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">	// Bearer Authentication.</span></code></span>
+<span class="codeline" id="line-40"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-41"><code><span class="comment">	// The SDK's config.LoadDefaultConfig can automatically populate this</span></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">	// option for external configuration options such as SSO session.</span></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">	// https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-sso.html</span></code></span>
+<span class="codeline" id="line-44"><code>	<a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws..Config.BearerAuthTokenProvider.html" class="ident">BearerAuthTokenProvider</a> <a href="../../../../../pkg/github.com/aws/smithy-go/auth/bearer.html" class="ident i1">smithybearer</a>.<a href="../../smithy-go/auth/bearer/token.go.html#line-27" class="ident">TokenProvider</a></code></span>
+<span class="codeline" id="line-45"><code></code></span>
+<span class="codeline" id="line-46"><code>	<span class="comment">// The HTTP Client the SDK's API clients will use to invoke HTTP requests.</span></code></span>
+<span class="codeline" id="line-47"><code><span class="comment">	// The SDK defaults to a BuildableClient allowing API clients to create</span></code></span>
+<span class="codeline" id="line-48"><code><span class="comment">	// copies of the HTTP Client for service specific customizations.</span></code></span>
+<span class="codeline" id="line-49"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-50"><code><span class="comment">	// Use a (*http.Client) for custom behavior. Using a custom http.Client</span></code></span>
+<span class="codeline" id="line-51"><code><span class="comment">	// will prevent the SDK from modifying the HTTP client.</span></code></span>
+<span class="codeline" id="line-52"><code>	<a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws..Config.HTTPClient.html" class="ident">HTTPClient</a> <a href="#line-14" class="ident">HTTPClient</a></code></span>
+<span class="codeline" id="line-53"><code></code></span>
+<span class="codeline" id="line-54"><code>	<span class="comment">// An endpoint resolver that can be used to provide or override an endpoint</span></code></span>
+<span class="codeline" id="line-55"><code><span class="comment">	// for the given service and region.</span></code></span>
+<span class="codeline" id="line-56"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-57"><code><span class="comment">	// See the `aws.EndpointResolver` documentation for additional usage</span></code></span>
+<span class="codeline" id="line-58"><code><span class="comment">	// information.</span></code></span>
+<span class="codeline" id="line-59"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-60"><code><span class="comment">	// Deprecated: See Config.EndpointResolverWithOptions</span></code></span>
+<span class="codeline" id="line-61"><code>	<a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws..Config.EndpointResolver.html" class="ident">EndpointResolver</a> <a href="endpoints.go.html#line-165" class="ident">EndpointResolver</a></code></span>
+<span class="codeline" id="line-62"><code></code></span>
+<span class="codeline" id="line-63"><code>	<span class="comment">// An endpoint resolver that can be used to provide or override an endpoint</span></code></span>
+<span class="codeline" id="line-64"><code><span class="comment">	// for the given service and region.</span></code></span>
+<span class="codeline" id="line-65"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-66"><code><span class="comment">	// When EndpointResolverWithOptions is specified, it will be used by a</span></code></span>
+<span class="codeline" id="line-67"><code><span class="comment">	// service client rather than using EndpointResolver if also specified.</span></code></span>
+<span class="codeline" id="line-68"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-69"><code><span class="comment">	// See the `aws.EndpointResolverWithOptions` documentation for additional</span></code></span>
+<span class="codeline" id="line-70"><code><span class="comment">	// usage information.</span></code></span>
+<span class="codeline" id="line-71"><code>	<a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws..Config.EndpointResolverWithOptions.html" class="ident">EndpointResolverWithOptions</a> <a href="endpoints.go.html#line-187" class="ident">EndpointResolverWithOptions</a></code></span>
+<span class="codeline" id="line-72"><code></code></span>
+<span class="codeline" id="line-73"><code>	<span class="comment">// RetryMaxAttempts specifies the maximum number attempts an API client</span></code></span>
+<span class="codeline" id="line-74"><code><span class="comment">	// will call an operation that fails with a retryable error.</span></code></span>
+<span class="codeline" id="line-75"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-76"><code><span class="comment">	// API Clients will only use this value to construct a retryer if the</span></code></span>
+<span class="codeline" id="line-77"><code><span class="comment">	// Config.Retryer member is not nil. This value will be ignored if</span></code></span>
+<span class="codeline" id="line-78"><code><span class="comment">	// Retryer is not nil.</span></code></span>
+<span class="codeline" id="line-79"><code>	<a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws..Config.RetryMaxAttempts.html" class="ident">RetryMaxAttempts</a> <a href="../../../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-80"><code></code></span>
+<span class="codeline" id="line-81"><code>	<span class="comment">// RetryMode specifies the retry model the API client will be created with.</span></code></span>
+<span class="codeline" id="line-82"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-83"><code><span class="comment">	// API Clients will only use this value to construct a retryer if the</span></code></span>
+<span class="codeline" id="line-84"><code><span class="comment">	// Config.Retryer member is not nil. This value will be ignored if</span></code></span>
+<span class="codeline" id="line-85"><code><span class="comment">	// Retryer is not nil.</span></code></span>
+<span class="codeline" id="line-86"><code>	<a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws..Config.RetryMode.html" class="ident">RetryMode</a> <a href="retryer.go.html#line-11" class="ident">RetryMode</a></code></span>
+<span class="codeline" id="line-87"><code></code></span>
+<span class="codeline" id="line-88"><code>	<span class="comment">// Retryer is a function that provides a Retryer implementation. A Retryer</span></code></span>
+<span class="codeline" id="line-89"><code><span class="comment">	// guides how HTTP requests should be retried in case of recoverable</span></code></span>
+<span class="codeline" id="line-90"><code><span class="comment">	// failures. When nil the API client will use a default retryer.</span></code></span>
+<span class="codeline" id="line-91"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-92"><code><span class="comment">	// In general, the provider function should return a new instance of a</span></code></span>
+<span class="codeline" id="line-93"><code><span class="comment">	// Retryer if you are attempting to provide a consistent Retryer</span></code></span>
+<span class="codeline" id="line-94"><code><span class="comment">	// configuration across all clients. This will ensure that each client will</span></code></span>
+<span class="codeline" id="line-95"><code><span class="comment">	// be provided a new instance of the Retryer implementation, and will avoid</span></code></span>
+<span class="codeline" id="line-96"><code><span class="comment">	// issues such as sharing the same retry token bucket across services.</span></code></span>
+<span class="codeline" id="line-97"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-98"><code><span class="comment">	// If not nil, RetryMaxAttempts, and RetryMode will be ignored by API</span></code></span>
+<span class="codeline" id="line-99"><code><span class="comment">	// clients.</span></code></span>
+<span class="codeline" id="line-100"><code>	<a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws..Config.Retryer.html" class="ident">Retryer</a> <span class="keyword">func</span>() <a href="retryer.go.html#line-45" class="ident">Retryer</a></code></span>
+<span class="codeline" id="line-101"><code></code></span>
+<span class="codeline" id="line-102"><code>	<span class="comment">// ConfigSources are the sources that were used to construct the Config.</span></code></span>
+<span class="codeline" id="line-103"><code><span class="comment">	// Allows for additional configuration to be loaded by clients.</span></code></span>
+<span class="codeline" id="line-104"><code>	<a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws..Config.ConfigSources.html" class="ident">ConfigSources</a> []<span class="keyword">interface</span>{}</code></span>
+<span class="codeline" id="line-105"><code></code></span>
+<span class="codeline" id="line-106"><code>	<span class="comment">// APIOptions provides the set of middleware mutations modify how the API</span></code></span>
+<span class="codeline" id="line-107"><code><span class="comment">	// client requests will be handled. This is useful for adding additional</span></code></span>
+<span class="codeline" id="line-108"><code><span class="comment">	// tracing data to a request, or changing behavior of the SDK's client.</span></code></span>
+<span class="codeline" id="line-109"><code>	<a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws..Config.APIOptions.html" class="ident">APIOptions</a> []<span class="keyword">func</span>(*<a href="../../../../../pkg/github.com/aws/smithy-go/middleware.html" class="ident i3">middleware</a>.<a href="../../smithy-go/middleware/stack.go.html#line-25" class="ident">Stack</a>) <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-110"><code></code></span>
+<span class="codeline" id="line-111"><code>	<span class="comment">// The logger writer interface to write logging messages to. Defaults to</span></code></span>
+<span class="codeline" id="line-112"><code><span class="comment">	// standard error.</span></code></span>
+<span class="codeline" id="line-113"><code>	<a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws..Config.Logger.html" class="ident">Logger</a> <a href="../../../../../pkg/github.com/aws/smithy-go/logging.html" class="ident i2">logging</a>.<a href="../../smithy-go/logging/logger.go.html#line-19" class="ident">Logger</a></code></span>
+<span class="codeline" id="line-114"><code></code></span>
+<span class="codeline" id="line-115"><code>	<span class="comment">// Configures the events that will be sent to the configured logger. This</span></code></span>
+<span class="codeline" id="line-116"><code><span class="comment">	// can be used to configure the logging of signing, retries, request, and</span></code></span>
+<span class="codeline" id="line-117"><code><span class="comment">	// responses of the SDK clients.</span></code></span>
+<span class="codeline" id="line-118"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-119"><code><span class="comment">	// See the ClientLogMode type documentation for the complete set of logging</span></code></span>
+<span class="codeline" id="line-120"><code><span class="comment">	// modes and available configuration.</span></code></span>
+<span class="codeline" id="line-121"><code>	<a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws..Config.ClientLogMode.html" class="ident">ClientLogMode</a> <a href="logging.go.html#line-16" class="ident">ClientLogMode</a></code></span>
+<span class="codeline" id="line-122"><code></code></span>
+<span class="codeline" id="line-123"><code>	<span class="comment">// The configured DefaultsMode. If not specified, service clients will</span></code></span>
+<span class="codeline" id="line-124"><code><span class="comment">	// default to legacy.</span></code></span>
+<span class="codeline" id="line-125"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-126"><code><span class="comment">	// Supported modes are: auto, cross-region, in-region, legacy, mobile,</span></code></span>
+<span class="codeline" id="line-127"><code><span class="comment">	// standard</span></code></span>
+<span class="codeline" id="line-128"><code>	<a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws..Config.DefaultsMode.html" class="ident">DefaultsMode</a> <a href="defaultsmode.go.html#line-10" class="ident">DefaultsMode</a></code></span>
+<span class="codeline" id="line-129"><code></code></span>
+<span class="codeline" id="line-130"><code>	<span class="comment">// The RuntimeEnvironment configuration, only populated if the DefaultsMode</span></code></span>
+<span class="codeline" id="line-131"><code><span class="comment">	// is set to DefaultsModeAuto and is initialized by</span></code></span>
+<span class="codeline" id="line-132"><code><span class="comment">	// `config.LoadDefaultConfig`. You should not populate this structure</span></code></span>
+<span class="codeline" id="line-133"><code><span class="comment">	// programmatically, or rely on the values here within your applications.</span></code></span>
+<span class="codeline" id="line-134"><code>	<a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws..Config.RuntimeEnvironment.html" class="ident">RuntimeEnvironment</a> <a href="runtime.go.html#line-10" class="ident">RuntimeEnvironment</a></code></span>
+<span class="codeline" id="line-135"><code>}</code></span>
+<span class="codeline" id="line-136"><code></code></span>
+<span class="codeline" id="line-137"><code><span class="comment">// NewConfig returns a new Config pointer that can be chained with builder</span></code></span>
+<span class="codeline" id="line-138"><code><span class="comment">// methods to set multiple configuration values inline without using pointers.</span></code></span>
+<span class="codeline" id="line-139"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws.html#name-NewConfig" class="ident">NewConfig</a></label>() *<a href="#line-19" class="ident">Config</a> {</code></span>
+<span class="codeline" id="line-140"><code>	<span class="keyword">return</span> &amp;<a href="#line-19" class="ident">Config</a>{}</code></span>
+<span class="codeline" id="line-141"><code>}</code></span>
+<span class="codeline" id="line-142"><code></code></span>
+<span class="codeline" id="line-143"><code><span class="comment">// Copy will return a shallow copy of the Config object. If any additional</span></code></span>
+<span class="codeline" id="line-144"><code><span class="comment">// configurations are provided they will be merged into the new config returned.</span></code></span>
+<span class="codeline" id="line-145"><code><span class="keyword">func</span> (<label for="r1" class="ident">c</label> <a href="#line-19" class="ident">Config</a>) <label for="r2" class="ident"><a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws..Config.Copy.html" class="ident">Copy</a></label>() <a href="#line-19" class="ident">Config</a> {</code></span>
+<span class="codeline" id="line-146"><code>	<label for="r3" class="ident">cp</label> := <label for="r1" class="ident">c</label></code></span>
+<span class="codeline" id="line-147"><code>	<span class="keyword">return</span> <label for="r3" class="ident">cp</label></code></span>
+<span class="codeline" id="line-148"><code>}</code></span>
+<span class="codeline" id="line-149"><code></code></span>
+<span class="codeline" id="line-150"><code><span class="comment">// EndpointDiscoveryEnableState indicates if endpoint discovery is</span></code></span>
+<span class="codeline" id="line-151"><code><span class="comment">// enabled, disabled, auto or unset state.</span></code></span>
+<span class="codeline" id="line-152"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-153"><code><span class="comment">// Default behavior (Auto or Unset) indicates operations that require endpoint</span></code></span>
+<span class="codeline" id="line-154"><code><span class="comment">// discovery will use Endpoint Discovery by default. Operations that</span></code></span>
+<span class="codeline" id="line-155"><code><span class="comment">// optionally use Endpoint Discovery will not use Endpoint Discovery</span></code></span>
+<span class="codeline" id="line-156"><code><span class="comment">// unless EndpointDiscovery is explicitly enabled.</span></code></span>
+<span class="codeline" id="line-157"><code><span class="keyword">type</span> <a href="../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws.html#name-EndpointDiscoveryEnableState" class="ident">EndpointDiscoveryEnableState</a> <a href="../../../../../pkg/builtin.html#name-uint" class="ident">uint</a></code></span>
+<span class="codeline" id="line-158"><code></code></span>
+<span class="codeline" id="line-159"><code><span class="comment">// Enumeration values for EndpointDiscoveryEnableState</span></code></span>
+<span class="codeline" id="line-160"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-161"><code>	<span class="comment">// EndpointDiscoveryUnset represents EndpointDiscoveryEnableState is unset.</span></code></span>
+<span class="codeline" id="line-162"><code><span class="comment">	// Users do not need to use this value explicitly. The behavior for unset</span></code></span>
+<span class="codeline" id="line-163"><code><span class="comment">	// is the same as for EndpointDiscoveryAuto.</span></code></span>
+<span class="codeline" id="line-164"><code>	<a href="../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws.html#name-EndpointDiscoveryUnset" class="ident">EndpointDiscoveryUnset</a> <a href="#line-157" class="ident">EndpointDiscoveryEnableState</a> = <a href="../../../../../pkg/builtin.html#name-iota" class="ident">iota</a></code></span>
+<span class="codeline" id="line-165"><code></code></span>
+<span class="codeline" id="line-166"><code>	<span class="comment">// EndpointDiscoveryAuto represents an AUTO state that allows endpoint</span></code></span>
+<span class="codeline" id="line-167"><code><span class="comment">	// discovery only when required by the api. This is the default</span></code></span>
+<span class="codeline" id="line-168"><code><span class="comment">	// configuration resolved by the client if endpoint discovery is neither</span></code></span>
+<span class="codeline" id="line-169"><code><span class="comment">	// enabled or disabled.</span></code></span>
+<span class="codeline" id="line-170"><code>	<a href="../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws.html#name-EndpointDiscoveryAuto" class="ident">EndpointDiscoveryAuto</a> <span class="comment">// default state</span></code></span>
+<span class="codeline" id="line-171"><code></code></span>
+<span class="codeline" id="line-172"><code>	<span class="comment">// EndpointDiscoveryDisabled indicates client MUST not perform endpoint</span></code></span>
+<span class="codeline" id="line-173"><code><span class="comment">	// discovery even when required.</span></code></span>
+<span class="codeline" id="line-174"><code>	<a href="../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws.html#name-EndpointDiscoveryDisabled" class="ident">EndpointDiscoveryDisabled</a></code></span>
+<span class="codeline" id="line-175"><code></code></span>
+<span class="codeline" id="line-176"><code>	<span class="comment">// EndpointDiscoveryEnabled indicates client MUST always perform endpoint</span></code></span>
+<span class="codeline" id="line-177"><code><span class="comment">	// discovery if supported for the operation.</span></code></span>
+<span class="codeline" id="line-178"><code>	<a href="../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws.html#name-EndpointDiscoveryEnabled" class="ident">EndpointDiscoveryEnabled</a></code></span>
+<span class="codeline" id="line-179"><code>)</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

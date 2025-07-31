@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: interceptor.go in package google.golang.org/grpc</title>
+<link href="../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	interceptor.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../pkg/google.golang.org/grpc.html">google.golang.org/grpc</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0
+{background: brown; color: #eed;}
+</style><input id="i0" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">/*</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment"> * Copyright 2016 gRPC authors.</span></code></span>
+<span class="codeline" id="line-4"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-5"><code><span class="comment"> * Licensed under the Apache License, Version 2.0 (the "License");</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment"> * you may not use this file except in compliance with the License.</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment"> * You may obtain a copy of the License at</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment"> *     http://www.apache.org/licenses/LICENSE-2.0</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment"> * Unless required by applicable law or agreed to in writing, software</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment"> * distributed under the License is distributed on an "AS IS" BASIS,</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment"> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment"> * See the License for the specific language governing permissions and</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment"> * limitations under the License.</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment"> */</span></code></span>
+<span class="codeline" id="line-18"><code></code></span>
+<span class="codeline" id="line-19"><code><span class="keyword">package</span> grpc</code></span>
+<span class="codeline" id="line-20"><code></code></span>
+<span class="codeline" id="line-21"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-22"><code>	<label for="i0"><span class="lit-string i0">"context"</span></label></code></span>
+<span class="codeline" id="line-23"><code>)</code></span>
+<span class="codeline" id="line-24"><code></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">// UnaryInvoker is called by UnaryClientInterceptor to complete RPCs.</span></code></span>
+<span class="codeline" id="line-26"><code><span class="keyword">type</span> <a href="../../../pkg/google.golang.org/grpc.html#name-UnaryInvoker" class="ident">UnaryInvoker</a> <span class="keyword">func</span>(ctx <a href="../../../pkg/context.html" class="ident i0">context</a>.<a href="../../context/context.go.html#line-71" class="ident">Context</a>, method <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>, req, reply <span class="keyword">interface</span>{}, cc *<a href="clientconn.go.html#line-467" class="ident">ClientConn</a>, opts ...<a href="rpc_util.go.html#line-173" class="ident">CallOption</a>) <a href="../../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-27"><code></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">// UnaryClientInterceptor intercepts the execution of a unary RPC on the client.</span></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">// Unary interceptors can be specified as a DialOption, using</span></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">// WithUnaryInterceptor() or WithChainUnaryInterceptor(), when creating a</span></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">// ClientConn. When a unary interceptor(s) is set on a ClientConn, gRPC</span></code></span>
+<span class="codeline" id="line-32"><code><span class="comment">// delegates all unary RPC invocations to the interceptor, and it is the</span></code></span>
+<span class="codeline" id="line-33"><code><span class="comment">// responsibility of the interceptor to call invoker to complete the processing</span></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">// of the RPC.</span></code></span>
+<span class="codeline" id="line-35"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">// method is the RPC name. req and reply are the corresponding request and</span></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">// response messages. cc is the ClientConn on which the RPC was invoked. invoker</span></code></span>
+<span class="codeline" id="line-38"><code><span class="comment">// is the handler to complete the RPC and it is the responsibility of the</span></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">// interceptor to call it. opts contain all applicable call options, including</span></code></span>
+<span class="codeline" id="line-40"><code><span class="comment">// defaults from the ClientConn as well as per-call options.</span></code></span>
+<span class="codeline" id="line-41"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">// The returned error must be compatible with the status package.</span></code></span>
+<span class="codeline" id="line-43"><code><span class="keyword">type</span> <a href="../../../pkg/google.golang.org/grpc.html#name-UnaryClientInterceptor" class="ident">UnaryClientInterceptor</a> <span class="keyword">func</span>(ctx <a href="../../../pkg/context.html" class="ident i0">context</a>.<a href="../../context/context.go.html#line-71" class="ident">Context</a>, method <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>, req, reply <span class="keyword">interface</span>{}, cc *<a href="clientconn.go.html#line-467" class="ident">ClientConn</a>, invoker <a href="#line-26" class="ident">UnaryInvoker</a>, opts ...<a href="rpc_util.go.html#line-173" class="ident">CallOption</a>) <a href="../../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-44"><code></code></span>
+<span class="codeline" id="line-45"><code><span class="comment">// Streamer is called by StreamClientInterceptor to create a ClientStream.</span></code></span>
+<span class="codeline" id="line-46"><code><span class="keyword">type</span> <a href="../../../pkg/google.golang.org/grpc.html#name-Streamer" class="ident">Streamer</a> <span class="keyword">func</span>(ctx <a href="../../../pkg/context.html" class="ident i0">context</a>.<a href="../../context/context.go.html#line-71" class="ident">Context</a>, desc *<a href="stream.go.html#line-62" class="ident">StreamDesc</a>, cc *<a href="clientconn.go.html#line-467" class="ident">ClientConn</a>, method <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>, opts ...<a href="rpc_util.go.html#line-173" class="ident">CallOption</a>) (<a href="stream.go.html#line-91" class="ident">ClientStream</a>, <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
+<span class="codeline" id="line-47"><code></code></span>
+<span class="codeline" id="line-48"><code><span class="comment">// StreamClientInterceptor intercepts the creation of a ClientStream. Stream</span></code></span>
+<span class="codeline" id="line-49"><code><span class="comment">// interceptors can be specified as a DialOption, using WithStreamInterceptor()</span></code></span>
+<span class="codeline" id="line-50"><code><span class="comment">// or WithChainStreamInterceptor(), when creating a ClientConn. When a stream</span></code></span>
+<span class="codeline" id="line-51"><code><span class="comment">// interceptor(s) is set on the ClientConn, gRPC delegates all stream creations</span></code></span>
+<span class="codeline" id="line-52"><code><span class="comment">// to the interceptor, and it is the responsibility of the interceptor to call</span></code></span>
+<span class="codeline" id="line-53"><code><span class="comment">// streamer.</span></code></span>
+<span class="codeline" id="line-54"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-55"><code><span class="comment">// desc contains a description of the stream. cc is the ClientConn on which the</span></code></span>
+<span class="codeline" id="line-56"><code><span class="comment">// RPC was invoked. streamer is the handler to create a ClientStream and it is</span></code></span>
+<span class="codeline" id="line-57"><code><span class="comment">// the responsibility of the interceptor to call it. opts contain all applicable</span></code></span>
+<span class="codeline" id="line-58"><code><span class="comment">// call options, including defaults from the ClientConn as well as per-call</span></code></span>
+<span class="codeline" id="line-59"><code><span class="comment">// options.</span></code></span>
+<span class="codeline" id="line-60"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-61"><code><span class="comment">// StreamClientInterceptor may return a custom ClientStream to intercept all I/O</span></code></span>
+<span class="codeline" id="line-62"><code><span class="comment">// operations. The returned error must be compatible with the status package.</span></code></span>
+<span class="codeline" id="line-63"><code><span class="keyword">type</span> <a href="../../../pkg/google.golang.org/grpc.html#name-StreamClientInterceptor" class="ident">StreamClientInterceptor</a> <span class="keyword">func</span>(ctx <a href="../../../pkg/context.html" class="ident i0">context</a>.<a href="../../context/context.go.html#line-71" class="ident">Context</a>, desc *<a href="stream.go.html#line-62" class="ident">StreamDesc</a>, cc *<a href="clientconn.go.html#line-467" class="ident">ClientConn</a>, method <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>, streamer <a href="#line-46" class="ident">Streamer</a>, opts ...<a href="rpc_util.go.html#line-173" class="ident">CallOption</a>) (<a href="stream.go.html#line-91" class="ident">ClientStream</a>, <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
+<span class="codeline" id="line-64"><code></code></span>
+<span class="codeline" id="line-65"><code><span class="comment">// UnaryServerInfo consists of various information about a unary RPC on</span></code></span>
+<span class="codeline" id="line-66"><code><span class="comment">// server side. All per-rpc information may be mutated by the interceptor.</span></code></span>
+<span class="codeline" id="line-67"><code><span class="keyword">type</span> <a href="../../../pkg/google.golang.org/grpc.html#name-UnaryServerInfo" class="ident">UnaryServerInfo</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-68"><code>	<span class="comment">// Server is the service implementation the user provides. This is read-only.</span></code></span>
+<span class="codeline" id="line-69"><code>	<a href="../../../use/google.golang.org/grpc..UnaryServerInfo.Server.html" class="ident">Server</a> <span class="keyword">interface</span>{}</code></span>
+<span class="codeline" id="line-70"><code>	<span class="comment">// FullMethod is the full RPC method string, i.e., /package.service/method.</span></code></span>
+<span class="codeline" id="line-71"><code>	<a href="../../../use/google.golang.org/grpc..UnaryServerInfo.FullMethod.html" class="ident">FullMethod</a> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-72"><code>}</code></span>
+<span class="codeline" id="line-73"><code></code></span>
+<span class="codeline" id="line-74"><code><span class="comment">// UnaryHandler defines the handler invoked by UnaryServerInterceptor to complete the normal</span></code></span>
+<span class="codeline" id="line-75"><code><span class="comment">// execution of a unary RPC.</span></code></span>
+<span class="codeline" id="line-76"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-77"><code><span class="comment">// If a UnaryHandler returns an error, it should either be produced by the</span></code></span>
+<span class="codeline" id="line-78"><code><span class="comment">// status package, or be one of the context errors. Otherwise, gRPC will use</span></code></span>
+<span class="codeline" id="line-79"><code><span class="comment">// codes.Unknown as the status code and err.Error() as the status message of the</span></code></span>
+<span class="codeline" id="line-80"><code><span class="comment">// RPC.</span></code></span>
+<span class="codeline" id="line-81"><code><span class="keyword">type</span> <a href="../../../pkg/google.golang.org/grpc.html#name-UnaryHandler" class="ident">UnaryHandler</a> <span class="keyword">func</span>(ctx <a href="../../../pkg/context.html" class="ident i0">context</a>.<a href="../../context/context.go.html#line-71" class="ident">Context</a>, req <span class="keyword">interface</span>{}) (<span class="keyword">interface</span>{}, <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
+<span class="codeline" id="line-82"><code></code></span>
+<span class="codeline" id="line-83"><code><span class="comment">// UnaryServerInterceptor provides a hook to intercept the execution of a unary RPC on the server. info</span></code></span>
+<span class="codeline" id="line-84"><code><span class="comment">// contains all the information of this RPC the interceptor can operate on. And handler is the wrapper</span></code></span>
+<span class="codeline" id="line-85"><code><span class="comment">// of the service method implementation. It is the responsibility of the interceptor to invoke handler</span></code></span>
+<span class="codeline" id="line-86"><code><span class="comment">// to complete the RPC.</span></code></span>
+<span class="codeline" id="line-87"><code><span class="keyword">type</span> <a href="../../../pkg/google.golang.org/grpc.html#name-UnaryServerInterceptor" class="ident">UnaryServerInterceptor</a> <span class="keyword">func</span>(ctx <a href="../../../pkg/context.html" class="ident i0">context</a>.<a href="../../context/context.go.html#line-71" class="ident">Context</a>, req <span class="keyword">interface</span>{}, info *<a href="#line-67" class="ident">UnaryServerInfo</a>, handler <a href="#line-81" class="ident">UnaryHandler</a>) (resp <span class="keyword">interface</span>{}, err <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
+<span class="codeline" id="line-88"><code></code></span>
+<span class="codeline" id="line-89"><code><span class="comment">// StreamServerInfo consists of various information about a streaming RPC on</span></code></span>
+<span class="codeline" id="line-90"><code><span class="comment">// server side. All per-rpc information may be mutated by the interceptor.</span></code></span>
+<span class="codeline" id="line-91"><code><span class="keyword">type</span> <a href="../../../pkg/google.golang.org/grpc.html#name-StreamServerInfo" class="ident">StreamServerInfo</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-92"><code>	<span class="comment">// FullMethod is the full RPC method string, i.e., /package.service/method.</span></code></span>
+<span class="codeline" id="line-93"><code>	<a href="../../../use/google.golang.org/grpc..StreamServerInfo.FullMethod.html" class="ident">FullMethod</a> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-94"><code>	<span class="comment">// IsClientStream indicates whether the RPC is a client streaming RPC.</span></code></span>
+<span class="codeline" id="line-95"><code>	<a href="../../../use/google.golang.org/grpc..StreamServerInfo.IsClientStream.html" class="ident">IsClientStream</a> <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-96"><code>	<span class="comment">// IsServerStream indicates whether the RPC is a server streaming RPC.</span></code></span>
+<span class="codeline" id="line-97"><code>	<a href="../../../use/google.golang.org/grpc..StreamServerInfo.IsServerStream.html" class="ident">IsServerStream</a> <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-98"><code>}</code></span>
+<span class="codeline" id="line-99"><code></code></span>
+<span class="codeline" id="line-100"><code><span class="comment">// StreamServerInterceptor provides a hook to intercept the execution of a streaming RPC on the server.</span></code></span>
+<span class="codeline" id="line-101"><code><span class="comment">// info contains all the information of this RPC the interceptor can operate on. And handler is the</span></code></span>
+<span class="codeline" id="line-102"><code><span class="comment">// service method implementation. It is the responsibility of the interceptor to invoke handler to</span></code></span>
+<span class="codeline" id="line-103"><code><span class="comment">// complete the RPC.</span></code></span>
+<span class="codeline" id="line-104"><code><span class="keyword">type</span> <a href="../../../pkg/google.golang.org/grpc.html#name-StreamServerInterceptor" class="ident">StreamServerInterceptor</a> <span class="keyword">func</span>(srv <span class="keyword">interface</span>{}, ss <a href="stream.go.html#line-1455" class="ident">ServerStream</a>, info *<a href="#line-91" class="ident">StreamServerInfo</a>, handler <a href="stream.go.html#line-57" class="ident">StreamHandler</a>) <a href="../../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

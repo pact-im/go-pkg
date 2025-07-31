@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: outpost_arn.go in package github.com/aws/aws-sdk-go-v2/service/internal/s3shared/arn</title>
+<link href="../../../../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	outpost_arn.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/internal/s3shared/arn.html">github.com/aws/aws-sdk-go-v2/service/internal/s3shared/arn</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="keyword">package</span> arn</code></span>
+<span class="codeline" id="line-2"><code></code></span>
+<span class="codeline" id="line-3"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-4"><code>	<label for="i0"><span class="lit-string i0">"strings"</span></label></code></span>
+<span class="codeline" id="line-5"><code></code></span>
+<span class="codeline" id="line-6"><code>	<label for="i1"><span class="lit-string i1">"github.com/aws/aws-sdk-go-v2/aws/arn"</span></label></code></span>
+<span class="codeline" id="line-7"><code>)</code></span>
+<span class="codeline" id="line-8"><code></code></span>
+<span class="codeline" id="line-9"><code><span class="comment">// OutpostARN interface that should be satisfied by outpost ARNs</span></code></span>
+<span class="codeline" id="line-10"><code><span class="keyword">type</span> <a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/internal/s3shared/arn.html#name-OutpostARN" class="ident">OutpostARN</a> <span class="keyword">interface</span> {</code></span>
+<span class="codeline" id="line-11"><code>	<a href="arn.go.html#line-27" class="ident">Resource</a></code></span>
+<span class="codeline" id="line-12"><code>	<a href="../../../../../../../../imp/github.com/aws/aws-sdk-go-v2/service/internal/s3shared/arn.OutpostARN.html#name-GetOutpostID" class="ident">GetOutpostID</a>() <a href="../../../../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-13"><code>}</code></span>
+<span class="codeline" id="line-14"><code></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">// ParseOutpostARNResource will parse a provided ARNs resource using the appropriate ARN format</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">// and return a specific OutpostARN type</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">// Currently supported outpost ARN formats:</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">// * Outpost AccessPoint ARN format:</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">//   - ARN format: arn:{partition}:s3-outposts:{region}:{accountId}:outpost/{outpostId}/accesspoint/{accesspointName}</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">//   - example: arn:aws:s3-outposts:us-west-2:012345678901:outpost/op-1234567890123456/accesspoint/myaccesspoint</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">// * Outpost Bucket ARN format:</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">//   - ARN format: arn:{partition}:s3-outposts:{region}:{accountId}:outpost/{outpostId}/bucket/{bucketName}</span></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">//   - example: arn:aws:s3-outposts:us-west-2:012345678901:outpost/op-1234567890123456/bucket/mybucket</span></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">// Other outpost ARN formats may be supported and added in the future.</span></code></span>
+<span class="codeline" id="line-28"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/internal/s3shared/arn.html#name-ParseOutpostARNResource" class="ident">ParseOutpostARNResource</a></label>(<label for="r1" class="ident">a</label> <a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws/arn.html" class="ident i1">arn</a>.<a href="../../../../aws/arn/arn.go.html#line-28" class="ident">ARN</a>, <label for="r2" class="ident">resParts</label> []<a href="../../../../../../../../pkg/builtin.html#name-string" class="ident">string</a>) (<a href="#line-10" class="ident">OutpostARN</a>, <a href="../../../../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-29"><code>	<span class="keyword">if</span> <a href="../../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r1" class="ident">a</label>.<a href="../../../../aws/arn/arn.go.html#line-41" class="ident">Region</a>) == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-30"><code>		<span class="keyword">return</span> <a href="../../../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="arn.go.html#line-77" class="ident">InvalidARNError</a>{<a href="arn.go.html#line-78" class="ident">ARN</a>: <label for="r1" class="ident">a</label>, <a href="arn.go.html#line-79" class="ident">Reason</a>: <span class="lit-string">"region not set"</span>}</code></span>
+<span class="codeline" id="line-31"><code>	}</code></span>
+<span class="codeline" id="line-32"><code></code></span>
+<span class="codeline" id="line-33"><code>	<span class="keyword">if</span> <a href="accesspoint_arn.go.html#line-51" class="ident">isFIPS</a>(<label for="r1" class="ident">a</label>.<a href="../../../../aws/arn/arn.go.html#line-41" class="ident">Region</a>) {</code></span>
+<span class="codeline" id="line-34"><code>		<span class="keyword">return</span> <a href="../../../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="arn.go.html#line-77" class="ident">InvalidARNError</a>{<a href="arn.go.html#line-78" class="ident">ARN</a>: <label for="r1" class="ident">a</label>, <a href="arn.go.html#line-79" class="ident">Reason</a>: <span class="lit-string">"FIPS region not allowed in ARN"</span>}</code></span>
+<span class="codeline" id="line-35"><code>	}</code></span>
+<span class="codeline" id="line-36"><code></code></span>
+<span class="codeline" id="line-37"><code>	<span class="keyword">if</span> <a href="../../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r1" class="ident">a</label>.<a href="../../../../aws/arn/arn.go.html#line-45" class="ident">AccountID</a>) == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-38"><code>		<span class="keyword">return</span> <a href="../../../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="arn.go.html#line-77" class="ident">InvalidARNError</a>{<a href="arn.go.html#line-78" class="ident">ARN</a>: <label for="r1" class="ident">a</label>, <a href="arn.go.html#line-79" class="ident">Reason</a>: <span class="lit-string">"account-id not set"</span>}</code></span>
+<span class="codeline" id="line-39"><code>	}</code></span>
+<span class="codeline" id="line-40"><code></code></span>
+<span class="codeline" id="line-41"><code>	<span class="comment">// verify if outpost id is present and valid</span></code></span>
+<span class="codeline" id="line-42"><code>	<span class="keyword">if</span> <a href="../../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r2" class="ident">resParts</label>) == <span class="lit-number">0</span> || <a href="../../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<a href="../../../../../../../../pkg/strings.html" class="ident i0">strings</a>.<a href="../../../../../../../strings/strings.go.html#line-1089" class="ident">TrimSpace</a>(<label for="r2" class="ident">resParts</label>[<span class="lit-number">0</span>])) == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-43"><code>		<span class="keyword">return</span> <a href="../../../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="arn.go.html#line-77" class="ident">InvalidARNError</a>{<a href="arn.go.html#line-78" class="ident">ARN</a>: <label for="r1" class="ident">a</label>, <a href="arn.go.html#line-79" class="ident">Reason</a>: <span class="lit-string">"outpost resource-id not set"</span>}</code></span>
+<span class="codeline" id="line-44"><code>	}</code></span>
+<span class="codeline" id="line-45"><code></code></span>
+<span class="codeline" id="line-46"><code>	<span class="comment">// verify possible resource type exists</span></code></span>
+<span class="codeline" id="line-47"><code>	<span class="keyword">if</span> <a href="../../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r2" class="ident">resParts</label>) &lt; <span class="lit-number">3</span> {</code></span>
+<span class="codeline" id="line-48"><code>		<span class="keyword">return</span> <a href="../../../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="arn.go.html#line-77" class="ident">InvalidARNError</a>{</code></span>
+<span class="codeline" id="line-49"><code>			<a href="arn.go.html#line-78" class="ident">ARN</a>: <label for="r1" class="ident">a</label>, <a href="arn.go.html#line-79" class="ident">Reason</a>: <span class="lit-string">"incomplete outpost resource type. Expected bucket or access-point resource to be present"</span>,</code></span>
+<span class="codeline" id="line-50"><code>		}</code></span>
+<span class="codeline" id="line-51"><code>	}</code></span>
+<span class="codeline" id="line-52"><code></code></span>
+<span class="codeline" id="line-53"><code>	<span class="comment">// Since we know this is a OutpostARN fetch outpostID</span></code></span>
+<span class="codeline" id="line-54"><code>	<label for="r3" class="ident">outpostID</label> := <a href="../../../../../../../../pkg/strings.html" class="ident i0">strings</a>.<a href="../../../../../../../strings/strings.go.html#line-1089" class="ident">TrimSpace</a>(<label for="r2" class="ident">resParts</label>[<span class="lit-number">0</span>])</code></span>
+<span class="codeline" id="line-55"><code></code></span>
+<span class="codeline" id="line-56"><code>	<span class="keyword">switch</span> <label for="r2" class="ident">resParts</label>[<span class="lit-number">1</span>] {</code></span>
+<span class="codeline" id="line-57"><code>	<span class="keyword">case</span> <span class="lit-string">"accesspoint"</span>:</code></span>
+<span class="codeline" id="line-58"><code>		<label for="r4" class="ident">accesspointARN</label>, <label for="r5" class="ident">err</label> := <a href="accesspoint_arn.go.html#line-26" class="ident">ParseAccessPointResource</a>(<label for="r1" class="ident">a</label>, <label for="r2" class="ident">resParts</label>[<span class="lit-number">2</span>:])</code></span>
+<span class="codeline" id="line-59"><code>		<span class="keyword">if</span> <label for="r5" class="ident">err</label> != <a href="../../../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-60"><code>			<span class="keyword">return</span> <a href="#line-84" class="ident">OutpostAccessPointARN</a>{}, <label for="r5" class="ident">err</label></code></span>
+<span class="codeline" id="line-61"><code>		}</code></span>
+<span class="codeline" id="line-62"><code>		<span class="keyword">return</span> <a href="#line-84" class="ident">OutpostAccessPointARN</a>{</code></span>
+<span class="codeline" id="line-63"><code>			<a href="#line-85" class="ident">AccessPointARN</a>: <label for="r4" class="ident">accesspointARN</label>,</code></span>
+<span class="codeline" id="line-64"><code>			<a href="#line-86" class="ident">OutpostID</a>:      <label for="r3" class="ident">outpostID</label>,</code></span>
+<span class="codeline" id="line-65"><code>		}, <a href="../../../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-66"><code></code></span>
+<span class="codeline" id="line-67"><code>	<span class="keyword">case</span> <span class="lit-string">"bucket"</span>:</code></span>
+<span class="codeline" id="line-68"><code>		<label for="r6" class="ident">bucketName</label>, <label for="r7" class="ident">err</label> := <a href="#line-115" class="ident">parseBucketResource</a>(<label for="r1" class="ident">a</label>, <label for="r2" class="ident">resParts</label>[<span class="lit-number">2</span>:])</code></span>
+<span class="codeline" id="line-69"><code>		<span class="keyword">if</span> <label for="r7" class="ident">err</label> != <a href="../../../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-70"><code>			<span class="keyword">return</span> <a href="../../../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r7" class="ident">err</label></code></span>
+<span class="codeline" id="line-71"><code>		}</code></span>
+<span class="codeline" id="line-72"><code>		<span class="keyword">return</span> <a href="#line-95" class="ident">OutpostBucketARN</a>{</code></span>
+<span class="codeline" id="line-73"><code>			<a href="#line-96" class="ident">ARN</a>:        <label for="r1" class="ident">a</label>,</code></span>
+<span class="codeline" id="line-74"><code>			<a href="#line-97" class="ident">BucketName</a>: <label for="r6" class="ident">bucketName</label>,</code></span>
+<span class="codeline" id="line-75"><code>			<a href="#line-98" class="ident">OutpostID</a>:  <label for="r3" class="ident">outpostID</label>,</code></span>
+<span class="codeline" id="line-76"><code>		}, <a href="../../../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-77"><code></code></span>
+<span class="codeline" id="line-78"><code>	<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-79"><code>		<span class="keyword">return</span> <a href="../../../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="arn.go.html#line-77" class="ident">InvalidARNError</a>{<a href="arn.go.html#line-78" class="ident">ARN</a>: <label for="r1" class="ident">a</label>, <a href="arn.go.html#line-79" class="ident">Reason</a>: <span class="lit-string">"unknown resource set for outpost ARN"</span>}</code></span>
+<span class="codeline" id="line-80"><code>	}</code></span>
+<span class="codeline" id="line-81"><code>}</code></span>
+<span class="codeline" id="line-82"><code></code></span>
+<span class="codeline" id="line-83"><code><span class="comment">// OutpostAccessPointARN represents outpost access point ARN.</span></code></span>
+<span class="codeline" id="line-84"><code><span class="keyword">type</span> <a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/internal/s3shared/arn.html#name-OutpostAccessPointARN" class="ident">OutpostAccessPointARN</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-85"><code>	<a href="accesspoint_arn.go.html#line-10" class="ident">AccessPointARN</a></code></span>
+<span class="codeline" id="line-86"><code>	<a href="../../../../../../../../use/github.com/aws/aws-sdk-go-v2/service/internal/s3shared/arn..OutpostAccessPointARN.OutpostID.html" class="ident">OutpostID</a> <a href="../../../../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-87"><code>}</code></span>
+<span class="codeline" id="line-88"><code></code></span>
+<span class="codeline" id="line-89"><code><span class="comment">// GetOutpostID returns the outpost id of outpost access point arn</span></code></span>
+<span class="codeline" id="line-90"><code><span class="keyword">func</span> (<label for="r8" class="ident">o</label> <a href="#line-84" class="ident">OutpostAccessPointARN</a>) <label for="r9" class="ident"><a href="../../../../../../../../use/github.com/aws/aws-sdk-go-v2/service/internal/s3shared/arn..OutpostAccessPointARN.GetOutpostID.html" class="ident">GetOutpostID</a></label>() <a href="../../../../../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-91"><code>	<span class="keyword">return</span> <label for="r8" class="ident">o</label>.<a href="#line-86" class="ident">OutpostID</a></code></span>
+<span class="codeline" id="line-92"><code>}</code></span>
+<span class="codeline" id="line-93"><code></code></span>
+<span class="codeline" id="line-94"><code><span class="comment">// OutpostBucketARN represents the outpost bucket ARN.</span></code></span>
+<span class="codeline" id="line-95"><code><span class="keyword">type</span> <a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/internal/s3shared/arn.html#name-OutpostBucketARN" class="ident">OutpostBucketARN</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-96"><code>	<a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws/arn.html" class="ident i1">arn</a>.<a href="../../../../aws/arn/arn.go.html#line-28" class="ident">ARN</a></code></span>
+<span class="codeline" id="line-97"><code>	<a href="../../../../../../../../use/github.com/aws/aws-sdk-go-v2/service/internal/s3shared/arn..OutpostBucketARN.BucketName.html" class="ident">BucketName</a> <a href="../../../../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-98"><code>	<a href="../../../../../../../../use/github.com/aws/aws-sdk-go-v2/service/internal/s3shared/arn..OutpostBucketARN.OutpostID.html" class="ident">OutpostID</a>  <a href="../../../../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-99"><code>}</code></span>
+<span class="codeline" id="line-100"><code></code></span>
+<span class="codeline" id="line-101"><code><span class="comment">// GetOutpostID returns the outpost id of outpost bucket arn</span></code></span>
+<span class="codeline" id="line-102"><code><span class="keyword">func</span> (<label for="r10" class="ident">o</label> <a href="#line-95" class="ident">OutpostBucketARN</a>) <label for="r11" class="ident"><a href="../../../../../../../../use/github.com/aws/aws-sdk-go-v2/service/internal/s3shared/arn..OutpostBucketARN.GetOutpostID.html" class="ident">GetOutpostID</a></label>() <a href="../../../../../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-103"><code>	<span class="keyword">return</span> <label for="r10" class="ident">o</label>.<a href="#line-98" class="ident">OutpostID</a></code></span>
+<span class="codeline" id="line-104"><code>}</code></span>
+<span class="codeline" id="line-105"><code></code></span>
+<span class="codeline" id="line-106"><code><span class="comment">// GetARN retrives the base ARN from outpost bucket ARN resource</span></code></span>
+<span class="codeline" id="line-107"><code><span class="keyword">func</span> (<label for="r12" class="ident">o</label> <a href="#line-95" class="ident">OutpostBucketARN</a>) <label for="r13" class="ident"><a href="../../../../../../../../use/github.com/aws/aws-sdk-go-v2/service/internal/s3shared/arn..OutpostBucketARN.GetARN.html" class="ident">GetARN</a></label>() <a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws/arn.html" class="ident i1">arn</a>.<a href="../../../../aws/arn/arn.go.html#line-28" class="ident">ARN</a> {</code></span>
+<span class="codeline" id="line-108"><code>	<span class="keyword">return</span> <label for="r12" class="ident">o</label>.<a href="#line-96" class="ident">ARN</a></code></span>
+<span class="codeline" id="line-109"><code>}</code></span>
+<span class="codeline" id="line-110"><code></code></span>
+<span class="codeline" id="line-111"><code><span class="comment">// parseBucketResource attempts to parse the ARN's bucket resource and retrieve the</span></code></span>
+<span class="codeline" id="line-112"><code><span class="comment">// bucket resource id.</span></code></span>
+<span class="codeline" id="line-113"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-114"><code><span class="comment">// parseBucketResource only parses the bucket resource id.</span></code></span>
+<span class="codeline" id="line-115"><code><span class="keyword">func</span> <label for="r14" class="ident"><a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/internal/s3shared/arn.html#name-parseBucketResource" class="ident">parseBucketResource</a></label>(<label for="r15" class="ident">a</label> <a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws/arn.html" class="ident i1">arn</a>.<a href="../../../../aws/arn/arn.go.html#line-28" class="ident">ARN</a>, <label for="r16" class="ident">resParts</label> []<a href="../../../../../../../../pkg/builtin.html#name-string" class="ident">string</a>) (<label for="r17" class="ident">bucketName</label> <a href="../../../../../../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r18" class="ident">err</label> <a href="../../../../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-116"><code>	<span class="keyword">if</span> <a href="../../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r16" class="ident">resParts</label>) == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-117"><code>		<span class="keyword">return</span> <label for="r17" class="ident">bucketName</label>, <a href="arn.go.html#line-77" class="ident">InvalidARNError</a>{<a href="arn.go.html#line-78" class="ident">ARN</a>: <label for="r15" class="ident">a</label>, <a href="arn.go.html#line-79" class="ident">Reason</a>: <span class="lit-string">"bucket resource-id not set"</span>}</code></span>
+<span class="codeline" id="line-118"><code>	}</code></span>
+<span class="codeline" id="line-119"><code>	<span class="keyword">if</span> <a href="../../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r16" class="ident">resParts</label>) &gt; <span class="lit-number">1</span> {</code></span>
+<span class="codeline" id="line-120"><code>		<span class="keyword">return</span> <label for="r17" class="ident">bucketName</label>, <a href="arn.go.html#line-77" class="ident">InvalidARNError</a>{<a href="arn.go.html#line-78" class="ident">ARN</a>: <label for="r15" class="ident">a</label>, <a href="arn.go.html#line-79" class="ident">Reason</a>: <span class="lit-string">"sub resource not supported"</span>}</code></span>
+<span class="codeline" id="line-121"><code>	}</code></span>
+<span class="codeline" id="line-122"><code></code></span>
+<span class="codeline" id="line-123"><code>	<label for="r17" class="ident">bucketName</label> = <a href="../../../../../../../../pkg/strings.html" class="ident i0">strings</a>.<a href="../../../../../../../strings/strings.go.html#line-1089" class="ident">TrimSpace</a>(<label for="r16" class="ident">resParts</label>[<span class="lit-number">0</span>])</code></span>
+<span class="codeline" id="line-124"><code>	<span class="keyword">if</span> <a href="../../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r17" class="ident">bucketName</label>) == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-125"><code>		<span class="keyword">return</span> <label for="r17" class="ident">bucketName</label>, <a href="arn.go.html#line-77" class="ident">InvalidARNError</a>{<a href="arn.go.html#line-78" class="ident">ARN</a>: <label for="r15" class="ident">a</label>, <a href="arn.go.html#line-79" class="ident">Reason</a>: <span class="lit-string">"bucket resource-id not set"</span>}</code></span>
+<span class="codeline" id="line-126"><code>	}</code></span>
+<span class="codeline" id="line-127"><code>	<span class="keyword">return</span> <label for="r17" class="ident">bucketName</label>, <label for="r18" class="ident">err</label></code></span>
+<span class="codeline" id="line-128"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

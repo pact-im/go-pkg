@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: flowcontrol.go in package google.golang.org/grpc/internal/transport</title>
+<link href="../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	flowcontrol.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../pkg/google.golang.org/grpc/internal/transport.html">google.golang.org/grpc/internal/transport</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30],
+input[id=r31]:checked ~pre label[for=r31],
+input[id=r32]:checked ~pre label[for=r32],
+input[id=r33]:checked ~pre label[for=r33],
+input[id=r34]:checked ~pre label[for=r34],
+input[id=r35]:checked ~pre label[for=r35],
+input[id=r36]:checked ~pre label[for=r36],
+input[id=r37]:checked ~pre label[for=r37],
+input[id=r38]:checked ~pre label[for=r38],
+input[id=r39]:checked ~pre label[for=r39],
+input[id=r40]:checked ~pre label[for=r40],
+input[id=r41]:checked ~pre label[for=r41],
+input[id=r42]:checked ~pre label[for=r42],
+input[id=r43]:checked ~pre label[for=r43],
+input[id=r44]:checked ~pre label[for=r44]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="r31" type="radio" name="g"/>
+<input id="r32" type="radio" name="g"/>
+<input id="r33" type="radio" name="g"/>
+<input id="r34" type="radio" name="g"/>
+<input id="r35" type="radio" name="g"/>
+<input id="r36" type="radio" name="g"/>
+<input id="r37" type="radio" name="g"/>
+<input id="r38" type="radio" name="g"/>
+<input id="r39" type="radio" name="g"/>
+<input id="r40" type="radio" name="g"/>
+<input id="r41" type="radio" name="g"/>
+<input id="r42" type="radio" name="g"/>
+<input id="r43" type="radio" name="g"/>
+<input id="r44" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">/*</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment"> * Copyright 2014 gRPC authors.</span></code></span>
+<span class="codeline" id="line-4"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-5"><code><span class="comment"> * Licensed under the Apache License, Version 2.0 (the "License");</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment"> * you may not use this file except in compliance with the License.</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment"> * You may obtain a copy of the License at</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment"> *     http://www.apache.org/licenses/LICENSE-2.0</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment"> * Unless required by applicable law or agreed to in writing, software</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment"> * distributed under the License is distributed on an "AS IS" BASIS,</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment"> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment"> * See the License for the specific language governing permissions and</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment"> * limitations under the License.</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment"> */</span></code></span>
+<span class="codeline" id="line-18"><code></code></span>
+<span class="codeline" id="line-19"><code><span class="keyword">package</span> transport</code></span>
+<span class="codeline" id="line-20"><code></code></span>
+<span class="codeline" id="line-21"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-22"><code>	<label for="i0"><span class="lit-string i0">"fmt"</span></label></code></span>
+<span class="codeline" id="line-23"><code>	<label for="i1"><span class="lit-string i1">"math"</span></label></code></span>
+<span class="codeline" id="line-24"><code>	<label for="i2"><span class="lit-string i2">"sync"</span></label></code></span>
+<span class="codeline" id="line-25"><code>	<label for="i3"><span class="lit-string i3">"sync/atomic"</span></label></code></span>
+<span class="codeline" id="line-26"><code>)</code></span>
+<span class="codeline" id="line-27"><code></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">// writeQuota is a soft limit on the amount of data a stream can</span></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">// schedule before some of it is written out.</span></code></span>
+<span class="codeline" id="line-30"><code><span class="keyword">type</span> <a href="../../../../../pkg/google.golang.org/grpc/internal/transport.html#name-writeQuota" class="ident">writeQuota</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-31"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/transport..writeQuota^a4a1b.quota^b878a.html" class="ident">quota</a> <a href="../../../../../pkg/builtin.html#name-int32" class="ident">int32</a></code></span>
+<span class="codeline" id="line-32"><code>	<span class="comment">// get waits on read from when quota goes less than or equal to zero.</span></code></span>
+<span class="codeline" id="line-33"><code><span class="comment">	// replenish writes on it when quota goes positive again.</span></code></span>
+<span class="codeline" id="line-34"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/transport..writeQuota^a4a1b.ch^34367.html" class="ident">ch</a> <span class="keyword">chan</span> <span class="keyword">struct</span>{}</code></span>
+<span class="codeline" id="line-35"><code>	<span class="comment">// done is triggered in error case.</span></code></span>
+<span class="codeline" id="line-36"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/transport..writeQuota^a4a1b.done^a4c3e.html" class="ident">done</a> &lt;-<span class="keyword">chan</span> <span class="keyword">struct</span>{}</code></span>
+<span class="codeline" id="line-37"><code>	<span class="comment">// replenish is called by loopyWriter to give quota back to.</span></code></span>
+<span class="codeline" id="line-38"><code><span class="comment">	// It is implemented as a field so that it can be updated</span></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">	// by tests.</span></code></span>
+<span class="codeline" id="line-40"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/transport..writeQuota^a4a1b.replenish^df5ba.html" class="ident">replenish</a> <span class="keyword">func</span>(n <a href="../../../../../pkg/builtin.html#name-int" class="ident">int</a>)</code></span>
+<span class="codeline" id="line-41"><code>}</code></span>
+<span class="codeline" id="line-42"><code></code></span>
+<span class="codeline" id="line-43"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../../pkg/google.golang.org/grpc/internal/transport.html#name-newWriteQuota" class="ident">newWriteQuota</a></label>(<label for="r1" class="ident">sz</label> <a href="../../../../../pkg/builtin.html#name-int32" class="ident">int32</a>, <label for="r2" class="ident">done</label> &lt;-<span class="keyword">chan</span> <span class="keyword">struct</span>{}) *<a href="#line-30" class="ident">writeQuota</a> {</code></span>
+<span class="codeline" id="line-44"><code>	<label for="r3" class="ident">w</label> := &amp;<a href="#line-30" class="ident">writeQuota</a>{</code></span>
+<span class="codeline" id="line-45"><code>		<a href="#line-31" class="ident">quota</a>: <label for="r1" class="ident">sz</label>,</code></span>
+<span class="codeline" id="line-46"><code>		<a href="#line-34" class="ident">ch</a>:    <a href="../../../../runtime/chan.go.html#line-75">make</a>(<span class="keyword">chan</span> <span class="keyword">struct</span>{}, <span class="lit-number">1</span>),</code></span>
+<span class="codeline" id="line-47"><code>		<a href="#line-36" class="ident">done</a>:  <label for="r2" class="ident">done</label>,</code></span>
+<span class="codeline" id="line-48"><code>	}</code></span>
+<span class="codeline" id="line-49"><code>	<label for="r3" class="ident">w</label>.<a href="#line-40" class="ident">replenish</a> = <label for="r3" class="ident">w</label>.<a href="#line-68" class="ident">realReplenish</a></code></span>
+<span class="codeline" id="line-50"><code>	<span class="keyword">return</span> <label for="r3" class="ident">w</label></code></span>
+<span class="codeline" id="line-51"><code>}</code></span>
+<span class="codeline" id="line-52"><code></code></span>
+<span class="codeline" id="line-53"><code><span class="keyword">func</span> (<label for="r4" class="ident">w</label> *<a href="#line-30" class="ident">writeQuota</a>) <label for="r5" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/transport..writeQuota^a4a1b.get^2998b.html" class="ident">get</a></label>(<label for="r6" class="ident">sz</label> <a href="../../../../../pkg/builtin.html#name-int32" class="ident">int32</a>) <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-54"><code>	<span class="keyword">for</span> {</code></span>
+<span class="codeline" id="line-55"><code>		<span class="keyword">if</span> <a href="../../../../../pkg/sync/atomic.html" class="ident i3">atomic</a>.<a href="../../../../sync/atomic/doc.go.html#line-177" class="ident">LoadInt32</a>(&amp;<label for="r4" class="ident">w</label>.<a href="#line-31" class="ident">quota</a>) &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-56"><code>			<a href="../../../../../pkg/sync/atomic.html" class="ident i3">atomic</a>.<a href="../../../../sync/atomic/doc.go.html#line-115" class="ident">AddInt32</a>(&amp;<label for="r4" class="ident">w</label>.<a href="#line-31" class="ident">quota</a>, -<label for="r6" class="ident">sz</label>)</code></span>
+<span class="codeline" id="line-57"><code>			<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-58"><code>		}</code></span>
+<span class="codeline" id="line-59"><code>		<a href="../../../../runtime/select.go.html#line-122"><span class="keyword">select</span></a> {</code></span>
+<span class="codeline" id="line-60"><code>		<span class="keyword">case</span> <a href="../../../../runtime/chan.go.html#line-505">&lt;-</a><label for="r4" class="ident">w</label>.<a href="#line-34" class="ident">ch</a>:</code></span>
+<span class="codeline" id="line-61"><code>			<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-62"><code>		<span class="keyword">case</span> <a href="../../../../runtime/chan.go.html#line-505">&lt;-</a><label for="r4" class="ident">w</label>.<a href="#line-36" class="ident">done</a>:</code></span>
+<span class="codeline" id="line-63"><code>			<span class="keyword">return</span> <a href="transport.go.html#line-770" class="ident">errStreamDone</a></code></span>
+<span class="codeline" id="line-64"><code>		}</code></span>
+<span class="codeline" id="line-65"><code>	}</code></span>
+<span class="codeline" id="line-66"><code>}</code></span>
+<span class="codeline" id="line-67"><code></code></span>
+<span class="codeline" id="line-68"><code><span class="keyword">func</span> (<label for="r7" class="ident">w</label> *<a href="#line-30" class="ident">writeQuota</a>) <label for="r8" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/transport..writeQuota^a4a1b.realReplenish^3144d.html" class="ident">realReplenish</a></label>(<label for="r9" class="ident">n</label> <a href="../../../../../pkg/builtin.html#name-int" class="ident">int</a>) {</code></span>
+<span class="codeline" id="line-69"><code>	<label for="r10" class="ident">sz</label> := <a href="../../../../../pkg/builtin.html#name-int32" class="ident">int32</a>(<label for="r9" class="ident">n</label>)</code></span>
+<span class="codeline" id="line-70"><code>	<label for="r11" class="ident">a</label> := <a href="../../../../../pkg/sync/atomic.html" class="ident i3">atomic</a>.<a href="../../../../sync/atomic/doc.go.html#line-115" class="ident">AddInt32</a>(&amp;<label for="r7" class="ident">w</label>.<a href="#line-31" class="ident">quota</a>, <label for="r10" class="ident">sz</label>)</code></span>
+<span class="codeline" id="line-71"><code>	<label for="r12" class="ident">b</label> := <label for="r11" class="ident">a</label> - <label for="r10" class="ident">sz</label></code></span>
+<span class="codeline" id="line-72"><code>	<span class="keyword">if</span> <label for="r12" class="ident">b</label> &lt;= <span class="lit-number">0</span> &amp;&amp; <label for="r11" class="ident">a</label> &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-73"><code>		<a href="../../../../runtime/chan.go.html#line-781"><span class="keyword">select</span></a> {</code></span>
+<span class="codeline" id="line-74"><code>		<span class="keyword">case</span> <label for="r7" class="ident">w</label>.<a href="#line-34" class="ident">ch</a> <a href="../../../../runtime/chan.go.html#line-176">&lt;-</a> <span class="keyword">struct</span>{}{}:</code></span>
+<span class="codeline" id="line-75"><code>		<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-76"><code>		}</code></span>
+<span class="codeline" id="line-77"><code>	}</code></span>
+<span class="codeline" id="line-78"><code>}</code></span>
+<span class="codeline" id="line-79"><code></code></span>
+<span class="codeline" id="line-80"><code><span class="keyword">type</span> <a href="../../../../../pkg/google.golang.org/grpc/internal/transport.html#name-trInFlow" class="ident">trInFlow</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-81"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/transport..trInFlow^41474.limit^55ea0.html" class="ident">limit</a>               <a href="../../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a></code></span>
+<span class="codeline" id="line-82"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/transport..trInFlow^41474.unacked^8338e.html" class="ident">unacked</a>             <a href="../../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a></code></span>
+<span class="codeline" id="line-83"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/transport..trInFlow^41474.effectiveWindowSize^45979.html" class="ident">effectiveWindowSize</a> <a href="../../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a></code></span>
+<span class="codeline" id="line-84"><code>}</code></span>
+<span class="codeline" id="line-85"><code></code></span>
+<span class="codeline" id="line-86"><code><span class="keyword">func</span> (<label for="r13" class="ident">f</label> *<a href="#line-80" class="ident">trInFlow</a>) <label for="r14" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/transport..trInFlow^41474.newLimit^c17bb.html" class="ident">newLimit</a></label>(<label for="r15" class="ident">n</label> <a href="../../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a>) <a href="../../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a> {</code></span>
+<span class="codeline" id="line-87"><code>	<label for="r16" class="ident">d</label> := <label for="r15" class="ident">n</label> - <label for="r13" class="ident">f</label>.<a href="#line-81" class="ident">limit</a></code></span>
+<span class="codeline" id="line-88"><code>	<label for="r13" class="ident">f</label>.<a href="#line-81" class="ident">limit</a> = <label for="r15" class="ident">n</label></code></span>
+<span class="codeline" id="line-89"><code>	<label for="r13" class="ident">f</label>.<a href="#line-112" class="ident">updateEffectiveWindowSize</a>()</code></span>
+<span class="codeline" id="line-90"><code>	<span class="keyword">return</span> <label for="r16" class="ident">d</label></code></span>
+<span class="codeline" id="line-91"><code>}</code></span>
+<span class="codeline" id="line-92"><code></code></span>
+<span class="codeline" id="line-93"><code><span class="keyword">func</span> (<label for="r17" class="ident">f</label> *<a href="#line-80" class="ident">trInFlow</a>) <label for="r18" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/transport..trInFlow^41474.onData^70cd7.html" class="ident">onData</a></label>(<label for="r19" class="ident">n</label> <a href="../../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a>) <a href="../../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a> {</code></span>
+<span class="codeline" id="line-94"><code>	<label for="r17" class="ident">f</label>.<a href="#line-82" class="ident">unacked</a> += <label for="r19" class="ident">n</label></code></span>
+<span class="codeline" id="line-95"><code>	<span class="keyword">if</span> <label for="r17" class="ident">f</label>.<a href="#line-82" class="ident">unacked</a> &gt;= <label for="r17" class="ident">f</label>.<a href="#line-81" class="ident">limit</a>/<span class="lit-number">4</span> {</code></span>
+<span class="codeline" id="line-96"><code>		<label for="r20" class="ident">w</label> := <label for="r17" class="ident">f</label>.<a href="#line-82" class="ident">unacked</a></code></span>
+<span class="codeline" id="line-97"><code>		<label for="r17" class="ident">f</label>.<a href="#line-82" class="ident">unacked</a> = <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-98"><code>		<label for="r17" class="ident">f</label>.<a href="#line-112" class="ident">updateEffectiveWindowSize</a>()</code></span>
+<span class="codeline" id="line-99"><code>		<span class="keyword">return</span> <label for="r20" class="ident">w</label></code></span>
+<span class="codeline" id="line-100"><code>	}</code></span>
+<span class="codeline" id="line-101"><code>	<label for="r17" class="ident">f</label>.<a href="#line-112" class="ident">updateEffectiveWindowSize</a>()</code></span>
+<span class="codeline" id="line-102"><code>	<span class="keyword">return</span> <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-103"><code>}</code></span>
+<span class="codeline" id="line-104"><code></code></span>
+<span class="codeline" id="line-105"><code><span class="keyword">func</span> (<label for="r21" class="ident">f</label> *<a href="#line-80" class="ident">trInFlow</a>) <label for="r22" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/transport..trInFlow^41474.reset^01be3.html" class="ident">reset</a></label>() <a href="../../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a> {</code></span>
+<span class="codeline" id="line-106"><code>	<label for="r23" class="ident">w</label> := <label for="r21" class="ident">f</label>.<a href="#line-82" class="ident">unacked</a></code></span>
+<span class="codeline" id="line-107"><code>	<label for="r21" class="ident">f</label>.<a href="#line-82" class="ident">unacked</a> = <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-108"><code>	<label for="r21" class="ident">f</label>.<a href="#line-112" class="ident">updateEffectiveWindowSize</a>()</code></span>
+<span class="codeline" id="line-109"><code>	<span class="keyword">return</span> <label for="r23" class="ident">w</label></code></span>
+<span class="codeline" id="line-110"><code>}</code></span>
+<span class="codeline" id="line-111"><code></code></span>
+<span class="codeline" id="line-112"><code><span class="keyword">func</span> (<label for="r24" class="ident">f</label> *<a href="#line-80" class="ident">trInFlow</a>) <label for="r25" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/transport..trInFlow^41474.updateEffectiveWindowSize^bc508.html" class="ident">updateEffectiveWindowSize</a></label>() {</code></span>
+<span class="codeline" id="line-113"><code>	<a href="../../../../../pkg/sync/atomic.html" class="ident i3">atomic</a>.<a href="../../../../sync/atomic/doc.go.html#line-205" class="ident">StoreUint32</a>(&amp;<label for="r24" class="ident">f</label>.<a href="#line-83" class="ident">effectiveWindowSize</a>, <label for="r24" class="ident">f</label>.<a href="#line-81" class="ident">limit</a>-<label for="r24" class="ident">f</label>.<a href="#line-82" class="ident">unacked</a>)</code></span>
+<span class="codeline" id="line-114"><code>}</code></span>
+<span class="codeline" id="line-115"><code></code></span>
+<span class="codeline" id="line-116"><code><span class="keyword">func</span> (<label for="r26" class="ident">f</label> *<a href="#line-80" class="ident">trInFlow</a>) <label for="r27" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/transport..trInFlow^41474.getSize^caef9.html" class="ident">getSize</a></label>() <a href="../../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a> {</code></span>
+<span class="codeline" id="line-117"><code>	<span class="keyword">return</span> <a href="../../../../../pkg/sync/atomic.html" class="ident i3">atomic</a>.<a href="../../../../sync/atomic/doc.go.html#line-183" class="ident">LoadUint32</a>(&amp;<label for="r26" class="ident">f</label>.<a href="#line-83" class="ident">effectiveWindowSize</a>)</code></span>
+<span class="codeline" id="line-118"><code>}</code></span>
+<span class="codeline" id="line-119"><code></code></span>
+<span class="codeline" id="line-120"><code><span class="comment">// TODO(mmukhi): Simplify this code.</span></code></span>
+<span class="codeline" id="line-121"><code><span class="comment">// inFlow deals with inbound flow control</span></code></span>
+<span class="codeline" id="line-122"><code><span class="keyword">type</span> <a href="../../../../../pkg/google.golang.org/grpc/internal/transport.html#name-inFlow" class="ident">inFlow</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-123"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/transport..inFlow^bf22a.mu^19503.html" class="ident">mu</a> <a href="../../../../../pkg/sync.html" class="ident i2">sync</a>.<a href="../../../../sync/mutex.go.html#line-30" class="ident">Mutex</a></code></span>
+<span class="codeline" id="line-124"><code>	<span class="comment">// The inbound flow control limit for pending data.</span></code></span>
+<span class="codeline" id="line-125"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/transport..inFlow^bf22a.limit^55ea0.html" class="ident">limit</a> <a href="../../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a></code></span>
+<span class="codeline" id="line-126"><code>	<span class="comment">// pendingData is the overall data which have been received but not been</span></code></span>
+<span class="codeline" id="line-127"><code><span class="comment">	// consumed by applications.</span></code></span>
+<span class="codeline" id="line-128"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/transport..inFlow^bf22a.pendingData^5df99.html" class="ident">pendingData</a> <a href="../../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a></code></span>
+<span class="codeline" id="line-129"><code>	<span class="comment">// The amount of data the application has consumed but grpc has not sent</span></code></span>
+<span class="codeline" id="line-130"><code><span class="comment">	// window update for them. Used to reduce window update frequency.</span></code></span>
+<span class="codeline" id="line-131"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/transport..inFlow^bf22a.pendingUpdate^37389.html" class="ident">pendingUpdate</a> <a href="../../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a></code></span>
+<span class="codeline" id="line-132"><code>	<span class="comment">// delta is the extra window update given by receiver when an application</span></code></span>
+<span class="codeline" id="line-133"><code><span class="comment">	// is reading data bigger in size than the inFlow limit.</span></code></span>
+<span class="codeline" id="line-134"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/transport..inFlow^bf22a.delta^4f4a9.html" class="ident">delta</a> <a href="../../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a></code></span>
+<span class="codeline" id="line-135"><code>}</code></span>
+<span class="codeline" id="line-136"><code></code></span>
+<span class="codeline" id="line-137"><code><span class="comment">// newLimit updates the inflow window to a new value n.</span></code></span>
+<span class="codeline" id="line-138"><code><span class="comment">// It assumes that n is always greater than the old limit.</span></code></span>
+<span class="codeline" id="line-139"><code><span class="keyword">func</span> (<label for="r28" class="ident">f</label> *<a href="#line-122" class="ident">inFlow</a>) <label for="r29" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/transport..inFlow^bf22a.newLimit^c17bb.html" class="ident">newLimit</a></label>(<label for="r30" class="ident">n</label> <a href="../../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a>) {</code></span>
+<span class="codeline" id="line-140"><code>	<label for="r28" class="ident">f</label>.<a href="#line-123" class="ident">mu</a>.<a href="../../../../sync/mutex.go.html#line-45" class="ident">Lock</a>()</code></span>
+<span class="codeline" id="line-141"><code>	<label for="r28" class="ident">f</label>.<a href="#line-125" class="ident">limit</a> = <label for="r30" class="ident">n</label></code></span>
+<span class="codeline" id="line-142"><code>	<label for="r28" class="ident">f</label>.<a href="#line-123" class="ident">mu</a>.<a href="../../../../sync/mutex.go.html#line-64" class="ident">Unlock</a>()</code></span>
+<span class="codeline" id="line-143"><code>}</code></span>
+<span class="codeline" id="line-144"><code></code></span>
+<span class="codeline" id="line-145"><code><span class="keyword">func</span> (<label for="r31" class="ident">f</label> *<a href="#line-122" class="ident">inFlow</a>) <label for="r32" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/transport..inFlow^bf22a.maybeAdjust^9d2b9.html" class="ident">maybeAdjust</a></label>(<label for="r33" class="ident">n</label> <a href="../../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a>) <a href="../../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a> {</code></span>
+<span class="codeline" id="line-146"><code>	<span class="keyword">if</span> <label for="r33" class="ident">n</label> &gt; <a href="../../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a>(<a href="../../../../../pkg/math.html" class="ident i1">math</a>.<a href="../../../../math/const.go.html#line-48" class="ident">MaxInt32</a>) {</code></span>
+<span class="codeline" id="line-147"><code>		<label for="r33" class="ident">n</label> = <a href="../../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a>(<a href="../../../../../pkg/math.html" class="ident i1">math</a>.<a href="../../../../math/const.go.html#line-48" class="ident">MaxInt32</a>)</code></span>
+<span class="codeline" id="line-148"><code>	}</code></span>
+<span class="codeline" id="line-149"><code>	<label for="r31" class="ident">f</label>.<a href="#line-123" class="ident">mu</a>.<a href="../../../../sync/mutex.go.html#line-45" class="ident">Lock</a>()</code></span>
+<span class="codeline" id="line-150"><code>	<span class="keyword">defer</span> <label for="r31" class="ident">f</label>.<a href="#line-123" class="ident">mu</a>.<a href="../../../../sync/mutex.go.html#line-64" class="ident">Unlock</a>()</code></span>
+<span class="codeline" id="line-151"><code>	<span class="comment">// estSenderQuota is the receiver's view of the maximum number of bytes the sender</span></code></span>
+<span class="codeline" id="line-152"><code><span class="comment">	// can send without a window update.</span></code></span>
+<span class="codeline" id="line-153"><code>	<label for="r34" class="ident">estSenderQuota</label> := <a href="../../../../../pkg/builtin.html#name-int32" class="ident">int32</a>(<label for="r31" class="ident">f</label>.<a href="#line-125" class="ident">limit</a> - (<label for="r31" class="ident">f</label>.<a href="#line-128" class="ident">pendingData</a> + <label for="r31" class="ident">f</label>.<a href="#line-131" class="ident">pendingUpdate</a>))</code></span>
+<span class="codeline" id="line-154"><code>	<span class="comment">// estUntransmittedData is the maximum number of bytes the sends might not have put</span></code></span>
+<span class="codeline" id="line-155"><code><span class="comment">	// on the wire yet. A value of 0 or less means that we have already received all or</span></code></span>
+<span class="codeline" id="line-156"><code><span class="comment">	// more bytes than the application is requesting to read.</span></code></span>
+<span class="codeline" id="line-157"><code>	<label for="r35" class="ident">estUntransmittedData</label> := <a href="../../../../../pkg/builtin.html#name-int32" class="ident">int32</a>(<label for="r33" class="ident">n</label> - <label for="r31" class="ident">f</label>.<a href="#line-128" class="ident">pendingData</a>) <span class="comment">// Casting into int32 since it could be negative.</span></code></span>
+<span class="codeline" id="line-158"><code>	<span class="comment">// This implies that unless we send a window update, the sender won't be able to send all the bytes</span></code></span>
+<span class="codeline" id="line-159"><code><span class="comment">	// for this message. Therefore we must send an update over the limit since there's an active read</span></code></span>
+<span class="codeline" id="line-160"><code><span class="comment">	// request from the application.</span></code></span>
+<span class="codeline" id="line-161"><code>	<span class="keyword">if</span> <label for="r35" class="ident">estUntransmittedData</label> &gt; <label for="r34" class="ident">estSenderQuota</label> {</code></span>
+<span class="codeline" id="line-162"><code>		<span class="comment">// Sender's window shouldn't go more than 2^31 - 1 as specified in the HTTP spec.</span></code></span>
+<span class="codeline" id="line-163"><code>		<span class="keyword">if</span> <label for="r31" class="ident">f</label>.<a href="#line-125" class="ident">limit</a>+<label for="r33" class="ident">n</label> &gt; <a href="defaults.go.html#line-42" class="ident">maxWindowSize</a> {</code></span>
+<span class="codeline" id="line-164"><code>			<label for="r31" class="ident">f</label>.<a href="#line-134" class="ident">delta</a> = <a href="defaults.go.html#line-42" class="ident">maxWindowSize</a> - <label for="r31" class="ident">f</label>.<a href="#line-125" class="ident">limit</a></code></span>
+<span class="codeline" id="line-165"><code>		} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-166"><code>			<span class="comment">// Send a window update for the whole message and not just the difference between</span></code></span>
+<span class="codeline" id="line-167"><code><span class="comment">			// estUntransmittedData and estSenderQuota. This will be helpful in case the message</span></code></span>
+<span class="codeline" id="line-168"><code><span class="comment">			// is padded; We will fallback on the current available window(at least a 1/4th of the limit).</span></code></span>
+<span class="codeline" id="line-169"><code>			<label for="r31" class="ident">f</label>.<a href="#line-134" class="ident">delta</a> = <label for="r33" class="ident">n</label></code></span>
+<span class="codeline" id="line-170"><code>		}</code></span>
+<span class="codeline" id="line-171"><code>		<span class="keyword">return</span> <label for="r31" class="ident">f</label>.<a href="#line-134" class="ident">delta</a></code></span>
+<span class="codeline" id="line-172"><code>	}</code></span>
+<span class="codeline" id="line-173"><code>	<span class="keyword">return</span> <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-174"><code>}</code></span>
+<span class="codeline" id="line-175"><code></code></span>
+<span class="codeline" id="line-176"><code><span class="comment">// onData is invoked when some data frame is received. It updates pendingData.</span></code></span>
+<span class="codeline" id="line-177"><code><span class="keyword">func</span> (<label for="r36" class="ident">f</label> *<a href="#line-122" class="ident">inFlow</a>) <label for="r37" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/transport..inFlow^bf22a.onData^70cd7.html" class="ident">onData</a></label>(<label for="r38" class="ident">n</label> <a href="../../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a>) <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-178"><code>	<label for="r36" class="ident">f</label>.<a href="#line-123" class="ident">mu</a>.<a href="../../../../sync/mutex.go.html#line-45" class="ident">Lock</a>()</code></span>
+<span class="codeline" id="line-179"><code>	<label for="r36" class="ident">f</label>.<a href="#line-128" class="ident">pendingData</a> += <label for="r38" class="ident">n</label></code></span>
+<span class="codeline" id="line-180"><code>	<span class="keyword">if</span> <label for="r36" class="ident">f</label>.<a href="#line-128" class="ident">pendingData</a>+<label for="r36" class="ident">f</label>.<a href="#line-131" class="ident">pendingUpdate</a> &gt; <label for="r36" class="ident">f</label>.<a href="#line-125" class="ident">limit</a>+<label for="r36" class="ident">f</label>.<a href="#line-134" class="ident">delta</a> {</code></span>
+<span class="codeline" id="line-181"><code>		<label for="r39" class="ident">limit</label> := <label for="r36" class="ident">f</label>.<a href="#line-125" class="ident">limit</a></code></span>
+<span class="codeline" id="line-182"><code>		<label for="r40" class="ident">rcvd</label> := <label for="r36" class="ident">f</label>.<a href="#line-128" class="ident">pendingData</a> + <label for="r36" class="ident">f</label>.<a href="#line-131" class="ident">pendingUpdate</a></code></span>
+<span class="codeline" id="line-183"><code>		<label for="r36" class="ident">f</label>.<a href="#line-123" class="ident">mu</a>.<a href="../../../../sync/mutex.go.html#line-64" class="ident">Unlock</a>()</code></span>
+<span class="codeline" id="line-184"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/fmt.html" class="ident i0">fmt</a>.<a href="../../../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"received %d-bytes data exceeding the limit %d bytes"</span>, <label for="r40" class="ident">rcvd</label>, <label for="r39" class="ident">limit</label>)</code></span>
+<span class="codeline" id="line-185"><code>	}</code></span>
+<span class="codeline" id="line-186"><code>	<label for="r36" class="ident">f</label>.<a href="#line-123" class="ident">mu</a>.<a href="../../../../sync/mutex.go.html#line-64" class="ident">Unlock</a>()</code></span>
+<span class="codeline" id="line-187"><code>	<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-188"><code>}</code></span>
+<span class="codeline" id="line-189"><code></code></span>
+<span class="codeline" id="line-190"><code><span class="comment">// onRead is invoked when the application reads the data. It returns the window size</span></code></span>
+<span class="codeline" id="line-191"><code><span class="comment">// to be sent to the peer.</span></code></span>
+<span class="codeline" id="line-192"><code><span class="keyword">func</span> (<label for="r41" class="ident">f</label> *<a href="#line-122" class="ident">inFlow</a>) <label for="r42" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/transport..inFlow^bf22a.onRead^7f4cc.html" class="ident">onRead</a></label>(<label for="r43" class="ident">n</label> <a href="../../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a>) <a href="../../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a> {</code></span>
+<span class="codeline" id="line-193"><code>	<label for="r41" class="ident">f</label>.<a href="#line-123" class="ident">mu</a>.<a href="../../../../sync/mutex.go.html#line-45" class="ident">Lock</a>()</code></span>
+<span class="codeline" id="line-194"><code>	<span class="keyword">if</span> <label for="r41" class="ident">f</label>.<a href="#line-128" class="ident">pendingData</a> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-195"><code>		<label for="r41" class="ident">f</label>.<a href="#line-123" class="ident">mu</a>.<a href="../../../../sync/mutex.go.html#line-64" class="ident">Unlock</a>()</code></span>
+<span class="codeline" id="line-196"><code>		<span class="keyword">return</span> <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-197"><code>	}</code></span>
+<span class="codeline" id="line-198"><code>	<label for="r41" class="ident">f</label>.<a href="#line-128" class="ident">pendingData</a> -= <label for="r43" class="ident">n</label></code></span>
+<span class="codeline" id="line-199"><code>	<span class="keyword">if</span> <label for="r43" class="ident">n</label> &gt; <label for="r41" class="ident">f</label>.<a href="#line-134" class="ident">delta</a> {</code></span>
+<span class="codeline" id="line-200"><code>		<label for="r43" class="ident">n</label> -= <label for="r41" class="ident">f</label>.<a href="#line-134" class="ident">delta</a></code></span>
+<span class="codeline" id="line-201"><code>		<label for="r41" class="ident">f</label>.<a href="#line-134" class="ident">delta</a> = <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-202"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-203"><code>		<label for="r41" class="ident">f</label>.<a href="#line-134" class="ident">delta</a> -= <label for="r43" class="ident">n</label></code></span>
+<span class="codeline" id="line-204"><code>		<label for="r43" class="ident">n</label> = <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-205"><code>	}</code></span>
+<span class="codeline" id="line-206"><code>	<label for="r41" class="ident">f</label>.<a href="#line-131" class="ident">pendingUpdate</a> += <label for="r43" class="ident">n</label></code></span>
+<span class="codeline" id="line-207"><code>	<span class="keyword">if</span> <label for="r41" class="ident">f</label>.<a href="#line-131" class="ident">pendingUpdate</a> &gt;= <label for="r41" class="ident">f</label>.<a href="#line-125" class="ident">limit</a>/<span class="lit-number">4</span> {</code></span>
+<span class="codeline" id="line-208"><code>		<label for="r44" class="ident">wu</label> := <label for="r41" class="ident">f</label>.<a href="#line-131" class="ident">pendingUpdate</a></code></span>
+<span class="codeline" id="line-209"><code>		<label for="r41" class="ident">f</label>.<a href="#line-131" class="ident">pendingUpdate</a> = <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-210"><code>		<label for="r41" class="ident">f</label>.<a href="#line-123" class="ident">mu</a>.<a href="../../../../sync/mutex.go.html#line-64" class="ident">Unlock</a>()</code></span>
+<span class="codeline" id="line-211"><code>		<span class="keyword">return</span> <label for="r44" class="ident">wu</label></code></span>
+<span class="codeline" id="line-212"><code>	}</code></span>
+<span class="codeline" id="line-213"><code>	<label for="r41" class="ident">f</label>.<a href="#line-123" class="ident">mu</a>.<a href="../../../../sync/mutex.go.html#line-64" class="ident">Unlock</a>()</code></span>
+<span class="codeline" id="line-214"><code>	<span class="keyword">return</span> <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-215"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

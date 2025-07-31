@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: sha3.go in package golang.org/x/crypto/sha3</title>
+<link href="../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	sha3.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../pkg/golang.org/x/crypto/sha3.html">golang.org/x/crypto/sha3</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30]
+{background: #226; color: #ff8;}
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2014 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> sha3</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="comment">// spongeDirection indicates the direction bytes are flowing through the sponge.</span></code></span>
+<span class="codeline" id="line-8"><code><span class="keyword">type</span> <a href="../../../../../pkg/golang.org/x/crypto/sha3.html#name-spongeDirection" class="ident">spongeDirection</a> <a href="../../../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-9"><code></code></span>
+<span class="codeline" id="line-10"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-11"><code>	<span class="comment">// spongeAbsorbing indicates that the sponge is absorbing input.</span></code></span>
+<span class="codeline" id="line-12"><code>	<a href="../../../../../pkg/golang.org/x/crypto/sha3.html#name-spongeAbsorbing" class="ident">spongeAbsorbing</a> <a href="#line-8" class="ident">spongeDirection</a> = <a href="../../../../../pkg/builtin.html#name-iota" class="ident">iota</a></code></span>
+<span class="codeline" id="line-13"><code>	<span class="comment">// spongeSqueezing indicates that the sponge is being squeezed.</span></code></span>
+<span class="codeline" id="line-14"><code>	<a href="../../../../../pkg/golang.org/x/crypto/sha3.html#name-spongeSqueezing" class="ident">spongeSqueezing</a></code></span>
+<span class="codeline" id="line-15"><code>)</code></span>
+<span class="codeline" id="line-16"><code></code></span>
+<span class="codeline" id="line-17"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-18"><code>	<span class="comment">// maxRate is the maximum size of the internal buffer. SHAKE-256</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">	// currently needs the largest buffer.</span></code></span>
+<span class="codeline" id="line-20"><code>	<a href="../../../../../pkg/golang.org/x/crypto/sha3.html#name-maxRate" class="ident">maxRate</a> = <span class="lit-number">168</span></code></span>
+<span class="codeline" id="line-21"><code>)</code></span>
+<span class="codeline" id="line-22"><code></code></span>
+<span class="codeline" id="line-23"><code><span class="keyword">type</span> <a href="../../../../../pkg/golang.org/x/crypto/sha3.html#name-state" class="ident">state</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-24"><code>	<span class="comment">// Generic sponge components.</span></code></span>
+<span class="codeline" id="line-25"><code>	<a href="../../../../../use/golang.org/x/crypto/sha3..state^4ba69.a^ca978.html" class="ident">a</a>    [<span class="lit-number">25</span>]<a href="../../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a> <span class="comment">// main state of the hash</span></code></span>
+<span class="codeline" id="line-26"><code>	<a href="../../../../../use/golang.org/x/crypto/sha3..state^4ba69.rate^c5497.html" class="ident">rate</a> <a href="../../../../../pkg/builtin.html#name-int" class="ident">int</a>        <span class="comment">// the number of bytes of state to use</span></code></span>
+<span class="codeline" id="line-27"><code></code></span>
+<span class="codeline" id="line-28"><code>	<span class="comment">// dsbyte contains the "domain separation" bits and the first bit of</span></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">	// the padding. Sections 6.1 and 6.2 of [1] separate the outputs of the</span></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">	// SHA-3 and SHAKE functions by appending bitstrings to the message.</span></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">	// Using a little-endian bit-ordering convention, these are "01" for SHA-3</span></code></span>
+<span class="codeline" id="line-32"><code><span class="comment">	// and "1111" for SHAKE, or 00000010b and 00001111b, respectively. Then the</span></code></span>
+<span class="codeline" id="line-33"><code><span class="comment">	// padding rule from section 5.1 is applied to pad the message to a multiple</span></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">	// of the rate, which involves adding a "1" bit, zero or more "0" bits, and</span></code></span>
+<span class="codeline" id="line-35"><code><span class="comment">	// a final "1" bit. We merge the first "1" bit from the padding into dsbyte,</span></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">	// giving 00000110b (0x06) and 00011111b (0x1f).</span></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">	// [1] http://csrc.nist.gov/publications/drafts/fips-202/fips_202_draft.pdf</span></code></span>
+<span class="codeline" id="line-38"><code><span class="comment">	//     "Draft FIPS 202: SHA-3 Standard: Permutation-Based Hash and</span></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">	//      Extendable-Output Functions (May 2014)"</span></code></span>
+<span class="codeline" id="line-40"><code>	<a href="../../../../../use/golang.org/x/crypto/sha3..state^4ba69.dsbyte^1affb.html" class="ident">dsbyte</a> <a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
+<span class="codeline" id="line-41"><code></code></span>
+<span class="codeline" id="line-42"><code>	<a href="../../../../../use/golang.org/x/crypto/sha3..state^4ba69.i^de7d1.html" class="ident">i</a>, <a href="../../../../../use/golang.org/x/crypto/sha3..state^4ba69.n^1b16b.html" class="ident">n</a>    <a href="../../../../../pkg/builtin.html#name-int" class="ident">int</a> <span class="comment">// storage[i:n] is the buffer, i is only used while squeezing</span></code></span>
+<span class="codeline" id="line-43"><code>	<a href="../../../../../use/golang.org/x/crypto/sha3..state^4ba69.storage^49a25.html" class="ident">storage</a> [<a href="#line-20" class="ident">maxRate</a>]<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
+<span class="codeline" id="line-44"><code></code></span>
+<span class="codeline" id="line-45"><code>	<span class="comment">// Specific to SHA-3 and SHAKE.</span></code></span>
+<span class="codeline" id="line-46"><code>	<a href="../../../../../use/golang.org/x/crypto/sha3..state^4ba69.outputLen^a5c84.html" class="ident">outputLen</a> <a href="../../../../../pkg/builtin.html#name-int" class="ident">int</a>             <span class="comment">// the default output size in bytes</span></code></span>
+<span class="codeline" id="line-47"><code>	<a href="../../../../../use/golang.org/x/crypto/sha3..state^4ba69.state^4ba69.html" class="ident">state</a>     <a href="#line-8" class="ident">spongeDirection</a> <span class="comment">// whether the sponge is absorbing or squeezing</span></code></span>
+<span class="codeline" id="line-48"><code>}</code></span>
+<span class="codeline" id="line-49"><code></code></span>
+<span class="codeline" id="line-50"><code><span class="comment">// BlockSize returns the rate of sponge underlying this hash function.</span></code></span>
+<span class="codeline" id="line-51"><code><span class="keyword">func</span> (<label for="r0" class="ident">d</label> *<a href="#line-23" class="ident">state</a>) <label for="r1" class="ident"><a href="../../../../../use/golang.org/x/crypto/sha3..state^4ba69.BlockSize.html" class="ident">BlockSize</a></label>() <a href="../../../../../pkg/builtin.html#name-int" class="ident">int</a> { <span class="keyword">return</span> <label for="r0" class="ident">d</label>.<a href="#line-26" class="ident">rate</a> }</code></span>
+<span class="codeline" id="line-52"><code></code></span>
+<span class="codeline" id="line-53"><code><span class="comment">// Size returns the output size of the hash function in bytes.</span></code></span>
+<span class="codeline" id="line-54"><code><span class="keyword">func</span> (<label for="r2" class="ident">d</label> *<a href="#line-23" class="ident">state</a>) <label for="r3" class="ident"><a href="../../../../../use/golang.org/x/crypto/sha3..state^4ba69.Size.html" class="ident">Size</a></label>() <a href="../../../../../pkg/builtin.html#name-int" class="ident">int</a> { <span class="keyword">return</span> <label for="r2" class="ident">d</label>.<a href="#line-46" class="ident">outputLen</a> }</code></span>
+<span class="codeline" id="line-55"><code></code></span>
+<span class="codeline" id="line-56"><code><span class="comment">// Reset clears the internal state by zeroing the sponge state and</span></code></span>
+<span class="codeline" id="line-57"><code><span class="comment">// the buffer indexes, and setting Sponge.state to absorbing.</span></code></span>
+<span class="codeline" id="line-58"><code><span class="keyword">func</span> (<label for="r4" class="ident">d</label> *<a href="#line-23" class="ident">state</a>) <label for="r5" class="ident"><a href="../../../../../use/golang.org/x/crypto/sha3..state^4ba69.Reset.html" class="ident">Reset</a></label>() {</code></span>
+<span class="codeline" id="line-59"><code>	<span class="comment">// Zero the permutation's state.</span></code></span>
+<span class="codeline" id="line-60"><code>	<span class="keyword">for</span> <label for="r6" class="ident">i</label> := <span class="keyword">range</span> <label for="r4" class="ident">d</label>.<a href="#line-25" class="ident">a</a> {</code></span>
+<span class="codeline" id="line-61"><code>		<label for="r4" class="ident">d</label>.<a href="#line-25" class="ident">a</a>[<label for="r6" class="ident">i</label>] = <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-62"><code>	}</code></span>
+<span class="codeline" id="line-63"><code>	<label for="r4" class="ident">d</label>.<a href="#line-47" class="ident">state</a> = <a href="#line-12" class="ident">spongeAbsorbing</a></code></span>
+<span class="codeline" id="line-64"><code>	<label for="r4" class="ident">d</label>.<a href="#line-42" class="ident">i</a>, <label for="r4" class="ident">d</label>.<a href="#line-42" class="ident">n</a> = <span class="lit-number">0</span>, <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-65"><code>}</code></span>
+<span class="codeline" id="line-66"><code></code></span>
+<span class="codeline" id="line-67"><code><span class="keyword">func</span> (<label for="r7" class="ident">d</label> *<a href="#line-23" class="ident">state</a>) <label for="r8" class="ident"><a href="../../../../../use/golang.org/x/crypto/sha3..state^4ba69.clone^b5d61.html" class="ident">clone</a></label>() *<a href="#line-23" class="ident">state</a> {</code></span>
+<span class="codeline" id="line-68"><code>	<label for="r9" class="ident">ret</label> := *<label for="r7" class="ident">d</label></code></span>
+<span class="codeline" id="line-69"><code>	<span class="keyword">return</span> &amp;<label for="r9" class="ident">ret</label></code></span>
+<span class="codeline" id="line-70"><code>}</code></span>
+<span class="codeline" id="line-71"><code></code></span>
+<span class="codeline" id="line-72"><code><span class="comment">// permute applies the KeccakF-1600 permutation. It handles</span></code></span>
+<span class="codeline" id="line-73"><code><span class="comment">// any input-output buffering.</span></code></span>
+<span class="codeline" id="line-74"><code><span class="keyword">func</span> (<label for="r10" class="ident">d</label> *<a href="#line-23" class="ident">state</a>) <label for="r11" class="ident"><a href="../../../../../use/golang.org/x/crypto/sha3..state^4ba69.permute^6f818.html" class="ident">permute</a></label>() {</code></span>
+<span class="codeline" id="line-75"><code>	<span class="keyword">switch</span> <label for="r10" class="ident">d</label>.<a href="#line-47" class="ident">state</a> {</code></span>
+<span class="codeline" id="line-76"><code>	<span class="keyword">case</span> <a href="#line-12" class="ident">spongeAbsorbing</a>:</code></span>
+<span class="codeline" id="line-77"><code>		<span class="comment">// If we're absorbing, we need to xor the input into the state</span></code></span>
+<span class="codeline" id="line-78"><code><span class="comment">		// before applying the permutation.</span></code></span>
+<span class="codeline" id="line-79"><code>		<a href="xor.go.html#line-16" class="ident">xorIn</a>(<label for="r10" class="ident">d</label>, <label for="r10" class="ident">d</label>.<a href="#line-43" class="ident">storage</a>[:<label for="r10" class="ident">d</label>.<a href="#line-26" class="ident">rate</a>])</code></span>
+<span class="codeline" id="line-80"><code>		<label for="r10" class="ident">d</label>.<a href="#line-42" class="ident">n</a> = <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-81"><code>		<a href="keccakf_amd64.go.html#line-13" class="ident">keccakF1600</a>(&amp;<label for="r10" class="ident">d</label>.<a href="#line-25" class="ident">a</a>)</code></span>
+<span class="codeline" id="line-82"><code>	<span class="keyword">case</span> <a href="#line-14" class="ident">spongeSqueezing</a>:</code></span>
+<span class="codeline" id="line-83"><code>		<span class="comment">// If we're squeezing, we need to apply the permutation before</span></code></span>
+<span class="codeline" id="line-84"><code><span class="comment">		// copying more output.</span></code></span>
+<span class="codeline" id="line-85"><code>		<a href="keccakf_amd64.go.html#line-13" class="ident">keccakF1600</a>(&amp;<label for="r10" class="ident">d</label>.<a href="#line-25" class="ident">a</a>)</code></span>
+<span class="codeline" id="line-86"><code>		<label for="r10" class="ident">d</label>.<a href="#line-42" class="ident">i</a> = <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-87"><code>		<a href="xor.go.html#line-30" class="ident">copyOut</a>(<label for="r10" class="ident">d</label>, <label for="r10" class="ident">d</label>.<a href="#line-43" class="ident">storage</a>[:<label for="r10" class="ident">d</label>.<a href="#line-26" class="ident">rate</a>])</code></span>
+<span class="codeline" id="line-88"><code>	}</code></span>
+<span class="codeline" id="line-89"><code>}</code></span>
+<span class="codeline" id="line-90"><code></code></span>
+<span class="codeline" id="line-91"><code><span class="comment">// pads appends the domain separation bits in dsbyte, applies</span></code></span>
+<span class="codeline" id="line-92"><code><span class="comment">// the multi-bitrate 10..1 padding rule, and permutes the state.</span></code></span>
+<span class="codeline" id="line-93"><code><span class="keyword">func</span> (<label for="r12" class="ident">d</label> *<a href="#line-23" class="ident">state</a>) <label for="r13" class="ident"><a href="../../../../../use/golang.org/x/crypto/sha3..state^4ba69.padAndPermute^7c45f.html" class="ident">padAndPermute</a></label>() {</code></span>
+<span class="codeline" id="line-94"><code>	<span class="comment">// Pad with this instance's domain-separator bits. We know that there's</span></code></span>
+<span class="codeline" id="line-95"><code><span class="comment">	// at least one byte of space in d.buf because, if it were full,</span></code></span>
+<span class="codeline" id="line-96"><code><span class="comment">	// permute would have been called to empty it. dsbyte also contains the</span></code></span>
+<span class="codeline" id="line-97"><code><span class="comment">	// first one bit for the padding. See the comment in the state struct.</span></code></span>
+<span class="codeline" id="line-98"><code>	<label for="r12" class="ident">d</label>.<a href="#line-43" class="ident">storage</a>[<label for="r12" class="ident">d</label>.<a href="#line-42" class="ident">n</a>] = <label for="r12" class="ident">d</label>.<a href="#line-40" class="ident">dsbyte</a></code></span>
+<span class="codeline" id="line-99"><code>	<label for="r12" class="ident">d</label>.<a href="#line-42" class="ident">n</a>++</code></span>
+<span class="codeline" id="line-100"><code>	<span class="keyword">for</span> <label for="r12" class="ident">d</label>.<a href="#line-42" class="ident">n</a> &lt; <label for="r12" class="ident">d</label>.<a href="#line-26" class="ident">rate</a> {</code></span>
+<span class="codeline" id="line-101"><code>		<label for="r12" class="ident">d</label>.<a href="#line-43" class="ident">storage</a>[<label for="r12" class="ident">d</label>.<a href="#line-42" class="ident">n</a>] = <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-102"><code>		<label for="r12" class="ident">d</label>.<a href="#line-42" class="ident">n</a>++</code></span>
+<span class="codeline" id="line-103"><code>	}</code></span>
+<span class="codeline" id="line-104"><code>	<span class="comment">// This adds the final one bit for the padding. Because of the way that</span></code></span>
+<span class="codeline" id="line-105"><code><span class="comment">	// bits are numbered from the LSB upwards, the final bit is the MSB of</span></code></span>
+<span class="codeline" id="line-106"><code><span class="comment">	// the last byte.</span></code></span>
+<span class="codeline" id="line-107"><code>	<label for="r12" class="ident">d</label>.<a href="#line-43" class="ident">storage</a>[<label for="r12" class="ident">d</label>.<a href="#line-26" class="ident">rate</a>-<span class="lit-number">1</span>] ^= <span class="lit-number">0x80</span></code></span>
+<span class="codeline" id="line-108"><code>	<span class="comment">// Apply the permutation</span></code></span>
+<span class="codeline" id="line-109"><code>	<label for="r12" class="ident">d</label>.<a href="#line-74" class="ident">permute</a>()</code></span>
+<span class="codeline" id="line-110"><code>	<label for="r12" class="ident">d</label>.<a href="#line-47" class="ident">state</a> = <a href="#line-14" class="ident">spongeSqueezing</a></code></span>
+<span class="codeline" id="line-111"><code>	<label for="r12" class="ident">d</label>.<a href="#line-42" class="ident">n</a> = <label for="r12" class="ident">d</label>.<a href="#line-26" class="ident">rate</a></code></span>
+<span class="codeline" id="line-112"><code>	<a href="xor.go.html#line-30" class="ident">copyOut</a>(<label for="r12" class="ident">d</label>, <label for="r12" class="ident">d</label>.<a href="#line-43" class="ident">storage</a>[:<label for="r12" class="ident">d</label>.<a href="#line-26" class="ident">rate</a>])</code></span>
+<span class="codeline" id="line-113"><code>}</code></span>
+<span class="codeline" id="line-114"><code></code></span>
+<span class="codeline" id="line-115"><code><span class="comment">// Write absorbs more data into the hash's state. It panics if any</span></code></span>
+<span class="codeline" id="line-116"><code><span class="comment">// output has already been read.</span></code></span>
+<span class="codeline" id="line-117"><code><span class="keyword">func</span> (<label for="r14" class="ident">d</label> *<a href="#line-23" class="ident">state</a>) <label for="r15" class="ident"><a href="../../../../../use/golang.org/x/crypto/sha3..state^4ba69.Write.html" class="ident">Write</a></label>(<label for="r16" class="ident">p</label> []<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) (<label for="r17" class="ident">written</label> <a href="../../../../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r18" class="ident">err</label> <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-118"><code>	<span class="keyword">if</span> <label for="r14" class="ident">d</label>.<a href="#line-47" class="ident">state</a> != <a href="#line-12" class="ident">spongeAbsorbing</a> {</code></span>
+<span class="codeline" id="line-119"><code>		<a href="../../../../../pkg/builtin.html#name-panic" class="ident">panic</a>(<span class="lit-string">"sha3: Write after Read"</span>)</code></span>
+<span class="codeline" id="line-120"><code>	}</code></span>
+<span class="codeline" id="line-121"><code>	<label for="r17" class="ident">written</label> = <a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r16" class="ident">p</label>)</code></span>
+<span class="codeline" id="line-122"><code></code></span>
+<span class="codeline" id="line-123"><code>	<span class="keyword">for</span> <a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r16" class="ident">p</label>) &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-124"><code>		<span class="keyword">if</span> <label for="r14" class="ident">d</label>.<a href="#line-42" class="ident">n</a> == <span class="lit-number">0</span> &amp;&amp; <a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r16" class="ident">p</label>) &gt;= <label for="r14" class="ident">d</label>.<a href="#line-26" class="ident">rate</a> {</code></span>
+<span class="codeline" id="line-125"><code>			<span class="comment">// The fast path; absorb a full "rate" bytes of input and apply the permutation.</span></code></span>
+<span class="codeline" id="line-126"><code>			<a href="xor.go.html#line-16" class="ident">xorIn</a>(<label for="r14" class="ident">d</label>, <label for="r16" class="ident">p</label>[:<label for="r14" class="ident">d</label>.<a href="#line-26" class="ident">rate</a>])</code></span>
+<span class="codeline" id="line-127"><code>			<label for="r16" class="ident">p</label> = <label for="r16" class="ident">p</label>[<label for="r14" class="ident">d</label>.<a href="#line-26" class="ident">rate</a>:]</code></span>
+<span class="codeline" id="line-128"><code>			<a href="keccakf_amd64.go.html#line-13" class="ident">keccakF1600</a>(&amp;<label for="r14" class="ident">d</label>.<a href="#line-25" class="ident">a</a>)</code></span>
+<span class="codeline" id="line-129"><code>		} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-130"><code>			<span class="comment">// The slow path; buffer the input until we can fill the sponge, and then xor it in.</span></code></span>
+<span class="codeline" id="line-131"><code>			<label for="r19" class="ident">todo</label> := <label for="r14" class="ident">d</label>.<a href="#line-26" class="ident">rate</a> - <label for="r14" class="ident">d</label>.<a href="#line-42" class="ident">n</a></code></span>
+<span class="codeline" id="line-132"><code>			<span class="keyword">if</span> <label for="r19" class="ident">todo</label> &gt; <a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r16" class="ident">p</label>) {</code></span>
+<span class="codeline" id="line-133"><code>				<label for="r19" class="ident">todo</label> = <a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r16" class="ident">p</label>)</code></span>
+<span class="codeline" id="line-134"><code>			}</code></span>
+<span class="codeline" id="line-135"><code>			<label for="r14" class="ident">d</label>.<a href="#line-42" class="ident">n</a> += <a href="../../../../../pkg/builtin.html#name-copy" class="ident">copy</a>(<label for="r14" class="ident">d</label>.<a href="#line-43" class="ident">storage</a>[<label for="r14" class="ident">d</label>.<a href="#line-42" class="ident">n</a>:], <label for="r16" class="ident">p</label>[:<label for="r19" class="ident">todo</label>])</code></span>
+<span class="codeline" id="line-136"><code>			<label for="r16" class="ident">p</label> = <label for="r16" class="ident">p</label>[<label for="r19" class="ident">todo</label>:]</code></span>
+<span class="codeline" id="line-137"><code></code></span>
+<span class="codeline" id="line-138"><code>			<span class="comment">// If the sponge is full, apply the permutation.</span></code></span>
+<span class="codeline" id="line-139"><code>			<span class="keyword">if</span> <label for="r14" class="ident">d</label>.<a href="#line-42" class="ident">n</a> == <label for="r14" class="ident">d</label>.<a href="#line-26" class="ident">rate</a> {</code></span>
+<span class="codeline" id="line-140"><code>				<label for="r14" class="ident">d</label>.<a href="#line-74" class="ident">permute</a>()</code></span>
+<span class="codeline" id="line-141"><code>			}</code></span>
+<span class="codeline" id="line-142"><code>		}</code></span>
+<span class="codeline" id="line-143"><code>	}</code></span>
+<span class="codeline" id="line-144"><code></code></span>
+<span class="codeline" id="line-145"><code>	<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-146"><code>}</code></span>
+<span class="codeline" id="line-147"><code></code></span>
+<span class="codeline" id="line-148"><code><span class="comment">// Read squeezes an arbitrary number of bytes from the sponge.</span></code></span>
+<span class="codeline" id="line-149"><code><span class="keyword">func</span> (<label for="r20" class="ident">d</label> *<a href="#line-23" class="ident">state</a>) <label for="r21" class="ident"><a href="../../../../../use/golang.org/x/crypto/sha3..state^4ba69.Read.html" class="ident">Read</a></label>(<label for="r22" class="ident">out</label> []<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) (<label for="r23" class="ident">n</label> <a href="../../../../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r24" class="ident">err</label> <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-150"><code>	<span class="comment">// If we're still absorbing, pad and apply the permutation.</span></code></span>
+<span class="codeline" id="line-151"><code>	<span class="keyword">if</span> <label for="r20" class="ident">d</label>.<a href="#line-47" class="ident">state</a> == <a href="#line-12" class="ident">spongeAbsorbing</a> {</code></span>
+<span class="codeline" id="line-152"><code>		<label for="r20" class="ident">d</label>.<a href="#line-93" class="ident">padAndPermute</a>()</code></span>
+<span class="codeline" id="line-153"><code>	}</code></span>
+<span class="codeline" id="line-154"><code></code></span>
+<span class="codeline" id="line-155"><code>	<label for="r23" class="ident">n</label> = <a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r22" class="ident">out</label>)</code></span>
+<span class="codeline" id="line-156"><code></code></span>
+<span class="codeline" id="line-157"><code>	<span class="comment">// Now, do the squeezing.</span></code></span>
+<span class="codeline" id="line-158"><code>	<span class="keyword">for</span> <a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r22" class="ident">out</label>) &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-159"><code>		<label for="r25" class="ident">n</label> := <a href="../../../../../pkg/builtin.html#name-copy" class="ident">copy</a>(<label for="r22" class="ident">out</label>, <label for="r20" class="ident">d</label>.<a href="#line-43" class="ident">storage</a>[<label for="r20" class="ident">d</label>.<a href="#line-42" class="ident">i</a>:<label for="r20" class="ident">d</label>.<a href="#line-42" class="ident">n</a>])</code></span>
+<span class="codeline" id="line-160"><code>		<label for="r20" class="ident">d</label>.<a href="#line-42" class="ident">i</a> += <label for="r25" class="ident">n</label></code></span>
+<span class="codeline" id="line-161"><code>		<label for="r22" class="ident">out</label> = <label for="r22" class="ident">out</label>[<label for="r25" class="ident">n</label>:]</code></span>
+<span class="codeline" id="line-162"><code></code></span>
+<span class="codeline" id="line-163"><code>		<span class="comment">// Apply the permutation if we've squeezed the sponge dry.</span></code></span>
+<span class="codeline" id="line-164"><code>		<span class="keyword">if</span> <label for="r20" class="ident">d</label>.<a href="#line-42" class="ident">i</a> == <label for="r20" class="ident">d</label>.<a href="#line-26" class="ident">rate</a> {</code></span>
+<span class="codeline" id="line-165"><code>			<label for="r20" class="ident">d</label>.<a href="#line-74" class="ident">permute</a>()</code></span>
+<span class="codeline" id="line-166"><code>		}</code></span>
+<span class="codeline" id="line-167"><code>	}</code></span>
+<span class="codeline" id="line-168"><code></code></span>
+<span class="codeline" id="line-169"><code>	<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-170"><code>}</code></span>
+<span class="codeline" id="line-171"><code></code></span>
+<span class="codeline" id="line-172"><code><span class="comment">// Sum applies padding to the hash state and then squeezes out the desired</span></code></span>
+<span class="codeline" id="line-173"><code><span class="comment">// number of output bytes. It panics if any output has already been read.</span></code></span>
+<span class="codeline" id="line-174"><code><span class="keyword">func</span> (<label for="r26" class="ident">d</label> *<a href="#line-23" class="ident">state</a>) <label for="r27" class="ident"><a href="../../../../../use/golang.org/x/crypto/sha3..state^4ba69.Sum.html" class="ident">Sum</a></label>(<label for="r28" class="ident">in</label> []<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) []<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a> {</code></span>
+<span class="codeline" id="line-175"><code>	<span class="keyword">if</span> <label for="r26" class="ident">d</label>.<a href="#line-47" class="ident">state</a> != <a href="#line-12" class="ident">spongeAbsorbing</a> {</code></span>
+<span class="codeline" id="line-176"><code>		<a href="../../../../../pkg/builtin.html#name-panic" class="ident">panic</a>(<span class="lit-string">"sha3: Sum after Read"</span>)</code></span>
+<span class="codeline" id="line-177"><code>	}</code></span>
+<span class="codeline" id="line-178"><code></code></span>
+<span class="codeline" id="line-179"><code>	<span class="comment">// Make a copy of the original hash so that caller can keep writing</span></code></span>
+<span class="codeline" id="line-180"><code><span class="comment">	// and summing.</span></code></span>
+<span class="codeline" id="line-181"><code>	<label for="r29" class="ident">dup</label> := <label for="r26" class="ident">d</label>.<a href="#line-67" class="ident">clone</a>()</code></span>
+<span class="codeline" id="line-182"><code>	<label for="r30" class="ident">hash</label> := <a href="../../../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r29" class="ident">dup</label>.<a href="#line-46" class="ident">outputLen</a>, <span class="lit-number">64</span>) <span class="comment">// explicit cap to allow stack allocation</span></code></span>
+<span class="codeline" id="line-183"><code>	<label for="r29" class="ident">dup</label>.<a href="#line-149" class="ident">Read</a>(<label for="r30" class="ident">hash</label>)</code></span>
+<span class="codeline" id="line-184"><code>	<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r28" class="ident">in</label>, <label for="r30" class="ident">hash</label>...)</code></span>
+<span class="codeline" id="line-185"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

@@ -1,0 +1,1162 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Package: github.com/aws/aws-sdk-go-v2/aws/retry</title>
+<link href="../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="package-details"><code><span style="font-size:xx-large;">package <b>retry</b></span>
+
+<span class="title">Import Path</span>
+	<a href="../../../../../index.html#pkg-github.com/aws/aws-sdk-go-v2/aws/retry">github.com/aws/aws-sdk-go-v2/aws/retry</a><i> (on <a href="https://pkg.go.dev/github.com/aws/aws-sdk-go-v2/aws/retry" target="_blank">go.dev</a>)</i>
+
+<span class="title">Dependency Relation</span>
+	imports <a href="../../../../../dep/github.com/aws/aws-sdk-go-v2/aws/retry.html">19 packages</a>, and imported by <a href="../../../../../dep/github.com/aws/aws-sdk-go-v2/aws/retry.html#imported-by">one package</a>
+
+<div id="files"><span class="title">Involved Source Files</span>
+
+	<span class="nodocs">    <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive.go.html">adaptive.go</a></span>
+	<span class="nodocs">    <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive_ratelimit.go.html">adaptive_ratelimit.go</a></span>
+	<span class="nodocs">    <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive_token_bucket.go.html">adaptive_token_bucket.go</a></span>
+	<input type='checkbox' checked class="fold" id="file-3-fold-content"><label for="file-3-fold-content">  <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/doc.go.html#doc">d</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/doc.go.html">doc.go</a></label><span id='file-3-fold-content-items' class="fold-items">
+<span class="md-text">		Package retry provides interfaces and implementations for SDK request retry behavior.
+		
+		# Retryer Interface and Implementations
+		
+		This package defines Retryer interface that is used to either implement custom retry behavior
+		or to extend the existing retry implementations provided by the SDK. This package provides a single
+		retry implementation: Standard.
+		
+		# Standard
+		
+		Standard is the default retryer implementation used by service clients. The standard retryer is a rate limited
+		retryer that has a configurable max attempts to limit the number of retry attempts when a retryable error occurs.
+		In addition, the retryer uses a configurable token bucket to rate limit the retry attempts across the client,
+		and uses an additional delay policy to limit the time between a requests subsequent attempts.
+		
+		By default the standard retryer uses the DefaultRetryables slice of IsErrorRetryable types to determine whether
+		a given error is retryable. By default this list of retryables includes the following:
+		  - Retrying errors that implement the RetryableError method, and return true.
+		  - Connection Errors
+		  - Errors that implement a ConnectionError, Temporary, or Timeout method that return true.
+		  - Connection Reset Errors.
+		  - net.OpErr types that are dialing errors or are temporary.
+		  - HTTP Status Codes: 500, 502, 503, and 504.
+		  - API Error Codes
+		  - RequestTimeout, RequestTimeoutException
+		  - Throttling, ThrottlingException, ThrottledException, RequestThrottledException, TooManyRequestsException,
+		    RequestThrottled, SlowDown, EC2ThrottledException
+		  - ProvisionedThroughputExceededException, RequestLimitExceeded, BandwidthLimitExceeded, LimitExceededException
+		  - TransactionInProgressException, PriorRequestNotComplete
+		
+		The standard retryer will not retry a request in the event if the context associated with the request
+		has been cancelled. Applications must handle this case explicitly if they wish to retry with a different context
+		value.
+		
+		You can configure the standard retryer implementation to fit your applications by constructing a standard retryer
+		using the NewStandard function, and providing one more functional argument that mutate the StandardOptions
+		structure. StandardOptions provides the ability to modify the token bucket rate limiter, retryable error conditions,
+		and the retry delay policy.
+		
+		For example to modify the default retry attempts for the standard retryer:
+		
+			// configure the custom retryer
+			customRetry := retry.NewStandard(func(o *retry.StandardOptions) {
+			    o.MaxAttempts = 5
+			})
+		
+			// create a service client with the retryer
+			s3.NewFromConfig(cfg, func(o *s3.Options) {
+			    o.Retryer = customRetry
+			})
+		
+		# Utilities
+		
+		A number of package functions have been provided to easily wrap retryer implementations in an implementation agnostic
+		way. These are:
+		
+			AddWithErrorCodes      - Provides the ability to add additional API error codes that should be considered retryable
+			                        in addition to those considered retryable by the provided retryer.
+		
+			AddWithMaxAttempts     - Provides the ability to set the max number of attempts for retrying a request by wrapping
+			                         a retryer implementation.
+		
+			AddWithMaxBackoffDelay - Provides the ability to set the max back off delay that can occur before retrying a
+			                         request by wrapping a retryer implementation.
+		
+		The following package functions have been provided to easily satisfy different retry interfaces to further customize
+		a given retryer's behavior:
+		
+			BackoffDelayerFunc   - Can be used to wrap a function to satisfy the BackoffDelayer interface. For example,
+			                       you can use this method to easily create custom back off policies to be used with the
+			                       standard retryer.
+		
+			IsErrorRetryableFunc - Can be used to wrap a function to satisfy the IsErrorRetryable interface. For example,
+			                       this can be used to extend the standard retryer to add additional logic to determine if an
+			                       error should be retried.
+		
+			IsErrorTimeoutFunc   - Can be used to wrap a function to satisfy IsErrorTimeout interface. For example,
+			                       this can be used to extend the standard retryer to add additional logic to determine if an
+			                        error should be considered a timeout.</span>
+</span>
+	<span class="nodocs">    <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/errors.go.html">errors.go</a></span>
+	<span class="nodocs">    <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/jitter_backoff.go.html">jitter_backoff.go</a></span>
+	<span class="nodocs">    <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/metadata.go.html">metadata.go</a></span>
+	<span class="nodocs">    <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/middleware.go.html">middleware.go</a></span>
+	<span class="nodocs">    <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/retry.go.html">retry.go</a></span>
+	<span class="nodocs">    <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/retryable_error.go.html">retryable_error.go</a></span>
+	<span class="nodocs">    <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/standard.go.html">standard.go</a></span>
+	<span class="nodocs">    <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/throttle_error.go.html">throttle_error.go</a></span>
+	<span class="nodocs">    <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/timeout_error.go.html">timeout_error.go</a></span></div>
+<div id="examples"><span class="title">Code Examples</span>
+
+	<input type='checkbox' class="fold" id="example-0-fold-content"><label for="example-0-fold-content">AddWithErrorCodes</label><span id='example-0-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+		
+			"github.com/aws/aws-sdk-go-v2/aws/retry"
+		
+			types "github.com/aws/aws-sdk-go-v2/aws/retry/internal/mock"
+		)
+		
+		func main() {
+			// Wrap a standard retyer and add the types.NoSuchBucketException Amazon S3 error code as retryable
+			custom := retry.AddWithErrorCodes(retry.NewStandard(), (*types.NoSuchBucketException)(nil).ErrorCode())
+		
+			fmt.Println(custom.IsErrorRetryable(&amp;types.NoSuchBucketException{}))
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-1-fold-content"><label for="example-1-fold-content">AddWithMaxAttempts</label><span id='example-1-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+		
+			"github.com/aws/aws-sdk-go-v2/aws/retry"
+		)
+		
+		func main() {
+			// Wrap a standard retyer and set the max attempts to 5
+			custom := retry.AddWithMaxAttempts(retry.NewStandard(), 5)
+		
+			fmt.Println(custom.MaxAttempts())
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-2-fold-content"><label for="example-2-fold-content">AddWithMaxBackoffDelay</label><span id='example-2-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"time"
+		
+			"github.com/aws/aws-sdk-go-v2/aws/retry"
+		)
+		
+		func main() {
+			// Wrap a standard retyer and add tthe NoSuchBucket API error code to the list of retryables
+			custom := retry.AddWithMaxBackoffDelay(retry.NewStandard(), time.Second*5)
+			_ = custom
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-3-fold-content"><label for="example-3-fold-content">_overrideForAllClients</label><span id='example-3-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"context"
+			"log"
+			"time"
+		
+			"github.com/aws/aws-sdk-go-v2/aws"
+			"github.com/aws/aws-sdk-go-v2/aws/retry"
+		
+			config "github.com/aws/aws-sdk-go-v2/aws/retry/internal/mock"
+		
+			s3 "github.com/aws/aws-sdk-go-v2/aws/retry/internal/mock"
+		)
+		
+		func main() {
+			cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRetryer(func() aws.Retryer {
+				// Generally you will always want to return new instance of a Retryer. This will avoid a global rate limit
+				// bucket being shared between across all service clients.
+				return retry.AddWithMaxBackoffDelay(retry.NewStandard(), time.Second*5)
+			}))
+			if err != nil {
+				log.Fatal(err)
+				return
+			}
+		
+			client := s3.NewFromConfig(cfg)
+			_ = client
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-4-fold-content"><label for="example-4-fold-content">_overrideForSpecificClient</label><span id='example-4-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"context"
+			"log"
+			"time"
+		
+			"github.com/aws/aws-sdk-go-v2/aws/retry"
+		
+			config "github.com/aws/aws-sdk-go-v2/aws/retry/internal/mock"
+		
+			s3 "github.com/aws/aws-sdk-go-v2/aws/retry/internal/mock"
+		)
+		
+		func main() {
+			cfg, err := config.LoadDefaultConfig(context.TODO())
+			if err != nil {
+				log.Fatal(err)
+				return
+			}
+		
+			client := s3.NewFromConfig(cfg, func(options *s3.Options) {
+				options.Retryer = retry.AddWithMaxBackoffDelay(options.Retryer, time.Second*5)
+			})
+			_ = client
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-5-fold-content"><label for="example-5-fold-content">_overrideSpecificOperation</label><span id='example-5-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"context"
+			"log"
+		
+			"github.com/aws/aws-sdk-go-v2/aws"
+			"github.com/aws/aws-sdk-go-v2/aws/retry"
+		
+			config "github.com/aws/aws-sdk-go-v2/aws/retry/internal/mock"
+		
+			s3 "github.com/aws/aws-sdk-go-v2/aws/retry/internal/mock"
+		
+			types "github.com/aws/aws-sdk-go-v2/aws/retry/internal/mock"
+		)
+		
+		func main() {
+			cfg, err := config.LoadDefaultConfig(context.TODO())
+			if err != nil {
+				log.Fatal(err)
+				return
+			}
+		
+			client := s3.NewFromConfig(cfg)
+		
+			// Wrap the default client retryer with an additional retryable error code for this specific
+			// operation invocation
+			_, err = client.GetObject(context.Background(), &amp;s3.GetObjectInput{
+				Bucket: aws.String("my-bucket"),
+				Key:    aws.String("my-key"),
+			}, func(options *types.Options) {
+				options.Retryer = retry.AddWithErrorCodes(options.Retryer, (*types.NoSuchBucketException)(nil).ErrorCode())
+			})
+			if err != nil {
+				log.Fatal(err)
+				return
+			}
+		}
+</span>
+</div>
+<div id="exported-types"><span class="title">Package-Level Type Names<span class="title-stat"><i> (total 41, in which 31 are exported)</i></span></span>
+
+<div id="exported-types-buttons" class="js-on">	/* sort exporteds by: <label id="sort-types-by-alphabet" class="button">alphabet</label> | <label id="sort-types-by-popularity" class="button">popularity</label> */</div><div class="anchor type-res" id="name-AdaptiveMode" data-popularity="525">	<input type='checkbox' class="fold" id="AdaptiveMode-fold-content"><label for="AdaptiveMode-fold-content"> <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..AdaptiveMode.html">type</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive.go.html#line-62">AdaptiveMode</a> <i>(struct)</i></label><span id='AdaptiveMode-fold-content-docs' class="fold-docs">
+<span class="md-text">		AdaptiveMode provides an experimental retry strategy that expands on the
+		Standard retry strategy, adding client attempt rate limits. The attempt rate
+		limit is initially unrestricted, but becomes restricted when the attempt
+		fails with for a throttle error. When restricted AdaptiveMode may need to
+		sleep before an attempt is made, if too many throttles have been received.
+		AdaptiveMode's sleep can be canceled with context cancel. Set
+		AdaptiveModeOptions FailOnNoAttemptTokens to change the behavior from sleep,
+		to fail fast.
+		
+		Eventually unrestricted attempt rate limit will be restored once attempts no
+		longer are failing due to throttle errors.</span>
+
+		<input type='checkbox' class="fold" id="AdaptiveMode-fold-fields"><label for="AdaptiveMode-fold-fields">Fields (<i>total 4, none are exported</i>)</label><span id='AdaptiveMode-fold-fields-items' class="fold-items">
+			<input type='checkbox' class="showhide" id="AdaptiveMode-showhide-fields"><i><label for="AdaptiveMode-showhide-fields" class="show-inline">/* 4 unexporteds ... */</label><label for="AdaptiveMode-showhide-fields" class="hide-inline">/* 4 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive.go.html#line-63">options</a> <i><a href="#name-AdaptiveModeOptions">AdaptiveModeOptions</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive.go.html#line-67">rateLimit</a> <i>*<a href="#name-adaptiveRateLimit">adaptiveRateLimit</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive.go.html#line-66">retryer</a> <i><a href="../aws.html">aws</a>.<a href="../aws.html#name-RetryerV2">RetryerV2</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive.go.html#line-64">throttles</a> <i><a href="#name-IsErrorThrottles">IsErrorThrottles</a></i></span></i></span></span>
+		<input type='checkbox' class="fold" id="AdaptiveMode-fold-methods"><label for="AdaptiveMode-fold-methods">Methods (<i>total 7, in which 6 are exported</i>)</label><span id='AdaptiveMode-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="AdaptiveMode-fold-method-GetAttemptToken"><label for="AdaptiveMode-fold-method-GetAttemptToken">(*AdaptiveMode) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive.go.html#line-132">GetAttemptToken</a>(ctx <a href="../../../../context.html">context</a>.<a href="../../../../context.html#name-Context">Context</a>) (func(<a href="../../../../builtin.html#name-error">error</a>) <a href="../../../../builtin.html#name-error">error</a>, <a href="../../../../builtin.html#name-error">error</a>)</label><span id='AdaptiveMode-fold-method-GetAttemptToken-docs' class="fold-docs">
+<span class="md-text">				GetAttemptToken returns the attempt token that can be used to rate limit
+				attempt calls. Will be used by the SDK's retry package's Attempt
+				middleware to get an attempt token prior to calling the temp and releasing
+				the attempt token after the attempt has been made.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="AdaptiveMode-fold-method-GetInitialToken"><label for="AdaptiveMode-fold-method-GetInitialToken">(*AdaptiveMode) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive.go.html#line-124">GetInitialToken</a>() (releaseToken func(<a href="../../../../builtin.html#name-error">error</a>) <a href="../../../../builtin.html#name-error">error</a>)</label><span id='AdaptiveMode-fold-method-GetInitialToken-docs' class="fold-docs">
+<span class="md-text">				GetInitialToken returns the initial attempt token that can increment the
+				retry token pool if the attempt is successful.
+				
+				Deprecated: This method does not provide a way to block using Context,
+				nor can it return an error. Use RetryerV2, and GetAttemptToken instead. Only
+				present to implement Retryer interface.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="AdaptiveMode-fold-method-GetRetryToken"><label for="AdaptiveMode-fold-method-GetRetryToken">(*AdaptiveMode) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive.go.html#line-112">GetRetryToken</a>(ctx <a href="../../../../context.html">context</a>.<a href="../../../../context.html#name-Context">Context</a>, opErr <a href="../../../../builtin.html#name-error">error</a>) (releaseToken func(<a href="../../../../builtin.html#name-error">error</a>) <a href="../../../../builtin.html#name-error">error</a>, err <a href="../../../../builtin.html#name-error">error</a>)</label><span id='AdaptiveMode-fold-method-GetRetryToken-docs' class="fold-docs">
+<span class="md-text">				GetRetryToken attempts to deduct the retry cost from the retry token pool.
+				Returning the token release function, or error.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="AdaptiveMode-fold-method-IsErrorRetryable"><label for="AdaptiveMode-fold-method-IsErrorRetryable">(*AdaptiveMode) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive.go.html#line-91">IsErrorRetryable</a>(err <a href="../../../../builtin.html#name-error">error</a>) <a href="../../../../builtin.html#name-bool">bool</a></label><span id='AdaptiveMode-fold-method-IsErrorRetryable-docs' class="fold-docs">
+<span class="md-text">				IsErrorRetryable returns if the failed attempt is retryable. This check
+				should determine if the error can be retried, or if the error is
+				terminal.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="AdaptiveMode-fold-method-MaxAttempts"><label for="AdaptiveMode-fold-method-MaxAttempts">(*AdaptiveMode) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive.go.html#line-98">MaxAttempts</a>() <a href="../../../../builtin.html#name-int">int</a></label><span id='AdaptiveMode-fold-method-MaxAttempts-docs' class="fold-docs">
+<span class="md-text">				MaxAttempts returns the maximum number of attempts that can be made for
+				an attempt before failing. A value of 0 implies that the attempt should
+				be retried until it succeeds if the errors are retryable.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="AdaptiveMode-fold-method-RetryDelay"><label for="AdaptiveMode-fold-method-RetryDelay">(*AdaptiveMode) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive.go.html#line-104">RetryDelay</a>(attempt <a href="../../../../builtin.html#name-int">int</a>, opErr <a href="../../../../builtin.html#name-error">error</a>) (<a href="../../../../time.html">time</a>.<a href="../../../../time.html#name-Duration">Duration</a>, <a href="../../../../builtin.html#name-error">error</a>)</label><span id='AdaptiveMode-fold-method-RetryDelay-docs' class="fold-docs">
+<span class="md-text">				RetryDelay returns the delay that should be used before retrying the
+				attempt. Will return error if the if the delay could not be determined.</span>
+</span></span>
+			<input type='checkbox' class="showhide" id="AdaptiveMode-showhide-methods"><i><label for="AdaptiveMode-showhide-methods" class="show-inline">/* one unexported ... */</label><label for="AdaptiveMode-showhide-methods" class="hide-inline">/* one unexported: */</label></i><span class="hidden"><i>
+			<span class="nodocs">(*AdaptiveMode) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive.go.html#line-151">handleResponse</a>(opErr <a href="../../../../builtin.html#name-error">error</a>) <a href="../../../../builtin.html#name-error">error</a></span></i></span></span>
+		<input type='checkbox' class="fold" id="AdaptiveMode-fold-impls"><label for="AdaptiveMode-fold-impls">Implements (<i>at least 2, both are exported</i>)</label><span id='AdaptiveMode-fold-impls-items' class="fold-items"><span>
+			*AdaptiveMode : github.com/aws/aws-sdk-go-v2/aws.<a href="../aws.html#name-Retryer">Retryer</a></span><span>
+			*AdaptiveMode : github.com/aws/aws-sdk-go-v2/aws.<a href="../aws.html#name-RetryerV2">RetryerV2</a></span></span>
+		<input type='checkbox' class="fold" id="AdaptiveMode-fold-results"><label for="AdaptiveMode-fold-results">As Outputs Of (<i>at least one exported</i>)</label><span id='AdaptiveMode-fold-results-items' class="fold-items"><span>
+			func <a href="#name-NewAdaptiveMode">NewAdaptiveMode</a>(optFns ...func(*<a href="#name-AdaptiveModeOptions">AdaptiveModeOptions</a>)) *<b>AdaptiveMode</b></span></span>
+
+</span></div><div class="anchor type-res" id="name-AdaptiveModeOptions" data-popularity="0">	<input type='checkbox' class="fold" id="AdaptiveModeOptions-fold-content"><label for="AdaptiveModeOptions-fold-content"> <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..AdaptiveModeOptions.html">type</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive.go.html#line-28">AdaptiveModeOptions</a> <i>(struct)</i></label><span id='AdaptiveModeOptions-fold-content-docs' class="fold-docs">
+<span class="md-text">		AdaptiveModeOptions provides the functional options for configuring the
+		adaptive retry mode, and delay behavior.</span>
+
+		<input type='checkbox' class="fold" id="AdaptiveModeOptions-fold-fields"><label for="AdaptiveModeOptions-fold-fields">Fields (<i>total 4, all are exported</i>)</label><span id='AdaptiveModeOptions-fold-fields-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="AdaptiveModeOptions-fold-field-FailOnNoAttemptTokens"><label for="AdaptiveModeOptions-fold-field-FailOnNoAttemptTokens"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive.go.html#line-33">FailOnNoAttemptTokens</a> <i><a href="../../../../builtin.html#name-bool">bool</a></i></label><span id='AdaptiveModeOptions-fold-field-FailOnNoAttemptTokens-docs' class="fold-docs">
+<span class="md-text">				If the adaptive token bucket is empty, when an attempt will be made
+				AdaptiveMode will sleep until a token is available. This can occur when
+				attempts fail with throttle errors. Use this option to disable the sleep
+				until token is available, and return error immediately.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="AdaptiveModeOptions-fold-field-RequestCost"><label for="AdaptiveModeOptions-fold-field-RequestCost"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive.go.html#line-36">RequestCost</a> <i><a href="../../../../builtin.html#name-uint">uint</a></i></label><span id='AdaptiveModeOptions-fold-field-RequestCost-docs' class="fold-docs">
+<span class="md-text">				The cost of an attempt from the AdaptiveMode's adaptive token bucket.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="AdaptiveModeOptions-fold-field-StandardOptions"><label for="AdaptiveModeOptions-fold-field-StandardOptions"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive.go.html#line-48">StandardOptions</a> <i>[]func(*<a href="#name-StandardOptions">StandardOptions</a>)</i></label><span id='AdaptiveModeOptions-fold-field-StandardOptions-docs' class="fold-docs">
+<span class="md-text">				Set of options for standard retry mode that AdaptiveMode is built on top
+				of. AdaptiveMode may apply its own defaults to Standard retry mode that
+				are different than the defaults of NewStandard. Use these options to
+				override the default options.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="AdaptiveModeOptions-fold-field-Throttles"><label for="AdaptiveModeOptions-fold-field-Throttles"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive.go.html#line-42">Throttles</a> <i>[]<a href="#name-IsErrorThrottle">IsErrorThrottle</a></i></label><span id='AdaptiveModeOptions-fold-field-Throttles-docs' class="fold-docs">
+<span class="md-text">				Set of strategies to determine if the attempt failed due to a throttle
+				error.
+				
+				It is safe to append to this list in NewAdaptiveMode's functional options.</span>
+</span></span></span>
+
+</span></div><div class="anchor type-res" id="name-AddRetryMiddlewaresOptions" data-popularity="35">	<input type='checkbox' class="fold" id="AddRetryMiddlewaresOptions-fold-content"><label for="AddRetryMiddlewaresOptions-fold-content"> <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..AddRetryMiddlewaresOptions.html">type</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/middleware.go.html#line-309">AddRetryMiddlewaresOptions</a> <i>(struct)</i></label><span id='AddRetryMiddlewaresOptions-fold-content-docs' class="fold-docs">
+<span class="md-text">		AddRetryMiddlewaresOptions is the set of options that can be passed to
+		AddRetryMiddlewares for configuring retry associated middleware.</span>
+
+		<input type='checkbox' class="fold" id="AddRetryMiddlewaresOptions-fold-fields"><label for="AddRetryMiddlewaresOptions-fold-fields">Fields (<i>total 2, both are exported</i>)</label><span id='AddRetryMiddlewaresOptions-fold-fields-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="AddRetryMiddlewaresOptions-fold-field-LogRetryAttempts"><label for="AddRetryMiddlewaresOptions-fold-field-LogRetryAttempts"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/middleware.go.html#line-315">LogRetryAttempts</a> <i><a href="../../../../builtin.html#name-bool">bool</a></i></label><span id='AddRetryMiddlewaresOptions-fold-field-LogRetryAttempts-docs' class="fold-docs">
+<span class="md-text">				Enable the logging of retry attempts performed by the SDK. This will
+				include logging retry attempts, unretryable errors, and when max
+				attempts are reached.</span>
+</span></span><span>
+			<span class="nodocs"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/middleware.go.html#line-310">Retryer</a> <i><a href="../aws.html">aws</a>.<a href="../aws.html#name-Retryer">Retryer</a></i></span></span></span>
+		<input type='checkbox' class="fold" id="AddRetryMiddlewaresOptions-fold-params"><label for="AddRetryMiddlewaresOptions-fold-params">As Inputs Of (<i>at least one exported</i>)</label><span id='AddRetryMiddlewaresOptions-fold-params-items' class="fold-items"><span>
+			func <a href="#name-AddRetryMiddlewares">AddRetryMiddlewares</a>(stack *<a href="../../smithy-go/middleware.html">smithymiddle</a>.<a href="../../smithy-go/middleware.html#name-Stack">Stack</a>, options <b>AddRetryMiddlewaresOptions</b>) <a href="../../../../builtin.html#name-error">error</a></span></span>
+
+</span></div><div class="anchor type-res" id="name-Attempt" data-popularity="375">	<input type='checkbox' class="fold" id="Attempt-fold-content"><label for="Attempt-fold-content"> <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..Attempt.html">type</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/middleware.go.html#line-32">Attempt</a> <i>(struct)</i></label><span id='Attempt-fold-content-docs' class="fold-docs">
+<span class="md-text">		Attempt is a Smithy Finalize middleware that handles retry attempts using
+		the provided Retryer implementation.</span>
+
+		<input type='checkbox' class="fold" id="Attempt-fold-fields"><label for="Attempt-fold-fields">Fields (<i>total 3, in which 1 is exported</i>)</label><span id='Attempt-fold-fields-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="Attempt-fold-field-LogAttempts"><label for="Attempt-fold-field-LogAttempts"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/middleware.go.html#line-36">LogAttempts</a> <i><a href="../../../../builtin.html#name-bool">bool</a></i></label><span id='Attempt-fold-field-LogAttempts-docs' class="fold-docs">
+<span class="md-text">				Enable the logging of retry attempts performed by the SDK. This will
+				include logging retry attempts, unretryable errors, and when max
+				attempts are reached.</span>
+</span></span>
+			<input type='checkbox' class="showhide" id="Attempt-showhide-fields"><i><label for="Attempt-showhide-fields" class="show-inline">/* 2 unexporteds ... */</label><label for="Attempt-showhide-fields" class="hide-inline">/* 2 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/middleware.go.html#line-39">requestCloner</a> <i><a href="#name-RequestCloner">RequestCloner</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/middleware.go.html#line-38">retryer</a> <i><a href="../aws.html">aws</a>.<a href="../aws.html#name-RetryerV2">RetryerV2</a></i></span></i></span></span>
+		<input type='checkbox' class="fold" id="Attempt-fold-methods"><label for="Attempt-fold-methods">Methods (<i>total 4, in which 2 are exported</i>)</label><span id='Attempt-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="Attempt-fold-method-HandleFinalize"><label for="Attempt-fold-method-HandleFinalize">(*Attempt) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/middleware.go.html#line-66">HandleFinalize</a>(ctx <a href="../../../../context.html">context</a>.<a href="../../../../context.html#name-Context">Context</a>, in <a href="../../smithy-go/middleware.html">smithymiddle</a>.<a href="../../smithy-go/middleware.html#name-FinalizeInput">FinalizeInput</a>, next <a href="../../smithy-go/middleware.html">smithymiddle</a>.<a href="../../smithy-go/middleware.html#name-FinalizeHandler">FinalizeHandler</a>) (out <a href="../../smithy-go/middleware.html">smithymiddle</a>.<a href="../../smithy-go/middleware.html#name-FinalizeOutput">FinalizeOutput</a>, metadata <a href="../../smithy-go/middleware.html">smithymiddle</a>.<a href="../../smithy-go/middleware.html#name-Metadata">Metadata</a>, err <a href="../../../../builtin.html#name-error">error</a>)</label><span id='Attempt-fold-method-HandleFinalize-docs' class="fold-docs">
+<span class="md-text">				HandleFinalize utilizes the provider Retryer implementation to attempt
+				retries over the next handler</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Attempt-fold-method-ID"><label for="Attempt-fold-method-ID">(*Attempt) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/middleware.go.html#line-55">ID</a>() <a href="../../../../builtin.html#name-string">string</a></label><span id='Attempt-fold-method-ID-docs' class="fold-docs">
+<span class="md-text">				ID returns the middleware identifier</span>
+</span></span>
+			<input type='checkbox' class="showhide" id="Attempt-showhide-methods"><i><label for="Attempt-showhide-methods" class="show-inline">/* 2 unexporteds ... */</label><label for="Attempt-showhide-methods" class="hide-inline">/* 2 unexporteds: */</label></i><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Attempt-fold-method-handleAttempt"><label for="Attempt-fold-method-handleAttempt">(*Attempt) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/middleware.go.html#line-115">handleAttempt</a>(ctx <a href="../../../../context.html">context</a>.<a href="../../../../context.html#name-Context">Context</a>, in <a href="../../smithy-go/middleware.html">smithymiddle</a>.<a href="../../smithy-go/middleware.html#name-FinalizeInput">FinalizeInput</a>, releaseRetryToken func(<a href="../../../../builtin.html#name-error">error</a>) <a href="../../../../builtin.html#name-error">error</a>, next <a href="../../smithy-go/middleware.html">smithymiddle</a>.<a href="../../smithy-go/middleware.html#name-FinalizeHandler">FinalizeHandler</a>) (out <a href="../../smithy-go/middleware.html">smithymiddle</a>.<a href="../../smithy-go/middleware.html#name-FinalizeOutput">FinalizeOutput</a>, attemptResult <a href="#name-AttemptResult">AttemptResult</a>, _ func(<a href="../../../../builtin.html#name-error">error</a>) <a href="../../../../builtin.html#name-error">error</a>, err <a href="../../../../builtin.html#name-error">error</a>)</label><span id='Attempt-fold-method-handleAttempt-docs' class="fold-docs">
+<span class="md-text">				handleAttempt handles an individual request attempt.</span>
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs">( Attempt) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/middleware.go.html#line-57">logf</a>(logger <a href="../../smithy-go/logging.html">logging</a>.<a href="../../smithy-go/logging.html#name-Logger">Logger</a>, classification <a href="../../smithy-go/logging.html">logging</a>.<a href="../../smithy-go/logging.html#name-Classification">Classification</a>, format <a href="../../../../builtin.html#name-string">string</a>, v ...interface{})</span></i></span></span>
+		<input type='checkbox' class="fold" id="Attempt-fold-impls"><label for="Attempt-fold-impls">Implements (<i>at least 2, in which 1 is exported</i>)</label><span id='Attempt-fold-impls-items' class="fold-items"><span>
+			*Attempt : github.com/aws/smithy-go/middleware.<a href="../../smithy-go/middleware.html#name-FinalizeMiddleware">FinalizeMiddleware</a></span>
+			<input type='checkbox' class="showhide" id="Attempt-showhide-impls"><i><label for="Attempt-showhide-impls" class="show-inline">/* at least one unexported ... */</label><label for="Attempt-showhide-impls" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			*Attempt : github.com/aws/smithy-go/middleware.<a href="../../smithy-go/middleware.html#name-ider">ider</a></i></span></span>
+		<input type='checkbox' class="fold" id="Attempt-fold-results"><label for="Attempt-fold-results">As Outputs Of (<i>at least one exported</i>)</label><span id='Attempt-fold-results-items' class="fold-items"><span>
+			func <a href="#name-NewAttemptMiddleware">NewAttemptMiddleware</a>(retryer <a href="../aws.html">aws</a>.<a href="../aws.html#name-Retryer">Retryer</a>, requestCloner <a href="#name-RequestCloner">RequestCloner</a>, optFns ...func(*<b>Attempt</b>)) *<b>Attempt</b></span></span>
+
+</span></div><div class="anchor type-res" id="name-AttemptResult" data-popularity="125">	<input type='checkbox' class="fold" id="AttemptResult-fold-content"><label for="AttemptResult-fold-content"> <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..AttemptResult.html">type</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/metadata.go.html#line-28">AttemptResult</a> <i>(struct)</i></label><span id='AttemptResult-fold-content-docs' class="fold-docs">
+<span class="md-text">		AttemptResult represents attempt result returned by a single request attempt.</span>
+
+		<input type='checkbox' class="fold" id="AttemptResult-fold-fields"><label for="AttemptResult-fold-fields">Fields (<i>total 4, all are exported</i>)</label><span id='AttemptResult-fold-fields-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="AttemptResult-fold-field-Err"><label for="AttemptResult-fold-field-Err"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/metadata.go.html#line-31">Err</a> <i><a href="../../../../builtin.html#name-error">error</a></i></label><span id='AttemptResult-fold-field-Err-docs' class="fold-docs">
+<span class="md-text">				Err is the error if received for the request attempt.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="AttemptResult-fold-field-ResponseMetadata"><label for="AttemptResult-fold-field-ResponseMetadata"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/metadata.go.html#line-41">ResponseMetadata</a> <i><a href="../../smithy-go/middleware.html">middleware</a>.<a href="../../smithy-go/middleware.html#name-Metadata">Metadata</a></i></label><span id='AttemptResult-fold-field-ResponseMetadata-docs' class="fold-docs">
+<span class="md-text">				ResponseMetadata is any existing metadata passed via the response middlewares.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="AttemptResult-fold-field-Retried"><label for="AttemptResult-fold-field-Retried"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/metadata.go.html#line-38">Retried</a> <i><a href="../../../../builtin.html#name-bool">bool</a></i></label><span id='AttemptResult-fold-field-Retried-docs' class="fold-docs">
+<span class="md-text">				Retried indicates if this request was retried.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="AttemptResult-fold-field-Retryable"><label for="AttemptResult-fold-field-Retryable"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/metadata.go.html#line-35">Retryable</a> <i><a href="../../../../builtin.html#name-bool">bool</a></i></label><span id='AttemptResult-fold-field-Retryable-docs' class="fold-docs">
+<span class="md-text">				Retryable denotes if request may be retried. This states if an
+				error is considered retryable.</span>
+</span></span></span>
+		<input type='checkbox' class="fold" id="AttemptResult-fold-methods"><label for="AttemptResult-fold-methods">Methods (<i>only one, which is exported</i>)</label><span id='AttemptResult-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="AttemptResult-fold-method-GetRawResponse"><label for="AttemptResult-fold-method-GetRawResponse">( AttemptResult) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/metadata.go.html#line-50">GetRawResponse</a>() interface{}</label><span id='AttemptResult-fold-method-GetRawResponse-docs' class="fold-docs">
+<span class="md-text">				GetRawResponse returns raw response recorded for the attempt result</span>
+</span></span></span>
+		<input type='checkbox' class="fold" id="AttemptResult-fold-results"><label for="AttemptResult-fold-results">As Outputs Of (<i>at least one unexported</i>)</label><span id='AttemptResult-fold-results-items' class="fold-items">
+			<input type='checkbox' class="showhide" id="AttemptResult-showhide-inputofs"><i><label for="AttemptResult-showhide-inputofs" class="show-inline">/* at least one unexported ... */</label><label for="AttemptResult-showhide-inputofs" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			func (*<a href="#name-Attempt">Attempt</a>).<a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/middleware.go.html#line-115">handleAttempt</a>(ctx <a href="../../../../context.html">context</a>.<a href="../../../../context.html#name-Context">Context</a>, in <a href="../../smithy-go/middleware.html">smithymiddle</a>.<a href="../../smithy-go/middleware.html#name-FinalizeInput">FinalizeInput</a>, releaseRetryToken func(<a href="../../../../builtin.html#name-error">error</a>) <a href="../../../../builtin.html#name-error">error</a>, next <a href="../../smithy-go/middleware.html">smithymiddle</a>.<a href="../../smithy-go/middleware.html#name-FinalizeHandler">FinalizeHandler</a>) (out <a href="../../smithy-go/middleware.html">smithymiddle</a>.<a href="../../smithy-go/middleware.html#name-FinalizeOutput">FinalizeOutput</a>, attemptResult <b>AttemptResult</b>, _ func(<a href="../../../../builtin.html#name-error">error</a>) <a href="../../../../builtin.html#name-error">error</a>, err <a href="../../../../builtin.html#name-error">error</a>)</i></span></span>
+
+</span></div><div class="anchor type-res" id="name-AttemptResults" data-popularity="110">	<input type='checkbox' class="fold" id="AttemptResults-fold-content"><label for="AttemptResults-fold-content"> <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..AttemptResults.html">type</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/metadata.go.html#line-20">AttemptResults</a> <i>(struct)</i></label><span id='AttemptResults-fold-content-docs' class="fold-docs">
+<span class="md-text">		AttemptResults represents struct containing metadata returned by all request attempts.</span>
+
+		<input type='checkbox' class="fold" id="AttemptResults-fold-fields"><label for="AttemptResults-fold-fields">Fields (<i>only one, which is exported</i>)</label><span id='AttemptResults-fold-fields-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="AttemptResults-fold-field-Results"><label for="AttemptResults-fold-field-Results"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/metadata.go.html#line-24">Results</a> <i>[]<a href="#name-AttemptResult">AttemptResult</a></i></label><span id='AttemptResults-fold-field-Results-docs' class="fold-docs">
+<span class="md-text">				Results is a slice consisting attempt result from all request attempts.
+				Results are stored in order request attempt is made.</span>
+</span></span></span>
+		<input type='checkbox' class="fold" id="AttemptResults-fold-results"><label for="AttemptResults-fold-results">As Outputs Of (<i>at least one exported</i>)</label><span id='AttemptResults-fold-results-items' class="fold-items"><span>
+			func <a href="#name-GetAttemptResults">GetAttemptResults</a>(metadata <a href="../../smithy-go/middleware.html">middleware</a>.<a href="../../smithy-go/middleware.html#name-Metadata">Metadata</a>) (<b>AttemptResults</b>, <a href="../../../../builtin.html#name-bool">bool</a>)</span></span>
+		<input type='checkbox' class="fold" id="AttemptResults-fold-params"><label for="AttemptResults-fold-params">As Inputs Of (<i>at least one unexported</i>)</label><span id='AttemptResults-fold-params-items' class="fold-items">
+			<input type='checkbox' class="showhide" id="AttemptResults-showhide-outputofs"><i><label for="AttemptResults-showhide-outputofs" class="show-inline">/* at least one unexported ... */</label><label for="AttemptResults-showhide-outputofs" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			func <a href="#name-addAttemptResults">addAttemptResults</a>(metadata *<a href="../../smithy-go/middleware.html">middleware</a>.<a href="../../smithy-go/middleware.html#name-Metadata">Metadata</a>, v <b>AttemptResults</b>)</i></span></span>
+
+</span></div><div class="anchor type-res" id="name-BackoffDelayer" data-popularity="350">	<input type='checkbox' class="fold" id="BackoffDelayer-fold-content"><label for="BackoffDelayer-fold-content"> <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..BackoffDelayer.html">type</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/standard.go.html#line-13">BackoffDelayer</a> <b><i>(interface)</i></b></label><span id='BackoffDelayer-fold-content-docs' class="fold-docs">
+<span class="md-text">		BackoffDelayer provides the interface for determining the delay to before
+		another request attempt, that previously failed.</span>
+
+		<input type='checkbox' class="fold" id="BackoffDelayer-fold-methods"><label for="BackoffDelayer-fold-methods">Methods (<i>only one, which is exported</i>)</label><span id='BackoffDelayer-fold-methods-items' class="fold-items"><span>
+			<span class="nodocs">( BackoffDelayer) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/standard.go.html#line-14">BackoffDelay</a>(attempt <a href="../../../../builtin.html#name-int">int</a>, err <a href="../../../../builtin.html#name-error">error</a>) (<a href="../../../../time.html">time</a>.<a href="../../../../time.html#name-Duration">Duration</a>, <a href="../../../../builtin.html#name-error">error</a>)</span></span></span>
+		<input type='checkbox' class="fold" id="BackoffDelayer-fold-impledby"><label for="BackoffDelayer-fold-impledby">Implemented By (<i>at least 2, both are exported</i>)</label><span id='BackoffDelayer-fold-impledby-items' class="fold-items"><span>
+			 <a href="#name-BackoffDelayerFunc">BackoffDelayerFunc</a></span><span>
+			*<a href="#name-ExponentialJitterBackoff">ExponentialJitterBackoff</a></span></span>
+
+</span></div><div class="anchor type-res" id="name-BackoffDelayerFunc" data-popularity="100">	<input type='checkbox' class="fold" id="BackoffDelayerFunc-fold-content"><label for="BackoffDelayerFunc-fold-content"> <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..BackoffDelayerFunc.html">type</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/standard.go.html#line-19">BackoffDelayerFunc</a> <i>(func)</i></label><span id='BackoffDelayerFunc-fold-content-docs' class="fold-docs">
+<span class="md-text">		BackoffDelayerFunc provides a wrapper around a function to determine the
+		backoff delay of an attempt retry.</span>
+
+		<input type='checkbox' class="fold" id="BackoffDelayerFunc-fold-methods"><label for="BackoffDelayerFunc-fold-methods">Methods (<i>only one, which is exported</i>)</label><span id='BackoffDelayerFunc-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="BackoffDelayerFunc-fold-method-BackoffDelay"><label for="BackoffDelayerFunc-fold-method-BackoffDelay">( BackoffDelayerFunc) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/standard.go.html#line-22">BackoffDelay</a>(attempt <a href="../../../../builtin.html#name-int">int</a>, err <a href="../../../../builtin.html#name-error">error</a>) (<a href="../../../../time.html">time</a>.<a href="../../../../time.html#name-Duration">Duration</a>, <a href="../../../../builtin.html#name-error">error</a>)</label><span id='BackoffDelayerFunc-fold-method-BackoffDelay-docs' class="fold-docs">
+<span class="md-text">				BackoffDelay returns the delay before attempt to retry a request.</span>
+</span></span></span>
+		<input type='checkbox' class="fold" id="BackoffDelayerFunc-fold-impls"><label for="BackoffDelayerFunc-fold-impls">Implements (<i>at least one exported</i>)</label><span id='BackoffDelayerFunc-fold-impls-items' class="fold-items"><span>
+			 BackoffDelayerFunc : <a href="#name-BackoffDelayer">BackoffDelayer</a></span></span>
+
+</span></div><div class="anchor type-res" id="name-ExponentialJitterBackoff" data-popularity="175">	<input type='checkbox' class="fold" id="ExponentialJitterBackoff-fold-content"><label for="ExponentialJitterBackoff-fold-content"> <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..ExponentialJitterBackoff.html">type</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/jitter_backoff.go.html#line-13">ExponentialJitterBackoff</a> <i>(struct)</i></label><span id='ExponentialJitterBackoff-fold-content-docs' class="fold-docs">
+<span class="md-text">		ExponentialJitterBackoff provides backoff delays with jitter based on the
+		number of attempts.</span>
+
+		<input type='checkbox' class="fold" id="ExponentialJitterBackoff-fold-fields"><label for="ExponentialJitterBackoff-fold-fields">Fields (<i>total 3, none are exported</i>)</label><span id='ExponentialJitterBackoff-fold-fields-items' class="fold-items">
+			<input type='checkbox' class="showhide" id="ExponentialJitterBackoff-showhide-fields"><i><label for="ExponentialJitterBackoff-showhide-fields" class="show-inline">/* 3 unexporteds ... */</label><label for="ExponentialJitterBackoff-showhide-fields" class="hide-inline">/* 3 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/jitter_backoff.go.html#line-14">maxBackoff</a> <i><a href="../../../../time.html">time</a>.<a href="../../../../time.html#name-Duration">Duration</a></i></span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="ExponentialJitterBackoff-fold-field-maxBackoffAttempts"><label for="ExponentialJitterBackoff-fold-field-maxBackoffAttempts"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/jitter_backoff.go.html#line-16">maxBackoffAttempts</a> <i><a href="../../../../builtin.html#name-float64">float64</a></i></label><span id='ExponentialJitterBackoff-fold-field-maxBackoffAttempts-docs' class="fold-docs">
+<span class="md-text">				precomputed number of attempts needed to reach max backoff.</span>
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/jitter_backoff.go.html#line-18">randFloat64</a> <i>func() (<a href="../../../../builtin.html#name-float64">float64</a>, <a href="../../../../builtin.html#name-error">error</a>)</i></span></i></span></span>
+		<input type='checkbox' class="fold" id="ExponentialJitterBackoff-fold-methods"><label for="ExponentialJitterBackoff-fold-methods">Methods (<i>only one, which is exported</i>)</label><span id='ExponentialJitterBackoff-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="ExponentialJitterBackoff-fold-method-BackoffDelay"><label for="ExponentialJitterBackoff-fold-method-BackoffDelay">(*ExponentialJitterBackoff) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/jitter_backoff.go.html#line-34">BackoffDelay</a>(attempt <a href="../../../../builtin.html#name-int">int</a>, err <a href="../../../../builtin.html#name-error">error</a>) (<a href="../../../../time.html">time</a>.<a href="../../../../time.html#name-Duration">Duration</a>, <a href="../../../../builtin.html#name-error">error</a>)</label><span id='ExponentialJitterBackoff-fold-method-BackoffDelay-docs' class="fold-docs">
+<span class="md-text">				BackoffDelay returns the duration to wait before the next attempt should be
+				made. Returns an error if unable get a duration.</span>
+</span></span></span>
+		<input type='checkbox' class="fold" id="ExponentialJitterBackoff-fold-impls"><label for="ExponentialJitterBackoff-fold-impls">Implements (<i>at least one exported</i>)</label><span id='ExponentialJitterBackoff-fold-impls-items' class="fold-items"><span>
+			*ExponentialJitterBackoff : <a href="#name-BackoffDelayer">BackoffDelayer</a></span></span>
+		<input type='checkbox' class="fold" id="ExponentialJitterBackoff-fold-results"><label for="ExponentialJitterBackoff-fold-results">As Outputs Of (<i>at least one exported</i>)</label><span id='ExponentialJitterBackoff-fold-results-items' class="fold-items"><span>
+			func <a href="#name-NewExponentialJitterBackoff">NewExponentialJitterBackoff</a>(maxBackoff <a href="../../../../time.html">time</a>.<a href="../../../../time.html#name-Duration">Duration</a>) *<b>ExponentialJitterBackoff</b></span></span>
+
+</span></div><div class="anchor type-res" id="name-IsErrorRetryable" data-popularity="1100">	<input type='checkbox' class="fold" id="IsErrorRetryable-fold-content"><label for="IsErrorRetryable-fold-content"> <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..IsErrorRetryable.html">type</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/retryable_error.go.html#line-14">IsErrorRetryable</a> <b><i>(interface)</i></b></label><span id='IsErrorRetryable-fold-content-docs' class="fold-docs">
+<span class="md-text">		IsErrorRetryable provides the interface of an implementation to determine if
+		a error as the result of an operation is retryable.</span>
+
+		<input type='checkbox' class="fold" id="IsErrorRetryable-fold-methods"><label for="IsErrorRetryable-fold-methods">Methods (<i>only one, which is exported</i>)</label><span id='IsErrorRetryable-fold-methods-items' class="fold-items"><span>
+			<span class="nodocs">( IsErrorRetryable) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/retryable_error.go.html#line-15">IsErrorRetryable</a>(<a href="../../../../builtin.html#name-error">error</a>) <a href="../aws.html">aws</a>.<a href="../aws.html#name-Ternary">Ternary</a></span></span></span>
+		<input type='checkbox' class="fold" id="IsErrorRetryable-fold-impledby"><label for="IsErrorRetryable-fold-impledby">Implemented By (<i>at least 7, all are exported</i>)</label><span id='IsErrorRetryable-fold-impledby-items' class="fold-items"><span>
+			 <a href="#name-IsErrorRetryableFunc">IsErrorRetryableFunc</a></span><span>
+			 <a href="#name-IsErrorRetryables">IsErrorRetryables</a></span><span>
+			 <a href="#name-NoRetryCanceledError">NoRetryCanceledError</a></span><span>
+			 <a href="#name-RetryableConnectionError">RetryableConnectionError</a></span><span>
+			 <a href="#name-RetryableError">RetryableError</a></span><span>
+			 <a href="#name-RetryableErrorCode">RetryableErrorCode</a></span><span>
+			 <a href="#name-RetryableHTTPStatusCode">RetryableHTTPStatusCode</a></span></span>
+
+</span></div><div class="anchor type-res" id="name-IsErrorRetryableFunc" data-popularity="100">	<input type='checkbox' class="fold" id="IsErrorRetryableFunc-fold-content"><label for="IsErrorRetryableFunc-fold-content"> <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..IsErrorRetryableFunc.html">type</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/retryable_error.go.html#line-35">IsErrorRetryableFunc</a> <i>(func)</i></label><span id='IsErrorRetryableFunc-fold-content-docs' class="fold-docs">
+<span class="md-text">		IsErrorRetryableFunc wraps a function with the IsErrorRetryable interface.</span>
+
+		<input type='checkbox' class="fold" id="IsErrorRetryableFunc-fold-methods"><label for="IsErrorRetryableFunc-fold-methods">Methods (<i>only one, which is exported</i>)</label><span id='IsErrorRetryableFunc-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="IsErrorRetryableFunc-fold-method-IsErrorRetryable"><label for="IsErrorRetryableFunc-fold-method-IsErrorRetryable">( IsErrorRetryableFunc) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/retryable_error.go.html#line-38">IsErrorRetryable</a>(err <a href="../../../../builtin.html#name-error">error</a>) <a href="../aws.html">aws</a>.<a href="../aws.html#name-Ternary">Ternary</a></label><span id='IsErrorRetryableFunc-fold-method-IsErrorRetryable-docs' class="fold-docs">
+<span class="md-text">				IsErrorRetryable returns if the error is retryable.</span>
+</span></span></span>
+		<input type='checkbox' class="fold" id="IsErrorRetryableFunc-fold-impls"><label for="IsErrorRetryableFunc-fold-impls">Implements (<i>at least one exported</i>)</label><span id='IsErrorRetryableFunc-fold-impls-items' class="fold-items"><span>
+			 IsErrorRetryableFunc : <a href="#name-IsErrorRetryable">IsErrorRetryable</a></span></span>
+
+</span></div><div class="anchor type-res" id="name-IsErrorRetryables" data-popularity="100">	<input type='checkbox' class="fold" id="IsErrorRetryables-fold-content"><label for="IsErrorRetryables-fold-content"> <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..IsErrorRetryables.html">type</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/retryable_error.go.html#line-21">IsErrorRetryables</a> <i>([])</i></label><span id='IsErrorRetryables-fold-content-docs' class="fold-docs">
+<span class="md-text">		IsErrorRetryables is a collection of checks to determine of the error is
+		retryable.  Iterates through the checks and returns the state of retryable
+		if any check returns something other than unknown.</span>
+
+		<input type='checkbox' class="fold" id="IsErrorRetryables-fold-methods"><label for="IsErrorRetryables-fold-methods">Methods (<i>only one, which is exported</i>)</label><span id='IsErrorRetryables-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="IsErrorRetryables-fold-method-IsErrorRetryable"><label for="IsErrorRetryables-fold-method-IsErrorRetryable">( IsErrorRetryables) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/retryable_error.go.html#line-25">IsErrorRetryable</a>(err <a href="../../../../builtin.html#name-error">error</a>) <a href="../aws.html">aws</a>.<a href="../aws.html#name-Ternary">Ternary</a></label><span id='IsErrorRetryables-fold-method-IsErrorRetryable-docs' class="fold-docs">
+<span class="md-text">				IsErrorRetryable returns if the error is retryable if any of the checks in
+				the list return a value other than unknown.</span>
+</span></span></span>
+		<input type='checkbox' class="fold" id="IsErrorRetryables-fold-impls"><label for="IsErrorRetryables-fold-impls">Implements (<i>at least one exported</i>)</label><span id='IsErrorRetryables-fold-impls-items' class="fold-items"><span>
+			 IsErrorRetryables : <a href="#name-IsErrorRetryable">IsErrorRetryable</a></span></span>
+
+</span></div><div class="anchor type-res" id="name-IsErrorThrottle" data-popularity="500">	<input type='checkbox' class="fold" id="IsErrorThrottle-fold-content"><label for="IsErrorThrottle-fold-content"> <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..IsErrorThrottle.html">type</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/throttle_error.go.html#line-11">IsErrorThrottle</a> <b><i>(interface)</i></b></label><span id='IsErrorThrottle-fold-content-docs' class="fold-docs">
+<span class="md-text">		IsErrorThrottle provides the interface of an implementation to determine if
+		a error response from an operation is a throttling error.</span>
+
+		<input type='checkbox' class="fold" id="IsErrorThrottle-fold-methods"><label for="IsErrorThrottle-fold-methods">Methods (<i>only one, which is exported</i>)</label><span id='IsErrorThrottle-fold-methods-items' class="fold-items"><span>
+			<span class="nodocs">( IsErrorThrottle) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/throttle_error.go.html#line-12">IsErrorThrottle</a>(<a href="../../../../builtin.html#name-error">error</a>) <a href="../aws.html">aws</a>.<a href="../aws.html#name-Ternary">Ternary</a></span></span></span>
+		<input type='checkbox' class="fold" id="IsErrorThrottle-fold-impledby"><label for="IsErrorThrottle-fold-impledby">Implemented By (<i>at least 3, all are exported</i>)</label><span id='IsErrorThrottle-fold-impledby-items' class="fold-items"><span>
+			 <a href="#name-IsErrorThrottleFunc">IsErrorThrottleFunc</a></span><span>
+			 <a href="#name-IsErrorThrottles">IsErrorThrottles</a></span><span>
+			 <a href="#name-ThrottleErrorCode">ThrottleErrorCode</a></span></span>
+
+</span></div><div class="anchor type-res" id="name-IsErrorThrottleFunc" data-popularity="100">	<input type='checkbox' class="fold" id="IsErrorThrottleFunc-fold-content"><label for="IsErrorThrottleFunc-fold-content"> <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..IsErrorThrottleFunc.html">type</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/throttle_error.go.html#line-32">IsErrorThrottleFunc</a> <i>(func)</i></label><span id='IsErrorThrottleFunc-fold-content-docs' class="fold-docs">
+<span class="md-text">		IsErrorThrottleFunc wraps a function with the IsErrorThrottle interface.</span>
+
+		<input type='checkbox' class="fold" id="IsErrorThrottleFunc-fold-methods"><label for="IsErrorThrottleFunc-fold-methods">Methods (<i>only one, which is exported</i>)</label><span id='IsErrorThrottleFunc-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="IsErrorThrottleFunc-fold-method-IsErrorThrottle"><label for="IsErrorThrottleFunc-fold-method-IsErrorThrottle">( IsErrorThrottleFunc) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/throttle_error.go.html#line-35">IsErrorThrottle</a>(err <a href="../../../../builtin.html#name-error">error</a>) <a href="../aws.html">aws</a>.<a href="../aws.html#name-Ternary">Ternary</a></label><span id='IsErrorThrottleFunc-fold-method-IsErrorThrottle-docs' class="fold-docs">
+<span class="md-text">				IsErrorThrottle returns if the error is a throttle error.</span>
+</span></span></span>
+		<input type='checkbox' class="fold" id="IsErrorThrottleFunc-fold-impls"><label for="IsErrorThrottleFunc-fold-impls">Implements (<i>at least one exported</i>)</label><span id='IsErrorThrottleFunc-fold-impls-items' class="fold-items"><span>
+			 IsErrorThrottleFunc : <a href="#name-IsErrorThrottle">IsErrorThrottle</a></span></span>
+
+</span></div><div class="anchor type-res" id="name-IsErrorThrottles" data-popularity="100">	<input type='checkbox' class="fold" id="IsErrorThrottles-fold-content"><label for="IsErrorThrottles-fold-content"> <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..IsErrorThrottles.html">type</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/throttle_error.go.html#line-18">IsErrorThrottles</a> <i>([])</i></label><span id='IsErrorThrottles-fold-content-docs' class="fold-docs">
+<span class="md-text">		IsErrorThrottles is a collection of checks to determine of the error a
+		throttle error. Iterates through the checks and returns the state of
+		throttle if any check returns something other than unknown.</span>
+
+		<input type='checkbox' class="fold" id="IsErrorThrottles-fold-methods"><label for="IsErrorThrottles-fold-methods">Methods (<i>only one, which is exported</i>)</label><span id='IsErrorThrottles-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="IsErrorThrottles-fold-method-IsErrorThrottle"><label for="IsErrorThrottles-fold-method-IsErrorThrottle">( IsErrorThrottles) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/throttle_error.go.html#line-22">IsErrorThrottle</a>(err <a href="../../../../builtin.html#name-error">error</a>) <a href="../aws.html">aws</a>.<a href="../aws.html#name-Ternary">Ternary</a></label><span id='IsErrorThrottles-fold-method-IsErrorThrottle-docs' class="fold-docs">
+<span class="md-text">				IsErrorThrottle returns if the error is a throttle error if any of the
+				checks in the list return a value other than unknown.</span>
+</span></span></span>
+		<input type='checkbox' class="fold" id="IsErrorThrottles-fold-impls"><label for="IsErrorThrottles-fold-impls">Implements (<i>at least one exported</i>)</label><span id='IsErrorThrottles-fold-impls-items' class="fold-items"><span>
+			 IsErrorThrottles : <a href="#name-IsErrorThrottle">IsErrorThrottle</a></span></span>
+
+</span></div><div class="anchor type-res" id="name-IsErrorTimeout" data-popularity="500">	<input type='checkbox' class="fold" id="IsErrorTimeout-fold-content"><label for="IsErrorTimeout-fold-content"> <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..IsErrorTimeout.html">type</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/timeout_error.go.html#line-11">IsErrorTimeout</a> <b><i>(interface)</i></b></label><span id='IsErrorTimeout-fold-content-docs' class="fold-docs">
+<span class="md-text">		IsErrorTimeout provides the interface of an implementation to determine if
+		a error matches.</span>
+
+		<input type='checkbox' class="fold" id="IsErrorTimeout-fold-methods"><label for="IsErrorTimeout-fold-methods">Methods (<i>only one, which is exported</i>)</label><span id='IsErrorTimeout-fold-methods-items' class="fold-items"><span>
+			<span class="nodocs">( IsErrorTimeout) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/timeout_error.go.html#line-12">IsErrorTimeout</a>(err <a href="../../../../builtin.html#name-error">error</a>) <a href="../aws.html">aws</a>.<a href="../aws.html#name-Ternary">Ternary</a></span></span></span>
+		<input type='checkbox' class="fold" id="IsErrorTimeout-fold-impledby"><label for="IsErrorTimeout-fold-impledby">Implemented By (<i>at least 3, all are exported</i>)</label><span id='IsErrorTimeout-fold-impledby-items' class="fold-items"><span>
+			 <a href="#name-IsErrorTimeoutFunc">IsErrorTimeoutFunc</a></span><span>
+			 <a href="#name-IsErrorTimeouts">IsErrorTimeouts</a></span><span>
+			 <a href="#name-TimeouterError">TimeouterError</a></span></span>
+
+</span></div><div class="anchor type-res" id="name-IsErrorTimeoutFunc" data-popularity="100">	<input type='checkbox' class="fold" id="IsErrorTimeoutFunc-fold-content"><label for="IsErrorTimeoutFunc-fold-content"> <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..IsErrorTimeoutFunc.html">type</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/timeout_error.go.html#line-32">IsErrorTimeoutFunc</a> <i>(func)</i></label><span id='IsErrorTimeoutFunc-fold-content-docs' class="fold-docs">
+<span class="md-text">		IsErrorTimeoutFunc wraps a function with the IsErrorTimeout interface.</span>
+
+		<input type='checkbox' class="fold" id="IsErrorTimeoutFunc-fold-methods"><label for="IsErrorTimeoutFunc-fold-methods">Methods (<i>only one, which is exported</i>)</label><span id='IsErrorTimeoutFunc-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="IsErrorTimeoutFunc-fold-method-IsErrorTimeout"><label for="IsErrorTimeoutFunc-fold-method-IsErrorTimeout">( IsErrorTimeoutFunc) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/timeout_error.go.html#line-35">IsErrorTimeout</a>(err <a href="../../../../builtin.html#name-error">error</a>) <a href="../aws.html">aws</a>.<a href="../aws.html#name-Ternary">Ternary</a></label><span id='IsErrorTimeoutFunc-fold-method-IsErrorTimeout-docs' class="fold-docs">
+<span class="md-text">				IsErrorTimeout returns if the error is retryable.</span>
+</span></span></span>
+		<input type='checkbox' class="fold" id="IsErrorTimeoutFunc-fold-impls"><label for="IsErrorTimeoutFunc-fold-impls">Implements (<i>at least one exported</i>)</label><span id='IsErrorTimeoutFunc-fold-impls-items' class="fold-items"><span>
+			 IsErrorTimeoutFunc : <a href="#name-IsErrorTimeout">IsErrorTimeout</a></span></span>
+
+</span></div><div class="anchor type-res" id="name-IsErrorTimeouts" data-popularity="100">	<input type='checkbox' class="fold" id="IsErrorTimeouts-fold-content"><label for="IsErrorTimeouts-fold-content"> <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..IsErrorTimeouts.html">type</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/timeout_error.go.html#line-18">IsErrorTimeouts</a> <i>([])</i></label><span id='IsErrorTimeouts-fold-content-docs' class="fold-docs">
+<span class="md-text">		IsErrorTimeouts is a collection of checks to determine of the error is
+		retryable. Iterates through the checks and returns the state of retryable
+		if any check returns something other than unknown.</span>
+
+		<input type='checkbox' class="fold" id="IsErrorTimeouts-fold-methods"><label for="IsErrorTimeouts-fold-methods">Methods (<i>only one, which is exported</i>)</label><span id='IsErrorTimeouts-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="IsErrorTimeouts-fold-method-IsErrorTimeout"><label for="IsErrorTimeouts-fold-method-IsErrorTimeout">( IsErrorTimeouts) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/timeout_error.go.html#line-22">IsErrorTimeout</a>(err <a href="../../../../builtin.html#name-error">error</a>) <a href="../aws.html">aws</a>.<a href="../aws.html#name-Ternary">Ternary</a></label><span id='IsErrorTimeouts-fold-method-IsErrorTimeout-docs' class="fold-docs">
+<span class="md-text">				IsErrorTimeout returns if the error is retryable if any of the checks in
+				the list return a value other than unknown.</span>
+</span></span></span>
+		<input type='checkbox' class="fold" id="IsErrorTimeouts-fold-impls"><label for="IsErrorTimeouts-fold-impls">Implements (<i>at least one exported</i>)</label><span id='IsErrorTimeouts-fold-impls-items' class="fold-items"><span>
+			 IsErrorTimeouts : <a href="#name-IsErrorTimeout">IsErrorTimeout</a></span></span>
+
+</span></div><div class="anchor type-res" id="name-MaxAttemptsError" data-popularity="150">	<input type='checkbox' class="fold" id="MaxAttemptsError-fold-content"><label for="MaxAttemptsError-fold-content"> <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..MaxAttemptsError.html">type</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/errors.go.html#line-7">MaxAttemptsError</a> <i>(struct)</i></label><span id='MaxAttemptsError-fold-content-docs' class="fold-docs">
+<span class="md-text">		MaxAttemptsError provides the error when the maximum number of attempts have
+		been exceeded.</span>
+
+		<input type='checkbox' class="fold" id="MaxAttemptsError-fold-fields"><label for="MaxAttemptsError-fold-fields">Fields (<i>total 2, both are exported</i>)</label><span id='MaxAttemptsError-fold-fields-items' class="fold-items"><span>
+			<span class="nodocs"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/errors.go.html#line-8">Attempt</a> <i><a href="../../../../builtin.html#name-int">int</a></i></span></span><span>
+			<span class="nodocs"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/errors.go.html#line-9">Err</a> <i><a href="../../../../builtin.html#name-error">error</a></i></span></span></span>
+		<input type='checkbox' class="fold" id="MaxAttemptsError-fold-methods"><label for="MaxAttemptsError-fold-methods">Methods (<i>total 2, both are exported</i>)</label><span id='MaxAttemptsError-fold-methods-items' class="fold-items"><span>
+			<span class="nodocs">(*MaxAttemptsError) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/errors.go.html#line-12">Error</a>() <a href="../../../../builtin.html#name-string">string</a></span></span><span>
+			<input type='checkbox' class="fold" id="MaxAttemptsError-fold-method-Unwrap"><label for="MaxAttemptsError-fold-method-Unwrap">(*MaxAttemptsError) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/errors.go.html#line-18">Unwrap</a>() <a href="../../../../builtin.html#name-error">error</a></label><span id='MaxAttemptsError-fold-method-Unwrap-docs' class="fold-docs">
+<span class="md-text">				Unwrap returns the nested error causing the max attempts error. Provides the
+				implementation for errors.Is and errors.As to unwrap nested errors.</span>
+</span></span></span>
+		<input type='checkbox' class="fold" id="MaxAttemptsError-fold-impls"><label for="MaxAttemptsError-fold-impls">Implements (<i>at least one exported</i>)</label><span id='MaxAttemptsError-fold-impls-items' class="fold-items"><span>
+			*MaxAttemptsError : <a href="../../../../builtin.html#name-error">error</a></span></span>
+
+</span></div><div class="anchor type-res" id="name-MetricsHeader" data-popularity="200">	<input type='checkbox' class="fold" id="MetricsHeader-fold-content"><label for="MetricsHeader-fold-content"> <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..MetricsHeader.html">type</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/middleware.go.html#line-244">MetricsHeader</a> <i>(struct)</i></label><span id='MetricsHeader-fold-content-docs' class="fold-docs">
+<span class="md-text">		MetricsHeader attaches SDK request metric header for retries to the transport</span>
+
+		<input type='checkbox' class="fold" id="MetricsHeader-fold-methods"><label for="MetricsHeader-fold-methods">Methods (<i>total 2, both are exported</i>)</label><span id='MetricsHeader-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="MetricsHeader-fold-method-HandleFinalize"><label for="MetricsHeader-fold-method-HandleFinalize">( MetricsHeader) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/middleware.go.html#line-252">HandleFinalize</a>(ctx <a href="../../../../context.html">context</a>.<a href="../../../../context.html#name-Context">Context</a>, in <a href="../../smithy-go/middleware.html">smithymiddle</a>.<a href="../../smithy-go/middleware.html#name-FinalizeInput">FinalizeInput</a>, next <a href="../../smithy-go/middleware.html">smithymiddle</a>.<a href="../../smithy-go/middleware.html#name-FinalizeHandler">FinalizeHandler</a>) (out <a href="../../smithy-go/middleware.html">smithymiddle</a>.<a href="../../smithy-go/middleware.html#name-FinalizeOutput">FinalizeOutput</a>, metadata <a href="../../smithy-go/middleware.html">smithymiddle</a>.<a href="../../smithy-go/middleware.html#name-Metadata">Metadata</a>, err <a href="../../../../builtin.html#name-error">error</a>)</label><span id='MetricsHeader-fold-method-HandleFinalize-docs' class="fold-docs">
+<span class="md-text">				HandleFinalize attaches the SDK request metric header to the transport layer</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="MetricsHeader-fold-method-ID"><label for="MetricsHeader-fold-method-ID">(*MetricsHeader) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/middleware.go.html#line-247">ID</a>() <a href="../../../../builtin.html#name-string">string</a></label><span id='MetricsHeader-fold-method-ID-docs' class="fold-docs">
+<span class="md-text">				ID returns the middleware identifier</span>
+</span></span></span>
+		<input type='checkbox' class="fold" id="MetricsHeader-fold-impls"><label for="MetricsHeader-fold-impls">Implements (<i>at least 2, in which 1 is exported</i>)</label><span id='MetricsHeader-fold-impls-items' class="fold-items"><span>
+			*MetricsHeader : github.com/aws/smithy-go/middleware.<a href="../../smithy-go/middleware.html#name-FinalizeMiddleware">FinalizeMiddleware</a></span>
+			<input type='checkbox' class="showhide" id="MetricsHeader-showhide-impls"><i><label for="MetricsHeader-showhide-impls" class="show-inline">/* at least one unexported ... */</label><label for="MetricsHeader-showhide-impls" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			*MetricsHeader : github.com/aws/smithy-go/middleware.<a href="../../smithy-go/middleware.html#name-ider">ider</a></i></span></span>
+
+</span></div><div class="anchor type-res" id="name-NoRetryCanceledError" data-popularity="100">	<input type='checkbox' class="fold" id="NoRetryCanceledError-fold-content"><label for="NoRetryCanceledError-fold-content"> <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..NoRetryCanceledError.html">type</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/retryable_error.go.html#line-61">NoRetryCanceledError</a> <i>(struct)</i></label><span id='NoRetryCanceledError-fold-content-docs' class="fold-docs">
+<span class="md-text">		NoRetryCanceledError detects if the error was an request canceled error and
+		returns if so.</span>
+
+		<input type='checkbox' class="fold" id="NoRetryCanceledError-fold-methods"><label for="NoRetryCanceledError-fold-methods">Methods (<i>only one, which is exported</i>)</label><span id='NoRetryCanceledError-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="NoRetryCanceledError-fold-method-IsErrorRetryable"><label for="NoRetryCanceledError-fold-method-IsErrorRetryable">( NoRetryCanceledError) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/retryable_error.go.html#line-65">IsErrorRetryable</a>(err <a href="../../../../builtin.html#name-error">error</a>) <a href="../aws.html">aws</a>.<a href="../aws.html#name-Ternary">Ternary</a></label><span id='NoRetryCanceledError-fold-method-IsErrorRetryable-docs' class="fold-docs">
+<span class="md-text">				IsErrorRetryable returns the error is not retryable if the request was
+				canceled.</span>
+</span></span></span>
+		<input type='checkbox' class="fold" id="NoRetryCanceledError-fold-impls"><label for="NoRetryCanceledError-fold-impls">Implements (<i>at least one exported</i>)</label><span id='NoRetryCanceledError-fold-impls-items' class="fold-items"><span>
+			 NoRetryCanceledError : <a href="#name-IsErrorRetryable">IsErrorRetryable</a></span></span>
+
+</span></div><div class="anchor type-res" id="name-RateLimiter" data-popularity="250">	<input type='checkbox' class="fold" id="RateLimiter-fold-content"><label for="RateLimiter-fold-content"> <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..RateLimiter.html">type</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/standard.go.html#line-142">RateLimiter</a> <b><i>(interface)</i></b></label><span id='RateLimiter-fold-content-docs' class="fold-docs">
+<span class="md-text">		RateLimiter provides the interface for limiting the rate of attempt retries
+		allowed by the retryer.</span>
+
+		<input type='checkbox' class="fold" id="RateLimiter-fold-methods"><label for="RateLimiter-fold-methods">Methods (<i>total 2, both are exported</i>)</label><span id='RateLimiter-fold-methods-items' class="fold-items"><span>
+			<span class="nodocs">( RateLimiter) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/standard.go.html#line-144">AddTokens</a>(<a href="../../../../builtin.html#name-uint">uint</a>) <a href="../../../../builtin.html#name-error">error</a></span></span><span>
+			<span class="nodocs">( RateLimiter) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/standard.go.html#line-143">GetToken</a>(ctx <a href="../../../../context.html">context</a>.<a href="../../../../context.html#name-Context">Context</a>, cost <a href="../../../../builtin.html#name-uint">uint</a>) (releaseToken func() <a href="../../../../builtin.html#name-error">error</a>, err <a href="../../../../builtin.html#name-error">error</a>)</span></span></span>
+		<input type='checkbox' class="fold" id="RateLimiter-fold-impledby"><label for="RateLimiter-fold-impledby">Implemented By (<i>at least one exported</i>)</label><span id='RateLimiter-fold-impledby-items' class="fold-items"><span>
+			*github.com/aws/aws-sdk-go-v2/aws/ratelimit.<a href="ratelimit.html#name-TokenRateLimit">TokenRateLimit</a></span></span>
+
+</span></div><div class="anchor type-res" id="name-RequestCloner" data-popularity="35">	<input type='checkbox' class="fold" id="RequestCloner-fold-content"><label for="RequestCloner-fold-content"> <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..RequestCloner.html">type</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/middleware.go.html#line-21">RequestCloner</a> <i>(func)</i></label><span id='RequestCloner-fold-content-docs' class="fold-docs">
+<span class="md-text">		RequestCloner is a function that can take an input request type and clone
+		the request for use in a subsequent retry attempt.</span>
+
+		<input type='checkbox' class="fold" id="RequestCloner-fold-params"><label for="RequestCloner-fold-params">As Inputs Of (<i>at least one exported</i>)</label><span id='RequestCloner-fold-params-items' class="fold-items"><span>
+			func <a href="#name-NewAttemptMiddleware">NewAttemptMiddleware</a>(retryer <a href="../aws.html">aws</a>.<a href="../aws.html#name-Retryer">Retryer</a>, requestCloner <b>RequestCloner</b>, optFns ...func(*<a href="#name-Attempt">Attempt</a>)) *<a href="#name-Attempt">Attempt</a></span></span>
+
+</span></div><div class="anchor type-res" id="name-RetryableConnectionError" data-popularity="100">	<input type='checkbox' class="fold" id="RetryableConnectionError-fold-content"><label for="RetryableConnectionError-fold-content"> <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..RetryableConnectionError.html">type</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/retryable_error.go.html#line-83">RetryableConnectionError</a> <i>(struct)</i></label><span id='RetryableConnectionError-fold-content-docs' class="fold-docs">
+<span class="md-text">		RetryableConnectionError determines if the underlying error is an HTTP
+		connection and returns if it should be retried.
+		
+		Includes errors such as connection reset, connection refused, net dial,
+		temporary, and timeout errors.</span>
+
+		<input type='checkbox' class="fold" id="RetryableConnectionError-fold-methods"><label for="RetryableConnectionError-fold-methods">Methods (<i>only one, which is exported</i>)</label><span id='RetryableConnectionError-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="RetryableConnectionError-fold-method-IsErrorRetryable"><label for="RetryableConnectionError-fold-method-IsErrorRetryable">( RetryableConnectionError) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/retryable_error.go.html#line-87">IsErrorRetryable</a>(err <a href="../../../../builtin.html#name-error">error</a>) <a href="../aws.html">aws</a>.<a href="../aws.html#name-Ternary">Ternary</a></label><span id='RetryableConnectionError-fold-method-IsErrorRetryable-docs' class="fold-docs">
+<span class="md-text">				IsErrorRetryable returns if the error is caused by and HTTP connection
+				error, and should be retried.</span>
+</span></span></span>
+		<input type='checkbox' class="fold" id="RetryableConnectionError-fold-impls"><label for="RetryableConnectionError-fold-impls">Implements (<i>at least one exported</i>)</label><span id='RetryableConnectionError-fold-impls-items' class="fold-items"><span>
+			 RetryableConnectionError : <a href="#name-IsErrorRetryable">IsErrorRetryable</a></span></span>
+
+</span></div><div class="anchor type-res" id="name-RetryableError" data-popularity="100">	<input type='checkbox' class="fold" id="RetryableError-fold-content"><label for="RetryableError-fold-content"> <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..RetryableError.html">type</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/retryable_error.go.html#line-45">RetryableError</a> <i>(struct)</i></label><span id='RetryableError-fold-content-docs' class="fold-docs">
+<span class="md-text">		RetryableError is an IsErrorRetryable implementation which uses the
+		optional interface Retryable on the error value to determine if the error is
+		retryable.</span>
+
+		<input type='checkbox' class="fold" id="RetryableError-fold-methods"><label for="RetryableError-fold-methods">Methods (<i>only one, which is exported</i>)</label><span id='RetryableError-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="RetryableError-fold-method-IsErrorRetryable"><label for="RetryableError-fold-method-IsErrorRetryable">( RetryableError) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/retryable_error.go.html#line-49">IsErrorRetryable</a>(err <a href="../../../../builtin.html#name-error">error</a>) <a href="../aws.html">aws</a>.<a href="../aws.html#name-Ternary">Ternary</a></label><span id='RetryableError-fold-method-IsErrorRetryable-docs' class="fold-docs">
+<span class="md-text">				IsErrorRetryable returns if the error is retryable if it satisfies the
+				Retryable interface, and returns if the attempt should be retried.</span>
+</span></span></span>
+		<input type='checkbox' class="fold" id="RetryableError-fold-impls"><label for="RetryableError-fold-impls">Implements (<i>at least one exported</i>)</label><span id='RetryableError-fold-impls-items' class="fold-items"><span>
+			 RetryableError : <a href="#name-IsErrorRetryable">IsErrorRetryable</a></span></span>
+
+</span></div><div class="anchor type-res" id="name-RetryableErrorCode" data-popularity="100">	<input type='checkbox' class="fold" id="RetryableErrorCode-fold-content"><label for="RetryableErrorCode-fold-content"> <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..RetryableErrorCode.html">type</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/retryable_error.go.html#line-167">RetryableErrorCode</a> <i>(struct)</i></label><span id='RetryableErrorCode-fold-content-docs' class="fold-docs">
+<span class="md-text">		RetryableErrorCode determines if an attempt should be retried based on the
+		API error code.</span>
+
+		<input type='checkbox' class="fold" id="RetryableErrorCode-fold-fields"><label for="RetryableErrorCode-fold-fields">Fields (<i>only one, which is exported</i>)</label><span id='RetryableErrorCode-fold-fields-items' class="fold-items"><span>
+			<span class="nodocs"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/retryable_error.go.html#line-168">Codes</a> <i>map[<a href="../../../../builtin.html#name-string">string</a>]struct{}</i></span></span></span>
+		<input type='checkbox' class="fold" id="RetryableErrorCode-fold-methods"><label for="RetryableErrorCode-fold-methods">Methods (<i>only one, which is exported</i>)</label><span id='RetryableErrorCode-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="RetryableErrorCode-fold-method-IsErrorRetryable"><label for="RetryableErrorCode-fold-method-IsErrorRetryable">( RetryableErrorCode) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/retryable_error.go.html#line-173">IsErrorRetryable</a>(err <a href="../../../../builtin.html#name-error">error</a>) <a href="../aws.html">aws</a>.<a href="../aws.html#name-Ternary">Ternary</a></label><span id='RetryableErrorCode-fold-method-IsErrorRetryable-docs' class="fold-docs">
+<span class="md-text">				IsErrorRetryable return if the error is retryable based on the error codes.
+				Returns unknown if the error doesn't have a code or it is unknown.</span>
+</span></span></span>
+		<input type='checkbox' class="fold" id="RetryableErrorCode-fold-impls"><label for="RetryableErrorCode-fold-impls">Implements (<i>at least one exported</i>)</label><span id='RetryableErrorCode-fold-impls-items' class="fold-items"><span>
+			 RetryableErrorCode : <a href="#name-IsErrorRetryable">IsErrorRetryable</a></span></span>
+
+</span></div><div class="anchor type-res" id="name-RetryableHTTPStatusCode" data-popularity="100">	<input type='checkbox' class="fold" id="RetryableHTTPStatusCode-fold-content"><label for="RetryableHTTPStatusCode-fold-content"> <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..RetryableHTTPStatusCode.html">type</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/retryable_error.go.html#line-144">RetryableHTTPStatusCode</a> <i>(struct)</i></label><span id='RetryableHTTPStatusCode-fold-content-docs' class="fold-docs">
+<span class="md-text">		RetryableHTTPStatusCode provides a IsErrorRetryable based on HTTP status
+		codes.</span>
+
+		<input type='checkbox' class="fold" id="RetryableHTTPStatusCode-fold-fields"><label for="RetryableHTTPStatusCode-fold-fields">Fields (<i>only one, which is exported</i>)</label><span id='RetryableHTTPStatusCode-fold-fields-items' class="fold-items"><span>
+			<span class="nodocs"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/retryable_error.go.html#line-145">Codes</a> <i>map[<a href="../../../../builtin.html#name-int">int</a>]struct{}</i></span></span></span>
+		<input type='checkbox' class="fold" id="RetryableHTTPStatusCode-fold-methods"><label for="RetryableHTTPStatusCode-fold-methods">Methods (<i>only one, which is exported</i>)</label><span id='RetryableHTTPStatusCode-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="RetryableHTTPStatusCode-fold-method-IsErrorRetryable"><label for="RetryableHTTPStatusCode-fold-method-IsErrorRetryable">( RetryableHTTPStatusCode) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/retryable_error.go.html#line-150">IsErrorRetryable</a>(err <a href="../../../../builtin.html#name-error">error</a>) <a href="../aws.html">aws</a>.<a href="../aws.html#name-Ternary">Ternary</a></label><span id='RetryableHTTPStatusCode-fold-method-IsErrorRetryable-docs' class="fold-docs">
+<span class="md-text">				IsErrorRetryable return if the passed in error is retryable based on the
+				HTTP status code.</span>
+</span></span></span>
+		<input type='checkbox' class="fold" id="RetryableHTTPStatusCode-fold-impls"><label for="RetryableHTTPStatusCode-fold-impls">Implements (<i>at least one exported</i>)</label><span id='RetryableHTTPStatusCode-fold-impls-items' class="fold-items"><span>
+			 RetryableHTTPStatusCode : <a href="#name-IsErrorRetryable">IsErrorRetryable</a></span></span>
+
+</span></div><div class="anchor type-res" id="name-Standard" data-popularity="525">	<input type='checkbox' class="fold" id="Standard-fold-content"><label for="Standard-fold-content"> <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..Standard.html">type</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/standard.go.html#line-150">Standard</a> <i>(struct)</i></label><span id='Standard-fold-content-docs' class="fold-docs">
+<span class="md-text">		Standard is the standard retry pattern for the SDK. It uses a set of
+		retryable checks to determine of the failed attempt should be retried, and
+		what retry delay should be used.</span>
+
+		<input type='checkbox' class="fold" id="Standard-fold-fields"><label for="Standard-fold-fields">Fields (<i>total 4, none are exported</i>)</label><span id='Standard-fold-fields-items' class="fold-items">
+			<input type='checkbox' class="showhide" id="Standard-showhide-fields"><i><label for="Standard-showhide-fields" class="show-inline">/* 4 unexporteds ... */</label><label for="Standard-showhide-fields" class="hide-inline">/* 4 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/standard.go.html#line-155">backoff</a> <i><a href="#name-BackoffDelayer">BackoffDelayer</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/standard.go.html#line-151">options</a> <i><a href="#name-StandardOptions">StandardOptions</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/standard.go.html#line-154">retryable</a> <i><a href="#name-IsErrorRetryable">IsErrorRetryable</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/standard.go.html#line-153">timeout</a> <i><a href="#name-IsErrorTimeout">IsErrorTimeout</a></i></span></i></span></span>
+		<input type='checkbox' class="fold" id="Standard-fold-methods"><label for="Standard-fold-methods">Methods (<i>total 7, in which 6 are exported</i>)</label><span id='Standard-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="Standard-fold-method-GetAttemptToken"><label for="Standard-fold-method-GetAttemptToken">(*Standard) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/standard.go.html#line-212">GetAttemptToken</a>(<a href="../../../../context.html">context</a>.<a href="../../../../context.html#name-Context">Context</a>) (func(<a href="../../../../builtin.html#name-error">error</a>) <a href="../../../../builtin.html#name-error">error</a>, <a href="../../../../builtin.html#name-error">error</a>)</label><span id='Standard-fold-method-GetAttemptToken-docs' class="fold-docs">
+<span class="md-text">				GetAttemptToken returns the token to be released after then attempt completes.
+				The release token will add NoRetryIncrement to the RateLimiter token pool if
+				the attempt was successful. If the attempt failed, nothing will be done.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Standard-fold-method-GetInitialToken"><label for="Standard-fold-method-GetInitialToken">(*Standard) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/standard.go.html#line-223">GetInitialToken</a>() func(<a href="../../../../builtin.html#name-error">error</a>) <a href="../../../../builtin.html#name-error">error</a></label><span id='Standard-fold-method-GetInitialToken-docs' class="fold-docs">
+<span class="md-text">				GetInitialToken returns a token for adding the NoRetryIncrement to the
+				RateLimiter token if the attempt completed successfully without error.
+				
+				InitialToken applies to result of the each attempt, including the first.
+				Whereas the RetryToken applies to the result of subsequent attempts.
+				
+				Deprecated: use GetAttemptToken instead.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Standard-fold-method-GetRetryToken"><label for="Standard-fold-method-GetRetryToken">(*Standard) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/standard.go.html#line-233">GetRetryToken</a>(ctx <a href="../../../../context.html">context</a>.<a href="../../../../context.html#name-Context">Context</a>, opErr <a href="../../../../builtin.html#name-error">error</a>) (func(<a href="../../../../builtin.html#name-error">error</a>) <a href="../../../../builtin.html#name-error">error</a>, <a href="../../../../builtin.html#name-error">error</a>)</label><span id='Standard-fold-method-GetRetryToken-docs' class="fold-docs">
+<span class="md-text">				GetRetryToken attempts to deduct the retry cost from the retry token pool.
+				Returning the token release function, or error.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Standard-fold-method-IsErrorRetryable"><label for="Standard-fold-method-IsErrorRetryable">(*Standard) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/standard.go.html#line-200">IsErrorRetryable</a>(err <a href="../../../../builtin.html#name-error">error</a>) <a href="../../../../builtin.html#name-bool">bool</a></label><span id='Standard-fold-method-IsErrorRetryable-docs' class="fold-docs">
+<span class="md-text">				IsErrorRetryable returns if the error is can be retried or not. Should not
+				consider the number of attempts made.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Standard-fold-method-MaxAttempts"><label for="Standard-fold-method-MaxAttempts">(*Standard) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/standard.go.html#line-194">MaxAttempts</a>() <a href="../../../../builtin.html#name-int">int</a></label><span id='Standard-fold-method-MaxAttempts-docs' class="fold-docs">
+<span class="md-text">				MaxAttempts returns the maximum number of attempts that can be made for a
+				request before failing.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Standard-fold-method-RetryDelay"><label for="Standard-fold-method-RetryDelay">(*Standard) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/standard.go.html#line-205">RetryDelay</a>(attempt <a href="../../../../builtin.html#name-int">int</a>, err <a href="../../../../builtin.html#name-error">error</a>) (<a href="../../../../time.html">time</a>.<a href="../../../../time.html#name-Duration">Duration</a>, <a href="../../../../builtin.html#name-error">error</a>)</label><span id='Standard-fold-method-RetryDelay-docs' class="fold-docs">
+<span class="md-text">				RetryDelay returns the delay to use before another request attempt is made.</span>
+</span></span>
+			<input type='checkbox' class="showhide" id="Standard-showhide-methods"><i><label for="Standard-showhide-methods" class="show-inline">/* one unexported ... */</label><label for="Standard-showhide-methods" class="hide-inline">/* one unexported: */</label></i><span class="hidden"><i>
+			<span class="nodocs">(*Standard) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/standard.go.html#line-227">noRetryIncrement</a>() <a href="../../../../builtin.html#name-error">error</a></span></i></span></span>
+		<input type='checkbox' class="fold" id="Standard-fold-impls"><label for="Standard-fold-impls">Implements (<i>at least 2, both are exported</i>)</label><span id='Standard-fold-impls-items' class="fold-items"><span>
+			*Standard : github.com/aws/aws-sdk-go-v2/aws.<a href="../aws.html#name-Retryer">Retryer</a></span><span>
+			*Standard : github.com/aws/aws-sdk-go-v2/aws.<a href="../aws.html#name-RetryerV2">RetryerV2</a></span></span>
+		<input type='checkbox' class="fold" id="Standard-fold-results"><label for="Standard-fold-results">As Outputs Of (<i>at least one exported</i>)</label><span id='Standard-fold-results-items' class="fold-items"><span>
+			func <a href="#name-NewStandard">NewStandard</a>(fnOpts ...func(*<a href="#name-StandardOptions">StandardOptions</a>)) *<b>Standard</b></span></span>
+
+</span></div><div class="anchor type-res" id="name-StandardOptions" data-popularity="0">	<input type='checkbox' class="fold" id="StandardOptions-fold-content"><label for="StandardOptions-fold-content"> <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..StandardOptions.html">type</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/standard.go.html#line-101">StandardOptions</a> <i>(struct)</i></label><span id='StandardOptions-fold-content-docs' class="fold-docs">
+<span class="md-text">		StandardOptions provides the functional options for configuring the standard
+		retryable, and delay behavior.</span>
+
+		<input type='checkbox' class="fold" id="StandardOptions-fold-fields"><label for="StandardOptions-fold-fields">Fields (<i>total 9, all are exported</i>)</label><span id='StandardOptions-fold-fields-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="StandardOptions-fold-field-Backoff"><label for="StandardOptions-fold-field-Backoff"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/standard.go.html#line-110">Backoff</a> <i><a href="#name-BackoffDelayer">BackoffDelayer</a></i></label><span id='StandardOptions-fold-field-Backoff-docs' class="fold-docs">
+<span class="md-text">				Provides the backoff strategy the retryer will use to determine the
+				delay between retry attempts.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="StandardOptions-fold-field-MaxAttempts"><label for="StandardOptions-fold-field-MaxAttempts"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/standard.go.html#line-103">MaxAttempts</a> <i><a href="../../../../builtin.html#name-int">int</a></i></label><span id='StandardOptions-fold-field-MaxAttempts-docs' class="fold-docs">
+<span class="md-text">				Maximum number of attempts that should be made.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="StandardOptions-fold-field-MaxBackoff"><label for="StandardOptions-fold-field-MaxBackoff"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/standard.go.html#line-106">MaxBackoff</a> <i><a href="../../../../time.html">time</a>.<a href="../../../../time.html#name-Duration">Duration</a></i></label><span id='StandardOptions-fold-field-MaxBackoff-docs' class="fold-docs">
+<span class="md-text">				MaxBackoff duration between retried attempts.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="StandardOptions-fold-field-NoRetryIncrement"><label for="StandardOptions-fold-field-NoRetryIncrement"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/standard.go.html#line-137">NoRetryIncrement</a> <i><a href="../../../../builtin.html#name-uint">uint</a></i></label><span id='StandardOptions-fold-field-NoRetryIncrement-docs' class="fold-docs">
+<span class="md-text">				The cost to payback to the RateLimiter's token bucket for successful
+				attempts.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="StandardOptions-fold-field-RateLimiter"><label for="StandardOptions-fold-field-RateLimiter"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/standard.go.html#line-126">RateLimiter</a> <i><a href="#name-RateLimiter">RateLimiter</a></i></label><span id='StandardOptions-fold-field-RateLimiter-docs' class="fold-docs">
+<span class="md-text">				Provides the rate limiting strategy for rate limiting attempt retries
+				across all attempts the retryer is being used with.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="StandardOptions-fold-field-RetryCost"><label for="StandardOptions-fold-field-RetryCost"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/standard.go.html#line-129">RetryCost</a> <i><a href="../../../../builtin.html#name-uint">uint</a></i></label><span id='StandardOptions-fold-field-RetryCost-docs' class="fold-docs">
+<span class="md-text">				The cost to deduct from the RateLimiter's token bucket per retry.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="StandardOptions-fold-field-RetryTimeoutCost"><label for="StandardOptions-fold-field-RetryTimeoutCost"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/standard.go.html#line-133">RetryTimeoutCost</a> <i><a href="../../../../builtin.html#name-uint">uint</a></i></label><span id='StandardOptions-fold-field-RetryTimeoutCost-docs' class="fold-docs">
+<span class="md-text">				The cost to deduct from the RateLimiter's token bucket per retry caused
+				by timeout error.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="StandardOptions-fold-field-Retryables"><label for="StandardOptions-fold-field-Retryables"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/standard.go.html#line-116">Retryables</a> <i>[]<a href="#name-IsErrorRetryable">IsErrorRetryable</a></i></label><span id='StandardOptions-fold-field-Retryables-docs' class="fold-docs">
+<span class="md-text">				Set of strategies to determine if the attempt should be retried based on
+				the error response received.
+				
+				It is safe to append to this list in NewStandard's functional options.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="StandardOptions-fold-field-Timeouts"><label for="StandardOptions-fold-field-Timeouts"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/standard.go.html#line-122">Timeouts</a> <i>[]<a href="#name-IsErrorTimeout">IsErrorTimeout</a></i></label><span id='StandardOptions-fold-field-Timeouts-docs' class="fold-docs">
+<span class="md-text">				Set of strategies to determine if the attempt failed due to a timeout
+				error.
+				
+				It is safe to append to this list in NewStandard's functional options.</span>
+</span></span></span>
+
+</span></div><div class="anchor type-res" id="name-ThrottleErrorCode" data-popularity="100">	<input type='checkbox' class="fold" id="ThrottleErrorCode-fold-content"><label for="ThrottleErrorCode-fold-content"> <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..ThrottleErrorCode.html">type</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/throttle_error.go.html#line-41">ThrottleErrorCode</a> <i>(struct)</i></label><span id='ThrottleErrorCode-fold-content-docs' class="fold-docs">
+<span class="md-text">		ThrottleErrorCode determines if an attempt should be retried based on the
+		API error code.</span>
+
+		<input type='checkbox' class="fold" id="ThrottleErrorCode-fold-fields"><label for="ThrottleErrorCode-fold-fields">Fields (<i>only one, which is exported</i>)</label><span id='ThrottleErrorCode-fold-fields-items' class="fold-items"><span>
+			<span class="nodocs"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/retryable_error.go.html#line-168">Codes</a> <i>map[<a href="../../../../builtin.html#name-string">string</a>]struct{}</i></span></span></span>
+		<input type='checkbox' class="fold" id="ThrottleErrorCode-fold-methods"><label for="ThrottleErrorCode-fold-methods">Methods (<i>only one, which is exported</i>)</label><span id='ThrottleErrorCode-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="ThrottleErrorCode-fold-method-IsErrorThrottle"><label for="ThrottleErrorCode-fold-method-IsErrorThrottle">( ThrottleErrorCode) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/throttle_error.go.html#line-47">IsErrorThrottle</a>(err <a href="../../../../builtin.html#name-error">error</a>) <a href="../aws.html">aws</a>.<a href="../aws.html#name-Ternary">Ternary</a></label><span id='ThrottleErrorCode-fold-method-IsErrorThrottle-docs' class="fold-docs">
+<span class="md-text">				IsErrorThrottle return if the error is a throttle error based on the error
+				codes. Returns unknown if the error doesn't have a code or it is unknown.</span>
+</span></span></span>
+		<input type='checkbox' class="fold" id="ThrottleErrorCode-fold-impls"><label for="ThrottleErrorCode-fold-impls">Implements (<i>at least one exported</i>)</label><span id='ThrottleErrorCode-fold-impls-items' class="fold-items"><span>
+			 ThrottleErrorCode : <a href="#name-IsErrorThrottle">IsErrorThrottle</a></span></span>
+
+</span></div><div class="anchor type-res" id="name-TimeouterError" data-popularity="100">	<input type='checkbox' class="fold" id="TimeouterError-fold-content"><label for="TimeouterError-fold-content"> <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..TimeouterError.html">type</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/timeout_error.go.html#line-41">TimeouterError</a> <i>(struct)</i></label><span id='TimeouterError-fold-content-docs' class="fold-docs">
+<span class="md-text">		TimeouterError provides the IsErrorTimeout implementation for determining if
+		an error is a timeout based on type with the Timeout method.</span>
+
+		<input type='checkbox' class="fold" id="TimeouterError-fold-methods"><label for="TimeouterError-fold-methods">Methods (<i>only one, which is exported</i>)</label><span id='TimeouterError-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="TimeouterError-fold-method-IsErrorTimeout"><label for="TimeouterError-fold-method-IsErrorTimeout">( TimeouterError) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/timeout_error.go.html#line-44">IsErrorTimeout</a>(err <a href="../../../../builtin.html#name-error">error</a>) <a href="../aws.html">aws</a>.<a href="../aws.html#name-Ternary">Ternary</a></label><span id='TimeouterError-fold-method-IsErrorTimeout-docs' class="fold-docs">
+<span class="md-text">				IsErrorTimeout returns if the error is a timeout error.</span>
+</span></span></span>
+		<input type='checkbox' class="fold" id="TimeouterError-fold-impls"><label for="TimeouterError-fold-impls">Implements (<i>at least one exported</i>)</label><span id='TimeouterError-fold-impls-items' class="fold-items"><span>
+			 TimeouterError : <a href="#name-IsErrorTimeout">IsErrorTimeout</a></span></span>
+
+</span></div></div><div>	<input type='checkbox' class="showhide" id="unexported-typenames-showhide"><i><label for="unexported-typenames-showhide" class="show-inline">/* 10 unexporteds ... */</label><label for="unexported-typenames-showhide" class="hide-inline">/* 10 unexporteds: */</label></i><div class="anchor type-res hidden" id="name-adaptiveRateLimit" data-popularity="525">	<input type='checkbox' class="fold" id="adaptiveRateLimit-fold-content"><label for="adaptiveRateLimit-fold-content"> <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..adaptiveRateLimit^e889c.html">type</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive_ratelimit.go.html#line-11">adaptiveRateLimit</a> <i>(struct)</i></label><span id='adaptiveRateLimit-fold-content-docs' class="fold-docs">
+
+		<input type='checkbox' class="fold" id="adaptiveRateLimit-fold-fields"><label for="adaptiveRateLimit-fold-fields">Fields (<i>total 16, none are exported</i>)</label><span id='adaptiveRateLimit-fold-fields-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="adaptiveRateLimit-showhide-fields"><i><label for="adaptiveRateLimit-showhide-fields" class="show-inline">/* 16 unexporteds ... */</label><label for="adaptiveRateLimit-showhide-fields" class="hide-inline">/* 16 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive_ratelimit.go.html#line-15">beta</a> <i><a href="../../../../builtin.html#name-float64">float64</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive_ratelimit.go.html#line-20">calculatedRate</a> <i><a href="../../../../builtin.html#name-float64">float64</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive_ratelimit.go.html#line-19">fillRate</a> <i><a href="../../../../builtin.html#name-float64">float64</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive_ratelimit.go.html#line-25">lastMaxRate</a> <i><a href="../../../../builtin.html#name-float64">float64</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive_ratelimit.go.html#line-21">lastRefilled</a> <i><a href="../../../../time.html">time</a>.<a href="../../../../time.html#name-Time">Time</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive_ratelimit.go.html#line-26">lastThrottleTime</a> <i><a href="../../../../time.html">time</a>.<a href="../../../../time.html#name-Time">Time</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive_ratelimit.go.html#line-23">lastTxRateBucket</a> <i><a href="../../../../builtin.html#name-float64">float64</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive_ratelimit.go.html#line-22">measuredTxRate</a> <i><a href="../../../../builtin.html#name-float64">float64</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive_ratelimit.go.html#line-17">minFillRate</a> <i><a href="../../../../builtin.html#name-float64">float64</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive_ratelimit.go.html#line-31">mu</a> <i><a href="../../../../sync.html">sync</a>.<a href="../../../../sync.html#name-Mutex">Mutex</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive_ratelimit.go.html#line-24">requestCount</a> <i><a href="../../../../builtin.html#name-int64">int64</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive_ratelimit.go.html#line-16">scaleConstant</a> <i><a href="../../../../builtin.html#name-float64">float64</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive_ratelimit.go.html#line-14">smooth</a> <i><a href="../../../../builtin.html#name-float64">float64</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive_ratelimit.go.html#line-27">timeWindow</a> <i><a href="../../../../builtin.html#name-float64">float64</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive_ratelimit.go.html#line-29">tokenBucket</a> <i>*<a href="#name-adaptiveTokenBucket">adaptiveTokenBucket</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive_ratelimit.go.html#line-12">tokenBucketEnabled</a> <i><a href="../../../../builtin.html#name-bool">bool</a></i></span></i></span></span>
+		<input type='checkbox' class="fold" id="adaptiveRateLimit-fold-methods"><label for="adaptiveRateLimit-fold-methods">Methods (<i>total 9, in which 3 are exported</i>)</label><span id='adaptiveRateLimit-fold-methods-items' class="fold-items"><span>
+			<span class="nodocs">(*adaptiveRateLimit) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive_ratelimit.go.html#line-57">AcquireToken</a>(amount <a href="../../../../builtin.html#name-uint">uint</a>) (tokenAcquired <a href="../../../../builtin.html#name-bool">bool</a>, waitTryAgain <a href="../../../../time.html">time</a>.<a href="../../../../time.html#name-Duration">Duration</a>)</span></span><span>
+			<span class="nodocs">(*adaptiveRateLimit) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive_ratelimit.go.html#line-50">Enable</a>(v <a href="../../../../builtin.html#name-bool">bool</a>)</span></span><span>
+			<span class="nodocs">(*adaptiveRateLimit) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive_ratelimit.go.html#line-78">Update</a>(throttled <a href="../../../../builtin.html#name-bool">bool</a>)</span></span>
+			<input type='checkbox' checked class="showhide" id="adaptiveRateLimit-showhide-methods"><i><label for="adaptiveRateLimit-showhide-methods" class="show-inline">/* 6 unexporteds ... */</label><label for="adaptiveRateLimit-showhide-methods" class="hide-inline">/* 6 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs">(*adaptiveRateLimit) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive_ratelimit.go.html#line-113">calculateTimeWindow</a>()</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*adaptiveRateLimit) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive_ratelimit.go.html#line-104">cubicSuccess</a>(t <a href="../../../../time.html">time</a>.<a href="../../../../time.html#name-Time">Time</a>) <a href="../../../../builtin.html#name-float64">float64</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*adaptiveRateLimit) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive_ratelimit.go.html#line-109">cubicThrottle</a>(rateToUse <a href="../../../../builtin.html#name-float64">float64</a>) <a href="../../../../builtin.html#name-float64">float64</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*adaptiveRateLimit) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive_ratelimit.go.html#line-136">tokenBucketRefill</a>()</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*adaptiveRateLimit) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive_ratelimit.go.html#line-117">tokenBucketUpdateRate</a>(newRPS <a href="../../../../builtin.html#name-float64">float64</a>)</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*adaptiveRateLimit) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive_ratelimit.go.html#line-123">updateMeasuredRate</a>()</span></i></span></span>
+		<input type='checkbox' class="fold" id="adaptiveRateLimit-fold-results"><label for="adaptiveRateLimit-fold-results">As Outputs Of (<i>at least one unexported</i>)</label><span id='adaptiveRateLimit-fold-results-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="adaptiveRateLimit-showhide-inputofs"><i><label for="adaptiveRateLimit-showhide-inputofs" class="show-inline">/* at least one unexported ... */</label><label for="adaptiveRateLimit-showhide-inputofs" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			func <a href="#name-newAdaptiveRateLimit">newAdaptiveRateLimit</a>() *<b>adaptiveRateLimit</b></i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-adaptiveTokenBucket" data-popularity="325">	<input type='checkbox' class="fold" id="adaptiveTokenBucket-fold-content"><label for="adaptiveTokenBucket-fold-content"> <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..adaptiveTokenBucket^17091.html">type</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive_token_bucket.go.html#line-10">adaptiveTokenBucket</a> <i>(struct)</i></label><span id='adaptiveTokenBucket-fold-content-docs' class="fold-docs">
+<span class="md-text">		adaptiveTokenBucket provides a concurrency safe utility for adding and
+		removing tokens from the available token bucket.</span>
+
+		<input type='checkbox' class="fold" id="adaptiveTokenBucket-fold-fields"><label for="adaptiveTokenBucket-fold-fields">Fields (<i>total 4, none are exported</i>)</label><span id='adaptiveTokenBucket-fold-fields-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="adaptiveTokenBucket-showhide-fields"><i><label for="adaptiveTokenBucket-showhide-fields" class="show-inline">/* 4 unexporteds ... */</label><label for="adaptiveTokenBucket-showhide-fields" class="hide-inline">/* 4 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive_token_bucket.go.html#line-12">maxCapacity</a> <i><a href="../../../../builtin.html#name-float64">float64</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive_token_bucket.go.html#line-13">minCapacity</a> <i><a href="../../../../builtin.html#name-float64">float64</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive_token_bucket.go.html#line-14">mu</a> <i><a href="../../../../sync.html">sync</a>.<a href="../../../../sync.html#name-Mutex">Mutex</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive_token_bucket.go.html#line-11">remainingTokens</a> <i><a href="../../../../builtin.html#name-float64">float64</a></i></span></i></span></span>
+		<input type='checkbox' class="fold" id="adaptiveTokenBucket-fold-methods"><label for="adaptiveTokenBucket-fold-methods">Methods (<i>total 5, all are exported</i>)</label><span id='adaptiveTokenBucket-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="adaptiveTokenBucket-fold-method-Capacity"><label for="adaptiveTokenBucket-fold-method-Capacity">(*adaptiveTokenBucket) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive_token_bucket.go.html#line-57">Capacity</a>() <a href="../../../../builtin.html#name-float64">float64</a></label><span id='adaptiveTokenBucket-fold-method-Capacity-docs' class="fold-docs">
+<span class="md-text">				Capacity returns the maximum capacity of tokens that the bucket could
+				contain.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="adaptiveTokenBucket-fold-method-Refund"><label for="adaptiveTokenBucket-fold-method-Refund">(*adaptiveTokenBucket) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive_token_bucket.go.html#line-47">Refund</a>(amount <a href="../../../../builtin.html#name-float64">float64</a>)</label><span id='adaptiveTokenBucket-fold-method-Refund-docs' class="fold-docs">
+<span class="md-text">				Refund returns the amount of tokens back to the available token bucket, up
+				to the initial capacity.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="adaptiveTokenBucket-fold-method-Remaining"><label for="adaptiveTokenBucket-fold-method-Remaining">(*adaptiveTokenBucket) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive_token_bucket.go.html#line-65">Remaining</a>() <a href="../../../../builtin.html#name-float64">float64</a></label><span id='adaptiveTokenBucket-fold-method-Remaining-docs' class="fold-docs">
+<span class="md-text">				Remaining returns the number of tokens that remaining in the bucket.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="adaptiveTokenBucket-fold-method-Resize"><label for="adaptiveTokenBucket-fold-method-Resize">(*adaptiveTokenBucket) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive_token_bucket.go.html#line-73">Resize</a>(size <a href="../../../../builtin.html#name-float64">float64</a>) <a href="../../../../builtin.html#name-float64">float64</a></label><span id='adaptiveTokenBucket-fold-method-Resize-docs' class="fold-docs">
+<span class="md-text">				Resize adjusts the size of the token bucket. Returns the capacity remaining.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="adaptiveTokenBucket-fold-method-Retrieve"><label for="adaptiveTokenBucket-fold-method-Retrieve">(*adaptiveTokenBucket) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive_token_bucket.go.html#line-33">Retrieve</a>(amount <a href="../../../../builtin.html#name-float64">float64</a>) (available <a href="../../../../builtin.html#name-float64">float64</a>, retrieved <a href="../../../../builtin.html#name-bool">bool</a>)</label><span id='adaptiveTokenBucket-fold-method-Retrieve-docs' class="fold-docs">
+<span class="md-text">				Retrieve attempts to reduce the available tokens by the amount requested. If
+				there are tokens available true will be returned along with the number of
+				available tokens remaining. If amount requested is larger than the available
+				capacity, false will be returned along with the available capacity. If the
+				amount is less than the available capacity, the capacity will be reduced by
+				that amount, and the remaining capacity and true will be returned.</span>
+</span></span></span>
+		<input type='checkbox' class="fold" id="adaptiveTokenBucket-fold-results"><label for="adaptiveTokenBucket-fold-results">As Outputs Of (<i>at least one unexported</i>)</label><span id='adaptiveTokenBucket-fold-results-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="adaptiveTokenBucket-showhide-inputofs"><i><label for="adaptiveTokenBucket-showhide-inputofs" class="show-inline">/* at least one unexported ... */</label><label for="adaptiveTokenBucket-showhide-inputofs" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			func <a href="#name-newAdaptiveTokenBucket">newAdaptiveTokenBucket</a>(i <a href="../../../../builtin.html#name-float64">float64</a>) *<b>adaptiveTokenBucket</b></i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-attemptResultsKey" data-popularity="0">	<input type='checkbox' class="fold" id="attemptResultsKey-fold-content"><label for="attemptResultsKey-fold-content"> <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..attemptResultsKey^723e8.html">type</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/metadata.go.html#line-10">attemptResultsKey</a> <i>(struct)</i></label><span id='attemptResultsKey-fold-content-docs' class="fold-docs">
+<span class="md-text">		attemptResultsKey is a metadata accessor key to retrieve metadata
+		for all request attempts.</span>
+
+</span></div><div class="anchor type-res hidden" id="name-releaseToken" data-popularity="50">	<input type='checkbox' class="fold" id="releaseToken-fold-content"><label for="releaseToken-fold-content"> <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..releaseToken^d0d65.html">type</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/standard.go.html#line-250">releaseToken</a> <i>(func)</i></label><span id='releaseToken-fold-content-docs' class="fold-docs">
+
+		<input type='checkbox' class="fold" id="releaseToken-fold-methods"><label for="releaseToken-fold-methods">Methods (<i>only one, which is unexported</i>)</label><span id='releaseToken-fold-methods-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="releaseToken-showhide-methods"><i><label for="releaseToken-showhide-methods" class="show-inline">/* one unexported ... */</label><label for="releaseToken-showhide-methods" class="hide-inline">/* one unexported: */</label></i><span class="hidden"><i>
+			<span class="nodocs">( releaseToken) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/standard.go.html#line-252">release</a>(err <a href="../../../../builtin.html#name-error">error</a>) <a href="../../../../builtin.html#name-error">error</a></span></i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-retryMetadata" data-popularity="110">	<input type='checkbox' class="fold" id="retryMetadata-fold-content"><label for="retryMetadata-fold-content"> <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..retryMetadata^fa2fc.html">type</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/middleware.go.html#line-23">retryMetadata</a> <i>(struct)</i></label><span id='retryMetadata-fold-content-docs' class="fold-docs">
+
+		<input type='checkbox' class="fold" id="retryMetadata-fold-fields"><label for="retryMetadata-fold-fields">Fields (<i>total 4, all are exported</i>)</label><span id='retryMetadata-fold-fields-items' class="fold-items"><span>
+			<span class="nodocs"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/middleware.go.html#line-27">AttemptClockSkew</a> <i><a href="../../../../time.html">time</a>.<a href="../../../../time.html#name-Duration">Duration</a></i></span></span><span>
+			<span class="nodocs"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/middleware.go.html#line-24">AttemptNum</a> <i><a href="../../../../builtin.html#name-int">int</a></i></span></span><span>
+			<span class="nodocs"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/middleware.go.html#line-25">AttemptTime</a> <i><a href="../../../../time.html">time</a>.<a href="../../../../time.html#name-Time">Time</a></i></span></span><span>
+			<span class="nodocs"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/middleware.go.html#line-26">MaxAttempts</a> <i><a href="../../../../builtin.html#name-int">int</a></i></span></span></span>
+		<input type='checkbox' class="fold" id="retryMetadata-fold-results"><label for="retryMetadata-fold-results">As Outputs Of (<i>at least one unexported</i>)</label><span id='retryMetadata-fold-results-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="retryMetadata-showhide-inputofs"><i><label for="retryMetadata-showhide-inputofs" class="show-inline">/* at least one unexported ... */</label><label for="retryMetadata-showhide-inputofs" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			func <a href="#name-getRetryMetadata">getRetryMetadata</a>(ctx <a href="../../../../context.html">context</a>.<a href="../../../../context.html#name-Context">Context</a>) (metadata <b>retryMetadata</b>, ok <a href="../../../../builtin.html#name-bool">bool</a>)</i></span></span>
+		<input type='checkbox' class="fold" id="retryMetadata-fold-params"><label for="retryMetadata-fold-params">As Inputs Of (<i>at least one unexported</i>)</label><span id='retryMetadata-fold-params-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="retryMetadata-showhide-outputofs"><i><label for="retryMetadata-showhide-outputofs" class="show-inline">/* at least one unexported ... */</label><label for="retryMetadata-showhide-outputofs" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			func <a href="#name-setRetryMetadata">setRetryMetadata</a>(ctx <a href="../../../../context.html">context</a>.<a href="../../../../context.html#name-Context">Context</a>, metadata <b>retryMetadata</b>) <a href="../../../../context.html">context</a>.<a href="../../../../context.html#name-Context">Context</a></i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-retryMetadataKey" data-popularity="0">	<span class="nodocs"> <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..retryMetadataKey^a35df.html">type</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/middleware.go.html#line-287">retryMetadataKey</a> <i>(struct)</i></span></div><div class="anchor type-res hidden" id="name-withIsErrorRetryable" data-popularity="400">	<input type='checkbox' class="fold" id="withIsErrorRetryable-fold-content"><label for="withIsErrorRetryable-fold-content"> <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..withIsErrorRetryable^6fc7d.html">type</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/retry.go.html#line-26">withIsErrorRetryable</a> <i>(struct)</i></label><span id='withIsErrorRetryable-fold-content-docs' class="fold-docs">
+
+		<input type='checkbox' class="fold" id="withIsErrorRetryable-fold-fields"><label for="withIsErrorRetryable-fold-fields">Fields (<i>total 2, both are exported</i>)</label><span id='withIsErrorRetryable-fold-fields-items' class="fold-items"><span>
+			<span class="nodocs"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/retry.go.html#line-28">Retryable</a> <i><a href="#name-IsErrorRetryable">IsErrorRetryable</a></i></span></span><span>
+			<span class="nodocs"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/retry.go.html#line-27">RetryerV2</a> <i><a href="../aws.html">aws</a>.<a href="../aws.html#name-RetryerV2">RetryerV2</a></i></span></span></span>
+		<input type='checkbox' class="fold" id="withIsErrorRetryable-fold-methods"><label for="withIsErrorRetryable-fold-methods">Methods (<i>total 6, all are exported</i>)</label><span id='withIsErrorRetryable-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="withIsErrorRetryable-fold-method-GetAttemptToken"><label for="withIsErrorRetryable-fold-method-GetAttemptToken">( withIsErrorRetryable) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retryer.go.html#line-94">GetAttemptToken</a>(<a href="../../../../context.html">context</a>.<a href="../../../../context.html#name-Context">Context</a>) (func(<a href="../../../../builtin.html#name-error">error</a>) <a href="../../../../builtin.html#name-error">error</a>, <a href="../../../../builtin.html#name-error">error</a>)</label><span id='withIsErrorRetryable-fold-method-GetAttemptToken-docs' class="fold-docs">
+<span class="md-text">				GetAttemptToken returns the send token that can be used to rate limit
+				attempt calls. Will be used by the SDK's retry package's Attempt
+				middleware to get a send token prior to calling the temp and releasing
+				the send token after the attempt has been made.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="withIsErrorRetryable-fold-method-GetInitialToken"><label for="withIsErrorRetryable-fold-method-GetInitialToken">( withIsErrorRetryable) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retryer.go.html#line-66">GetInitialToken</a>() (releaseToken func(<a href="../../../../builtin.html#name-error">error</a>) <a href="../../../../builtin.html#name-error">error</a>)</label><span id='withIsErrorRetryable-fold-method-GetInitialToken-docs' class="fold-docs">
+<span class="md-text">				GetInitialToken returns the initial attempt token that can increment the
+				retry token pool if the attempt is successful.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="withIsErrorRetryable-fold-method-GetRetryToken"><label for="withIsErrorRetryable-fold-method-GetRetryToken">( withIsErrorRetryable) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retryer.go.html#line-62">GetRetryToken</a>(ctx <a href="../../../../context.html">context</a>.<a href="../../../../context.html#name-Context">Context</a>, opErr <a href="../../../../builtin.html#name-error">error</a>) (releaseToken func(<a href="../../../../builtin.html#name-error">error</a>) <a href="../../../../builtin.html#name-error">error</a>, err <a href="../../../../builtin.html#name-error">error</a>)</label><span id='withIsErrorRetryable-fold-method-GetRetryToken-docs' class="fold-docs">
+<span class="md-text">				GetRetryToken attempts to deduct the retry cost from the retry token pool.
+				Returning the token release function, or error.</span>
+</span></span><span>
+			<span class="nodocs">(*withIsErrorRetryable) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/retry.go.html#line-31">IsErrorRetryable</a>(err <a href="../../../../builtin.html#name-error">error</a>) <a href="../../../../builtin.html#name-bool">bool</a></span></span><span>
+			<input type='checkbox' class="fold" id="withIsErrorRetryable-fold-method-MaxAttempts"><label for="withIsErrorRetryable-fold-method-MaxAttempts">( withIsErrorRetryable) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retryer.go.html#line-54">MaxAttempts</a>() <a href="../../../../builtin.html#name-int">int</a></label><span id='withIsErrorRetryable-fold-method-MaxAttempts-docs' class="fold-docs">
+<span class="md-text">				MaxAttempts returns the maximum number of attempts that can be made for
+				an attempt before failing. A value of 0 implies that the attempt should
+				be retried until it succeeds if the errors are retryable.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="withIsErrorRetryable-fold-method-RetryDelay"><label for="withIsErrorRetryable-fold-method-RetryDelay">( withIsErrorRetryable) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retryer.go.html#line-58">RetryDelay</a>(attempt <a href="../../../../builtin.html#name-int">int</a>, opErr <a href="../../../../builtin.html#name-error">error</a>) (<a href="../../../../time.html">time</a>.<a href="../../../../time.html#name-Duration">Duration</a>, <a href="../../../../builtin.html#name-error">error</a>)</label><span id='withIsErrorRetryable-fold-method-RetryDelay-docs' class="fold-docs">
+<span class="md-text">				RetryDelay returns the delay that should be used before retrying the
+				attempt. Will return error if the if the delay could not be determined.</span>
+</span></span></span>
+		<input type='checkbox' class="fold" id="withIsErrorRetryable-fold-impls"><label for="withIsErrorRetryable-fold-impls">Implements (<i>at least 2, both are exported</i>)</label><span id='withIsErrorRetryable-fold-impls-items' class="fold-items"><span>
+			*withIsErrorRetryable : github.com/aws/aws-sdk-go-v2/aws.<a href="../aws.html#name-Retryer">Retryer</a></span><span>
+			*withIsErrorRetryable : github.com/aws/aws-sdk-go-v2/aws.<a href="../aws.html#name-RetryerV2">RetryerV2</a></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-withMaxAttempts" data-popularity="400">	<input type='checkbox' class="fold" id="withMaxAttempts-fold-content"><label for="withMaxAttempts-fold-content"> <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..withMaxAttempts^f9932.html">type</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/retry.go.html#line-47">withMaxAttempts</a> <i>(struct)</i></label><span id='withMaxAttempts-fold-content-docs' class="fold-docs">
+
+		<input type='checkbox' class="fold" id="withMaxAttempts-fold-fields"><label for="withMaxAttempts-fold-fields">Fields (<i>total 2, both are exported</i>)</label><span id='withMaxAttempts-fold-fields-items' class="fold-items"><span>
+			<span class="nodocs"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/retry.go.html#line-49">Max</a> <i><a href="../../../../builtin.html#name-int">int</a></i></span></span><span>
+			<span class="nodocs"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/retry.go.html#line-48">RetryerV2</a> <i><a href="../aws.html">aws</a>.<a href="../aws.html#name-RetryerV2">RetryerV2</a></i></span></span></span>
+		<input type='checkbox' class="fold" id="withMaxAttempts-fold-methods"><label for="withMaxAttempts-fold-methods">Methods (<i>total 6, all are exported</i>)</label><span id='withMaxAttempts-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="withMaxAttempts-fold-method-GetAttemptToken"><label for="withMaxAttempts-fold-method-GetAttemptToken">( withMaxAttempts) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retryer.go.html#line-94">GetAttemptToken</a>(<a href="../../../../context.html">context</a>.<a href="../../../../context.html#name-Context">Context</a>) (func(<a href="../../../../builtin.html#name-error">error</a>) <a href="../../../../builtin.html#name-error">error</a>, <a href="../../../../builtin.html#name-error">error</a>)</label><span id='withMaxAttempts-fold-method-GetAttemptToken-docs' class="fold-docs">
+<span class="md-text">				GetAttemptToken returns the send token that can be used to rate limit
+				attempt calls. Will be used by the SDK's retry package's Attempt
+				middleware to get a send token prior to calling the temp and releasing
+				the send token after the attempt has been made.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="withMaxAttempts-fold-method-GetInitialToken"><label for="withMaxAttempts-fold-method-GetInitialToken">( withMaxAttempts) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retryer.go.html#line-66">GetInitialToken</a>() (releaseToken func(<a href="../../../../builtin.html#name-error">error</a>) <a href="../../../../builtin.html#name-error">error</a>)</label><span id='withMaxAttempts-fold-method-GetInitialToken-docs' class="fold-docs">
+<span class="md-text">				GetInitialToken returns the initial attempt token that can increment the
+				retry token pool if the attempt is successful.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="withMaxAttempts-fold-method-GetRetryToken"><label for="withMaxAttempts-fold-method-GetRetryToken">( withMaxAttempts) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retryer.go.html#line-62">GetRetryToken</a>(ctx <a href="../../../../context.html">context</a>.<a href="../../../../context.html#name-Context">Context</a>, opErr <a href="../../../../builtin.html#name-error">error</a>) (releaseToken func(<a href="../../../../builtin.html#name-error">error</a>) <a href="../../../../builtin.html#name-error">error</a>, err <a href="../../../../builtin.html#name-error">error</a>)</label><span id='withMaxAttempts-fold-method-GetRetryToken-docs' class="fold-docs">
+<span class="md-text">				GetRetryToken attempts to deduct the retry cost from the retry token pool.
+				Returning the token release function, or error.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="withMaxAttempts-fold-method-IsErrorRetryable"><label for="withMaxAttempts-fold-method-IsErrorRetryable">( withMaxAttempts) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retryer.go.html#line-49">IsErrorRetryable</a>(<a href="../../../../builtin.html#name-error">error</a>) <a href="../../../../builtin.html#name-bool">bool</a></label><span id='withMaxAttempts-fold-method-IsErrorRetryable-docs' class="fold-docs">
+<span class="md-text">				IsErrorRetryable returns if the failed attempt is retryable. This check
+				should determine if the error can be retried, or if the error is
+				terminal.</span>
+</span></span><span>
+			<span class="nodocs">(*withMaxAttempts) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/retry.go.html#line-52">MaxAttempts</a>() <a href="../../../../builtin.html#name-int">int</a></span></span><span>
+			<input type='checkbox' class="fold" id="withMaxAttempts-fold-method-RetryDelay"><label for="withMaxAttempts-fold-method-RetryDelay">( withMaxAttempts) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retryer.go.html#line-58">RetryDelay</a>(attempt <a href="../../../../builtin.html#name-int">int</a>, opErr <a href="../../../../builtin.html#name-error">error</a>) (<a href="../../../../time.html">time</a>.<a href="../../../../time.html#name-Duration">Duration</a>, <a href="../../../../builtin.html#name-error">error</a>)</label><span id='withMaxAttempts-fold-method-RetryDelay-docs' class="fold-docs">
+<span class="md-text">				RetryDelay returns the delay that should be used before retrying the
+				attempt. Will return error if the if the delay could not be determined.</span>
+</span></span></span>
+		<input type='checkbox' class="fold" id="withMaxAttempts-fold-impls"><label for="withMaxAttempts-fold-impls">Implements (<i>at least 2, both are exported</i>)</label><span id='withMaxAttempts-fold-impls-items' class="fold-items"><span>
+			*withMaxAttempts : github.com/aws/aws-sdk-go-v2/aws.<a href="../aws.html#name-Retryer">Retryer</a></span><span>
+			*withMaxAttempts : github.com/aws/aws-sdk-go-v2/aws.<a href="../aws.html#name-RetryerV2">RetryerV2</a></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-withMaxBackoffDelay" data-popularity="400">	<input type='checkbox' class="fold" id="withMaxBackoffDelay-fold-content"><label for="withMaxBackoffDelay-fold-content"> <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..withMaxBackoffDelay^313c0.html">type</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/retry.go.html#line-66">withMaxBackoffDelay</a> <i>(struct)</i></label><span id='withMaxBackoffDelay-fold-content-docs' class="fold-docs">
+
+		<input type='checkbox' class="fold" id="withMaxBackoffDelay-fold-fields"><label for="withMaxBackoffDelay-fold-fields">Fields (<i>total 2, in which 1 is exported</i>)</label><span id='withMaxBackoffDelay-fold-fields-items' class="fold-items"><span>
+			<span class="nodocs"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/retry.go.html#line-67">RetryerV2</a> <i><a href="../aws.html">aws</a>.<a href="../aws.html#name-RetryerV2">RetryerV2</a></i></span></span>
+			<input type='checkbox' checked class="showhide" id="withMaxBackoffDelay-showhide-fields"><i><label for="withMaxBackoffDelay-showhide-fields" class="show-inline">/* one unexported ... */</label><label for="withMaxBackoffDelay-showhide-fields" class="hide-inline">/* one unexported: */</label></i><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/retry.go.html#line-68">backoff</a> <i>*<a href="#name-ExponentialJitterBackoff">ExponentialJitterBackoff</a></i></span></i></span></span>
+		<input type='checkbox' class="fold" id="withMaxBackoffDelay-fold-methods"><label for="withMaxBackoffDelay-fold-methods">Methods (<i>total 6, all are exported</i>)</label><span id='withMaxBackoffDelay-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="withMaxBackoffDelay-fold-method-GetAttemptToken"><label for="withMaxBackoffDelay-fold-method-GetAttemptToken">( withMaxBackoffDelay) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retryer.go.html#line-94">GetAttemptToken</a>(<a href="../../../../context.html">context</a>.<a href="../../../../context.html#name-Context">Context</a>) (func(<a href="../../../../builtin.html#name-error">error</a>) <a href="../../../../builtin.html#name-error">error</a>, <a href="../../../../builtin.html#name-error">error</a>)</label><span id='withMaxBackoffDelay-fold-method-GetAttemptToken-docs' class="fold-docs">
+<span class="md-text">				GetAttemptToken returns the send token that can be used to rate limit
+				attempt calls. Will be used by the SDK's retry package's Attempt
+				middleware to get a send token prior to calling the temp and releasing
+				the send token after the attempt has been made.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="withMaxBackoffDelay-fold-method-GetInitialToken"><label for="withMaxBackoffDelay-fold-method-GetInitialToken">( withMaxBackoffDelay) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retryer.go.html#line-66">GetInitialToken</a>() (releaseToken func(<a href="../../../../builtin.html#name-error">error</a>) <a href="../../../../builtin.html#name-error">error</a>)</label><span id='withMaxBackoffDelay-fold-method-GetInitialToken-docs' class="fold-docs">
+<span class="md-text">				GetInitialToken returns the initial attempt token that can increment the
+				retry token pool if the attempt is successful.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="withMaxBackoffDelay-fold-method-GetRetryToken"><label for="withMaxBackoffDelay-fold-method-GetRetryToken">( withMaxBackoffDelay) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retryer.go.html#line-62">GetRetryToken</a>(ctx <a href="../../../../context.html">context</a>.<a href="../../../../context.html#name-Context">Context</a>, opErr <a href="../../../../builtin.html#name-error">error</a>) (releaseToken func(<a href="../../../../builtin.html#name-error">error</a>) <a href="../../../../builtin.html#name-error">error</a>, err <a href="../../../../builtin.html#name-error">error</a>)</label><span id='withMaxBackoffDelay-fold-method-GetRetryToken-docs' class="fold-docs">
+<span class="md-text">				GetRetryToken attempts to deduct the retry cost from the retry token pool.
+				Returning the token release function, or error.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="withMaxBackoffDelay-fold-method-IsErrorRetryable"><label for="withMaxBackoffDelay-fold-method-IsErrorRetryable">( withMaxBackoffDelay) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retryer.go.html#line-49">IsErrorRetryable</a>(<a href="../../../../builtin.html#name-error">error</a>) <a href="../../../../builtin.html#name-bool">bool</a></label><span id='withMaxBackoffDelay-fold-method-IsErrorRetryable-docs' class="fold-docs">
+<span class="md-text">				IsErrorRetryable returns if the failed attempt is retryable. This check
+				should determine if the error can be retried, or if the error is
+				terminal.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="withMaxBackoffDelay-fold-method-MaxAttempts"><label for="withMaxBackoffDelay-fold-method-MaxAttempts">( withMaxBackoffDelay) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retryer.go.html#line-54">MaxAttempts</a>() <a href="../../../../builtin.html#name-int">int</a></label><span id='withMaxBackoffDelay-fold-method-MaxAttempts-docs' class="fold-docs">
+<span class="md-text">				MaxAttempts returns the maximum number of attempts that can be made for
+				an attempt before failing. A value of 0 implies that the attempt should
+				be retried until it succeeds if the errors are retryable.</span>
+</span></span><span>
+			<span class="nodocs">(*withMaxBackoffDelay) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/retry.go.html#line-71">RetryDelay</a>(attempt <a href="../../../../builtin.html#name-int">int</a>, err <a href="../../../../builtin.html#name-error">error</a>) (<a href="../../../../time.html">time</a>.<a href="../../../../time.html#name-Duration">Duration</a>, <a href="../../../../builtin.html#name-error">error</a>)</span></span></span>
+		<input type='checkbox' class="fold" id="withMaxBackoffDelay-fold-impls"><label for="withMaxBackoffDelay-fold-impls">Implements (<i>at least 2, both are exported</i>)</label><span id='withMaxBackoffDelay-fold-impls-items' class="fold-items"><span>
+			*withMaxBackoffDelay : github.com/aws/aws-sdk-go-v2/aws.<a href="../aws.html#name-Retryer">Retryer</a></span><span>
+			*withMaxBackoffDelay : github.com/aws/aws-sdk-go-v2/aws.<a href="../aws.html#name-RetryerV2">RetryerV2</a></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-wrappedAsRetryerV2" data-popularity="400">	<input type='checkbox' class="fold" id="wrappedAsRetryerV2-fold-content"><label for="wrappedAsRetryerV2-fold-content"> <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..wrappedAsRetryerV2^908cb.html">type</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/retry.go.html#line-75">wrappedAsRetryerV2</a> <i>(struct)</i></label><span id='wrappedAsRetryerV2-fold-content-docs' class="fold-docs">
+
+		<input type='checkbox' class="fold" id="wrappedAsRetryerV2-fold-fields"><label for="wrappedAsRetryerV2-fold-fields">Fields (<i>only one, which is exported</i>)</label><span id='wrappedAsRetryerV2-fold-fields-items' class="fold-items"><span>
+			<span class="nodocs"><a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/retry.go.html#line-76">Retryer</a> <i><a href="../aws.html">aws</a>.<a href="../aws.html#name-Retryer">Retryer</a></i></span></span></span>
+		<input type='checkbox' class="fold" id="wrappedAsRetryerV2-fold-methods"><label for="wrappedAsRetryerV2-fold-methods">Methods (<i>total 6, all are exported</i>)</label><span id='wrappedAsRetryerV2-fold-methods-items' class="fold-items"><span>
+			<span class="nodocs">( wrappedAsRetryerV2) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/retry.go.html#line-88">GetAttemptToken</a>(<a href="../../../../context.html">context</a>.<a href="../../../../context.html#name-Context">Context</a>) (func(<a href="../../../../builtin.html#name-error">error</a>) <a href="../../../../builtin.html#name-error">error</a>, <a href="../../../../builtin.html#name-error">error</a>)</span></span><span>
+			<input type='checkbox' class="fold" id="wrappedAsRetryerV2-fold-method-GetInitialToken"><label for="wrappedAsRetryerV2-fold-method-GetInitialToken">( wrappedAsRetryerV2) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retryer.go.html#line-66">GetInitialToken</a>() (releaseToken func(<a href="../../../../builtin.html#name-error">error</a>) <a href="../../../../builtin.html#name-error">error</a>)</label><span id='wrappedAsRetryerV2-fold-method-GetInitialToken-docs' class="fold-docs">
+<span class="md-text">				GetInitialToken returns the initial attempt token that can increment the
+				retry token pool if the attempt is successful.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="wrappedAsRetryerV2-fold-method-GetRetryToken"><label for="wrappedAsRetryerV2-fold-method-GetRetryToken">( wrappedAsRetryerV2) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retryer.go.html#line-62">GetRetryToken</a>(ctx <a href="../../../../context.html">context</a>.<a href="../../../../context.html#name-Context">Context</a>, opErr <a href="../../../../builtin.html#name-error">error</a>) (releaseToken func(<a href="../../../../builtin.html#name-error">error</a>) <a href="../../../../builtin.html#name-error">error</a>, err <a href="../../../../builtin.html#name-error">error</a>)</label><span id='wrappedAsRetryerV2-fold-method-GetRetryToken-docs' class="fold-docs">
+<span class="md-text">				GetRetryToken attempts to deduct the retry cost from the retry token pool.
+				Returning the token release function, or error.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="wrappedAsRetryerV2-fold-method-IsErrorRetryable"><label for="wrappedAsRetryerV2-fold-method-IsErrorRetryable">( wrappedAsRetryerV2) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retryer.go.html#line-49">IsErrorRetryable</a>(<a href="../../../../builtin.html#name-error">error</a>) <a href="../../../../builtin.html#name-bool">bool</a></label><span id='wrappedAsRetryerV2-fold-method-IsErrorRetryable-docs' class="fold-docs">
+<span class="md-text">				IsErrorRetryable returns if the failed attempt is retryable. This check
+				should determine if the error can be retried, or if the error is
+				terminal.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="wrappedAsRetryerV2-fold-method-MaxAttempts"><label for="wrappedAsRetryerV2-fold-method-MaxAttempts">( wrappedAsRetryerV2) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retryer.go.html#line-54">MaxAttempts</a>() <a href="../../../../builtin.html#name-int">int</a></label><span id='wrappedAsRetryerV2-fold-method-MaxAttempts-docs' class="fold-docs">
+<span class="md-text">				MaxAttempts returns the maximum number of attempts that can be made for
+				an attempt before failing. A value of 0 implies that the attempt should
+				be retried until it succeeds if the errors are retryable.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="wrappedAsRetryerV2-fold-method-RetryDelay"><label for="wrappedAsRetryerV2-fold-method-RetryDelay">( wrappedAsRetryerV2) <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retryer.go.html#line-58">RetryDelay</a>(attempt <a href="../../../../builtin.html#name-int">int</a>, opErr <a href="../../../../builtin.html#name-error">error</a>) (<a href="../../../../time.html">time</a>.<a href="../../../../time.html#name-Duration">Duration</a>, <a href="../../../../builtin.html#name-error">error</a>)</label><span id='wrappedAsRetryerV2-fold-method-RetryDelay-docs' class="fold-docs">
+<span class="md-text">				RetryDelay returns the delay that should be used before retrying the
+				attempt. Will return error if the if the delay could not be determined.</span>
+</span></span></span>
+		<input type='checkbox' class="fold" id="wrappedAsRetryerV2-fold-impls"><label for="wrappedAsRetryerV2-fold-impls">Implements (<i>at least 2, both are exported</i>)</label><span id='wrappedAsRetryerV2-fold-impls-items' class="fold-items"><span>
+			 wrappedAsRetryerV2 : github.com/aws/aws-sdk-go-v2/aws.<a href="../aws.html#name-Retryer">Retryer</a></span><span>
+			 wrappedAsRetryerV2 : github.com/aws/aws-sdk-go-v2/aws.<a href="../aws.html#name-RetryerV2">RetryerV2</a></span></span>
+
+</span></div></div>
+<div id="exported-functions"><span class="title">Package-Level Functions<span class="title-stat"><i> (total 19, in which 9 are exported)</i></span></span>
+
+<div class="anchor value-res" id="name-AddRetryMiddlewares">	<input type='checkbox' class="fold" id="AddRetryMiddlewares-fold-content"><label for="AddRetryMiddlewares-fold-content"> <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..AddRetryMiddlewares.html">func</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/middleware.go.html#line-319">AddRetryMiddlewares</a>(stack *<a href="../../smithy-go/middleware.html">smithymiddle</a>.<a href="../../smithy-go/middleware.html#name-Stack">Stack</a>, options <a href="#name-AddRetryMiddlewaresOptions">AddRetryMiddlewaresOptions</a>) <a href="../../../../builtin.html#name-error">error</a></label><span id='AddRetryMiddlewares-fold-content-docs' class="fold-docs">
+<span class="md-text">		AddRetryMiddlewares adds retry middleware to operation middleware stack</span>
+
+</span></div><div class="anchor value-res" id="name-AddWithErrorCodes">	<input type='checkbox' class="fold" id="AddWithErrorCodes-fold-content"><label for="AddWithErrorCodes-fold-content"> <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..AddWithErrorCodes.html">func</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/retry.go.html#line-12">AddWithErrorCodes</a>(r <a href="../aws.html">aws</a>.<a href="../aws.html#name-Retryer">Retryer</a>, codes ...<a href="../../../../builtin.html#name-string">string</a>) <a href="../aws.html">aws</a>.<a href="../aws.html#name-Retryer">Retryer</a></label><span id='AddWithErrorCodes-fold-content-docs' class="fold-docs">
+<span class="md-text">		AddWithErrorCodes returns a Retryer with additional error codes considered
+		for determining if the error should be retried.</span>
+
+</span></div><div class="anchor value-res" id="name-AddWithMaxAttempts">	<input type='checkbox' class="fold" id="AddWithMaxAttempts-fold-content"><label for="AddWithMaxAttempts-fold-content"> <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..AddWithMaxAttempts.html">func</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/retry.go.html#line-40">AddWithMaxAttempts</a>(r <a href="../aws.html">aws</a>.<a href="../aws.html#name-Retryer">Retryer</a>, max <a href="../../../../builtin.html#name-int">int</a>) <a href="../aws.html">aws</a>.<a href="../aws.html#name-Retryer">Retryer</a></label><span id='AddWithMaxAttempts-fold-content-docs' class="fold-docs">
+<span class="md-text">		AddWithMaxAttempts returns a Retryer with MaxAttempts set to the value
+		specified.</span>
+
+</span></div><div class="anchor value-res" id="name-AddWithMaxBackoffDelay">	<input type='checkbox' class="fold" id="AddWithMaxBackoffDelay-fold-content"><label for="AddWithMaxBackoffDelay-fold-content"> <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..AddWithMaxBackoffDelay.html">func</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/retry.go.html#line-59">AddWithMaxBackoffDelay</a>(r <a href="../aws.html">aws</a>.<a href="../aws.html#name-Retryer">Retryer</a>, delay <a href="../../../../time.html">time</a>.<a href="../../../../time.html#name-Duration">Duration</a>) <a href="../aws.html">aws</a>.<a href="../aws.html#name-Retryer">Retryer</a></label><span id='AddWithMaxBackoffDelay-fold-content-docs' class="fold-docs">
+<span class="md-text">		AddWithMaxBackoffDelay returns a retryer wrapping the passed in retryer
+		overriding the RetryDelay behavior for a alternate minimum initial backoff
+		delay.</span>
+
+</span></div><div class="anchor value-res" id="name-GetAttemptResults">	<input type='checkbox' class="fold" id="GetAttemptResults-fold-content"><label for="GetAttemptResults-fold-content"> <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..GetAttemptResults.html">func</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/metadata.go.html#line-14">GetAttemptResults</a>(metadata <a href="../../smithy-go/middleware.html">middleware</a>.<a href="../../smithy-go/middleware.html#name-Metadata">Metadata</a>) (<a href="#name-AttemptResults">AttemptResults</a>, <a href="../../../../builtin.html#name-bool">bool</a>)</label><span id='GetAttemptResults-fold-content-docs' class="fold-docs">
+<span class="md-text">		GetAttemptResults retrieves attempts results from middleware metadata.</span>
+
+</span></div><div class="anchor value-res" id="name-NewAdaptiveMode">	<input type='checkbox' class="fold" id="NewAdaptiveMode-fold-content"><label for="NewAdaptiveMode-fold-content"> <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..NewAdaptiveMode.html">func</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive.go.html#line-71">NewAdaptiveMode</a>(optFns ...func(*<a href="#name-AdaptiveModeOptions">AdaptiveModeOptions</a>)) *<a href="#name-AdaptiveMode">AdaptiveMode</a></label><span id='NewAdaptiveMode-fold-content-docs' class="fold-docs">
+<span class="md-text">		NewAdaptiveMode returns an initialized AdaptiveMode retry strategy.</span>
+
+</span></div><div class="anchor value-res" id="name-NewAttemptMiddleware">	<input type='checkbox' class="fold" id="NewAttemptMiddleware-fold-content"><label for="NewAttemptMiddleware-fold-content"> <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..NewAttemptMiddleware.html">func</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/middleware.go.html#line-43">NewAttemptMiddleware</a>(retryer <a href="../aws.html">aws</a>.<a href="../aws.html#name-Retryer">Retryer</a>, requestCloner <a href="#name-RequestCloner">RequestCloner</a>, optFns ...func(*<a href="#name-Attempt">Attempt</a>)) *<a href="#name-Attempt">Attempt</a></label><span id='NewAttemptMiddleware-fold-content-docs' class="fold-docs">
+<span class="md-text">		NewAttemptMiddleware returns a new Attempt retry middleware.</span>
+
+</span></div><div class="anchor value-res" id="name-NewExponentialJitterBackoff">	<input type='checkbox' class="fold" id="NewExponentialJitterBackoff-fold-content"><label for="NewExponentialJitterBackoff-fold-content"> <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..NewExponentialJitterBackoff.html">func</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/jitter_backoff.go.html#line-23">NewExponentialJitterBackoff</a>(maxBackoff <a href="../../../../time.html">time</a>.<a href="../../../../time.html#name-Duration">Duration</a>) *<a href="#name-ExponentialJitterBackoff">ExponentialJitterBackoff</a></label><span id='NewExponentialJitterBackoff-fold-content-docs' class="fold-docs">
+<span class="md-text">		NewExponentialJitterBackoff returns an ExponentialJitterBackoff configured
+		for the max backoff.</span>
+
+</span></div><div class="anchor value-res" id="name-NewStandard">	<input type='checkbox' class="fold" id="NewStandard-fold-content"><label for="NewStandard-fold-content"> <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..NewStandard.html">func</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/standard.go.html#line-160">NewStandard</a>(fnOpts ...func(*<a href="#name-StandardOptions">StandardOptions</a>)) *<a href="#name-Standard">Standard</a></label><span id='NewStandard-fold-content-docs' class="fold-docs">
+<span class="md-text">		NewStandard initializes a standard retry behavior with defaults that can be
+		overridden via functional options.</span>
+
+</span></div>	<input type='checkbox' class="showhide" id="unexported-functions-showhide"><i><label for="unexported-functions-showhide" class="show-inline">/* 10 unexporteds ... */</label><label for="unexported-functions-showhide" class="hide-inline">/* 10 unexporteds: */</label></i><div class="anchor value-res hidden" id="name-addAttemptResults"><i>	<input type='checkbox' class="fold" id="addAttemptResults-fold-content"><label for="addAttemptResults-fold-content"> <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..addAttemptResults^84aec.html">func</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/metadata.go.html#line-45">addAttemptResults</a>(metadata *<a href="../../smithy-go/middleware.html">middleware</a>.<a href="../../smithy-go/middleware.html#name-Metadata">Metadata</a>, v <a href="#name-AttemptResults">AttemptResults</a>)</label><span id='addAttemptResults-fold-content-docs' class="fold-docs">
+<span class="md-text">		addAttemptResults adds attempt results to middleware metadata</span>
+
+</span></i></div><div class="anchor value-res hidden" id="name-float64Seconds"><i>	<span class="nodocs"> <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..float64Seconds^9a8b6.html">func</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive_ratelimit.go.html#line-148">float64Seconds</a>(v <a href="../../../../builtin.html#name-float64">float64</a>) <a href="../../../../time.html">time</a>.<a href="../../../../time.html#name-Duration">Duration</a></span></i></div><div class="anchor value-res hidden" id="name-getRetryMetadata"><i>	<input type='checkbox' class="fold" id="getRetryMetadata-fold-content"><label for="getRetryMetadata-fold-content"> <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..getRetryMetadata^6f8e0.html">func</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/middleware.go.html#line-294">getRetryMetadata</a>(ctx <a href="../../../../context.html">context</a>.<a href="../../../../context.html#name-Context">Context</a>) (metadata <a href="#name-retryMetadata">retryMetadata</a>, ok <a href="../../../../builtin.html#name-bool">bool</a>)</label><span id='getRetryMetadata-fold-content-docs' class="fold-docs">
+<span class="md-text">		getRetryMetadata retrieves retryMetadata from the context and a bool
+		indicating if it was set.
+		
+		Scoped to stack values. Use github.com/aws/smithy-go/middleware#ClearStackValues
+		to clear all stack values.</span>
+
+</span></i></div><div class="anchor value-res hidden" id="name-newAdaptiveRateLimit"><i>	<span class="nodocs"> <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..newAdaptiveRateLimit^f0737.html">func</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive_ratelimit.go.html#line-34">newAdaptiveRateLimit</a>() *<a href="#name-adaptiveRateLimit">adaptiveRateLimit</a></span></i></div><div class="anchor value-res hidden" id="name-newAdaptiveTokenBucket"><i>	<input type='checkbox' class="fold" id="newAdaptiveTokenBucket-fold-content"><label for="newAdaptiveTokenBucket-fold-content"> <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..newAdaptiveTokenBucket^7fc79.html">func</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive_token_bucket.go.html#line-19">newAdaptiveTokenBucket</a>(i <a href="../../../../builtin.html#name-float64">float64</a>) *<a href="#name-adaptiveTokenBucket">adaptiveTokenBucket</a></label><span id='newAdaptiveTokenBucket-fold-content-docs' class="fold-docs">
+<span class="md-text">		newAdaptiveTokenBucket returns an initialized adaptiveTokenBucket with the
+		capacity specified.</span>
+
+</span></i></div><div class="anchor value-res hidden" id="name-nopRelease"><i>	<span class="nodocs"> <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..nopRelease^9d99c.html">func</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/standard.go.html#line-248">nopRelease</a>(<a href="../../../../builtin.html#name-error">error</a>) <a href="../../../../builtin.html#name-error">error</a></span></i></div><div class="anchor value-res hidden" id="name-secondsFloat64"><i>	<span class="nodocs"> <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..secondsFloat64^4255a.html">func</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive_ratelimit.go.html#line-152">secondsFloat64</a>(v <a href="../../../../time.html">time</a>.<a href="../../../../time.html#name-Duration">Duration</a>) <a href="../../../../builtin.html#name-float64">float64</a></span></i></div><div class="anchor value-res hidden" id="name-setRetryMetadata"><i>	<input type='checkbox' class="fold" id="setRetryMetadata-fold-content"><label for="setRetryMetadata-fold-content"> <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..setRetryMetadata^bdcd6.html">func</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/middleware.go.html#line-303">setRetryMetadata</a>(ctx <a href="../../../../context.html">context</a>.<a href="../../../../context.html#name-Context">Context</a>, metadata <a href="#name-retryMetadata">retryMetadata</a>) <a href="../../../../context.html">context</a>.<a href="../../../../context.html#name-Context">Context</a></label><span id='setRetryMetadata-fold-content-docs' class="fold-docs">
+<span class="md-text">		setRetryMetadata sets the retryMetadata on the context.
+		
+		Scoped to stack values. Use github.com/aws/smithy-go/middleware#ClearStackValues
+		to clear all stack values.</span>
+
+</span></i></div><div class="anchor value-res hidden" id="name-timeFloat64Seconds"><i>	<span class="nodocs"> <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..timeFloat64Seconds^c2b49.html">func</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive_ratelimit.go.html#line-156">timeFloat64Seconds</a>(v <a href="../../../../time.html">time</a>.<a href="../../../../time.html#name-Time">Time</a>) <a href="../../../../builtin.html#name-float64">float64</a></span></i></div><div class="anchor value-res hidden" id="name-wrapAsRetryerV2"><i>	<span class="nodocs"> <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..wrapAsRetryerV2^ca64c.html">func</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/retry.go.html#line-79">wrapAsRetryerV2</a>(r <a href="../aws.html">aws</a>.<a href="../aws.html#name-Retryer">Retryer</a>) <a href="../aws.html">aws</a>.<a href="../aws.html#name-RetryerV2">RetryerV2</a></span></i></div></div>
+<div id="exported-variables"><span class="title">Package-Level Variables<span class="title-stat"><i> (total 6, all are exported)</i></span></span>
+
+<div class="anchor value-res" id="name-DefaultRetryableErrorCodes">	<input type='checkbox' class="fold" id="DefaultRetryableErrorCodes-fold-content"><label for="DefaultRetryableErrorCodes-fold-content">  <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..DefaultRetryableErrorCodes.html">var</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/standard.go.html#line-53">DefaultRetryableErrorCodes</a> map[<a href="../../../../builtin.html#name-string">string</a>]struct{}</label><span id='DefaultRetryableErrorCodes-fold-content-docs' class="fold-docs">
+<span class="md-text">		DefaultRetryableErrorCodes provides the set of API error codes that should
+		be retried.</span>
+
+</span></div><div class="anchor value-res" id="name-DefaultRetryableHTTPStatusCodes">	<input type='checkbox' class="fold" id="DefaultRetryableHTTPStatusCodes-fold-content"><label for="DefaultRetryableHTTPStatusCodes-fold-content">  <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..DefaultRetryableHTTPStatusCodes.html">var</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/standard.go.html#line-44">DefaultRetryableHTTPStatusCodes</a> map[<a href="../../../../builtin.html#name-int">int</a>]struct{}</label><span id='DefaultRetryableHTTPStatusCodes-fold-content-docs' class="fold-docs">
+<span class="md-text">		DefaultRetryableHTTPStatusCodes is the default set of HTTP status codes the SDK
+		should consider as retryable errors.</span>
+
+</span></div><div class="anchor value-res" id="name-DefaultRetryables">	<input type='checkbox' class="fold" id="DefaultRetryables-fold-content"><label for="DefaultRetryables-fold-content">  <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..DefaultRetryables.html">var</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/standard.go.html#line-79">DefaultRetryables</a> []<a href="#name-IsErrorRetryable">IsErrorRetryable</a></label><span id='DefaultRetryables-fold-content-docs' class="fold-docs">
+<span class="md-text">		DefaultRetryables provides the set of retryable checks that are used by
+		default.</span>
+
+</span></div><div class="anchor value-res" id="name-DefaultThrottleErrorCodes">	<input type='checkbox' class="fold" id="DefaultThrottleErrorCodes-fold-content"><label for="DefaultThrottleErrorCodes-fold-content">  <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..DefaultThrottleErrorCodes.html">var</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/standard.go.html#line-60">DefaultThrottleErrorCodes</a> map[<a href="../../../../builtin.html#name-string">string</a>]struct{}</label><span id='DefaultThrottleErrorCodes-fold-content-docs' class="fold-docs">
+<span class="md-text">		DefaultThrottleErrorCodes provides the set of API error codes that are
+		considered throttle errors.</span>
+
+</span></div><div class="anchor value-res" id="name-DefaultThrottles">	<input type='checkbox' class="fold" id="DefaultThrottles-fold-content"><label for="DefaultThrottles-fold-content">  <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..DefaultThrottles.html">var</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive.go.html#line-20">DefaultThrottles</a> []<a href="#name-IsErrorThrottle">IsErrorThrottle</a></label><span id='DefaultThrottles-fold-content-docs' class="fold-docs">
+<span class="md-text">		DefaultThrottles provides the set of errors considered throttle errors that
+		are checked by default.</span>
+
+</span></div><div class="anchor value-res" id="name-DefaultTimeouts">	<input type='checkbox' class="fold" id="DefaultTimeouts-fold-content"><label for="DefaultTimeouts-fold-content">  <a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..DefaultTimeouts.html">var</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/standard.go.html#line-95">DefaultTimeouts</a> []<a href="#name-IsErrorTimeout">IsErrorTimeout</a></label><span id='DefaultTimeouts-fold-content-docs' class="fold-docs">
+<span class="md-text">		DefaultTimeouts provides the set of timeout checks that are used by default.</span>
+
+</span></div></div>
+<div id="exported-constants"><span class="title">Package-Level Constants<span class="title-stat"><i> (total 7, all are exported)</i></span></span>
+
+<div class="anchor value-res" id="name-DefaultMaxAttempts">	<input type='checkbox' class="fold" id="DefaultMaxAttempts-fold-content"><label for="DefaultMaxAttempts-fold-content"><a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..DefaultMaxAttempts.html">const</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/standard.go.html#line-28">DefaultMaxAttempts</a> <a href="../../../../builtin.html#name-int">int</a> = 3</label><span id='DefaultMaxAttempts-fold-content-docs' class="fold-docs">
+<span class="md-text">		DefaultMaxAttempts is the maximum of attempts for an API request</span>
+
+</span></div><div class="anchor value-res" id="name-DefaultMaxBackoff">	<input type='checkbox' class="fold" id="DefaultMaxBackoff-fold-content"><label for="DefaultMaxBackoff-fold-content"><a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..DefaultMaxBackoff.html">const</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/standard.go.html#line-31">DefaultMaxBackoff</a> <a href="../../../../time.html">time</a>.<a href="../../../../time.html#name-Duration">Duration</a> = 20000000000</label><span id='DefaultMaxBackoff-fold-content-docs' class="fold-docs">
+<span class="md-text">		DefaultMaxBackoff is the maximum back off delay between attempts</span>
+
+</span></div><div class="anchor value-res" id="name-DefaultNoRetryIncrement">	<input type='checkbox' class="fold" id="DefaultNoRetryIncrement-fold-content"><label for="DefaultNoRetryIncrement-fold-content"><a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..DefaultNoRetryIncrement.html">const</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/standard.go.html#line-39">DefaultNoRetryIncrement</a> <a href="../../../../builtin.html#name-uint">uint</a> = 1</label><span id='DefaultNoRetryIncrement-fold-content-docs' class="fold-docs">
+<span class="md-text">		Default retry token quota values.</span>
+
+</span></div><div class="anchor value-res" id="name-DefaultRequestCost">	<input type='checkbox' class="fold" id="DefaultRequestCost-fold-content"><label for="DefaultRequestCost-fold-content"><a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..DefaultRequestCost.html">const</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/adaptive.go.html#line-15">DefaultRequestCost</a> <a href="../../../../builtin.html#name-uint">uint</a> = 1</label><span id='DefaultRequestCost-fold-content-docs' class="fold-docs">
+<span class="md-text">		DefaultRequestCost is the cost of a single request from the adaptive
+		rate limited token bucket.</span>
+
+</span></div><div class="anchor value-res" id="name-DefaultRetryCost">	<input type='checkbox' class="fold" id="DefaultRetryCost-fold-content"><label for="DefaultRetryCost-fold-content"><a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..DefaultRetryCost.html">const</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/standard.go.html#line-37">DefaultRetryCost</a> <a href="../../../../builtin.html#name-uint">uint</a> = 5</label><span id='DefaultRetryCost-fold-content-docs' class="fold-docs">
+<span class="md-text">		Default retry token quota values.</span>
+
+</span></div><div class="anchor value-res" id="name-DefaultRetryRateTokens">	<input type='checkbox' class="fold" id="DefaultRetryRateTokens-fold-content"><label for="DefaultRetryRateTokens-fold-content"><a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..DefaultRetryRateTokens.html">const</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/standard.go.html#line-36">DefaultRetryRateTokens</a> <a href="../../../../builtin.html#name-uint">uint</a> = 500</label><span id='DefaultRetryRateTokens-fold-content-docs' class="fold-docs">
+<span class="md-text">		Default retry token quota values.</span>
+
+</span></div><div class="anchor value-res" id="name-DefaultRetryTimeoutCost">	<input type='checkbox' class="fold" id="DefaultRetryTimeoutCost-fold-content"><label for="DefaultRetryTimeoutCost-fold-content"><a href="../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..DefaultRetryTimeoutCost.html">const</a> <a href="../../../../../src/github.com/aws/aws-sdk-go-v2/aws/retry/standard.go.html#line-38">DefaultRetryTimeoutCost</a> <a href="../../../../builtin.html#name-uint">uint</a> = 10</label><span id='DefaultRetryTimeoutCost-fold-content-docs' class="fold-docs">
+<span class="md-text">		Default retry token quota values.</span>
+
+</span></div></div></code></pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

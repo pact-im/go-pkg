@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: pointer.go in package weak</title>
+<link href="../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	pointer.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../pkg/weak.html">weak</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2024 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> weak</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-8"><code>	<label for="i0"><span class="lit-string i0">"internal/abi"</span></label></code></span>
+<span class="codeline" id="line-9"><code>	<label for="i1"><span class="lit-string i1">"runtime"</span></label></code></span>
+<span class="codeline" id="line-10"><code>	<label for="i2"><span class="lit-string i2">"unsafe"</span></label></code></span>
+<span class="codeline" id="line-11"><code>)</code></span>
+<span class="codeline" id="line-12"><code></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">// Pointer is a weak pointer to a value of type T.</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">// Just like regular pointers, Pointer may reference any part of an</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">// object, such as a field of a struct or an element of an array.</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">// Objects that are only pointed to by weak pointers are not considered</span></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">// reachable, and once the object becomes unreachable, [Pointer.Value]</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">// may return nil.</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">// The primary use-cases for weak pointers are for implementing caches,</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">// canonicalization maps (like the unique package), and for tying together</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">// the lifetimes of separate values (for example, through a map with weak</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">// keys).</span></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">// Two Pointer values always compare equal if the pointers from which they were</span></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">// created compare equal. This property is retained even after the</span></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">// object referenced by the pointer used to create a weak reference is</span></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">// reclaimed.</span></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">// If multiple weak pointers are made to different offsets within the same object</span></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">// (for example, pointers to different fields of the same struct), those pointers</span></code></span>
+<span class="codeline" id="line-32"><code><span class="comment">// will not compare equal.</span></code></span>
+<span class="codeline" id="line-33"><code><span class="comment">// If a weak pointer is created from an object that becomes unreachable, but is</span></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">// then resurrected due to a finalizer, that weak pointer will not compare equal</span></code></span>
+<span class="codeline" id="line-35"><code><span class="comment">// with weak pointers created after the resurrection.</span></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">// Calling [Make] with a nil pointer returns a weak pointer whose [Pointer.Value]</span></code></span>
+<span class="codeline" id="line-38"><code><span class="comment">// always returns nil. The zero value of a Pointer behaves as if it were created</span></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">// by passing nil to [Make] and compares equal with such pointers.</span></code></span>
+<span class="codeline" id="line-40"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-41"><code><span class="comment">// [Pointer.Value] is not guaranteed to eventually return nil.</span></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">// [Pointer.Value] may return nil as soon as the object becomes</span></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">// unreachable.</span></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">// Values stored in global variables, or that can be found by tracing</span></code></span>
+<span class="codeline" id="line-45"><code><span class="comment">// pointers from a global variable, are reachable. A function argument or</span></code></span>
+<span class="codeline" id="line-46"><code><span class="comment">// receiver may become unreachable at the last point where the function</span></code></span>
+<span class="codeline" id="line-47"><code><span class="comment">// mentions it. To ensure [Pointer.Value] does not return nil,</span></code></span>
+<span class="codeline" id="line-48"><code><span class="comment">// pass a pointer to the object to the [runtime.KeepAlive] function after</span></code></span>
+<span class="codeline" id="line-49"><code><span class="comment">// the last point where the object must remain reachable.</span></code></span>
+<span class="codeline" id="line-50"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-51"><code><span class="comment">// Note that because [Pointer.Value] is not guaranteed to eventually return</span></code></span>
+<span class="codeline" id="line-52"><code><span class="comment">// nil, even after an object is no longer referenced, the runtime is allowed to</span></code></span>
+<span class="codeline" id="line-53"><code><span class="comment">// perform a space-saving optimization that batches objects together in a single</span></code></span>
+<span class="codeline" id="line-54"><code><span class="comment">// allocation slot. The weak pointer for an unreferenced object in such an</span></code></span>
+<span class="codeline" id="line-55"><code><span class="comment">// allocation may never become nil if it always exists in the same batch as a</span></code></span>
+<span class="codeline" id="line-56"><code><span class="comment">// referenced object. Typically, this batching only happens for tiny</span></code></span>
+<span class="codeline" id="line-57"><code><span class="comment">// (on the order of 16 bytes or less) and pointer-free objects.</span></code></span>
+<span class="codeline" id="line-58"><code><span class="keyword">type</span> <a href="../../pkg/weak.html#name-Pointer" class="ident">Pointer</a>[<label for="r0" class="ident">T</label> <a href="../../pkg/builtin.html#name-any" class="ident">any</a>] <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-59"><code>	<span class="comment">// Mention T in the type definition to prevent conversions</span></code></span>
+<span class="codeline" id="line-60"><code><span class="comment">	// between Pointer types, like we do for sync/atomic.Pointer.</span></code></span>
+<span class="codeline" id="line-61"><code>	_ [<span class="lit-number">0</span>]*<label for="r0" class="ident">T</label></code></span>
+<span class="codeline" id="line-62"><code>	<a href="../../use/weak..Pointer.u^0bfe9.html" class="ident">u</a> <a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a></code></span>
+<span class="codeline" id="line-63"><code>}</code></span>
+<span class="codeline" id="line-64"><code></code></span>
+<span class="codeline" id="line-65"><code><span class="comment">// Make creates a weak pointer from a pointer to some value of type T.</span></code></span>
+<span class="codeline" id="line-66"><code><span class="keyword">func</span> <label for="r1" class="ident"><a href="../../pkg/weak.html#name-Make" class="ident">Make</a></label>[<label for="r2" class="ident">T</label> <a href="../../pkg/builtin.html#name-any" class="ident">any</a>](<label for="r3" class="ident">ptr</label> *<label for="r2" class="ident">T</label>) <a href="#line-58" class="ident">Pointer</a>[<label for="r2" class="ident">T</label>] {</code></span>
+<span class="codeline" id="line-67"><code>	<span class="comment">// Explicitly force ptr to escape to the heap.</span></code></span>
+<span class="codeline" id="line-68"><code>	<label for="r3" class="ident">ptr</label> = <a href="../../pkg/internal/abi.html" class="ident i0">abi</a>.<a href="../internal/abi/escape.go.html#line-28" class="ident">Escape</a>(<label for="r3" class="ident">ptr</label>)</code></span>
+<span class="codeline" id="line-69"><code></code></span>
+<span class="codeline" id="line-70"><code>	<span class="keyword">var</span> <label for="r4" class="ident">u</label> <a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a></code></span>
+<span class="codeline" id="line-71"><code>	<span class="keyword">if</span> <label for="r3" class="ident">ptr</label> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-72"><code>		<label for="r4" class="ident">u</label> = <a href="#line-93" class="ident">runtime_registerWeakPointer</a>(<a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r3" class="ident">ptr</label>))</code></span>
+<span class="codeline" id="line-73"><code>	}</code></span>
+<span class="codeline" id="line-74"><code>	<a href="../../pkg/runtime.html" class="ident i1">runtime</a>.<a href="../runtime/mfinal.go.html#line-568" class="ident">KeepAlive</a>(<label for="r3" class="ident">ptr</label>)</code></span>
+<span class="codeline" id="line-75"><code>	<span class="keyword">return</span> <a href="#line-58" class="ident">Pointer</a>[<label for="r2" class="ident">T</label>]{<a href="#line-62" class="ident">u</a>: <label for="r4" class="ident">u</label>}</code></span>
+<span class="codeline" id="line-76"><code>}</code></span>
+<span class="codeline" id="line-77"><code></code></span>
+<span class="codeline" id="line-78"><code><span class="comment">// Value returns the original pointer used to create the weak pointer.</span></code></span>
+<span class="codeline" id="line-79"><code><span class="comment">// It returns nil if the value pointed to by the original pointer was reclaimed by</span></code></span>
+<span class="codeline" id="line-80"><code><span class="comment">// the garbage collector.</span></code></span>
+<span class="codeline" id="line-81"><code><span class="comment">// If a weak pointer points to an object with a finalizer, then Value will</span></code></span>
+<span class="codeline" id="line-82"><code><span class="comment">// return nil as soon as the object's finalizer is queued for execution.</span></code></span>
+<span class="codeline" id="line-83"><code><span class="keyword">func</span> (<label for="r5" class="ident">p</label> <a href="#line-58" class="ident">Pointer</a>[<label for="r6" class="ident">T</label>]) <label for="r7" class="ident"><a href="../../use/weak..Pointer.Value.html" class="ident">Value</a></label>() *<label for="r6" class="ident">T</label> {</code></span>
+<span class="codeline" id="line-84"><code>	<span class="keyword">if</span> <label for="r5" class="ident">p</label>.<a href="#line-62" class="ident">u</a> == <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-85"><code>		<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-86"><code>	}</code></span>
+<span class="codeline" id="line-87"><code>	<span class="keyword">return</span> (*<label for="r6" class="ident">T</label>)(<a href="#line-96" class="ident">runtime_makeStrongFromWeak</a>(<label for="r5" class="ident">p</label>.<a href="#line-62" class="ident">u</a>))</code></span>
+<span class="codeline" id="line-88"><code>}</code></span>
+<span class="codeline" id="line-89"><code></code></span>
+<span class="codeline" id="line-90"><code><span class="comment">// Implemented in runtime.</span></code></span>
+<span class="codeline" id="line-91"><code></code></span>
+<span class="codeline" id="line-92"><code><span class="comment">//go:linkname runtime_registerWeakPointer</span></code></span>
+<span class="codeline" id="line-93"><code><span class="keyword">func</span> <label for="r8" class="ident"><a href="../../pkg/weak.html#name-runtime_registerWeakPointer" class="ident">runtime_registerWeakPointer</a></label>(<a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>) <a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a></code></span>
+<span class="codeline" id="line-94"><code></code></span>
+<span class="codeline" id="line-95"><code><span class="comment">//go:linkname runtime_makeStrongFromWeak</span></code></span>
+<span class="codeline" id="line-96"><code><span class="keyword">func</span> <label for="r9" class="ident"><a href="../../pkg/weak.html#name-runtime_makeStrongFromWeak" class="ident">runtime_makeStrongFromWeak</a></label>(<a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>) <a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a></code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

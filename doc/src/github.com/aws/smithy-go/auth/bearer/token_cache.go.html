@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: token_cache.go in package github.com/aws/smithy-go/auth/bearer</title>
+<link href="../../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	token_cache.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../../pkg/github.com/aws/smithy-go/auth/bearer.html">github.com/aws/smithy-go/auth/bearer</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30],
+input[id=r31]:checked ~pre label[for=r31],
+input[id=r32]:checked ~pre label[for=r32],
+input[id=r33]:checked ~pre label[for=r33],
+input[id=r34]:checked ~pre label[for=r34],
+input[id=r35]:checked ~pre label[for=r35],
+input[id=r36]:checked ~pre label[for=r36]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3,
+input[id=i4]:checked ~pre .i4,
+input[id=i5]:checked ~pre .i5
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="r31" type="radio" name="g"/>
+<input id="r32" type="radio" name="g"/>
+<input id="r33" type="radio" name="g"/>
+<input id="r34" type="radio" name="g"/>
+<input id="r35" type="radio" name="g"/>
+<input id="r36" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+<input id="i4" type="radio" name="i"/>
+<input id="i5" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="keyword">package</span> bearer</code></span>
+<span class="codeline" id="line-2"><code></code></span>
+<span class="codeline" id="line-3"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-4"><code>	<label for="i0"><span class="lit-string i0">"context"</span></label></code></span>
+<span class="codeline" id="line-5"><code>	<label for="i1"><span class="lit-string i1">"fmt"</span></label></code></span>
+<span class="codeline" id="line-6"><code>	<label for="i2"><span class="lit-string i2">"sync/atomic"</span></label></code></span>
+<span class="codeline" id="line-7"><code>	<label for="i3"><span class="lit-string i3">"time"</span></label></code></span>
+<span class="codeline" id="line-8"><code></code></span>
+<span class="codeline" id="line-9"><code>	<a href="../../../../../../pkg/github.com/aws/smithy-go/context.html" class="ident i4">smithycontext</a> <label for="i4"><span class="lit-string i4">"github.com/aws/smithy-go/context"</span></label></code></span>
+<span class="codeline" id="line-10"><code>	<label for="i5"><span class="lit-string i5">"github.com/aws/smithy-go/internal/sync/singleflight"</span></label></code></span>
+<span class="codeline" id="line-11"><code>)</code></span>
+<span class="codeline" id="line-12"><code></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">// package variable that can be override in unit tests.</span></code></span>
+<span class="codeline" id="line-14"><code><span class="keyword">var</span> <a href="../../../../../../pkg/github.com/aws/smithy-go/auth/bearer.html#name-timeNow" class="ident">timeNow</a> = <a href="../../../../../../pkg/time.html" class="ident i3">time</a>.<a href="../../../../../time/time.go.html#line-1340" class="ident">Now</a></code></span>
+<span class="codeline" id="line-15"><code></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">// TokenCacheOptions provides a set of optional configuration options for the</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">// TokenCache TokenProvider.</span></code></span>
+<span class="codeline" id="line-18"><code><span class="keyword">type</span> <a href="../../../../../../pkg/github.com/aws/smithy-go/auth/bearer.html#name-TokenCacheOptions" class="ident">TokenCacheOptions</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-19"><code>	<span class="comment">// The duration before the token will expire when the credentials will be</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">	// refreshed. If DisableAsyncRefresh is true, the RetrieveBearerToken calls</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">	// will be blocking.</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">	// Asynchronous refreshes are deduplicated, and only one will be in-flight</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">	// at a time. If the token expires while an asynchronous refresh is in</span></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">	// flight, the next call to RetrieveBearerToken will block on that refresh</span></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">	// to return.</span></code></span>
+<span class="codeline" id="line-27"><code>	<a href="../../../../../../use/github.com/aws/smithy-go/auth/bearer..TokenCacheOptions.RefreshBeforeExpires.html" class="ident">RefreshBeforeExpires</a> <a href="../../../../../../pkg/time.html" class="ident i3">time</a>.<a href="../../../../../time/time.go.html#line-911" class="ident">Duration</a></code></span>
+<span class="codeline" id="line-28"><code></code></span>
+<span class="codeline" id="line-29"><code>	<span class="comment">// The timeout the underlying TokenProvider's RetrieveBearerToken call must</span></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">	// return within, or will be canceled. Defaults to 0, no timeout.</span></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-32"><code><span class="comment">	// If 0 timeout, its possible for the underlying tokenProvider's</span></code></span>
+<span class="codeline" id="line-33"><code><span class="comment">	// RetrieveBearerToken call to block forever. Preventing subsequent</span></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">	// TokenCache attempts to refresh the token.</span></code></span>
+<span class="codeline" id="line-35"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">	// If this timeout is reached all pending deduplicated calls to</span></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">	// TokenCache RetrieveBearerToken will fail with an error.</span></code></span>
+<span class="codeline" id="line-38"><code>	<a href="../../../../../../use/github.com/aws/smithy-go/auth/bearer..TokenCacheOptions.RetrieveBearerTokenTimeout.html" class="ident">RetrieveBearerTokenTimeout</a> <a href="../../../../../../pkg/time.html" class="ident i3">time</a>.<a href="../../../../../time/time.go.html#line-911" class="ident">Duration</a></code></span>
+<span class="codeline" id="line-39"><code></code></span>
+<span class="codeline" id="line-40"><code>	<span class="comment">// The minimum duration between asynchronous refresh attempts. If the next</span></code></span>
+<span class="codeline" id="line-41"><code><span class="comment">	// asynchronous recent refresh attempt was within the minimum delay</span></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">	// duration, the call to retrieve will return the current cached token, if</span></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">	// not expired.</span></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-45"><code><span class="comment">	// The asynchronous retrieve is deduplicated across multiple calls when</span></code></span>
+<span class="codeline" id="line-46"><code><span class="comment">	// RetrieveBearerToken is called. The asynchronous retrieve is not a</span></code></span>
+<span class="codeline" id="line-47"><code><span class="comment">	// periodic task. It is only performed when the token has not yet expired,</span></code></span>
+<span class="codeline" id="line-48"><code><span class="comment">	// and the current item is within the RefreshBeforeExpires window, and the</span></code></span>
+<span class="codeline" id="line-49"><code><span class="comment">	// TokenCache's RetrieveBearerToken method is called.</span></code></span>
+<span class="codeline" id="line-50"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-51"><code><span class="comment">	// If 0, (default) there will be no minimum delay between asynchronous</span></code></span>
+<span class="codeline" id="line-52"><code><span class="comment">	// refresh attempts.</span></code></span>
+<span class="codeline" id="line-53"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-54"><code><span class="comment">	// If DisableAsyncRefresh is true, this option is ignored.</span></code></span>
+<span class="codeline" id="line-55"><code>	<a href="../../../../../../use/github.com/aws/smithy-go/auth/bearer..TokenCacheOptions.AsyncRefreshMinimumDelay.html" class="ident">AsyncRefreshMinimumDelay</a> <a href="../../../../../../pkg/time.html" class="ident i3">time</a>.<a href="../../../../../time/time.go.html#line-911" class="ident">Duration</a></code></span>
+<span class="codeline" id="line-56"><code></code></span>
+<span class="codeline" id="line-57"><code>	<span class="comment">// Sets if the TokenCache will attempt to refresh the token in the</span></code></span>
+<span class="codeline" id="line-58"><code><span class="comment">	// background asynchronously instead of blocking for credentials to be</span></code></span>
+<span class="codeline" id="line-59"><code><span class="comment">	// refreshed. If disabled token refresh will be blocking.</span></code></span>
+<span class="codeline" id="line-60"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-61"><code><span class="comment">	// The first call to RetrieveBearerToken will always be blocking, because</span></code></span>
+<span class="codeline" id="line-62"><code><span class="comment">	// there is no cached token.</span></code></span>
+<span class="codeline" id="line-63"><code>	<a href="../../../../../../use/github.com/aws/smithy-go/auth/bearer..TokenCacheOptions.DisableAsyncRefresh.html" class="ident">DisableAsyncRefresh</a> <a href="../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-64"><code>}</code></span>
+<span class="codeline" id="line-65"><code></code></span>
+<span class="codeline" id="line-66"><code><span class="comment">// TokenCache provides an utility to cache Bearer Authentication tokens from a</span></code></span>
+<span class="codeline" id="line-67"><code><span class="comment">// wrapped TokenProvider. The TokenCache can be has options to configure the</span></code></span>
+<span class="codeline" id="line-68"><code><span class="comment">// cache's early and asynchronous refresh of the token.</span></code></span>
+<span class="codeline" id="line-69"><code><span class="keyword">type</span> <a href="../../../../../../pkg/github.com/aws/smithy-go/auth/bearer.html#name-TokenCache" class="ident">TokenCache</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-70"><code>	<a href="../../../../../../use/github.com/aws/smithy-go/auth/bearer..TokenCache.options^a793a.html" class="ident">options</a>  <a href="#line-18" class="ident">TokenCacheOptions</a></code></span>
+<span class="codeline" id="line-71"><code>	<a href="../../../../../../use/github.com/aws/smithy-go/auth/bearer..TokenCache.provider^5c4c1.html" class="ident">provider</a> <a href="token.go.html#line-27" class="ident">TokenProvider</a></code></span>
+<span class="codeline" id="line-72"><code></code></span>
+<span class="codeline" id="line-73"><code>	<a href="../../../../../../use/github.com/aws/smithy-go/auth/bearer..TokenCache.cachedToken^f62f4.html" class="ident">cachedToken</a>            <a href="../../../../../../pkg/sync/atomic.html" class="ident i2">atomic</a>.<a href="../../../../../sync/atomic/value.go.html#line-16" class="ident">Value</a></code></span>
+<span class="codeline" id="line-74"><code>	<a href="../../../../../../use/github.com/aws/smithy-go/auth/bearer..TokenCache.lastRefreshAttemptTime^23a20.html" class="ident">lastRefreshAttemptTime</a> <a href="../../../../../../pkg/sync/atomic.html" class="ident i2">atomic</a>.<a href="../../../../../sync/atomic/value.go.html#line-16" class="ident">Value</a></code></span>
+<span class="codeline" id="line-75"><code>	<a href="../../../../../../use/github.com/aws/smithy-go/auth/bearer..TokenCache.sfGroup^41d7e.html" class="ident">sfGroup</a>                <a href="../../../../../../pkg/github.com/aws/smithy-go/internal/sync/singleflight.html" class="ident i5">singleflight</a>.<a href="../../internal/sync/singleflight/singleflight.go.html#line-66" class="ident">Group</a></code></span>
+<span class="codeline" id="line-76"><code>}</code></span>
+<span class="codeline" id="line-77"><code></code></span>
+<span class="codeline" id="line-78"><code><span class="comment">// NewTokenCache returns a initialized TokenCache that implements the</span></code></span>
+<span class="codeline" id="line-79"><code><span class="comment">// TokenProvider interface. Wrapping the provider passed in. Also taking a set</span></code></span>
+<span class="codeline" id="line-80"><code><span class="comment">// of optional functional option parameters to configure the token cache.</span></code></span>
+<span class="codeline" id="line-81"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../../../pkg/github.com/aws/smithy-go/auth/bearer.html#name-NewTokenCache" class="ident">NewTokenCache</a></label>(<label for="r1" class="ident">provider</label> <a href="token.go.html#line-27" class="ident">TokenProvider</a>, <label for="r2" class="ident">optFns</label> ...<span class="keyword">func</span>(*<a href="#line-18" class="ident">TokenCacheOptions</a>)) *<a href="#line-69" class="ident">TokenCache</a> {</code></span>
+<span class="codeline" id="line-82"><code>	<span class="keyword">var</span> <label for="r3" class="ident">options</label> <a href="#line-18" class="ident">TokenCacheOptions</a></code></span>
+<span class="codeline" id="line-83"><code>	<span class="keyword">for</span> <label for="r4" class="ident">_</label>, <label for="r5" class="ident">fn</label> := <span class="keyword">range</span> <label for="r2" class="ident">optFns</label> {</code></span>
+<span class="codeline" id="line-84"><code>		<label for="r5" class="ident">fn</label>(&amp;<label for="r3" class="ident">options</label>)</code></span>
+<span class="codeline" id="line-85"><code>	}</code></span>
+<span class="codeline" id="line-86"><code></code></span>
+<span class="codeline" id="line-87"><code>	<span class="keyword">return</span> &amp;<a href="#line-69" class="ident">TokenCache</a>{</code></span>
+<span class="codeline" id="line-88"><code>		<a href="#line-70" class="ident">options</a>:  <label for="r3" class="ident">options</label>,</code></span>
+<span class="codeline" id="line-89"><code>		<a href="#line-71" class="ident">provider</a>: <label for="r1" class="ident">provider</label>,</code></span>
+<span class="codeline" id="line-90"><code>	}</code></span>
+<span class="codeline" id="line-91"><code>}</code></span>
+<span class="codeline" id="line-92"><code></code></span>
+<span class="codeline" id="line-93"><code><span class="comment">// RetrieveBearerToken returns the token if it could be obtained, or error if a</span></code></span>
+<span class="codeline" id="line-94"><code><span class="comment">// valid token could not be retrieved.</span></code></span>
+<span class="codeline" id="line-95"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-96"><code><span class="comment">// The passed in Context's cancel/deadline/timeout will impacting only this</span></code></span>
+<span class="codeline" id="line-97"><code><span class="comment">// individual retrieve call and not any other already queued up calls. This</span></code></span>
+<span class="codeline" id="line-98"><code><span class="comment">// means underlying provider's RetrieveBearerToken calls could block for ever,</span></code></span>
+<span class="codeline" id="line-99"><code><span class="comment">// and not be canceled with the Context. Set RetrieveBearerTokenTimeout to</span></code></span>
+<span class="codeline" id="line-100"><code><span class="comment">// provide a timeout, preventing the underlying TokenProvider blocking forever.</span></code></span>
+<span class="codeline" id="line-101"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-102"><code><span class="comment">// By default, if the passed in Context is canceled, all of its values will be</span></code></span>
+<span class="codeline" id="line-103"><code><span class="comment">// considered expired. The wrapped TokenProvider will not be able to lookup the</span></code></span>
+<span class="codeline" id="line-104"><code><span class="comment">// values from the Context once it is expired. This is done to protect against</span></code></span>
+<span class="codeline" id="line-105"><code><span class="comment">// expired values no longer being valid. To disable this behavior, use</span></code></span>
+<span class="codeline" id="line-106"><code><span class="comment">// smithy-go's context.WithPreserveExpiredValues to add a value to the Context</span></code></span>
+<span class="codeline" id="line-107"><code><span class="comment">// before calling RetrieveBearerToken to enable support for expired values.</span></code></span>
+<span class="codeline" id="line-108"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-109"><code><span class="comment">// Without RetrieveBearerTokenTimeout there is the potential for a underlying</span></code></span>
+<span class="codeline" id="line-110"><code><span class="comment">// Provider's RetrieveBearerToken call to sit forever. Blocking in subsequent</span></code></span>
+<span class="codeline" id="line-111"><code><span class="comment">// attempts at refreshing the token.</span></code></span>
+<span class="codeline" id="line-112"><code><span class="keyword">func</span> (<label for="r6" class="ident">p</label> *<a href="#line-69" class="ident">TokenCache</a>) <label for="r7" class="ident"><a href="../../../../../../use/github.com/aws/smithy-go/auth/bearer..TokenCache.RetrieveBearerToken.html" class="ident">RetrieveBearerToken</a></label>(<label for="r8" class="ident">ctx</label> <a href="../../../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../../../context/context.go.html#line-71" class="ident">Context</a>) (<a href="token.go.html#line-9" class="ident">Token</a>, <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-113"><code>	<label for="r9" class="ident">cachedToken</label>, <label for="r10" class="ident">ok</label> := <label for="r6" class="ident">p</label>.<a href="#line-196" class="ident">getCachedToken</a>()</code></span>
+<span class="codeline" id="line-114"><code>	<span class="keyword">if</span> !<label for="r10" class="ident">ok</label> || <label for="r9" class="ident">cachedToken</label>.<a href="token.go.html#line-18" class="ident">Expired</a>(<a href="#line-14" class="ident">timeNow</a>()) {</code></span>
+<span class="codeline" id="line-115"><code>		<span class="keyword">return</span> <label for="r6" class="ident">p</label>.<a href="#line-165" class="ident">refreshBearerToken</a>(<label for="r8" class="ident">ctx</label>)</code></span>
+<span class="codeline" id="line-116"><code>	}</code></span>
+<span class="codeline" id="line-117"><code></code></span>
+<span class="codeline" id="line-118"><code>	<span class="comment">// Check if the token should be refreshed before it expires.</span></code></span>
+<span class="codeline" id="line-119"><code>	<label for="r11" class="ident">refreshToken</label> := <label for="r9" class="ident">cachedToken</label>.<a href="token.go.html#line-18" class="ident">Expired</a>(<a href="#line-14" class="ident">timeNow</a>().<a href="../../../../../time/time.go.html#line-1166" class="ident">Add</a>(<label for="r6" class="ident">p</label>.<a href="#line-70" class="ident">options</a>.<a href="#line-27" class="ident">RefreshBeforeExpires</a>))</code></span>
+<span class="codeline" id="line-120"><code>	<span class="keyword">if</span> !<label for="r11" class="ident">refreshToken</label> {</code></span>
+<span class="codeline" id="line-121"><code>		<span class="keyword">return</span> <label for="r9" class="ident">cachedToken</label>, <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-122"><code>	}</code></span>
+<span class="codeline" id="line-123"><code></code></span>
+<span class="codeline" id="line-124"><code>	<span class="keyword">if</span> <label for="r6" class="ident">p</label>.<a href="#line-70" class="ident">options</a>.<a href="#line-63" class="ident">DisableAsyncRefresh</a> {</code></span>
+<span class="codeline" id="line-125"><code>		<span class="keyword">return</span> <label for="r6" class="ident">p</label>.<a href="#line-165" class="ident">refreshBearerToken</a>(<label for="r8" class="ident">ctx</label>)</code></span>
+<span class="codeline" id="line-126"><code>	}</code></span>
+<span class="codeline" id="line-127"><code></code></span>
+<span class="codeline" id="line-128"><code>	<label for="r6" class="ident">p</label>.<a href="#line-137" class="ident">tryAsyncRefresh</a>(<label for="r8" class="ident">ctx</label>)</code></span>
+<span class="codeline" id="line-129"><code></code></span>
+<span class="codeline" id="line-130"><code>	<span class="keyword">return</span> <label for="r9" class="ident">cachedToken</label>, <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-131"><code>}</code></span>
+<span class="codeline" id="line-132"><code></code></span>
+<span class="codeline" id="line-133"><code><span class="comment">// tryAsyncRefresh attempts to asynchronously refresh the token returning the</span></code></span>
+<span class="codeline" id="line-134"><code><span class="comment">// already cached token. If it AsyncRefreshMinimumDelay option is not zero, and</span></code></span>
+<span class="codeline" id="line-135"><code><span class="comment">// the duration since the last refresh is less than that value, nothing will be</span></code></span>
+<span class="codeline" id="line-136"><code><span class="comment">// done.</span></code></span>
+<span class="codeline" id="line-137"><code><span class="keyword">func</span> (<label for="r12" class="ident">p</label> *<a href="#line-69" class="ident">TokenCache</a>) <label for="r13" class="ident"><a href="../../../../../../use/github.com/aws/smithy-go/auth/bearer..TokenCache.tryAsyncRefresh^ff892.html" class="ident">tryAsyncRefresh</a></label>(<label for="r14" class="ident">ctx</label> <a href="../../../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../../../context/context.go.html#line-71" class="ident">Context</a>) {</code></span>
+<span class="codeline" id="line-138"><code>	<span class="keyword">if</span> <label for="r12" class="ident">p</label>.<a href="#line-70" class="ident">options</a>.<a href="#line-55" class="ident">AsyncRefreshMinimumDelay</a> != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-139"><code>		<span class="keyword">var</span> <label for="r15" class="ident">lastRefreshAttempt</label> <a href="../../../../../../pkg/time.html" class="ident i3">time</a>.<a href="../../../../../time/time.go.html#line-140" class="ident">Time</a></code></span>
+<span class="codeline" id="line-140"><code>		<span class="keyword">if</span> <label for="r16" class="ident">v</label> := <label for="r12" class="ident">p</label>.<a href="#line-74" class="ident">lastRefreshAttemptTime</a>.<a href="../../../../../sync/atomic/value.go.html#line-28" class="ident">Load</a>(); <label for="r16" class="ident">v</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-141"><code>			<label for="r15" class="ident">lastRefreshAttempt</label> = <label for="r16" class="ident">v</label>.(<a href="../../../../../../pkg/time.html" class="ident i3">time</a>.<a href="../../../../../time/time.go.html#line-140" class="ident">Time</a>)</code></span>
+<span class="codeline" id="line-142"><code>		}</code></span>
+<span class="codeline" id="line-143"><code></code></span>
+<span class="codeline" id="line-144"><code>		<span class="keyword">if</span> <a href="#line-14" class="ident">timeNow</a>().<a href="../../../../../time/time.go.html#line-277" class="ident">Before</a>(<label for="r15" class="ident">lastRefreshAttempt</label>.<a href="../../../../../time/time.go.html#line-1166" class="ident">Add</a>(<label for="r12" class="ident">p</label>.<a href="#line-70" class="ident">options</a>.<a href="#line-55" class="ident">AsyncRefreshMinimumDelay</a>)) {</code></span>
+<span class="codeline" id="line-145"><code>			<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-146"><code>		}</code></span>
+<span class="codeline" id="line-147"><code>	}</code></span>
+<span class="codeline" id="line-148"><code></code></span>
+<span class="codeline" id="line-149"><code>	<span class="comment">// Ignore the returned channel so this won't be blocking, and limit the</span></code></span>
+<span class="codeline" id="line-150"><code><span class="comment">	// number of additional goroutines created.</span></code></span>
+<span class="codeline" id="line-151"><code>	<label for="r12" class="ident">p</label>.<a href="#line-75" class="ident">sfGroup</a>.<a href="../../internal/sync/singleflight/singleflight.go.html#line-114" class="ident">DoChan</a>(<span class="lit-string">"async-refresh"</span>, <span class="keyword">func</span>() (<span class="keyword">interface</span>{}, <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-152"><code>		<label for="r17" class="ident">res</label>, <label for="r18" class="ident">err</label> := <label for="r12" class="ident">p</label>.<a href="#line-165" class="ident">refreshBearerToken</a>(<label for="r14" class="ident">ctx</label>)</code></span>
+<span class="codeline" id="line-153"><code>		<span class="keyword">if</span> <label for="r12" class="ident">p</label>.<a href="#line-70" class="ident">options</a>.<a href="#line-55" class="ident">AsyncRefreshMinimumDelay</a> != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-154"><code>			<span class="keyword">var</span> <label for="r19" class="ident">refreshAttempt</label> <a href="../../../../../../pkg/time.html" class="ident i3">time</a>.<a href="../../../../../time/time.go.html#line-140" class="ident">Time</a></code></span>
+<span class="codeline" id="line-155"><code>			<span class="keyword">if</span> <label for="r18" class="ident">err</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-156"><code>				<label for="r19" class="ident">refreshAttempt</label> = <a href="#line-14" class="ident">timeNow</a>()</code></span>
+<span class="codeline" id="line-157"><code>			}</code></span>
+<span class="codeline" id="line-158"><code>			<label for="r12" class="ident">p</label>.<a href="#line-74" class="ident">lastRefreshAttemptTime</a>.<a href="../../../../../sync/atomic/value.go.html#line-47" class="ident">Store</a>(<label for="r19" class="ident">refreshAttempt</label>)</code></span>
+<span class="codeline" id="line-159"><code>		}</code></span>
+<span class="codeline" id="line-160"><code></code></span>
+<span class="codeline" id="line-161"><code>		<span class="keyword">return</span> <label for="r17" class="ident">res</label>, <label for="r18" class="ident">err</label></code></span>
+<span class="codeline" id="line-162"><code>	})</code></span>
+<span class="codeline" id="line-163"><code>}</code></span>
+<span class="codeline" id="line-164"><code></code></span>
+<span class="codeline" id="line-165"><code><span class="keyword">func</span> (<label for="r20" class="ident">p</label> *<a href="#line-69" class="ident">TokenCache</a>) <label for="r21" class="ident"><a href="../../../../../../use/github.com/aws/smithy-go/auth/bearer..TokenCache.refreshBearerToken^79c58.html" class="ident">refreshBearerToken</a></label>(<label for="r22" class="ident">ctx</label> <a href="../../../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../../../context/context.go.html#line-71" class="ident">Context</a>) (<a href="token.go.html#line-9" class="ident">Token</a>, <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-166"><code>	<label for="r23" class="ident">resCh</label> := <label for="r20" class="ident">p</label>.<a href="#line-75" class="ident">sfGroup</a>.<a href="../../internal/sync/singleflight/singleflight.go.html#line-114" class="ident">DoChan</a>(<span class="lit-string">"refresh-token"</span>, <span class="keyword">func</span>() (<span class="keyword">interface</span>{}, <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-167"><code>		<label for="r24" class="ident">ctx</label> := <a href="../../../../../../pkg/github.com/aws/smithy-go/context.html" class="ident i4">smithycontext</a>.<a href="../../context/suppress_expired.go.html#line-52" class="ident">WithSuppressCancel</a>(<label for="r22" class="ident">ctx</label>)</code></span>
+<span class="codeline" id="line-168"><code>		<span class="keyword">if</span> <label for="r25" class="ident">v</label> := <label for="r20" class="ident">p</label>.<a href="#line-70" class="ident">options</a>.<a href="#line-38" class="ident">RetrieveBearerTokenTimeout</a>; <label for="r25" class="ident">v</label> != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-169"><code>			<span class="keyword">var</span> <label for="r26" class="ident">cancel</label> <span class="keyword">func</span>()</code></span>
+<span class="codeline" id="line-170"><code>			<label for="r24" class="ident">ctx</label>, <label for="r26" class="ident">cancel</label> = <a href="../../../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../../../context/context.go.html#line-694" class="ident">WithTimeout</a>(<label for="r24" class="ident">ctx</label>, <label for="r25" class="ident">v</label>)</code></span>
+<span class="codeline" id="line-171"><code>			<span class="keyword">defer</span> <label for="r26" class="ident">cancel</label>()</code></span>
+<span class="codeline" id="line-172"><code>		}</code></span>
+<span class="codeline" id="line-173"><code>		<span class="keyword">return</span> <label for="r20" class="ident">p</label>.<a href="#line-184" class="ident">singleRetrieve</a>(<label for="r24" class="ident">ctx</label>)</code></span>
+<span class="codeline" id="line-174"><code>	})</code></span>
+<span class="codeline" id="line-175"><code></code></span>
+<span class="codeline" id="line-176"><code>	<a href="../../../../../runtime/select.go.html#line-122"><span class="keyword">select</span></a> {</code></span>
+<span class="codeline" id="line-177"><code>	<span class="keyword">case</span> <label for="r27" class="ident">res</label> := <a href="../../../../../runtime/chan.go.html#line-505">&lt;-</a><label for="r23" class="ident">resCh</label>:</code></span>
+<span class="codeline" id="line-178"><code>		<span class="keyword">return</span> <label for="r27" class="ident">res</label>.<a href="../../internal/sync/singleflight/singleflight.go.html#line-74" class="ident">Val</a>.(<a href="token.go.html#line-9" class="ident">Token</a>), <label for="r27" class="ident">res</label>.<a href="../../internal/sync/singleflight/singleflight.go.html#line-75" class="ident">Err</a></code></span>
+<span class="codeline" id="line-179"><code>	<span class="keyword">case</span> <a href="../../../../../runtime/chan.go.html#line-505">&lt;-</a><label for="r22" class="ident">ctx</label>.<a href="../../../../../context/context.go.html#line-108" class="ident">Done</a>():</code></span>
+<span class="codeline" id="line-180"><code>		<span class="keyword">return</span> <a href="token.go.html#line-9" class="ident">Token</a>{}, <a href="../../../../../../pkg/fmt.html" class="ident i1">fmt</a>.<a href="../../../../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"retrieve bearer token canceled, %w"</span>, <label for="r22" class="ident">ctx</label>.<a href="../../../../../context/context.go.html#line-115" class="ident">Err</a>())</code></span>
+<span class="codeline" id="line-181"><code>	}</code></span>
+<span class="codeline" id="line-182"><code>}</code></span>
+<span class="codeline" id="line-183"><code></code></span>
+<span class="codeline" id="line-184"><code><span class="keyword">func</span> (<label for="r28" class="ident">p</label> *<a href="#line-69" class="ident">TokenCache</a>) <label for="r29" class="ident"><a href="../../../../../../use/github.com/aws/smithy-go/auth/bearer..TokenCache.singleRetrieve^6e749.html" class="ident">singleRetrieve</a></label>(<label for="r30" class="ident">ctx</label> <a href="../../../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../../../context/context.go.html#line-71" class="ident">Context</a>) (<span class="keyword">interface</span>{}, <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-185"><code>	<label for="r31" class="ident">token</label>, <label for="r32" class="ident">err</label> := <label for="r28" class="ident">p</label>.<a href="#line-71" class="ident">provider</a>.<a href="token.go.html#line-28" class="ident">RetrieveBearerToken</a>(<label for="r30" class="ident">ctx</label>)</code></span>
+<span class="codeline" id="line-186"><code>	<span class="keyword">if</span> <label for="r32" class="ident">err</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-187"><code>		<span class="keyword">return</span> <a href="token.go.html#line-9" class="ident">Token</a>{}, <a href="../../../../../../pkg/fmt.html" class="ident i1">fmt</a>.<a href="../../../../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"failed to retrieve bearer token, %w"</span>, <label for="r32" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-188"><code>	}</code></span>
+<span class="codeline" id="line-189"><code></code></span>
+<span class="codeline" id="line-190"><code>	<label for="r28" class="ident">p</label>.<a href="#line-73" class="ident">cachedToken</a>.<a href="../../../../../sync/atomic/value.go.html#line-47" class="ident">Store</a>(&amp;<label for="r31" class="ident">token</label>)</code></span>
+<span class="codeline" id="line-191"><code>	<span class="keyword">return</span> <label for="r31" class="ident">token</label>, <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-192"><code>}</code></span>
+<span class="codeline" id="line-193"><code></code></span>
+<span class="codeline" id="line-194"><code><span class="comment">// getCachedToken returns the currently cached token and true if found. Returns</span></code></span>
+<span class="codeline" id="line-195"><code><span class="comment">// false if no token is cached.</span></code></span>
+<span class="codeline" id="line-196"><code><span class="keyword">func</span> (<label for="r33" class="ident">p</label> *<a href="#line-69" class="ident">TokenCache</a>) <label for="r34" class="ident"><a href="../../../../../../use/github.com/aws/smithy-go/auth/bearer..TokenCache.getCachedToken^44b62.html" class="ident">getCachedToken</a></label>() (<a href="token.go.html#line-9" class="ident">Token</a>, <a href="../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a>) {</code></span>
+<span class="codeline" id="line-197"><code>	<label for="r35" class="ident">v</label> := <label for="r33" class="ident">p</label>.<a href="#line-73" class="ident">cachedToken</a>.<a href="../../../../../sync/atomic/value.go.html#line-28" class="ident">Load</a>()</code></span>
+<span class="codeline" id="line-198"><code>	<span class="keyword">if</span> <label for="r35" class="ident">v</label> == <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-199"><code>		<span class="keyword">return</span> <a href="token.go.html#line-9" class="ident">Token</a>{}, <a href="../../../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-200"><code>	}</code></span>
+<span class="codeline" id="line-201"><code></code></span>
+<span class="codeline" id="line-202"><code>	<label for="r36" class="ident">t</label> := <label for="r35" class="ident">v</label>.(*<a href="token.go.html#line-9" class="ident">Token</a>)</code></span>
+<span class="codeline" id="line-203"><code>	<span class="keyword">if</span> <label for="r36" class="ident">t</label> == <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> || <label for="r36" class="ident">t</label>.<a href="token.go.html#line-10" class="ident">Value</a> == <span class="lit-string">""</span> {</code></span>
+<span class="codeline" id="line-204"><code>		<span class="keyword">return</span> <a href="token.go.html#line-9" class="ident">Token</a>{}, <a href="../../../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-205"><code>	}</code></span>
+<span class="codeline" id="line-206"><code></code></span>
+<span class="codeline" id="line-207"><code>	<span class="keyword">return</span> *<label for="r36" class="ident">t</label>, <a href="../../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-208"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

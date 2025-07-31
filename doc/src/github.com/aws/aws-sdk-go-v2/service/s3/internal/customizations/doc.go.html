@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: doc.go in package github.com/aws/aws-sdk-go-v2/service/s3/internal/customizations</title>
+<link href="../../../../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	doc.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/s3/internal/customizations.html">github.com/aws/aws-sdk-go-v2/service/s3/internal/customizations</a>
+</code></pre>
+
+<pre class="line-numbers">
+<div class="anchor" id="doc"><span class="codeline" id="line-1"><code><span class="comment">/*</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">Package customizations provides customizations for the Amazon S3 API client.</span></code></span>
+<span class="codeline" id="line-3"><code></code></span>
+<span class="codeline" id="line-4"><code><span class="comment">This package provides support for following S3 customizations</span></code></span>
+<span class="codeline" id="line-5"><code></code></span>
+<span class="codeline" id="line-6"><code><span class="comment">	ProcessARN Middleware: processes an ARN if provided as input and updates the endpoint as per the arn type</span></code></span>
+<span class="codeline" id="line-7"><code></code></span>
+<span class="codeline" id="line-8"><code><span class="comment">	UpdateEndpoint Middleware: resolves a custom endpoint as per s3 config options</span></code></span>
+<span class="codeline" id="line-9"><code></code></span>
+<span class="codeline" id="line-10"><code><span class="comment">	RemoveBucket Middleware: removes a serialized bucket name from request url path</span></code></span>
+<span class="codeline" id="line-11"><code></code></span>
+<span class="codeline" id="line-12"><code><span class="comment">	processResponseWith200Error Middleware: Deserializing response error with 200 status code</span></code></span>
+<span class="codeline" id="line-13"><code></code></span>
+<span class="codeline" id="line-14"><code><span class="comment"># Virtual Host style url addressing</span></code></span>
+<span class="codeline" id="line-15"><code></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">Since serializers serialize by default as path style url, we use customization</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">to modify the endpoint url when `UsePathStyle` option on S3Client is unset or</span></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">false. This flag will be ignored if `UseAccelerate` option is set to true.</span></code></span>
+<span class="codeline" id="line-19"><code></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">If UseAccelerate is not enabled, and the bucket name is not a valid hostname</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">label, they SDK will fallback to forcing the request to be made as if</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">UsePathStyle was enabled. This behavior is also used if UseDualStackEndpoint is enabled.</span></code></span>
+<span class="codeline" id="line-23"><code></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">https://docs.aws.amazon.com/AmazonS3/latest/dev/dual-stack-endpoints.html#dual-stack-endpoints-description</span></code></span>
+<span class="codeline" id="line-25"><code></code></span>
+<span class="codeline" id="line-26"><code><span class="comment"># Transfer acceleration</span></code></span>
+<span class="codeline" id="line-27"><code></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">By default S3 Transfer acceleration support is disabled. By enabling `UseAccelerate`</span></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">option on S3Client, one can enable s3 transfer acceleration support. Transfer</span></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">acceleration only works with Virtual Host style addressing, and thus `UsePathStyle`</span></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">option if set is ignored. Transfer acceleration is not supported for S3 operations</span></code></span>
+<span class="codeline" id="line-32"><code><span class="comment">DeleteBucket, ListBuckets, and CreateBucket.</span></code></span>
+<span class="codeline" id="line-33"><code></code></span>
+<span class="codeline" id="line-34"><code><span class="comment"># Dualstack support</span></code></span>
+<span class="codeline" id="line-35"><code></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">By default dualstack support for s3 client is disabled. By enabling `UseDualstack`</span></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">option on s3 client, you can enable dualstack endpoint support.</span></code></span>
+<span class="codeline" id="line-38"><code></code></span>
+<span class="codeline" id="line-39"><code><span class="comment"># Endpoint customizations</span></code></span>
+<span class="codeline" id="line-40"><code></code></span>
+<span class="codeline" id="line-41"><code><span class="comment">Customizations to lookup ARN, process ARN needs to happen before request serialization.</span></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">UpdateEndpoint middleware which mutates resources based on Options such as</span></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">UseDualstack, UseAccelerate for modifying resolved endpoint are executed after</span></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">request serialization. Remove bucket middleware is executed after</span></code></span>
+<span class="codeline" id="line-45"><code><span class="comment">an request is serialized, and removes the serialized bucket name from request path</span></code></span>
+<span class="codeline" id="line-46"><code></code></span>
+<span class="codeline" id="line-47"><code><span class="comment">	Middleware layering:</span></code></span>
+<span class="codeline" id="line-48"><code></code></span>
+<span class="codeline" id="line-49"><code></code></span>
+<span class="codeline" id="line-50"><code><span class="comment">	Initialize : HTTP Request -&gt; ARN Lookup -&gt; Input-Validation -&gt; Serialize step</span></code></span>
+<span class="codeline" id="line-51"><code></code></span>
+<span class="codeline" id="line-52"><code><span class="comment">	Serialize : HTTP Request -&gt; Process ARN -&gt; operation serializer -&gt; Update-Endpoint customization -&gt; Remove-Bucket -&gt; next middleware</span></code></span>
+<span class="codeline" id="line-53"><code></code></span>
+<span class="codeline" id="line-54"><code><span class="comment">Customization options:</span></code></span>
+<span class="codeline" id="line-55"><code></code></span>
+<span class="codeline" id="line-56"><code><span class="comment">	UseARNRegion (Disabled by Default)</span></code></span>
+<span class="codeline" id="line-57"><code></code></span>
+<span class="codeline" id="line-58"><code><span class="comment">	UsePathStyle (Disabled by Default)</span></code></span>
+<span class="codeline" id="line-59"><code></code></span>
+<span class="codeline" id="line-60"><code><span class="comment">	UseAccelerate (Disabled by Default)</span></code></span>
+<span class="codeline" id="line-61"><code></code></span>
+<span class="codeline" id="line-62"><code><span class="comment">	UseDualstack (Disabled by Default)</span></code></span>
+<span class="codeline" id="line-63"><code></code></span>
+<span class="codeline" id="line-64"><code><span class="comment"># Handle Error response with 200 status code</span></code></span>
+<span class="codeline" id="line-65"><code></code></span>
+<span class="codeline" id="line-66"><code><span class="comment">S3 operations: CopyObject, CompleteMultipartUpload, UploadPartCopy can have an</span></code></span>
+<span class="codeline" id="line-67"><code><span class="comment">error Response with status code 2xx. The processResponseWith200Error middleware</span></code></span>
+<span class="codeline" id="line-68"><code><span class="comment">customizations enables SDK to check for an error within response body prior to</span></code></span>
+<span class="codeline" id="line-69"><code><span class="comment">deserialization.</span></code></span>
+<span class="codeline" id="line-70"><code></code></span>
+<span class="codeline" id="line-71"><code><span class="comment">As the check for 2xx response containing an error needs to be performed earlier</span></code></span>
+<span class="codeline" id="line-72"><code><span class="comment">than response deserialization. Since the behavior of Deserialization is in</span></code></span>
+<span class="codeline" id="line-73"><code><span class="comment">reverse order to the other stack steps its easier to consider that "after" means</span></code></span>
+<span class="codeline" id="line-74"><code><span class="comment">"before".</span></code></span>
+<span class="codeline" id="line-75"><code></code></span>
+<span class="codeline" id="line-76"><code><span class="comment">	Middleware layering:</span></code></span>
+<span class="codeline" id="line-77"><code></code></span>
+<span class="codeline" id="line-78"><code><span class="comment">	HTTP Response -&gt; handle 200 error customization -&gt; deserialize</span></code></span>
+<span class="codeline" id="line-79"><code><span class="comment">*/</span></code></span></div><span class="codeline" id="line-80"><code><span class="keyword">package</span> customizations</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

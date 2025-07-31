@@ -1,0 +1,1328 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Package: golang.org/x/tools/go/packages</title>
+<link href="../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="package-details"><code><span style="font-size:xx-large;">package <b>packages</b></span>
+
+<span class="title">Import Path</span>
+	<a href="../../../../../index.html#pkg-golang.org/x/tools/go/packages">golang.org/x/tools/go/packages</a><i> (on <a href="https://pkg.go.dev/golang.org/x/tools/go/packages" target="_blank">go.dev</a>)</i>
+
+<span class="title">Dependency Relation</span>
+	imports <a href="../../../../../dep/golang.org/x/tools/go/packages.html">31 packages</a>, and imported by <a href="../../../../../dep/golang.org/x/tools/go/packages.html#imported-by">one package</a>
+
+<div id="files"><span class="title">Involved Source Files</span>
+
+	<input type='checkbox' checked class="fold" id="file-0-fold-content"><label for="file-0-fold-content">  <a href="../../../../../src/golang.org/x/tools/go/packages/doc.go.html#doc">d</a> <a href="../../../../../src/golang.org/x/tools/go/packages/doc.go.html">doc.go</a></label><span id='file-0-fold-content-items' class="fold-items">
+<span class="md-text">		Package packages loads Go packages for inspection and analysis.
+		
+		The [Load] function takes as input a list of patterns and returns a
+		list of [Package] values describing individual packages matched by those
+		patterns.
+		A [Config] specifies configuration options, the most important of which is
+		the [LoadMode], which controls the amount of detail in the loaded packages.
+		
+		Load passes most patterns directly to the underlying build tool.
+		The default build tool is the go command.
+		Its supported patterns are described at
+		https://pkg.go.dev/cmd/go#hdr-Package_lists_and_patterns.
+		Other build systems may be supported by providing a "driver";
+		see [The driver protocol].
+		
+		All patterns with the prefix "query=", where query is a
+		non-empty string of letters from [a-z], are reserved and may be
+		interpreted as query operators.
+		
+		Two query operators are currently supported: "file" and "pattern".
+		
+		The query "file=path/to/file.go" matches the package or packages enclosing
+		the Go source file path/to/file.go.  For example "file=~/go/src/fmt/print.go"
+		might return the packages "fmt" and "fmt [fmt.test]".
+		
+		The query "pattern=string" causes "string" to be passed directly to
+		the underlying build tool. In most cases this is unnecessary,
+		but an application can use Load("pattern=" + x) as an escaping mechanism
+		to ensure that x is not interpreted as a query operator if it contains '='.
+		
+		All other query operators are reserved for future use and currently
+		cause Load to report an error.
+		
+		The Package struct provides basic information about the package, including
+		
+		  - ID, a unique identifier for the package in the returned set;
+		  - GoFiles, the names of the package's Go source files;
+		  - Imports, a map from source import strings to the Packages they name;
+		  - Types, the type information for the package's exported symbols;
+		  - Syntax, the parsed syntax trees for the package's source code; and
+		  - TypesInfo, the result of a complete type-check of the package syntax trees.
+		
+		(See the documentation for type Package for the complete list of fields
+		and more detailed descriptions.)
+		
+		For example,
+		
+			Load(nil, "bytes", "unicode...")
+		
+		returns four Package structs describing the standard library packages
+		bytes, unicode, unicode/utf16, and unicode/utf8. Note that one pattern
+		can match multiple packages and that a package might be matched by
+		multiple patterns: in general it is not possible to determine which
+		packages correspond to which patterns.
+		
+		Note that the list returned by Load contains only the packages matched
+		by the patterns. Their dependencies can be found by walking the import
+		graph using the Imports fields.
+		
+		The Load function can be configured by passing a pointer to a Config as
+		the first argument. A nil Config is equivalent to the zero Config, which
+		causes Load to run in LoadFiles mode, collecting minimal information.
+		See the documentation for type Config for details.
+		
+		As noted earlier, the Config.Mode controls the amount of detail
+		reported about the loaded packages. See the documentation for type LoadMode
+		for details.
+		
+		Most tools should pass their command-line arguments (after any flags)
+		uninterpreted to [Load], so that it can interpret them
+		according to the conventions of the underlying build system.
+		
+		See the Example function for typical usage.
+		
+		# The driver protocol
+		
+		[Load] may be used to load Go packages even in Go projects that use
+		alternative build systems, by installing an appropriate "driver"
+		program for the build system and specifying its location in the
+		GOPACKAGESDRIVER environment variable.
+		For example,
+		https://github.com/bazelbuild/rules_go/wiki/Editor-and-tool-integration
+		explains how to use the driver for Bazel.
+		
+		The driver program is responsible for interpreting patterns in its
+		preferred notation and reporting information about the packages that
+		those patterns identify. Drivers must also support the special "file="
+		and "pattern=" patterns described above.
+		
+		The patterns are provided as positional command-line arguments. A
+		JSON-encoded [DriverRequest] message providing additional information
+		is written to the driver's standard input. The driver must write a
+		JSON-encoded [DriverResponse] message to its standard output. (This
+		message differs from the JSON schema produced by 'go list'.)</span>
+</span>
+	<span class="nodocs">    <a href="../../../../../src/golang.org/x/tools/go/packages/external.go.html">external.go</a></span>
+	<span class="nodocs">    <a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html">golist.go</a></span>
+	<span class="nodocs">    <a href="../../../../../src/golang.org/x/tools/go/packages/golist_overlay.go.html">golist_overlay.go</a></span>
+	<span class="nodocs">    <a href="../../../../../src/golang.org/x/tools/go/packages/loadmode_string.go.html">loadmode_string.go</a></span>
+	<span class="nodocs">    <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html">packages.go</a></span>
+	<span class="nodocs">    <a href="../../../../../src/golang.org/x/tools/go/packages/visit.go.html">visit.go</a></span></div>
+<div id="examples"><span class="title">Code Examples</span>
+
+	<input type='checkbox' class="fold" id="example-0-fold-content"><label for="example-0-fold-content"></label><span id='example-0-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"flag"
+			"fmt"
+			"os"
+		
+			"golang.org/x/tools/go/packages"
+		)
+		
+		func main() {
+			flag.Parse()
+		
+			// Many tools pass their command-line arguments (after any flags)
+			// uninterpreted to packages.Load so that it can interpret them
+			// according to the conventions of the underlying build system.
+			cfg := &amp;packages.Config{Mode: packages.NeedFiles | packages.NeedSyntax}
+			pkgs, err := packages.Load(cfg, flag.Args()...)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "load: %v\n", err)
+				os.Exit(1)
+			}
+			if packages.PrintErrors(pkgs) &gt; 0 {
+				os.Exit(1)
+			}
+		
+			// Print the names of the source files
+			// for each package listed on the command line.
+			for _, pkg := range pkgs {
+				fmt.Println(pkg.ID, pkg.GoFiles)
+			}
+		}
+</span>
+</div>
+<div id="exported-types"><span class="title">Package-Level Type Names<span class="title-stat"><i> (total 20, in which 9 are exported)</i></span></span>
+
+<div id="exported-types-buttons" class="js-on">	/* sort exporteds by: <label id="sort-types-by-alphabet" class="button">alphabet</label> | <label id="sort-types-by-popularity" class="button">popularity</label> */</div><div class="anchor type-res" id="name-Config" data-popularity="315">	<input type='checkbox' class="fold" id="Config-fold-content"><label for="Config-fold-content"> <a href="../../../../../use/golang.org/x/tools/go/packages..Config.html">type</a> <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-144">Config</a> <i>(struct)</i></label><span id='Config-fold-content-docs' class="fold-docs">
+<span class="md-text">		A Config specifies details about how packages should be loaded.
+		The zero value is a valid configuration.
+		
+		Calls to Load do not modify this struct.
+		
+		TODO(adonovan): #67702: this is currently false: in fact,
+		calls to [Load] do not modify the public fields of this struct, but
+		may modify hidden fields, so concurrent calls to [Load] must not
+		use the same Config. But perhaps we should reestablish the
+		documented invariant.</span>
+
+		<input type='checkbox' class="fold" id="Config-fold-fields"><label for="Config-fold-fields">Fields (<i>total 14, in which 10 are exported</i>)</label><span id='Config-fold-fields-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="Config-fold-field-BuildFlags"><label for="Config-fold-field-BuildFlags"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-179">BuildFlags</a> <i>[]<a href="../../../../builtin.html#name-string">string</a></i></label><span id='Config-fold-field-BuildFlags-docs' class="fold-docs">
+<span class="md-text">				BuildFlags is a list of command-line flags to be passed through to
+				the build system's query tool.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Config-fold-field-Context"><label for="Config-fold-field-Context"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-151">Context</a> <i><a href="../../../../context.html">context</a>.<a href="../../../../context.html#name-Context">Context</a></i></label><span id='Config-fold-field-Context-docs' class="fold-docs">
+<span class="md-text">				Context specifies the context for the load operation.
+				Cancelling the context may cause [Load] to abort and
+				return an error.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Config-fold-field-Dir"><label for="Config-fold-field-Dir"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-162">Dir</a> <i><a href="../../../../builtin.html#name-string">string</a></i></label><span id='Config-fold-field-Dir-docs' class="fold-docs">
+<span class="md-text">				Dir is the directory in which to run the build system's query tool
+				that provides information about the packages.
+				If Dir is empty, the tool is run in the current directory.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Config-fold-field-Env"><label for="Config-fold-field-Env"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-172">Env</a> <i>[]<a href="../../../../builtin.html#name-string">string</a></i></label><span id='Config-fold-field-Env-docs' class="fold-docs">
+<span class="md-text">				Env is the environment to use when invoking the build system's query tool.
+				If Env is nil, the current environment is used.
+				As in os/exec's Cmd, only the last value in the slice for
+				each environment key is used. To specify the setting of only
+				a few variables, append to the current environment, as in:
+				
+					opt.Env = append(os.Environ(), "GOOS=plan9", "GOARCH=386")</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Config-fold-field-Fset"><label for="Config-fold-field-Fset"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-189">Fset</a> <i>*<a href="../../../../go/token.html">token</a>.<a href="../../../../go/token.html#name-FileSet">FileSet</a></i></label><span id='Config-fold-field-Fset-docs' class="fold-docs">
+<span class="md-text">				Fset provides source position information for syntax trees and types.
+				If Fset is nil, Load will use a new fileset, but preserve Fset's value.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Config-fold-field-Logf"><label for="Config-fold-field-Logf"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-157">Logf</a> <i>func(format <a href="../../../../builtin.html#name-string">string</a>, args ...interface{})</i></label><span id='Config-fold-field-Logf-docs' class="fold-docs">
+<span class="md-text">				Logf is the logger for the config.
+				If the user provides a logger, debug logging is enabled.
+				If the GOPACKAGESDEBUG environment variable is set to true,
+				but the logger is nil, default to log.Printf.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Config-fold-field-Mode"><label for="Config-fold-field-Mode"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-146">Mode</a> <i><a href="#name-LoadMode">LoadMode</a></i></label><span id='Config-fold-field-Mode-docs' class="fold-docs">
+<span class="md-text">				Mode controls the level of information returned for each package.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Config-fold-field-Overlay"><label for="Config-fold-field-Overlay"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-231">Overlay</a> <i>map[<a href="../../../../builtin.html#name-string">string</a>][]<a href="../../../../builtin.html#name-byte">byte</a></i></label><span id='Config-fold-field-Overlay-docs' class="fold-docs">
+<span class="md-text">				Overlay is a mapping from absolute file paths to file contents.
+				
+				For each map entry, [Load] uses the alternative file
+				contents provided by the overlay mapping instead of reading
+				from the file system. This mechanism can be used to enable
+				editor-integrated tools to correctly analyze the contents
+				of modified but unsaved buffers, for example.
+				
+				The overlay mapping is passed to the build system's driver
+				(see "The driver protocol") so that it too can report
+				consistent package metadata about unsaved files. However,
+				drivers may vary in their level of support for overlays.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Config-fold-field-ParseFile"><label for="Config-fold-field-ParseFile"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-203">ParseFile</a> <i>func(fset *<a href="../../../../go/token.html">token</a>.<a href="../../../../go/token.html#name-FileSet">FileSet</a>, filename <a href="../../../../builtin.html#name-string">string</a>, src []<a href="../../../../builtin.html#name-byte">byte</a>) (*<a href="../../../../go/ast.html">ast</a>.<a href="../../../../go/ast.html#name-File">File</a>, <a href="../../../../builtin.html#name-error">error</a>)</i></label><span id='Config-fold-field-ParseFile-docs' class="fold-docs">
+<span class="md-text">				ParseFile is called to read and parse each file
+				when preparing a package's type-checked syntax tree.
+				It must be safe to call ParseFile simultaneously from multiple goroutines.
+				If ParseFile is nil, the loader will uses parser.ParseFile.
+				
+				ParseFile should parse the source from src and use filename only for
+				recording position information.
+				
+				An application may supply a custom implementation of ParseFile
+				to change the effective file contents or the behavior of the parser,
+				or to modify the syntax tree. For example, selectively eliminating
+				unwanted function bodies can significantly accelerate type checking.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Config-fold-field-Tests"><label for="Config-fold-field-Tests"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-217">Tests</a> <i><a href="../../../../builtin.html#name-bool">bool</a></i></label><span id='Config-fold-field-Tests-docs' class="fold-docs">
+<span class="md-text">				If Tests is set, the loader includes not just the packages
+				matching a particular pattern but also any related test packages,
+				including test-only variants of the package and the test executable.
+				
+				For example, when using the go command, loading "fmt" with Tests=true
+				returns four packages, with IDs "fmt" (the standard package),
+				"fmt [fmt.test]" (the package as compiled for the test),
+				"fmt_test" (the test functions from source files in package fmt_test),
+				and "fmt.test" (the test binary).
+				
+				In build systems with explicit names for tests,
+				setting Tests may have no effect.</span>
+</span></span>
+			<input type='checkbox' class="showhide" id="Config-showhide-fields"><i><label for="Config-showhide-fields" class="show-inline">/* 4 unexporteds ... */</label><label for="Config-showhide-fields" class="hide-inline">/* 4 unexporteds: */</label></i><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Config-fold-field-goListOverlayFile"><label for="Config-fold-field-goListOverlayFile"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-235">goListOverlayFile</a> <i><a href="../../../../builtin.html#name-string">string</a></i></label><span id='Config-fold-field-goListOverlayFile-docs' class="fold-docs">
+<span class="md-text">				goListOverlayFile is the JSON file that encodes the Overlay
+				mapping, used by 'go list -overlay=...'</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Config-fold-field-gocmdRunner"><label for="Config-fold-field-gocmdRunner"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-175">gocmdRunner</a> <i>*<a href="../internal/gocommand.html">gocommand</a>.<a href="../internal/gocommand.html#name-Runner">Runner</a></i></label><span id='Config-fold-field-gocmdRunner-docs' class="fold-docs">
+<span class="md-text">				gocmdRunner guards go command calls from concurrency errors.</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Config-fold-field-modFile"><label for="Config-fold-field-modFile"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-182">modFile</a> <i><a href="../../../../builtin.html#name-string">string</a></i></label><span id='Config-fold-field-modFile-docs' class="fold-docs">
+<span class="md-text">				modFile will be used for -modfile in go command invocations.</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Config-fold-field-modFlag"><label for="Config-fold-field-modFlag"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-185">modFlag</a> <i><a href="../../../../builtin.html#name-string">string</a></i></label><span id='Config-fold-field-modFlag-docs' class="fold-docs">
+<span class="md-text">				modFlag will be used for -modfile in go command invocations.</span>
+</span></i></span></span>
+		<input type='checkbox' class="fold" id="Config-fold-params"><label for="Config-fold-params">As Inputs Of (<i>at least 9, in which 1 is exported</i>)</label><span id='Config-fold-params-items' class="fold-items"><span>
+			func <a href="#name-Load">Load</a>(cfg *<b>Config</b>, patterns ...<a href="../../../../builtin.html#name-string">string</a>) ([]*<a href="#name-Package">Package</a>, <a href="../../../../builtin.html#name-error">error</a>)</span>
+			<input type='checkbox' class="showhide" id="Config-showhide-outputofs"><i><label for="Config-showhide-outputofs" class="show-inline">/* 8+ unexporteds ... */</label><label for="Config-showhide-outputofs" class="hide-inline">/* 8+ unexporteds: */</label></i><span class="hidden"><i>
+			func <a href="#name-callDriverOnChunks">callDriverOnChunks</a>(driver <a href="#name-driver">driver</a>, cfg *<b>Config</b>, chunks [][]<a href="../../../../builtin.html#name-string">string</a>) (*<a href="#name-DriverResponse">DriverResponse</a>, <a href="../../../../builtin.html#name-error">error</a>)</i></span><span class="hidden"><i>
+			func <a href="#name-defaultDriver">defaultDriver</a>(cfg *<b>Config</b>, patterns ...<a href="../../../../builtin.html#name-string">string</a>) (*<a href="#name-DriverResponse">DriverResponse</a>, <a href="../../../../builtin.html#name-bool">bool</a>, <a href="../../../../builtin.html#name-error">error</a>)</i></span><span class="hidden"><i>
+			func <a href="#name-findExternalDriver">findExternalDriver</a>(cfg *<b>Config</b>) <a href="#name-driver">driver</a></i></span><span class="hidden"><i>
+			func <a href="#name-golistargs">golistargs</a>(cfg *<b>Config</b>, words []<a href="../../../../builtin.html#name-string">string</a>, goVersion <a href="../../../../builtin.html#name-int">int</a>) []<a href="../../../../builtin.html#name-string">string</a></i></span><span class="hidden"><i>
+			func <a href="#name-goListDriver">goListDriver</a>(cfg *<b>Config</b>, patterns ...<a href="../../../../builtin.html#name-string">string</a>) (_ *<a href="#name-DriverResponse">DriverResponse</a>, err <a href="../../../../builtin.html#name-error">error</a>)</i></span><span class="hidden"><i>
+			func <a href="#name-jsonFlag">jsonFlag</a>(cfg *<b>Config</b>, goVersion <a href="../../../../builtin.html#name-int">int</a>) <a href="../../../../builtin.html#name-string">string</a></i></span><span class="hidden"><i>
+			func <a href="#name-newLoader">newLoader</a>(cfg *<b>Config</b>) *<a href="#name-loader">loader</a></i></span><span class="hidden"><i>
+			func <a href="#name-usesExportData">usesExportData</a>(cfg *<b>Config</b>) <a href="../../../../builtin.html#name-bool">bool</a></i></span></span>
+
+</span></div><div class="anchor type-res" id="name-DriverRequest" data-popularity="0">	<input type='checkbox' class="fold" id="DriverRequest-fold-content"><label for="DriverRequest-fold-content"> <a href="../../../../../use/golang.org/x/tools/go/packages..DriverRequest.html">type</a> <a href="../../../../../src/golang.org/x/tools/go/packages/external.go.html#line-25">DriverRequest</a> <i>(struct)</i></label><span id='DriverRequest-fold-content-docs' class="fold-docs">
+<span class="md-text">		DriverRequest defines the schema of a request for package metadata
+		from an external driver program. The JSON-encoded DriverRequest
+		message is provided to the driver program's standard input. The
+		query patterns are provided as command-line arguments.
+		
+		See the package documentation for an overview.</span>
+
+		<input type='checkbox' class="fold" id="DriverRequest-fold-fields"><label for="DriverRequest-fold-fields">Fields (<i>total 5, all are exported</i>)</label><span id='DriverRequest-fold-fields-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="DriverRequest-fold-field-BuildFlags"><label for="DriverRequest-fold-field-BuildFlags"><a href="../../../../../src/golang.org/x/tools/go/packages/external.go.html#line-32">BuildFlags</a> <i>[]<a href="../../../../builtin.html#name-string">string</a></i></label><span id='DriverRequest-fold-field-BuildFlags-docs' class="fold-docs">
+<span class="md-text">				BuildFlags are flags that should be passed to the underlying build system.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="DriverRequest-fold-field-Env"><label for="DriverRequest-fold-field-Env"><a href="../../../../../src/golang.org/x/tools/go/packages/external.go.html#line-29">Env</a> <i>[]<a href="../../../../builtin.html#name-string">string</a></i></label><span id='DriverRequest-fold-field-Env-docs' class="fold-docs">
+<span class="md-text">				Env specifies the environment the underlying build system should be run in.</span>
+</span></span><span>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/external.go.html#line-26">Mode</a> <i><a href="#name-LoadMode">LoadMode</a></i></span></span><span>
+			<input type='checkbox' class="fold" id="DriverRequest-fold-field-Overlay"><label for="DriverRequest-fold-field-Overlay"><a href="../../../../../src/golang.org/x/tools/go/packages/external.go.html#line-39">Overlay</a> <i>map[<a href="../../../../builtin.html#name-string">string</a>][]<a href="../../../../builtin.html#name-byte">byte</a></i></label><span id='DriverRequest-fold-field-Overlay-docs' class="fold-docs">
+<span class="md-text">				Overlay maps file paths (relative to the driver's working directory)
+				to the contents of overlay files (see Config.Overlay).</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="DriverRequest-fold-field-Tests"><label for="DriverRequest-fold-field-Tests"><a href="../../../../../src/golang.org/x/tools/go/packages/external.go.html#line-35">Tests</a> <i><a href="../../../../builtin.html#name-bool">bool</a></i></label><span id='DriverRequest-fold-field-Tests-docs' class="fold-docs">
+<span class="md-text">				Tests specifies whether the patterns should also return test packages.</span>
+</span></span></span>
+
+</span></div><div class="anchor type-res" id="name-DriverResponse" data-popularity="335">	<input type='checkbox' class="fold" id="DriverResponse-fold-content"><label for="DriverResponse-fold-content"> <a href="../../../../../use/golang.org/x/tools/go/packages..DriverResponse.html">type</a> <a href="../../../../../src/golang.org/x/tools/go/packages/external.go.html#line-48">DriverResponse</a> <i>(struct)</i></label><span id='DriverResponse-fold-content-docs' class="fold-docs">
+<span class="md-text">		DriverResponse defines the schema of a response from an external
+		driver program, providing the results of a query for package
+		metadata. The driver program must write a JSON-encoded
+		DriverResponse message to its standard output.
+		
+		See the package documentation for an overview.</span>
+
+		<input type='checkbox' class="fold" id="DriverResponse-fold-fields"><label for="DriverResponse-fold-fields">Fields (<i>total 6, all are exported</i>)</label><span id='DriverResponse-fold-fields-items' class="fold-items"><span>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/external.go.html#line-59">Arch</a> <i><a href="../../../../builtin.html#name-string">string</a></i></span></span><span>
+			<input type='checkbox' class="fold" id="DriverResponse-fold-field-Compiler"><label for="DriverResponse-fold-field-Compiler"><a href="../../../../../src/golang.org/x/tools/go/packages/external.go.html#line-58">Compiler</a> <i><a href="../../../../builtin.html#name-string">string</a></i></label><span id='DriverResponse-fold-field-Compiler-docs' class="fold-docs">
+<span class="md-text">				Compiler and Arch are the arguments pass of types.SizesFor
+				to get a types.Sizes to use when type checking.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="DriverResponse-fold-field-GoVersion"><label for="DriverResponse-fold-field-GoVersion"><a href="../../../../../src/golang.org/x/tools/go/packages/external.go.html#line-77">GoVersion</a> <i><a href="../../../../builtin.html#name-int">int</a></i></label><span id='DriverResponse-fold-field-GoVersion-docs' class="fold-docs">
+<span class="md-text">				GoVersion is the minor version number used by the driver
+				(e.g. the go command on the PATH) when selecting .go files.
+				Zero means unknown.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="DriverResponse-fold-field-NotHandled"><label for="DriverResponse-fold-field-NotHandled"><a href="../../../../../src/golang.org/x/tools/go/packages/external.go.html#line-54">NotHandled</a> <i><a href="../../../../builtin.html#name-bool">bool</a></i></label><span id='DriverResponse-fold-field-NotHandled-docs' class="fold-docs">
+<span class="md-text">				NotHandled is returned if the request can't be handled by the current
+				driver. If an external driver returns a response with NotHandled, the
+				rest of the DriverResponse is ignored, and go/packages will fallback
+				to the next driver. If go/packages is extended in the future to support
+				lists of multiple drivers, go/packages will fall back to the next driver.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="DriverResponse-fold-field-Packages"><label for="DriverResponse-fold-field-Packages"><a href="../../../../../src/golang.org/x/tools/go/packages/external.go.html#line-72">Packages</a> <i>[]*<a href="#name-Package">Package</a></i></label><span id='DriverResponse-fold-field-Packages-docs' class="fold-docs">
+<span class="md-text">				Packages is the full set of packages in the graph.
+				The packages are not connected into a graph.
+				The Imports if populated will be stubs that only have their ID set.
+				Imports will be connected and then type and syntax information added in a
+				later pass (see refine).</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="DriverResponse-fold-field-Roots"><label for="DriverResponse-fold-field-Roots"><a href="../../../../../src/golang.org/x/tools/go/packages/external.go.html#line-65">Roots</a> <i>[]<a href="../../../../builtin.html#name-string">string</a></i></label><span id='DriverResponse-fold-field-Roots-docs' class="fold-docs">
+<span class="md-text">				Roots is the set of package IDs that make up the root packages.
+				We have to encode this separately because when we encode a single package
+				we cannot know if it is one of the roots as that requires knowledge of the
+				graph it is part of.</span>
+</span></span></span>
+		<input type='checkbox' class="fold" id="DriverResponse-fold-results"><label for="DriverResponse-fold-results">As Outputs Of (<i>at least 4, none are exported</i>)</label><span id='DriverResponse-fold-results-items' class="fold-items">
+			<input type='checkbox' class="showhide" id="DriverResponse-showhide-inputofs"><i><label for="DriverResponse-showhide-inputofs" class="show-inline">/* 4+ unexporteds ... */</label><label for="DriverResponse-showhide-inputofs" class="hide-inline">/* 4+ unexporteds: */</label></i><span class="hidden"><i>
+			func <a href="#name-callDriverOnChunks">callDriverOnChunks</a>(driver <a href="#name-driver">driver</a>, cfg *<a href="#name-Config">Config</a>, chunks [][]<a href="../../../../builtin.html#name-string">string</a>) (*<b>DriverResponse</b>, <a href="../../../../builtin.html#name-error">error</a>)</i></span><span class="hidden"><i>
+			func <a href="#name-defaultDriver">defaultDriver</a>(cfg *<a href="#name-Config">Config</a>, patterns ...<a href="../../../../builtin.html#name-string">string</a>) (*<b>DriverResponse</b>, <a href="../../../../builtin.html#name-bool">bool</a>, <a href="../../../../builtin.html#name-error">error</a>)</i></span><span class="hidden"><i>
+			func <a href="#name-goListDriver">goListDriver</a>(cfg *<a href="#name-Config">Config</a>, patterns ...<a href="../../../../builtin.html#name-string">string</a>) (_ *<b>DriverResponse</b>, err <a href="../../../../builtin.html#name-error">error</a>)</i></span><span class="hidden"><i>
+			func <a href="#name-mergeResponses">mergeResponses</a>(responses ...*<b>DriverResponse</b>) *<b>DriverResponse</b></i></span></span>
+		<input type='checkbox' class="fold" id="DriverResponse-fold-params"><label for="DriverResponse-fold-params">As Inputs Of (<i>at least one unexported</i>)</label><span id='DriverResponse-fold-params-items' class="fold-items">
+			<input type='checkbox' class="showhide" id="DriverResponse-showhide-outputofs"><i><label for="DriverResponse-showhide-outputofs" class="show-inline">/* at least one unexported ... */</label><label for="DriverResponse-showhide-outputofs" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			func <a href="#name-mergeResponses">mergeResponses</a>(responses ...*<b>DriverResponse</b>) *<b>DriverResponse</b></i></span></span>
+
+</span></div><div class="anchor type-res" id="name-Error" data-popularity="100">	<input type='checkbox' class="fold" id="Error-fold-content"><label for="Error-fold-content"> <a href="../../../../../use/golang.org/x/tools/go/packages..Error.html">type</a> <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-573">Error</a> <i>(struct)</i></label><span id='Error-fold-content-docs' class="fold-docs">
+<span class="md-text">		An Error describes a problem with a package's metadata, syntax, or types.</span>
+
+		<input type='checkbox' class="fold" id="Error-fold-fields"><label for="Error-fold-fields">Fields (<i>total 3, all are exported</i>)</label><span id='Error-fold-fields-items' class="fold-items"><span>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-576">Kind</a> <i><a href="#name-ErrorKind">ErrorKind</a></i></span></span><span>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-575">Msg</a> <i><a href="../../../../builtin.html#name-string">string</a></i></span></span><span>
+			<input type='checkbox' class="fold" id="Error-fold-field-Pos"><label for="Error-fold-field-Pos"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-574">Pos</a> <i><a href="../../../../builtin.html#name-string">string</a></i></label><span id='Error-fold-field-Pos-docs' class="fold-docs">
+<span class="md-text">				// "file:line:col" or "file:line" or "" or "-"</span>
+</span></span></span>
+		<input type='checkbox' class="fold" id="Error-fold-methods"><label for="Error-fold-methods">Methods (<i>only one, which is exported</i>)</label><span id='Error-fold-methods-items' class="fold-items"><span>
+			<span class="nodocs">( Error) <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-591">Error</a>() <a href="../../../../builtin.html#name-string">string</a></span></span></span>
+		<input type='checkbox' class="fold" id="Error-fold-impls"><label for="Error-fold-impls">Implements (<i>at least one exported</i>)</label><span id='Error-fold-impls-items' class="fold-items"><span>
+			 Error : <a href="../../../../builtin.html#name-error">error</a></span></span>
+
+</span></div><div class="anchor type-res" id="name-ErrorKind" data-popularity="15">	<input type='checkbox' class="fold" id="ErrorKind-fold-content"><label for="ErrorKind-fold-content"> <a href="../../../../../use/golang.org/x/tools/go/packages..ErrorKind.html">type</a> <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-582">ErrorKind</a> <a href="../../../../builtin.html#name-int">int</a> <i>(basic type)</i></label><span id='ErrorKind-fold-content-docs' class="fold-docs">
+<span class="md-text">		ErrorKind describes the source of the error, allowing the user to
+		differentiate between errors generated by the driver, the parser, or the
+		type-checker.</span>
+
+		<input type='checkbox' class="fold" id="ErrorKind-fold-values"><label for="ErrorKind-fold-values">As Types Of (<i>total 4, all are exported</i>)</label><span id='ErrorKind-fold-values-items' class="fold-items"><span>
+			const <a href="#name-ListError">ListError</a></span><span>
+			const <a href="#name-ParseError">ParseError</a></span><span>
+			const <a href="#name-TypeError">TypeError</a></span><span>
+			const <a href="#name-UnknownError">UnknownError</a></span></span>
+
+</span></div><div class="anchor type-res" id="name-LoadMode" data-popularity="425">	<input type='checkbox' class="fold" id="LoadMode-fold-content"><label for="LoadMode-fold-content"> <a href="../../../../../use/golang.org/x/tools/go/packages..LoadMode.html">type</a> <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-54">LoadMode</a> <a href="../../../../builtin.html#name-int">int</a> <i>(basic type)</i></label><span id='LoadMode-fold-content-docs' class="fold-docs">
+<span class="md-text">		A LoadMode controls the amount of detail to return when loading.
+		The bits below can be combined to specify which fields should be
+		filled in the result packages.
+		
+		The zero value is a special case, equivalent to combining
+		the NeedName, NeedFiles, and NeedCompiledGoFiles bits.
+		
+		ID and Errors (if present) will always be filled.
+		[Load] may return more information than requested.
+		
+		Unfortunately there are a number of open bugs related to
+		interactions among the LoadMode bits:
+		- https://github.com/golang/go/issues/48226
+		- https://github.com/golang/go/issues/56633
+		- https://github.com/golang/go/issues/56677
+		- https://github.com/golang/go/issues/58726
+		- https://github.com/golang/go/issues/63517</span>
+
+		<input type='checkbox' class="fold" id="LoadMode-fold-methods"><label for="LoadMode-fold-methods">Methods (<i>only one, which is exported</i>)</label><span id='LoadMode-fold-methods-items' class="fold-items"><span>
+			<span class="nodocs">( LoadMode) <a href="../../../../../src/golang.org/x/tools/go/packages/loadmode_string.go.html#line-38">String</a>() <a href="../../../../builtin.html#name-string">string</a></span></span></span>
+		<input type='checkbox' class="fold" id="LoadMode-fold-impls"><label for="LoadMode-fold-impls">Implements (<i>at least 5, in which 2 are exported</i>)</label><span id='LoadMode-fold-impls-items' class="fold-items"><span>
+			 LoadMode : expvar.<a href="../../../../expvar.html#name-Var">Var</a></span><span>
+			 LoadMode : fmt.<a href="../../../../fmt.html#name-Stringer">Stringer</a></span>
+			<input type='checkbox' class="showhide" id="LoadMode-showhide-impls"><i><label for="LoadMode-showhide-impls" class="show-inline">/* 3+ unexporteds ... */</label><label for="LoadMode-showhide-impls" class="hide-inline">/* 3+ unexporteds: */</label></i><span class="hidden"><i>
+			 LoadMode : context.<a href="../../../../context.html#name-stringer">stringer</a></i></span><span class="hidden"><i>
+			 LoadMode : github.com/aws/smithy-go/middleware.<a href="../../../../github.com/aws/smithy-go/middleware.html#name-stringer">stringer</a></i></span><span class="hidden"><i>
+			 LoadMode : runtime.<a href="../../../../runtime.html#name-stringer">stringer</a></i></span></span>
+		<input type='checkbox' class="fold" id="LoadMode-fold-results"><label for="LoadMode-fold-results">As Outputs Of (<i>at least one unexported</i>)</label><span id='LoadMode-fold-results-items' class="fold-items">
+			<input type='checkbox' class="showhide" id="LoadMode-showhide-inputofs"><i><label for="LoadMode-showhide-inputofs" class="show-inline">/* at least one unexported ... */</label><label for="LoadMode-showhide-inputofs" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			func <a href="#name-impliedLoadMode">impliedLoadMode</a>(loadMode <b>LoadMode</b>) <b>LoadMode</b></i></span></span>
+		<input type='checkbox' class="fold" id="LoadMode-fold-params"><label for="LoadMode-fold-params">As Inputs Of (<i>at least one unexported</i>)</label><span id='LoadMode-fold-params-items' class="fold-items">
+			<input type='checkbox' class="showhide" id="LoadMode-showhide-outputofs"><i><label for="LoadMode-showhide-outputofs" class="show-inline">/* at least one unexported ... */</label><label for="LoadMode-showhide-outputofs" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			func <a href="#name-impliedLoadMode">impliedLoadMode</a>(loadMode <b>LoadMode</b>) <b>LoadMode</b></i></span></span>
+		<input type='checkbox' class="fold" id="LoadMode-fold-values"><label for="LoadMode-fold-values">As Types Of (<i>total 22, in which 19 are exported</i>)</label><span id='LoadMode-fold-values-items' class="fold-items"><span>
+			const <a href="#name-LoadAllSyntax">LoadAllSyntax</a></span><span>
+			const <a href="#name-LoadFiles">LoadFiles</a></span><span>
+			const <a href="#name-LoadImports">LoadImports</a></span><span>
+			const <a href="#name-LoadSyntax">LoadSyntax</a></span><span>
+			const <a href="#name-LoadTypes">LoadTypes</a></span><span>
+			const <a href="#name-NeedCompiledGoFiles">NeedCompiledGoFiles</a></span><span>
+			const <a href="#name-NeedDeps">NeedDeps</a></span><span>
+			const <a href="#name-NeedEmbedFiles">NeedEmbedFiles</a></span><span>
+			const <a href="#name-NeedEmbedPatterns">NeedEmbedPatterns</a></span><span>
+			const <a href="#name-NeedExportFile">NeedExportFile</a></span><span>
+			const <a href="#name-NeedExportsFile">NeedExportsFile</a></span><span>
+			const <a href="#name-NeedFiles">NeedFiles</a></span><span>
+			const <a href="#name-NeedImports">NeedImports</a></span><span>
+			const <a href="#name-NeedModule">NeedModule</a></span><span>
+			const <a href="#name-NeedName">NeedName</a></span><span>
+			const <a href="#name-NeedSyntax">NeedSyntax</a></span><span>
+			const <a href="#name-NeedTypes">NeedTypes</a></span><span>
+			const <a href="#name-NeedTypesInfo">NeedTypesInfo</a></span><span>
+			const <a href="#name-NeedTypesSizes">NeedTypesSizes</a></span>
+			<input type='checkbox' class="showhide" id="LoadMode-showhide-values"><i><label for="LoadMode-showhide-values" class="show-inline">/* 3 unexporteds ... */</label><label for="LoadMode-showhide-values" class="hide-inline">/* 3 unexporteds: */</label></i><span class="hidden"><i>
+			const <a href="#name-needInternalDepsErrors">needInternalDepsErrors</a></i></span><span class="hidden"><i>
+			const <a href="#name-needInternalForTest">needInternalForTest</a></i></span><span class="hidden"><i>
+			const <a href="#name-typecheckCgo">typecheckCgo</a></i></span></span>
+
+</span></div><div class="anchor type-res" id="name-Module" data-popularity="365">	<input type='checkbox' class="fold" id="Module-fold-content"><label for="Module-fold-content"> <a href="../../../../../use/golang.org/x/tools/go/packages..Module.html">type</a> <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-536">Module</a> <i>(struct)</i></label><span id='Module-fold-content-docs' class="fold-docs">
+<span class="md-text">		Module provides module information for a package.
+		
+		It also defines part of the JSON schema of [DriverResponse].
+		See the package documentation for an overview.</span>
+
+		<input type='checkbox' class="fold" id="Module-fold-fields"><label for="Module-fold-fields">Fields (<i>total 10, all are exported</i>)</label><span id='Module-fold-fields-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="Module-fold-field-Dir"><label for="Module-fold-field-Dir"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-543">Dir</a> <i><a href="../../../../builtin.html#name-string">string</a></i></label><span id='Module-fold-field-Dir-docs' class="fold-docs">
+<span class="md-text">				// directory holding files for this module, if any</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Module-fold-field-Error"><label for="Module-fold-field-Error"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-546">Error</a> <i>*<a href="#name-ModuleError">ModuleError</a></i></label><span id='Module-fold-field-Error-docs' class="fold-docs">
+<span class="md-text">				// error loading module</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Module-fold-field-GoMod"><label for="Module-fold-field-GoMod"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-544">GoMod</a> <i><a href="../../../../builtin.html#name-string">string</a></i></label><span id='Module-fold-field-GoMod-docs' class="fold-docs">
+<span class="md-text">				// path to go.mod file used when loading this module, if any</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Module-fold-field-GoVersion"><label for="Module-fold-field-GoVersion"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-545">GoVersion</a> <i><a href="../../../../builtin.html#name-string">string</a></i></label><span id='Module-fold-field-GoVersion-docs' class="fold-docs">
+<span class="md-text">				// go version used in module</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Module-fold-field-Indirect"><label for="Module-fold-field-Indirect"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-542">Indirect</a> <i><a href="../../../../builtin.html#name-bool">bool</a></i></label><span id='Module-fold-field-Indirect-docs' class="fold-docs">
+<span class="md-text">				// is this module only an indirect dependency of main module?</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Module-fold-field-Main"><label for="Module-fold-field-Main"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-541">Main</a> <i><a href="../../../../builtin.html#name-bool">bool</a></i></label><span id='Module-fold-field-Main-docs' class="fold-docs">
+<span class="md-text">				// is this the main module?</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Module-fold-field-Path"><label for="Module-fold-field-Path"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-537">Path</a> <i><a href="../../../../builtin.html#name-string">string</a></i></label><span id='Module-fold-field-Path-docs' class="fold-docs">
+<span class="md-text">				// module path</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Module-fold-field-Replace"><label for="Module-fold-field-Replace"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-539">Replace</a> <i>*<b>Module</b></i></label><span id='Module-fold-field-Replace-docs' class="fold-docs">
+<span class="md-text">				// replaced by this module</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Module-fold-field-Time"><label for="Module-fold-field-Time"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-540">Time</a> <i>*<a href="../../../../time.html">time</a>.<a href="../../../../time.html#name-Time">Time</a></i></label><span id='Module-fold-field-Time-docs' class="fold-docs">
+<span class="md-text">				// time version was created</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Module-fold-field-Version"><label for="Module-fold-field-Version"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-538">Version</a> <i><a href="../../../../builtin.html#name-string">string</a></i></label><span id='Module-fold-field-Version-docs' class="fold-docs">
+<span class="md-text">				// module version</span>
+</span></span></span>
+		<input type='checkbox' class="fold" id="Module-fold-results"><label for="Module-fold-results">As Outputs Of (<i>at least 3, none are exported</i>)</label><span id='Module-fold-results-items' class="fold-items">
+			<input type='checkbox' class="showhide" id="Module-showhide-inputofs"><i><label for="Module-showhide-inputofs" class="show-inline">/* 3+ unexporteds ... */</label><label for="Module-showhide-inputofs" class="hide-inline">/* 3+ unexporteds: */</label></i><span class="hidden"><i>
+			func go.pact.im/x/goupdate.<a href="../../../../go.pact.im/x/goupdate.html#name-modulesNotInSet">modulesNotInSet</a>(modules []<b>Module</b>, moduleByPath map[<a href="../../../../builtin.html#name-string">string</a>]<b>Module</b>) []<b>Module</b></i></span><span class="hidden"><i>
+			func go.pact.im/x/goupdate.<a href="../../../../go.pact.im/x/goupdate.html#name-packagesByModule">packagesByModule</a>(pkgs []*<a href="#name-Package">Package</a>) (map[<a href="../../../../builtin.html#name-string">string</a>][]*<a href="#name-Package">Package</a>, map[<a href="../../../../builtin.html#name-string">string</a>]<b>Module</b>)</i></span><span class="hidden"><i>
+			func go.pact.im/x/goupdate.<a href="../../../../go.pact.im/x/goupdate.html#name-sortedModules">sortedModules</a>(moduleByPath map[<a href="../../../../builtin.html#name-string">string</a>]<b>Module</b>) []<b>Module</b></i></span></span>
+		<input type='checkbox' class="fold" id="Module-fold-params"><label for="Module-fold-params">As Inputs Of (<i>at least 4, none are exported</i>)</label><span id='Module-fold-params-items' class="fold-items">
+			<input type='checkbox' class="showhide" id="Module-showhide-outputofs"><i><label for="Module-showhide-outputofs" class="show-inline">/* 4+ unexporteds ... */</label><label for="Module-showhide-outputofs" class="hide-inline">/* 4+ unexporteds: */</label></i><span class="hidden"><i>
+			func go.pact.im/x/goupdate.<a href="../../../../go.pact.im/x/goupdate.html#name-intersectModuleSets">intersectModuleSets</a>(moduleByPath, otherModuleByPath map[<a href="../../../../builtin.html#name-string">string</a>]<b>Module</b>) []<a href="../../../../builtin.html#name-string">string</a></i></span><span class="hidden"><i>
+			func go.pact.im/x/goupdate.<a href="../../../../go.pact.im/x/goupdate.html#name-modulesNotInSet">modulesNotInSet</a>(modules []<b>Module</b>, moduleByPath map[<a href="../../../../builtin.html#name-string">string</a>]<b>Module</b>) []<b>Module</b></i></span><span class="hidden"><i>
+			func go.pact.im/x/goupdate.<a href="../../../../go.pact.im/x/goupdate.html#name-modulesNotInSet">modulesNotInSet</a>(modules []<b>Module</b>, moduleByPath map[<a href="../../../../builtin.html#name-string">string</a>]<b>Module</b>) []<b>Module</b></i></span><span class="hidden"><i>
+			func go.pact.im/x/goupdate.<a href="../../../../go.pact.im/x/goupdate.html#name-sortedModules">sortedModules</a>(moduleByPath map[<a href="../../../../builtin.html#name-string">string</a>]<b>Module</b>) []<b>Module</b></i></span></span>
+
+</span></div><div class="anchor type-res" id="name-ModuleError" data-popularity="0">	<input type='checkbox' class="fold" id="ModuleError-fold-content"><label for="ModuleError-fold-content"> <a href="../../../../../use/golang.org/x/tools/go/packages..ModuleError.html">type</a> <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-550">ModuleError</a> <i>(struct)</i></label><span id='ModuleError-fold-content-docs' class="fold-docs">
+<span class="md-text">		ModuleError holds errors loading a module.</span>
+
+		<input type='checkbox' class="fold" id="ModuleError-fold-fields"><label for="ModuleError-fold-fields">Fields (<i>only one, which is exported</i>)</label><span id='ModuleError-fold-fields-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="ModuleError-fold-field-Err"><label for="ModuleError-fold-field-Err"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-551">Err</a> <i><a href="../../../../builtin.html#name-string">string</a></i></label><span id='ModuleError-fold-field-Err-docs' class="fold-docs">
+<span class="md-text">				// the error itself</span>
+</span></span></span>
+
+</span></div><div class="anchor type-res" id="name-Package" data-popularity="1375">	<input type='checkbox' class="fold" id="Package-fold-content"><label for="Package-fold-content"> <a href="../../../../../use/golang.org/x/tools/go/packages..Package.html">type</a> <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-423">Package</a> <i>(struct)</i></label><span id='Package-fold-content-docs' class="fold-docs">
+<span class="md-text">		A Package describes a loaded Go package.
+		
+		It also defines part of the JSON schema of [DriverResponse].
+		See the package documentation for an overview.</span>
+
+		<input type='checkbox' class="fold" id="Package-fold-fields"><label for="Package-fold-fields">Fields (<i>total 22, in which 20 are exported</i>)</label><span id='Package-fold-fields-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="Package-fold-field-CompiledGoFiles"><label for="Package-fold-field-CompiledGoFiles"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-454">CompiledGoFiles</a> <i>[]<a href="../../../../builtin.html#name-string">string</a></i></label><span id='Package-fold-field-CompiledGoFiles-docs' class="fold-docs">
+<span class="md-text">				CompiledGoFiles lists the absolute file paths of the package's source
+				files that are suitable for type checking.
+				This may differ from GoFiles if files are processed before compilation.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Package-fold-field-EmbedFiles"><label for="Package-fold-field-EmbedFiles"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-462">EmbedFiles</a> <i>[]<a href="../../../../builtin.html#name-string">string</a></i></label><span id='Package-fold-field-EmbedFiles-docs' class="fold-docs">
+<span class="md-text">				EmbedFiles lists the absolute file paths of the package's files
+				embedded with go:embed.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Package-fold-field-EmbedPatterns"><label for="Package-fold-field-EmbedPatterns"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-466">EmbedPatterns</a> <i>[]<a href="../../../../builtin.html#name-string">string</a></i></label><span id='Package-fold-field-EmbedPatterns-docs' class="fold-docs">
+<span class="md-text">				EmbedPatterns lists the absolute file patterns of the package's
+				files embedded with go:embed.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Package-fold-field-Errors"><label for="Package-fold-field-Errors"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-440">Errors</a> <i>[]<a href="#name-Error">Error</a></i></label><span id='Package-fold-field-Errors-docs' class="fold-docs">
+<span class="md-text">				Errors contains any errors encountered querying the metadata
+				of the package, or while parsing or type-checking its files.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Package-fold-field-ExportFile"><label for="Package-fold-field-ExportFile"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-475">ExportFile</a> <i><a href="../../../../builtin.html#name-string">string</a></i></label><span id='Package-fold-field-ExportFile-docs' class="fold-docs">
+<span class="md-text">				ExportFile is the absolute path to a file containing type
+				information for the package as provided by the build system.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Package-fold-field-Fset"><label for="Package-fold-field-Fset"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-500">Fset</a> <i>*<a href="../../../../go/token.html">token</a>.<a href="../../../../go/token.html#name-FileSet">FileSet</a></i></label><span id='Package-fold-field-Fset-docs' class="fold-docs">
+<span class="md-text">				Fset provides position information for Types, TypesInfo, and Syntax.
+				It is set only when Types is set.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Package-fold-field-GoFiles"><label for="Package-fold-field-GoFiles"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-449">GoFiles</a> <i>[]<a href="../../../../builtin.html#name-string">string</a></i></label><span id='Package-fold-field-GoFiles-docs' class="fold-docs">
+<span class="md-text">				GoFiles lists the absolute file paths of the package's Go source files.
+				It may include files that should not be compiled, for example because
+				they contain non-matching build tags, are documentary pseudo-files such as
+				unsafe/unsafe.go or builtin/builtin.go, or are subject to cgo preprocessing.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Package-fold-field-ID"><label for="Package-fold-field-ID"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-430">ID</a> <i><a href="../../../../builtin.html#name-string">string</a></i></label><span id='Package-fold-field-ID-docs' class="fold-docs">
+<span class="md-text">				ID is a unique identifier for a package,
+				in a syntax provided by the underlying build system.
+				
+				Because the syntax varies based on the build system,
+				clients should treat IDs as opaque and not attempt to
+				interpret them.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Package-fold-field-IgnoredFiles"><label for="Package-fold-field-IgnoredFiles"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-471">IgnoredFiles</a> <i>[]<a href="../../../../builtin.html#name-string">string</a></i></label><span id='Package-fold-field-IgnoredFiles-docs' class="fold-docs">
+<span class="md-text">				IgnoredFiles lists source files that are not part of the package
+				using the current build configuration but that might be part of
+				the package using other build configurations.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Package-fold-field-IllTyped"><label for="Package-fold-field-IllTyped"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-504">IllTyped</a> <i><a href="../../../../builtin.html#name-bool">bool</a></i></label><span id='Package-fold-field-IllTyped-docs' class="fold-docs">
+<span class="md-text">				IllTyped indicates whether the package or any dependency contains errors.
+				It is set only when Types is set.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Package-fold-field-Imports"><label for="Package-fold-field-Imports"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-479">Imports</a> <i>map[<a href="../../../../builtin.html#name-string">string</a>]*<b>Package</b></i></label><span id='Package-fold-field-Imports-docs' class="fold-docs">
+<span class="md-text">				Imports maps import paths appearing in the package's Go source files
+				to corresponding loaded Packages.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Package-fold-field-Module"><label for="Package-fold-field-Module"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-484">Module</a> <i>*<a href="#name-Module">Module</a></i></label><span id='Package-fold-field-Module-docs' class="fold-docs">
+<span class="md-text">				Module is the module information for the package if it exists.
+				
+				Note: it may be missing for std and cmd; see Go issue #65816.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Package-fold-field-Name"><label for="Package-fold-field-Name"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-433">Name</a> <i><a href="../../../../builtin.html#name-string">string</a></i></label><span id='Package-fold-field-Name-docs' class="fold-docs">
+<span class="md-text">				Name is the package name as it appears in the package source code.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Package-fold-field-OtherFiles"><label for="Package-fold-field-OtherFiles"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-458">OtherFiles</a> <i>[]<a href="../../../../builtin.html#name-string">string</a></i></label><span id='Package-fold-field-OtherFiles-docs' class="fold-docs">
+<span class="md-text">				OtherFiles lists the absolute file paths of the package's non-Go source files,
+				including assembly, C, C++, Fortran, Objective-C, SWIG, and so on.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Package-fold-field-PkgPath"><label for="Package-fold-field-PkgPath"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-436">PkgPath</a> <i><a href="../../../../builtin.html#name-string">string</a></i></label><span id='Package-fold-field-PkgPath-docs' class="fold-docs">
+<span class="md-text">				PkgPath is the package path as used by the go/types package.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Package-fold-field-Syntax"><label for="Package-fold-field-Syntax"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-514">Syntax</a> <i>[]*<a href="../../../../go/ast.html">ast</a>.<a href="../../../../go/ast.html#name-File">File</a></i></label><span id='Package-fold-field-Syntax-docs' class="fold-docs">
+<span class="md-text">				Syntax is the package's syntax trees, for the files listed in CompiledGoFiles.
+				
+				The NeedSyntax LoadMode bit populates this field for packages matching the patterns.
+				If NeedDeps and NeedImports are also set, this field will also be populated
+				for dependencies.
+				
+				Syntax is kept in the same order as CompiledGoFiles, with the caveat that nils are
+				removed.  If parsing returned nil, Syntax may be shorter than CompiledGoFiles.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Package-fold-field-TypeErrors"><label for="Package-fold-field-TypeErrors"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-443">TypeErrors</a> <i>[]<a href="../../../../go/types.html">types</a>.<a href="../../../../go/types.html#name-Error">Error</a></i></label><span id='Package-fold-field-TypeErrors-docs' class="fold-docs">
+<span class="md-text">				TypeErrors contains the subset of errors produced during type checking.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Package-fold-field-Types"><label for="Package-fold-field-Types"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-496">Types</a> <i>*<a href="../../../../go/types.html">types</a>.<a href="../../../../go/types.html#name-Package">Package</a></i></label><span id='Package-fold-field-Types-docs' class="fold-docs">
+<span class="md-text">				Types provides type information for the package.
+				The NeedTypes LoadMode bit sets this field for packages matching the
+				patterns; type information for dependencies may be missing or incomplete,
+				unless NeedDeps and NeedImports are also set.
+				
+				Each call to [Load] returns a consistent set of type
+				symbols, as defined by the comment at [types.Identical].
+				Avoid mixing type information from two or more calls to [Load].</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Package-fold-field-TypesInfo"><label for="Package-fold-field-TypesInfo"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-518">TypesInfo</a> <i>*<a href="../../../../go/types.html">types</a>.<a href="../../../../go/types.html#name-Info">Info</a></i></label><span id='Package-fold-field-TypesInfo-docs' class="fold-docs">
+<span class="md-text">				TypesInfo provides type information about the package's syntax trees.
+				It is set only when Syntax is set.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Package-fold-field-TypesSizes"><label for="Package-fold-field-TypesSizes"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-521">TypesSizes</a> <i><a href="../../../../go/types.html">types</a>.<a href="../../../../go/types.html#name-Sizes">Sizes</a></i></label><span id='Package-fold-field-TypesSizes-docs' class="fold-docs">
+<span class="md-text">				TypesSizes provides the effective size function for types in TypesInfo.</span>
+</span></span>
+			<input type='checkbox' class="showhide" id="Package-showhide-fields"><i><label for="Package-showhide-fields" class="show-inline">/* 2 unexporteds ... */</label><label for="Package-showhide-fields" class="hide-inline">/* 2 unexporteds: */</label></i><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Package-fold-field-depsErrors"><label for="Package-fold-field-depsErrors"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-529">depsErrors</a> <i>[]*<a href="../internal/packagesinternal.html">packagesinternal</a>.<a href="../internal/packagesinternal.html#name-PackageError">PackageError</a></i></label><span id='Package-fold-field-depsErrors-docs' class="fold-docs">
+<span class="md-text">				depsErrors is the DepsErrors field from the go list response, if any.</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Package-fold-field-forTest"><label for="Package-fold-field-forTest"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-526">forTest</a> <i><a href="../../../../builtin.html#name-string">string</a></i></label><span id='Package-fold-field-forTest-docs' class="fold-docs">
+<span class="md-text">				forTest is the package under test, if any.</span>
+</span></i></span></span>
+		<input type='checkbox' class="fold" id="Package-fold-methods"><label for="Package-fold-methods">Methods (<i>total 3, all are exported</i>)</label><span id='Package-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="Package-fold-method-MarshalJSON"><label for="Package-fold-method-MarshalJSON">(*Package) <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-628">MarshalJSON</a>() ([]<a href="../../../../builtin.html#name-byte">byte</a>, <a href="../../../../builtin.html#name-error">error</a>)</label><span id='Package-fold-method-MarshalJSON-docs' class="fold-docs">
+<span class="md-text">				MarshalJSON returns the Package in its JSON form.
+				For the most part, the structure fields are written out unmodified, and
+				the type and syntax fields are skipped.
+				The imports are written out as just a map of path to package id.
+				The errors are written using a custom type that tries to preserve the
+				structure of error types we know about.
+				
+				This method exists to enable support for additional build systems.  It is
+				not intended for use by clients of the API and we may change the format.</span>
+</span></span><span>
+			<span class="nodocs">(*Package) <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-680">String</a>() <a href="../../../../builtin.html#name-string">string</a></span></span><span>
+			<input type='checkbox' class="fold" id="Package-fold-method-UnmarshalJSON"><label for="Package-fold-method-UnmarshalJSON">(*Package) <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-653">UnmarshalJSON</a>(b []<a href="../../../../builtin.html#name-byte">byte</a>) <a href="../../../../builtin.html#name-error">error</a></label><span id='Package-fold-method-UnmarshalJSON-docs' class="fold-docs">
+<span class="md-text">				UnmarshalJSON reads in a Package from its JSON format.
+				See MarshalJSON for details about the format accepted.</span>
+</span></span></span>
+		<input type='checkbox' class="fold" id="Package-fold-impls"><label for="Package-fold-impls">Implements (<i>at least 7, in which 4 are exported</i>)</label><span id='Package-fold-impls-items' class="fold-items"><span>
+			*Package : encoding/json.<a href="../../../../encoding/json.html#name-Marshaler">Marshaler</a></span><span>
+			*Package : encoding/json.<a href="../../../../encoding/json.html#name-Unmarshaler">Unmarshaler</a></span><span>
+			*Package : expvar.<a href="../../../../expvar.html#name-Var">Var</a></span><span>
+			*Package : fmt.<a href="../../../../fmt.html#name-Stringer">Stringer</a></span>
+			<input type='checkbox' class="showhide" id="Package-showhide-impls"><i><label for="Package-showhide-impls" class="show-inline">/* 3+ unexporteds ... */</label><label for="Package-showhide-impls" class="hide-inline">/* 3+ unexporteds: */</label></i><span class="hidden"><i>
+			*Package : context.<a href="../../../../context.html#name-stringer">stringer</a></i></span><span class="hidden"><i>
+			*Package : github.com/aws/smithy-go/middleware.<a href="../../../../github.com/aws/smithy-go/middleware.html#name-stringer">stringer</a></i></span><span class="hidden"><i>
+			*Package : runtime.<a href="../../../../runtime.html#name-stringer">stringer</a></i></span></span>
+		<input type='checkbox' class="fold" id="Package-fold-results"><label for="Package-fold-results">As Outputs Of (<i>at least 7, in which 1 is exported</i>)</label><span id='Package-fold-results-items' class="fold-items"><span>
+			func <a href="#name-Load">Load</a>(cfg *<a href="#name-Config">Config</a>, patterns ...<a href="../../../../builtin.html#name-string">string</a>) ([]*<b>Package</b>, <a href="../../../../builtin.html#name-error">error</a>)</span>
+			<input type='checkbox' class="showhide" id="Package-showhide-inputofs"><i><label for="Package-showhide-inputofs" class="show-inline">/* 6+ unexporteds ... */</label><label for="Package-showhide-inputofs" class="hide-inline">/* 6+ unexporteds: */</label></i><span class="hidden"><i>
+			func go.pact.im/x/goupdate.<a href="../../../../go.pact.im/x/goupdate.html#name-collectPackages">collectPackages</a>(pkgs []*<b>Package</b>) []*<b>Package</b></i></span><span class="hidden"><i>
+			func go.pact.im/x/goupdate.<a href="../../../../go.pact.im/x/goupdate.html#name-loadPackages">loadPackages</a>(workspaceDir <a href="../../../../builtin.html#name-string">string</a>, patterns ...<a href="../../../../builtin.html#name-string">string</a>) ([]*<b>Package</b>, <a href="../../../../builtin.html#name-error">error</a>)</i></span><span class="hidden"><i>
+			func go.pact.im/x/goupdate.<a href="../../../../go.pact.im/x/goupdate.html#name-packagesByImportPath">packagesByImportPath</a>(pkgs []*<b>Package</b>) map[<a href="../../../../builtin.html#name-string">string</a>]*<b>Package</b></i></span><span class="hidden"><i>
+			func go.pact.im/x/goupdate.<a href="../../../../go.pact.im/x/goupdate.html#name-packagesByModule">packagesByModule</a>(pkgs []*<b>Package</b>) (map[<a href="../../../../builtin.html#name-string">string</a>][]*<b>Package</b>, map[<a href="../../../../builtin.html#name-string">string</a>]<a href="#name-Module">Module</a>)</i></span><span class="hidden"><i>
+			func go.pact.im/x/goupdate.<a href="../../../../go.pact.im/x/goupdate.html#name-packagesNotInSet">packagesNotInSet</a>(pkgs []*<b>Package</b>, pkgByImportPath map[<a href="../../../../builtin.html#name-string">string</a>]*<b>Package</b>) []*<b>Package</b></i></span><span class="hidden"><i>
+			func go.pact.im/x/goupdate.<a href="../../../../go.pact.im/x/goupdate.html#name-splitBrokenPackages">splitBrokenPackages</a>(pkgs []*<b>Package</b>) (good, broken []*<b>Package</b>)</i></span></span>
+		<input type='checkbox' class="fold" id="Package-fold-params"><label for="Package-fold-params">As Inputs Of (<i>at least 10, in which 2 are exported</i>)</label><span id='Package-fold-params-items' class="fold-items"><span>
+			func <a href="#name-PrintErrors">PrintErrors</a>(pkgs []*<b>Package</b>) <a href="../../../../builtin.html#name-int">int</a></span><span>
+			func <a href="#name-Visit">Visit</a>(pkgs []*<b>Package</b>, pre func(*<b>Package</b>) <a href="../../../../builtin.html#name-bool">bool</a>, post func(*<b>Package</b>))</span>
+			<input type='checkbox' class="showhide" id="Package-showhide-outputofs"><i><label for="Package-showhide-outputofs" class="show-inline">/* 8+ unexporteds ... */</label><label for="Package-showhide-outputofs" class="hide-inline">/* 8+ unexporteds: */</label></i><span class="hidden"><i>
+			func go.pact.im/x/goupdate.<a href="../../../../go.pact.im/x/goupdate.html#name-collectPackages">collectPackages</a>(pkgs []*<b>Package</b>) []*<b>Package</b></i></span><span class="hidden"><i>
+			func go.pact.im/x/goupdate.<a href="../../../../go.pact.im/x/goupdate.html#name-intersectPackageSets">intersectPackageSets</a>(pkgByImportPath, otherPkgByImportPath map[<a href="../../../../builtin.html#name-string">string</a>]*<b>Package</b>) []<a href="../../../../builtin.html#name-string">string</a></i></span><span class="hidden"><i>
+			func go.pact.im/x/goupdate.<a href="../../../../go.pact.im/x/goupdate.html#name-packagesByImportPath">packagesByImportPath</a>(pkgs []*<b>Package</b>) map[<a href="../../../../builtin.html#name-string">string</a>]*<b>Package</b></i></span><span class="hidden"><i>
+			func go.pact.im/x/goupdate.<a href="../../../../go.pact.im/x/goupdate.html#name-packagesByModule">packagesByModule</a>(pkgs []*<b>Package</b>) (map[<a href="../../../../builtin.html#name-string">string</a>][]*<b>Package</b>, map[<a href="../../../../builtin.html#name-string">string</a>]<a href="#name-Module">Module</a>)</i></span><span class="hidden"><i>
+			func go.pact.im/x/goupdate.<a href="../../../../go.pact.im/x/goupdate.html#name-packagesNotInSet">packagesNotInSet</a>(pkgs []*<b>Package</b>, pkgByImportPath map[<a href="../../../../builtin.html#name-string">string</a>]*<b>Package</b>) []*<b>Package</b></i></span><span class="hidden"><i>
+			func go.pact.im/x/goupdate.<a href="../../../../go.pact.im/x/goupdate.html#name-packagesNotInSet">packagesNotInSet</a>(pkgs []*<b>Package</b>, pkgByImportPath map[<a href="../../../../builtin.html#name-string">string</a>]*<b>Package</b>) []*<b>Package</b></i></span><span class="hidden"><i>
+			func go.pact.im/x/goupdate.<a href="../../../../go.pact.im/x/goupdate.html#name-splitBrokenPackages">splitBrokenPackages</a>(pkgs []*<b>Package</b>) (good, broken []*<b>Package</b>)</i></span><span class="hidden"><i>
+			func go.pact.im/x/goupdate.<a href="../../../../go.pact.im/x/goupdate.html#name-stateFromPacakges">stateFromPacakges</a>(pkgs []*<b>Package</b>) *<a href="../../../../go.pact.im/x/goupdate.html">main</a>.<a href="../../../../go.pact.im/x/goupdate.html#name-state">state</a></i></span></span>
+
+</span></div></div><div>	<input type='checkbox' class="showhide" id="unexported-typenames-showhide"><i><label for="unexported-typenames-showhide" class="show-inline">/* 11 unexporteds ... */</label><label for="unexported-typenames-showhide" class="hide-inline">/* 11 unexporteds: */</label></i><div class="anchor type-res hidden" id="name-driver" data-popularity="110">	<input type='checkbox' class="fold" id="driver-fold-content"><label for="driver-fold-content"> <a href="../../../../../use/golang.org/x/tools/go/packages..driver^b4def.html">type</a> <a href="../../../../../src/golang.org/x/tools/go/packages/external.go.html#line-82">driver</a> <i>(func)</i></label><span id='driver-fold-content-docs' class="fold-docs">
+<span class="md-text">		driver is the type for functions that query the build system for the
+		packages named by the patterns.</span>
+
+		<input type='checkbox' class="fold" id="driver-fold-results"><label for="driver-fold-results">As Outputs Of (<i>at least one unexported</i>)</label><span id='driver-fold-results-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="driver-showhide-inputofs"><i><label for="driver-showhide-inputofs" class="show-inline">/* at least one unexported ... */</label><label for="driver-showhide-inputofs" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			func <a href="#name-findExternalDriver">findExternalDriver</a>(cfg *<a href="#name-Config">Config</a>) <b>driver</b></i></span></span>
+		<input type='checkbox' class="fold" id="driver-fold-params"><label for="driver-fold-params">As Inputs Of (<i>at least one unexported</i>)</label><span id='driver-fold-params-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="driver-showhide-outputofs"><i><label for="driver-showhide-outputofs" class="show-inline">/* at least one unexported ... */</label><label for="driver-showhide-outputofs" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			func <a href="#name-callDriverOnChunks">callDriverOnChunks</a>(driver <b>driver</b>, cfg *<a href="#name-Config">Config</a>, chunks [][]<a href="../../../../builtin.html#name-string">string</a>) (*<a href="#name-DriverResponse">DriverResponse</a>, <a href="../../../../builtin.html#name-error">error</a>)</i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-flatPackage" data-popularity="0">	<input type='checkbox' class="fold" id="flatPackage-fold-content"><label for="flatPackage-fold-content"> <a href="../../../../../use/golang.org/x/tools/go/packages..flatPackage^3f1ce.html">type</a> <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-604">flatPackage</a> <i>(struct)</i></label><span id='flatPackage-fold-content-docs' class="fold-docs">
+<span class="md-text">		flatPackage is the JSON form of Package
+		It drops all the type and syntax fields, and transforms the Imports
+		
+		TODO(adonovan): identify this struct with Package, effectively
+		publishing the JSON protocol.</span>
+
+		<input type='checkbox' class="fold" id="flatPackage-fold-fields"><label for="flatPackage-fold-fields">Fields (<i>total 12, all are exported</i>)</label><span id='flatPackage-fold-fields-items' class="fold-items"><span>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-610">CompiledGoFiles</a> <i>[]<a href="../../../../builtin.html#name-string">string</a></i></span></span><span>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-612">EmbedFiles</a> <i>[]<a href="../../../../builtin.html#name-string">string</a></i></span></span><span>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-613">EmbedPatterns</a> <i>[]<a href="../../../../builtin.html#name-string">string</a></i></span></span><span>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-608">Errors</a> <i>[]<a href="#name-Error">Error</a></i></span></span><span>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-615">ExportFile</a> <i><a href="../../../../builtin.html#name-string">string</a></i></span></span><span>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-609">GoFiles</a> <i>[]<a href="../../../../builtin.html#name-string">string</a></i></span></span><span>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-605">ID</a> <i><a href="../../../../builtin.html#name-string">string</a></i></span></span><span>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-614">IgnoredFiles</a> <i>[]<a href="../../../../builtin.html#name-string">string</a></i></span></span><span>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-616">Imports</a> <i>map[<a href="../../../../builtin.html#name-string">string</a>]<a href="../../../../builtin.html#name-string">string</a></i></span></span><span>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-606">Name</a> <i><a href="../../../../builtin.html#name-string">string</a></i></span></span><span>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-611">OtherFiles</a> <i>[]<a href="../../../../builtin.html#name-string">string</a></i></span></span><span>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-607">PkgPath</a> <i><a href="../../../../builtin.html#name-string">string</a></i></span></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-golistState" data-popularity="650">	<input type='checkbox' class="fold" id="golistState-fold-content"><label for="golistState-fold-content"> <a href="../../../../../use/golang.org/x/tools/go/packages..golistState^91026.html">type</a> <a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-80">golistState</a> <i>(struct)</i></label><span id='golistState-fold-content-docs' class="fold-docs">
+
+		<input type='checkbox' class="fold" id="golistState-fold-fields"><label for="golistState-fold-fields">Fields (<i>total 12, none are exported</i>)</label><span id='golistState-fold-fields-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="golistState-showhide-fields"><i><label for="golistState-showhide-fields" class="show-inline">/* 12 unexporteds ... */</label><label for="golistState-showhide-fields" class="hide-inline">/* 12 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-81">cfg</a> <i>*<a href="#name-Config">Config</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-82">ctx</a> <i><a href="../../../../context.html">context</a>.<a href="../../../../context.html#name-Context">Context</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-84">envOnce</a> <i><a href="../../../../sync.html">sync</a>.<a href="../../../../sync.html#name-Once">Once</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-86">goEnv</a> <i>map[<a href="../../../../builtin.html#name-string">string</a>]<a href="../../../../builtin.html#name-string">string</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-85">goEnvError</a> <i><a href="../../../../builtin.html#name-error">error</a></i></span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="golistState-fold-field-goVersion"><label for="golistState-fold-field-goVersion"><a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-94">goVersion</a> <i><a href="../../../../builtin.html#name-int">int</a></i></label><span id='golistState-fold-field-goVersion-docs' class="fold-docs">
+<span class="md-text">				// The X in Go 1.X.</span>
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-93">goVersionError</a> <i><a href="../../../../builtin.html#name-error">error</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-92">goVersionOnce</a> <i><a href="../../../../sync.html">sync</a>.<a href="../../../../sync.html#name-Once">Once</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-90">rootDirs</a> <i>map[<a href="../../../../builtin.html#name-string">string</a>]<a href="../../../../builtin.html#name-string">string</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-89">rootDirsError</a> <i><a href="../../../../builtin.html#name-error">error</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-88">rootsOnce</a> <i><a href="../../../../sync.html">sync</a>.<a href="../../../../sync.html#name-Once">Once</a></i></span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="golistState-fold-field-vendorDirs"><label for="golistState-fold-field-vendorDirs"><a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-97">vendorDirs</a> <i>map[<a href="../../../../builtin.html#name-string">string</a>]<a href="../../../../builtin.html#name-bool">bool</a></i></label><span id='golistState-fold-field-vendorDirs-docs' class="fold-docs">
+<span class="md-text">				vendorDirs caches the (non)existence of vendor directories.</span>
+</span></i></span></span>
+		<input type='checkbox' class="fold" id="golistState-fold-methods"><label for="golistState-fold-methods">Methods (<i>total 13, none are exported</i>)</label><span id='golistState-fold-methods-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="golistState-showhide-methods"><i><label for="golistState-showhide-methods" class="show-inline">/* 13 unexporteds ... */</label><label for="golistState-showhide-methods" class="hide-inline">/* 13 unexporteds: */</label></i><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="golistState-fold-method-adhocPackage"><label for="golistState-fold-method-adhocPackage">(*golistState) <a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-268">adhocPackage</a>(pattern, query <a href="../../../../builtin.html#name-string">string</a>) (*<a href="#name-DriverResponse">DriverResponse</a>, <a href="../../../../builtin.html#name-error">error</a>)</label><span id='golistState-fold-method-adhocPackage-docs' class="fold-docs">
+<span class="md-text">				adhocPackage attempts to load or construct an ad-hoc package for a given
+				query, if the original call to the driver produced inadequate results.</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="golistState-fold-method-cfgInvocation"><label for="golistState-fold-method-cfgInvocation">(*golistState) <a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-834">cfgInvocation</a>() <a href="../internal/gocommand.html">gocommand</a>.<a href="../internal/gocommand.html#name-Invocation">Invocation</a></label><span id='golistState-fold-method-cfgInvocation-docs' class="fold-docs">
+<span class="md-text">				cfgInvocation returns an Invocation that reflects cfg's settings.</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="golistState-fold-method-createDriverResponse"><label for="golistState-fold-method-createDriverResponse">(*golistState) <a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-359">createDriverResponse</a>(words ...<a href="../../../../builtin.html#name-string">string</a>) (*<a href="#name-DriverResponse">DriverResponse</a>, <a href="../../../../builtin.html#name-error">error</a>)</label><span id='golistState-fold-method-createDriverResponse-docs' class="fold-docs">
+<span class="md-text">				createDriverResponse uses the "go list" command to expand the pattern
+				words and return a response for the specified packages.</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="golistState-fold-method-determineRootDirs"><label for="golistState-fold-method-determineRootDirs">(*golistState) <a href="../../../../../src/golang.org/x/tools/go/packages/golist_overlay.go.html#line-16">determineRootDirs</a>() (map[<a href="../../../../builtin.html#name-string">string</a>]<a href="../../../../builtin.html#name-string">string</a>, <a href="../../../../builtin.html#name-error">error</a>)</label><span id='golistState-fold-method-determineRootDirs-docs' class="fold-docs">
+<span class="md-text">				determineRootDirs returns a mapping from absolute directories that could
+				contain code to their corresponding import path prefixes.</span>
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*golistState) <a href="../../../../../src/golang.org/x/tools/go/packages/golist_overlay.go.html#line-73">determineRootDirsGOPATH</a>() (map[<a href="../../../../builtin.html#name-string">string</a>]<a href="../../../../builtin.html#name-string">string</a>, <a href="../../../../builtin.html#name-error">error</a>)</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*golistState) <a href="../../../../../src/golang.org/x/tools/go/packages/golist_overlay.go.html#line-33">determineRootDirsModules</a>() (map[<a href="../../../../builtin.html#name-string">string</a>]<a href="../../../../builtin.html#name-string">string</a>, <a href="../../../../builtin.html#name-error">error</a>)</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="golistState-fold-method-getEnv"><label for="golistState-fold-method-getEnv">(*golistState) <a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-102">getEnv</a>() (map[<a href="../../../../builtin.html#name-string">string</a>]<a href="../../../../builtin.html#name-string">string</a>, <a href="../../../../builtin.html#name-error">error</a>)</label><span id='golistState-fold-method-getEnv-docs' class="fold-docs">
+<span class="md-text">				getEnv returns Go environment variables. Only specific variables are
+				populated -- computing all of them is slow.</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="golistState-fold-method-getGoVersion"><label for="golistState-fold-method-getGoVersion">(*golistState) <a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-683">getGoVersion</a>() (<a href="../../../../builtin.html#name-int">int</a>, <a href="../../../../builtin.html#name-error">error</a>)</label><span id='golistState-fold-method-getGoVersion-docs' class="fold-docs">
+<span class="md-text">				getGoVersion returns the effective minor version of the go command.</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="golistState-fold-method-getPkgPath"><label for="golistState-fold-method-getPkgPath">(*golistState) <a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-692">getPkgPath</a>(dir <a href="../../../../builtin.html#name-string">string</a>) (<a href="../../../../builtin.html#name-string">string</a>, <a href="../../../../builtin.html#name-bool">bool</a>, <a href="../../../../builtin.html#name-error">error</a>)</label><span id='golistState-fold-method-getPkgPath-docs' class="fold-docs">
+<span class="md-text">				getPkgPath finds the package path of a directory if it's relative to a root
+				directory.</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="golistState-fold-method-invokeGo"><label for="golistState-fold-method-invokeGo">(*golistState) <a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-849">invokeGo</a>(verb <a href="../../../../builtin.html#name-string">string</a>, args ...<a href="../../../../builtin.html#name-string">string</a>) (*<a href="../../../../bytes.html">bytes</a>.<a href="../../../../bytes.html#name-Buffer">Buffer</a>, <a href="../../../../builtin.html#name-error">error</a>)</label><span id='golistState-fold-method-invokeGo-docs' class="fold-docs">
+<span class="md-text">				invokeGo returns the stdout of a go command invocation.</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="golistState-fold-method-mustGetEnv"><label for="golistState-fold-method-mustGetEnv">(*golistState) <a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-120">mustGetEnv</a>() map[<a href="../../../../builtin.html#name-string">string</a>]<a href="../../../../builtin.html#name-string">string</a></label><span id='golistState-fold-method-mustGetEnv-docs' class="fold-docs">
+<span class="md-text">				mustGetEnv is a convenience function that can be used if getEnv has already succeeded.</span>
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*golistState) <a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-217">runContainsQueries</a>(response *<a href="#name-responseDeduper">responseDeduper</a>, queries []<a href="../../../../builtin.html#name-string">string</a>) <a href="../../../../builtin.html#name-error">error</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*golistState) <a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-659">shouldAddFilenameFromError</a>(p *<a href="#name-jsonPackage">jsonPackage</a>) <a href="../../../../builtin.html#name-bool">bool</a></span></i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-goTooOldError" data-popularity="100">	<input type='checkbox' class="fold" id="goTooOldError-fold-content"><label for="goTooOldError-fold-content"> <a href="../../../../../use/golang.org/x/tools/go/packages..goTooOldError^cabf2.html">type</a> <a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-34">goTooOldError</a> <i>(struct)</i></label><span id='goTooOldError-fold-content-docs' class="fold-docs">
+<span class="md-text">		A goTooOldError reports that the go command
+		found by exec.LookPath is too old to use the new go list behavior.</span>
+
+		<input type='checkbox' class="fold" id="goTooOldError-fold-fields"><label for="goTooOldError-fold-fields">Fields (<i>only one, which is unexported</i>)</label><span id='goTooOldError-fold-fields-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="goTooOldError-showhide-fields"><i><label for="goTooOldError-showhide-fields" class="show-inline">/* one unexported ... */</label><label for="goTooOldError-showhide-fields" class="hide-inline">/* one unexported: */</label></i><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-35">error</a> <i><a href="../../../../builtin.html#name-error">error</a></i></span></i></span></span>
+		<input type='checkbox' class="fold" id="goTooOldError-fold-methods"><label for="goTooOldError-fold-methods">Methods (<i>only one, which is exported</i>)</label><span id='goTooOldError-fold-methods-items' class="fold-items"><span>
+			<span class="nodocs">( goTooOldError) <a href="../../../../builtin.html#name-error">Error</a>() <a href="../../../../builtin.html">builtin</a>.<a href="../../../../builtin.html#name-string">string</a></span></span></span>
+		<input type='checkbox' class="fold" id="goTooOldError-fold-impls"><label for="goTooOldError-fold-impls">Implements (<i>at least one exported</i>)</label><span id='goTooOldError-fold-impls-items' class="fold-items"><span>
+			 goTooOldError : <a href="../../../../builtin.html#name-error">error</a></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-importerFunc" data-popularity="100">	<input type='checkbox' class="fold" id="importerFunc-fold-content"><label for="importerFunc-fold-content"> <a href="../../../../../use/golang.org/x/tools/go/packages..importerFunc^837e2.html">type</a> <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-1281">importerFunc</a> <i>(func)</i></label><span id='importerFunc-fold-content-docs' class="fold-docs">
+<span class="md-text">		An importFunc is an implementation of the single-method
+		types.Importer interface based on a function value.</span>
+
+		<input type='checkbox' class="fold" id="importerFunc-fold-methods"><label for="importerFunc-fold-methods">Methods (<i>only one, which is exported</i>)</label><span id='importerFunc-fold-methods-items' class="fold-items"><span>
+			<span class="nodocs">( importerFunc) <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-1283">Import</a>(path <a href="../../../../builtin.html#name-string">string</a>) (*<a href="../../../../go/types.html">types</a>.<a href="../../../../go/types.html#name-Package">Package</a>, <a href="../../../../builtin.html#name-error">error</a>)</span></span></span>
+		<input type='checkbox' class="fold" id="importerFunc-fold-impls"><label for="importerFunc-fold-impls">Implements (<i>at least one exported</i>)</label><span id='importerFunc-fold-impls-items' class="fold-items"><span>
+			 importerFunc : go/types.<a href="../../../../go/types.html#name-Importer">Importer</a></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-jsonPackage" data-popularity="35">	<input type='checkbox' class="fold" id="jsonPackage-fold-content"><label for="jsonPackage-fold-content"> <a href="../../../../../use/golang.org/x/tools/go/packages..jsonPackage^6c6e9.html">type</a> <a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-311">jsonPackage</a> <i>(struct)</i></label><span id='jsonPackage-fold-content-docs' class="fold-docs">
+<span class="md-text">		Fields must match go list;
+		see $GOROOT/src/cmd/go/internal/load/pkg.go.</span>
+
+		<input type='checkbox' class="fold" id="jsonPackage-fold-fields"><label for="jsonPackage-fold-fields">Fields (<i>total 32, all are exported</i>)</label><span id='jsonPackage-fold-fields-items' class="fold-items"><span>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-322">CFiles</a> <i>[]<a href="../../../../builtin.html#name-string">string</a></i></span></span><span>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-324">CXXFiles</a> <i>[]<a href="../../../../builtin.html#name-string">string</a></i></span></span><span>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-323">CgoFiles</a> <i>[]<a href="../../../../builtin.html#name-string">string</a></i></span></span><span>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-317">CompiledGoFiles</a> <i>[]<a href="../../../../builtin.html#name-string">string</a></i></span></span><span>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-341">DepOnly</a> <i><a href="../../../../builtin.html#name-bool">bool</a></i></span></span><span>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-334">Deps</a> <i>[]<a href="../../../../builtin.html#name-string">string</a></i></span></span><span>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-344">DepsErrors</a> <i>[]*<a href="../internal/packagesinternal.html">packagesinternal</a>.<a href="../internal/packagesinternal.html#name-PackageError">PackageError</a></i></span></span><span>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-313">Dir</a> <i><a href="../../../../builtin.html#name-string">string</a></i></span></span><span>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-321">EmbedFiles</a> <i>[]<a href="../../../../builtin.html#name-string">string</a></i></span></span><span>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-320">EmbedPatterns</a> <i>[]<a href="../../../../builtin.html#name-string">string</a></i></span></span><span>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-343">Error</a> <i>*<a href="../internal/packagesinternal.html">packagesinternal</a>.<a href="../internal/packagesinternal.html#name-PackageError">PackageError</a></i></span></span><span>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-315">Export</a> <i><a href="../../../../builtin.html#name-string">string</a></i></span></span><span>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-327">FFiles</a> <i>[]<a href="../../../../builtin.html#name-string">string</a></i></span></span><span>
+			<input type='checkbox' class="fold" id="jsonPackage-fold-field-ForTest"><label for="jsonPackage-fold-field-ForTest"><a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-340">ForTest</a> <i><a href="../../../../builtin.html#name-string">string</a></i></label><span id='jsonPackage-fold-field-ForTest-docs' class="fold-docs">
+<span class="md-text">				// q in a "p [q.test]" package, else ""</span>
+</span></span><span>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-316">GoFiles</a> <i>[]<a href="../../../../builtin.html#name-string">string</a></i></span></span><span>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-326">HFiles</a> <i>[]<a href="../../../../builtin.html#name-string">string</a></i></span></span><span>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-318">IgnoredGoFiles</a> <i>[]<a href="../../../../builtin.html#name-string">string</a></i></span></span><span>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-319">IgnoredOtherFiles</a> <i>[]<a href="../../../../builtin.html#name-string">string</a></i></span></span><span>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-333">ImportMap</a> <i>map[<a href="../../../../builtin.html#name-string">string</a>]<a href="../../../../builtin.html#name-string">string</a></i></span></span><span>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-312">ImportPath</a> <i><a href="../../../../builtin.html#name-string">string</a></i></span></span><span>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-332">Imports</a> <i>[]<a href="../../../../builtin.html#name-string">string</a></i></span></span><span>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-325">MFiles</a> <i>[]<a href="../../../../builtin.html#name-string">string</a></i></span></span><span>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-335">Module</a> <i>*<a href="#name-Module">Module</a></i></span></span><span>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-314">Name</a> <i><a href="../../../../builtin.html#name-string">string</a></i></span></span><span>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-328">SFiles</a> <i>[]<a href="../../../../builtin.html#name-string">string</a></i></span></span><span>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-330">SwigCXXFiles</a> <i>[]<a href="../../../../builtin.html#name-string">string</a></i></span></span><span>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-329">SwigFiles</a> <i>[]<a href="../../../../builtin.html#name-string">string</a></i></span></span><span>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-331">SysoFiles</a> <i>[]<a href="../../../../builtin.html#name-string">string</a></i></span></span><span>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-336">TestGoFiles</a> <i>[]<a href="../../../../builtin.html#name-string">string</a></i></span></span><span>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-337">TestImports</a> <i>[]<a href="../../../../builtin.html#name-string">string</a></i></span></span><span>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-338">XTestGoFiles</a> <i>[]<a href="../../../../builtin.html#name-string">string</a></i></span></span><span>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-339">XTestImports</a> <i>[]<a href="../../../../builtin.html#name-string">string</a></i></span></span></span>
+		<input type='checkbox' class="fold" id="jsonPackage-fold-params"><label for="jsonPackage-fold-params">As Inputs Of (<i>at least one unexported</i>)</label><span id='jsonPackage-fold-params-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="jsonPackage-showhide-outputofs"><i><label for="jsonPackage-showhide-outputofs" class="show-inline">/* at least one unexported ... */</label><label for="jsonPackage-showhide-outputofs" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			func <a href="#name-otherFiles">otherFiles</a>(p *<b>jsonPackage</b>) [][]<a href="../../../../builtin.html#name-string">string</a></i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-jsonPackageError" data-popularity="0">	<input type='checkbox' class="fold" id="jsonPackageError-fold-content"><label for="jsonPackageError-fold-content"> <a href="../../../../../use/golang.org/x/tools/go/packages..jsonPackageError^83d0a.html">type</a> <a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-347">jsonPackageError</a> <i>(struct)</i></label><span id='jsonPackageError-fold-content-docs' class="fold-docs">
+
+		<input type='checkbox' class="fold" id="jsonPackageError-fold-fields"><label for="jsonPackageError-fold-fields">Fields (<i>total 3, all are exported</i>)</label><span id='jsonPackageError-fold-fields-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="jsonPackageError-fold-field-Err"><label for="jsonPackageError-fold-field-Err"><a href="../../../../../src/golang.org/x/tools/internal/packagesinternal/packages.go.html#line-14">Err</a> <i><a href="../../../../builtin.html#name-string">string</a></i></label><span id='jsonPackageError-fold-field-Err-docs' class="fold-docs">
+<span class="md-text">				// the error itself</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="jsonPackageError-fold-field-ImportStack"><label for="jsonPackageError-fold-field-ImportStack"><a href="../../../../../src/golang.org/x/tools/internal/packagesinternal/packages.go.html#line-12">ImportStack</a> <i>[]<a href="../../../../builtin.html#name-string">string</a></i></label><span id='jsonPackageError-fold-field-ImportStack-docs' class="fold-docs">
+<span class="md-text">				// shortest path from package named on command line to this one</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="jsonPackageError-fold-field-Pos"><label for="jsonPackageError-fold-field-Pos"><a href="../../../../../src/golang.org/x/tools/internal/packagesinternal/packages.go.html#line-13">Pos</a> <i><a href="../../../../builtin.html#name-string">string</a></i></label><span id='jsonPackageError-fold-field-Pos-docs' class="fold-docs">
+<span class="md-text">				// position of error (if present, file:line:col)</span>
+</span></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-loader" data-popularity="375">	<input type='checkbox' class="fold" id="loader-fold-content"><label for="loader-fold-content"> <a href="../../../../../use/golang.org/x/tools/go/packages..loader^d4771.html">type</a> <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-695">loader</a> <i>(struct)</i></label><span id='loader-fold-content-docs' class="fold-docs">
+<span class="md-text">		loader holds the working state of a single call to load.</span>
+
+		<input type='checkbox' class="fold" id="loader-fold-fields"><label for="loader-fold-fields">Fields (<i>total 21, in which 11 are exported</i>)</label><span id='loader-fold-fields-items' class="fold-items"><span>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-697">Config</a> <i><a href="#name-Config">Config</a></i></span></span><span>
+			<input type='checkbox' class="fold" id="loader-fold-field-BuildFlags"><label for="loader-fold-field-BuildFlags"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-697" class="path-duplicate">Config</a>.<a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-179">BuildFlags</a> <i>[]<a href="../../../../builtin.html#name-string">string</a></i></label><span id='loader-fold-field-BuildFlags-docs' class="fold-docs">
+<span class="md-text">				BuildFlags is a list of command-line flags to be passed through to
+				the build system's query tool.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="loader-fold-field-Context"><label for="loader-fold-field-Context"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-697" class="path-duplicate">Config</a>.<a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-151">Context</a> <i><a href="../../../../context.html">context</a>.<a href="../../../../context.html#name-Context">Context</a></i></label><span id='loader-fold-field-Context-docs' class="fold-docs">
+<span class="md-text">				Context specifies the context for the load operation.
+				Cancelling the context may cause [Load] to abort and
+				return an error.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="loader-fold-field-Dir"><label for="loader-fold-field-Dir"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-697" class="path-duplicate">Config</a>.<a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-162">Dir</a> <i><a href="../../../../builtin.html#name-string">string</a></i></label><span id='loader-fold-field-Dir-docs' class="fold-docs">
+<span class="md-text">				Dir is the directory in which to run the build system's query tool
+				that provides information about the packages.
+				If Dir is empty, the tool is run in the current directory.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="loader-fold-field-Env"><label for="loader-fold-field-Env"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-697" class="path-duplicate">Config</a>.<a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-172">Env</a> <i>[]<a href="../../../../builtin.html#name-string">string</a></i></label><span id='loader-fold-field-Env-docs' class="fold-docs">
+<span class="md-text">				Env is the environment to use when invoking the build system's query tool.
+				If Env is nil, the current environment is used.
+				As in os/exec's Cmd, only the last value in the slice for
+				each environment key is used. To specify the setting of only
+				a few variables, append to the current environment, as in:
+				
+					opt.Env = append(os.Environ(), "GOOS=plan9", "GOARCH=386")</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="loader-fold-field-Fset"><label for="loader-fold-field-Fset"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-697" class="path-duplicate">Config</a>.<a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-189">Fset</a> <i>*<a href="../../../../go/token.html">token</a>.<a href="../../../../go/token.html#name-FileSet">FileSet</a></i></label><span id='loader-fold-field-Fset-docs' class="fold-docs">
+<span class="md-text">				Fset provides source position information for syntax trees and types.
+				If Fset is nil, Load will use a new fileset, but preserve Fset's value.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="loader-fold-field-Logf"><label for="loader-fold-field-Logf"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-697" class="path-duplicate">Config</a>.<a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-157">Logf</a> <i>func(format <a href="../../../../builtin.html#name-string">string</a>, args ...interface{})</i></label><span id='loader-fold-field-Logf-docs' class="fold-docs">
+<span class="md-text">				Logf is the logger for the config.
+				If the user provides a logger, debug logging is enabled.
+				If the GOPACKAGESDEBUG environment variable is set to true,
+				but the logger is nil, default to log.Printf.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="loader-fold-field-Mode"><label for="loader-fold-field-Mode"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-697" class="path-duplicate">Config</a>.<a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-146">Mode</a> <i><a href="#name-LoadMode">LoadMode</a></i></label><span id='loader-fold-field-Mode-docs' class="fold-docs">
+<span class="md-text">				Mode controls the level of information returned for each package.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="loader-fold-field-Overlay"><label for="loader-fold-field-Overlay"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-697" class="path-duplicate">Config</a>.<a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-231">Overlay</a> <i>map[<a href="../../../../builtin.html#name-string">string</a>][]<a href="../../../../builtin.html#name-byte">byte</a></i></label><span id='loader-fold-field-Overlay-docs' class="fold-docs">
+<span class="md-text">				Overlay is a mapping from absolute file paths to file contents.
+				
+				For each map entry, [Load] uses the alternative file
+				contents provided by the overlay mapping instead of reading
+				from the file system. This mechanism can be used to enable
+				editor-integrated tools to correctly analyze the contents
+				of modified but unsaved buffers, for example.
+				
+				The overlay mapping is passed to the build system's driver
+				(see "The driver protocol") so that it too can report
+				consistent package metadata about unsaved files. However,
+				drivers may vary in their level of support for overlays.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="loader-fold-field-ParseFile"><label for="loader-fold-field-ParseFile"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-697" class="path-duplicate">Config</a>.<a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-203">ParseFile</a> <i>func(fset *<a href="../../../../go/token.html">token</a>.<a href="../../../../go/token.html#name-FileSet">FileSet</a>, filename <a href="../../../../builtin.html#name-string">string</a>, src []<a href="../../../../builtin.html#name-byte">byte</a>) (*<a href="../../../../go/ast.html">ast</a>.<a href="../../../../go/ast.html#name-File">File</a>, <a href="../../../../builtin.html#name-error">error</a>)</i></label><span id='loader-fold-field-ParseFile-docs' class="fold-docs">
+<span class="md-text">				ParseFile is called to read and parse each file
+				when preparing a package's type-checked syntax tree.
+				It must be safe to call ParseFile simultaneously from multiple goroutines.
+				If ParseFile is nil, the loader will uses parser.ParseFile.
+				
+				ParseFile should parse the source from src and use filename only for
+				recording position information.
+				
+				An application may supply a custom implementation of ParseFile
+				to change the effective file contents or the behavior of the parser,
+				or to modify the syntax tree. For example, selectively eliminating
+				unwanted function bodies can significantly accelerate type checking.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="loader-fold-field-Tests"><label for="loader-fold-field-Tests"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-697" class="path-duplicate">Config</a>.<a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-217">Tests</a> <i><a href="../../../../builtin.html#name-bool">bool</a></i></label><span id='loader-fold-field-Tests-docs' class="fold-docs">
+<span class="md-text">				If Tests is set, the loader includes not just the packages
+				matching a particular pattern but also any related test packages,
+				including test-only variants of the package and the test executable.
+				
+				For example, when using the go command, loading "fmt" with Tests=true
+				returns four packages, with IDs "fmt" (the standard package),
+				"fmt [fmt.test]" (the package as compiled for the test),
+				"fmt_test" (the test functions from source files in package fmt_test),
+				and "fmt.test" (the test binary).
+				
+				In build systems with explicit names for tests,
+				setting Tests may have no effect.</span>
+</span></span>
+			<input type='checkbox' checked class="showhide" id="loader-showhide-fields"><i><label for="loader-showhide-fields" class="show-inline">/* 10 unexporteds ... */</label><label for="loader-showhide-fields" class="hide-inline">/* 10 unexporteds: */</label></i><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="loader-fold-field-goListOverlayFile"><label for="loader-fold-field-goListOverlayFile"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-697" class="path-duplicate">Config</a>.<a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-235">goListOverlayFile</a> <i><a href="../../../../builtin.html#name-string">string</a></i></label><span id='loader-fold-field-goListOverlayFile-docs' class="fold-docs">
+<span class="md-text">				goListOverlayFile is the JSON file that encodes the Overlay
+				mapping, used by 'go list -overlay=...'</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="loader-fold-field-gocmdRunner"><label for="loader-fold-field-gocmdRunner"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-697" class="path-duplicate">Config</a>.<a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-175">gocmdRunner</a> <i>*<a href="../internal/gocommand.html">gocommand</a>.<a href="../internal/gocommand.html#name-Runner">Runner</a></i></label><span id='loader-fold-field-gocmdRunner-docs' class="fold-docs">
+<span class="md-text">				gocmdRunner guards go command calls from concurrency errors.</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="loader-fold-field-modFile"><label for="loader-fold-field-modFile"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-697" class="path-duplicate">Config</a>.<a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-182">modFile</a> <i><a href="../../../../builtin.html#name-string">string</a></i></label><span id='loader-fold-field-modFile-docs' class="fold-docs">
+<span class="md-text">				modFile will be used for -modfile in go command invocations.</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="loader-fold-field-modFlag"><label for="loader-fold-field-modFlag"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-697" class="path-duplicate">Config</a>.<a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-185">modFlag</a> <i><a href="../../../../builtin.html#name-string">string</a></i></label><span id='loader-fold-field-modFlag-docs' class="fold-docs">
+<span class="md-text">				modFlag will be used for -modfile in go command invocations.</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="loader-fold-field-exportMu"><label for="loader-fold-field-exportMu"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-701">exportMu</a> <i><a href="../../../../sync.html">sync</a>.<a href="../../../../sync.html#name-Mutex">Mutex</a></i></label><span id='loader-fold-field-exportMu-docs' class="fold-docs">
+<span class="md-text">				// enforces mutual exclusion of exportdata operations</span>
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-699">parseCache</a> <i>map[<a href="../../../../builtin.html#name-string">string</a>]*<a href="#name-parseValue">parseValue</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-700">parseCacheMu</a> <i><a href="../../../../sync.html">sync</a>.<a href="../../../../sync.html#name-Mutex">Mutex</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-696">pkgs</a> <i>map[<a href="../../../../builtin.html#name-string">string</a>]*<a href="#name-loaderPackage">loaderPackage</a></i></span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="loader-fold-field-requestedMode"><label for="loader-fold-field-requestedMode"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-709">requestedMode</a> <i><a href="#name-LoadMode">LoadMode</a></i></label><span id='loader-fold-field-requestedMode-docs' class="fold-docs">
+<span class="md-text">				Config.Mode contains the implied mode (see impliedLoadMode).
+				Implied mode contains all the fields we need the data for.
+				In requestedMode there are the actually requested fields.
+				We'll zero them out before returning packages to the user.
+				This makes it easier for us to get the conditions where
+				we need certain modes right.</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="loader-fold-field-sizes"><label for="loader-fold-field-sizes"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-698">sizes</a> <i><a href="../../../../go/types.html">types</a>.<a href="../../../../go/types.html#name-Sizes">Sizes</a></i></label><span id='loader-fold-field-sizes-docs' class="fold-docs">
+<span class="md-text">				// non-nil if needed by mode</span>
+</span></i></span></span>
+		<input type='checkbox' class="fold" id="loader-fold-methods"><label for="loader-fold-methods">Methods (<i>total 6, none are exported</i>)</label><span id='loader-fold-methods-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="loader-showhide-methods"><i><label for="loader-showhide-methods" class="show-inline">/* 6 unexporteds ... */</label><label for="loader-showhide-methods" class="hide-inline">/* 6 unexporteds: */</label></i><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="loader-fold-method-loadFromExportData"><label for="loader-fold-method-loadFromExportData">(*loader) <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-1392">loadFromExportData</a>(lpkg *<a href="#name-loaderPackage">loaderPackage</a>) <a href="../../../../builtin.html#name-error">error</a></label><span id='loader-fold-method-loadFromExportData-docs' class="fold-docs">
+<span class="md-text">				loadFromExportData ensures that type information is present for the specified
+				package, loading it from an export data file on the first request.
+				On success it sets lpkg.Types to a new Package.</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="loader-fold-method-loadPackage"><label for="loader-fold-method-loadPackage">(*loader) <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-1009">loadPackage</a>(lpkg *<a href="#name-loaderPackage">loaderPackage</a>)</label><span id='loader-fold-method-loadPackage-docs' class="fold-docs">
+<span class="md-text">				loadPackage loads the specified package.
+				It must be called only once per Package,
+				after immediate dependencies are loaded.
+				Precondition: ld.Mode &amp; NeedTypes.</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="loader-fold-method-loadRecursive"><label for="loader-fold-method-loadRecursive">(*loader) <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-988">loadRecursive</a>(lpkg *<a href="#name-loaderPackage">loaderPackage</a>)</label><span id='loader-fold-method-loadRecursive-docs' class="fold-docs">
+<span class="md-text">				loadRecursive loads the specified package and its dependencies,
+				recursively, in parallel, in topological order.
+				It is atomic and idempotent.
+				Precondition: ld.Mode&amp;NeedTypes.</span>
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*loader) <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-1289">parseFile</a>(filename <a href="../../../../builtin.html#name-string">string</a>) (*<a href="../../../../go/ast.html">ast</a>.<a href="../../../../go/ast.html#name-File">File</a>, <a href="../../../../builtin.html#name-error">error</a>)</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="loader-fold-method-parseFiles"><label for="loader-fold-method-parseFiles">(*loader) <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-1331">parseFiles</a>(filenames []<a href="../../../../builtin.html#name-string">string</a>) ([]*<a href="../../../../go/ast.html">ast</a>.<a href="../../../../go/ast.html#name-File">File</a>, []<a href="../../../../builtin.html#name-error">error</a>)</label><span id='loader-fold-method-parseFiles-docs' class="fold-docs">
+<span class="md-text">				parseFiles reads and parses the Go source files and returns the ASTs
+				of the ones that could be at least partially parsed, along with a
+				list of I/O and parse errors encountered.
+				
+				Because files are scanned in parallel, the token.Pos
+				positions of the resulting ast.Files are not ordered.</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="loader-fold-method-refine"><label for="loader-fold-method-refine">(*loader) <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-778">refine</a>(response *<a href="#name-DriverResponse">DriverResponse</a>) ([]*<a href="#name-Package">Package</a>, <a href="../../../../builtin.html#name-error">error</a>)</label><span id='loader-fold-method-refine-docs' class="fold-docs">
+<span class="md-text">				refine connects the supplied packages into a graph and then adds type
+				and syntax information as requested by the LoadMode.</span>
+</span></i></span></span>
+		<input type='checkbox' class="fold" id="loader-fold-results"><label for="loader-fold-results">As Outputs Of (<i>at least one unexported</i>)</label><span id='loader-fold-results-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="loader-showhide-inputofs"><i><label for="loader-showhide-inputofs" class="show-inline">/* at least one unexported ... */</label><label for="loader-showhide-inputofs" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			func <a href="#name-newLoader">newLoader</a>(cfg *<a href="#name-Config">Config</a>) *<b>loader</b></i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-loaderPackage" data-popularity="500">	<input type='checkbox' class="fold" id="loaderPackage-fold-content"><label for="loaderPackage-fold-content"> <a href="../../../../../use/golang.org/x/tools/go/packages..loaderPackage^fd679.html">type</a> <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-683">loaderPackage</a> <i>(struct)</i></label><span id='loaderPackage-fold-content-docs' class="fold-docs">
+<span class="md-text">		loaderPackage augments Package with state used during the loading phase</span>
+
+		<input type='checkbox' class="fold" id="loaderPackage-fold-fields"><label for="loaderPackage-fold-fields">Fields (<i>total 30, in which 21 are exported</i>)</label><span id='loaderPackage-fold-fields-items' class="fold-items"><span>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-684">Package</a> <i>*<a href="#name-Package">Package</a></i></span></span><span>
+			<input type='checkbox' class="fold" id="loaderPackage-fold-field-CompiledGoFiles"><label for="loaderPackage-fold-field-CompiledGoFiles"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-684" class="path-duplicate">Package</a>.<a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-454">CompiledGoFiles</a> <i>[]<a href="../../../../builtin.html#name-string">string</a></i></label><span id='loaderPackage-fold-field-CompiledGoFiles-docs' class="fold-docs">
+<span class="md-text">				CompiledGoFiles lists the absolute file paths of the package's source
+				files that are suitable for type checking.
+				This may differ from GoFiles if files are processed before compilation.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="loaderPackage-fold-field-EmbedFiles"><label for="loaderPackage-fold-field-EmbedFiles"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-684" class="path-duplicate">Package</a>.<a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-462">EmbedFiles</a> <i>[]<a href="../../../../builtin.html#name-string">string</a></i></label><span id='loaderPackage-fold-field-EmbedFiles-docs' class="fold-docs">
+<span class="md-text">				EmbedFiles lists the absolute file paths of the package's files
+				embedded with go:embed.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="loaderPackage-fold-field-EmbedPatterns"><label for="loaderPackage-fold-field-EmbedPatterns"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-684" class="path-duplicate">Package</a>.<a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-466">EmbedPatterns</a> <i>[]<a href="../../../../builtin.html#name-string">string</a></i></label><span id='loaderPackage-fold-field-EmbedPatterns-docs' class="fold-docs">
+<span class="md-text">				EmbedPatterns lists the absolute file patterns of the package's
+				files embedded with go:embed.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="loaderPackage-fold-field-Errors"><label for="loaderPackage-fold-field-Errors"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-684" class="path-duplicate">Package</a>.<a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-440">Errors</a> <i>[]<a href="#name-Error">Error</a></i></label><span id='loaderPackage-fold-field-Errors-docs' class="fold-docs">
+<span class="md-text">				Errors contains any errors encountered querying the metadata
+				of the package, or while parsing or type-checking its files.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="loaderPackage-fold-field-ExportFile"><label for="loaderPackage-fold-field-ExportFile"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-684" class="path-duplicate">Package</a>.<a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-475">ExportFile</a> <i><a href="../../../../builtin.html#name-string">string</a></i></label><span id='loaderPackage-fold-field-ExportFile-docs' class="fold-docs">
+<span class="md-text">				ExportFile is the absolute path to a file containing type
+				information for the package as provided by the build system.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="loaderPackage-fold-field-Fset"><label for="loaderPackage-fold-field-Fset"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-684" class="path-duplicate">Package</a>.<a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-500">Fset</a> <i>*<a href="../../../../go/token.html">token</a>.<a href="../../../../go/token.html#name-FileSet">FileSet</a></i></label><span id='loaderPackage-fold-field-Fset-docs' class="fold-docs">
+<span class="md-text">				Fset provides position information for Types, TypesInfo, and Syntax.
+				It is set only when Types is set.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="loaderPackage-fold-field-GoFiles"><label for="loaderPackage-fold-field-GoFiles"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-684" class="path-duplicate">Package</a>.<a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-449">GoFiles</a> <i>[]<a href="../../../../builtin.html#name-string">string</a></i></label><span id='loaderPackage-fold-field-GoFiles-docs' class="fold-docs">
+<span class="md-text">				GoFiles lists the absolute file paths of the package's Go source files.
+				It may include files that should not be compiled, for example because
+				they contain non-matching build tags, are documentary pseudo-files such as
+				unsafe/unsafe.go or builtin/builtin.go, or are subject to cgo preprocessing.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="loaderPackage-fold-field-ID"><label for="loaderPackage-fold-field-ID"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-684" class="path-duplicate">Package</a>.<a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-430">ID</a> <i><a href="../../../../builtin.html#name-string">string</a></i></label><span id='loaderPackage-fold-field-ID-docs' class="fold-docs">
+<span class="md-text">				ID is a unique identifier for a package,
+				in a syntax provided by the underlying build system.
+				
+				Because the syntax varies based on the build system,
+				clients should treat IDs as opaque and not attempt to
+				interpret them.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="loaderPackage-fold-field-IgnoredFiles"><label for="loaderPackage-fold-field-IgnoredFiles"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-684" class="path-duplicate">Package</a>.<a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-471">IgnoredFiles</a> <i>[]<a href="../../../../builtin.html#name-string">string</a></i></label><span id='loaderPackage-fold-field-IgnoredFiles-docs' class="fold-docs">
+<span class="md-text">				IgnoredFiles lists source files that are not part of the package
+				using the current build configuration but that might be part of
+				the package using other build configurations.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="loaderPackage-fold-field-IllTyped"><label for="loaderPackage-fold-field-IllTyped"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-684" class="path-duplicate">Package</a>.<a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-504">IllTyped</a> <i><a href="../../../../builtin.html#name-bool">bool</a></i></label><span id='loaderPackage-fold-field-IllTyped-docs' class="fold-docs">
+<span class="md-text">				IllTyped indicates whether the package or any dependency contains errors.
+				It is set only when Types is set.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="loaderPackage-fold-field-Imports"><label for="loaderPackage-fold-field-Imports"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-684" class="path-duplicate">Package</a>.<a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-479">Imports</a> <i>map[<a href="../../../../builtin.html#name-string">string</a>]*<a href="#name-Package">Package</a></i></label><span id='loaderPackage-fold-field-Imports-docs' class="fold-docs">
+<span class="md-text">				Imports maps import paths appearing in the package's Go source files
+				to corresponding loaded Packages.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="loaderPackage-fold-field-Module"><label for="loaderPackage-fold-field-Module"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-684" class="path-duplicate">Package</a>.<a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-484">Module</a> <i>*<a href="#name-Module">Module</a></i></label><span id='loaderPackage-fold-field-Module-docs' class="fold-docs">
+<span class="md-text">				Module is the module information for the package if it exists.
+				
+				Note: it may be missing for std and cmd; see Go issue #65816.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="loaderPackage-fold-field-Name"><label for="loaderPackage-fold-field-Name"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-684" class="path-duplicate">Package</a>.<a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-433">Name</a> <i><a href="../../../../builtin.html#name-string">string</a></i></label><span id='loaderPackage-fold-field-Name-docs' class="fold-docs">
+<span class="md-text">				Name is the package name as it appears in the package source code.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="loaderPackage-fold-field-OtherFiles"><label for="loaderPackage-fold-field-OtherFiles"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-684" class="path-duplicate">Package</a>.<a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-458">OtherFiles</a> <i>[]<a href="../../../../builtin.html#name-string">string</a></i></label><span id='loaderPackage-fold-field-OtherFiles-docs' class="fold-docs">
+<span class="md-text">				OtherFiles lists the absolute file paths of the package's non-Go source files,
+				including assembly, C, C++, Fortran, Objective-C, SWIG, and so on.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="loaderPackage-fold-field-PkgPath"><label for="loaderPackage-fold-field-PkgPath"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-684" class="path-duplicate">Package</a>.<a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-436">PkgPath</a> <i><a href="../../../../builtin.html#name-string">string</a></i></label><span id='loaderPackage-fold-field-PkgPath-docs' class="fold-docs">
+<span class="md-text">				PkgPath is the package path as used by the go/types package.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="loaderPackage-fold-field-Syntax"><label for="loaderPackage-fold-field-Syntax"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-684" class="path-duplicate">Package</a>.<a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-514">Syntax</a> <i>[]*<a href="../../../../go/ast.html">ast</a>.<a href="../../../../go/ast.html#name-File">File</a></i></label><span id='loaderPackage-fold-field-Syntax-docs' class="fold-docs">
+<span class="md-text">				Syntax is the package's syntax trees, for the files listed in CompiledGoFiles.
+				
+				The NeedSyntax LoadMode bit populates this field for packages matching the patterns.
+				If NeedDeps and NeedImports are also set, this field will also be populated
+				for dependencies.
+				
+				Syntax is kept in the same order as CompiledGoFiles, with the caveat that nils are
+				removed.  If parsing returned nil, Syntax may be shorter than CompiledGoFiles.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="loaderPackage-fold-field-TypeErrors"><label for="loaderPackage-fold-field-TypeErrors"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-684" class="path-duplicate">Package</a>.<a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-443">TypeErrors</a> <i>[]<a href="../../../../go/types.html">types</a>.<a href="../../../../go/types.html#name-Error">Error</a></i></label><span id='loaderPackage-fold-field-TypeErrors-docs' class="fold-docs">
+<span class="md-text">				TypeErrors contains the subset of errors produced during type checking.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="loaderPackage-fold-field-Types"><label for="loaderPackage-fold-field-Types"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-684" class="path-duplicate">Package</a>.<a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-496">Types</a> <i>*<a href="../../../../go/types.html">types</a>.<a href="../../../../go/types.html#name-Package">Package</a></i></label><span id='loaderPackage-fold-field-Types-docs' class="fold-docs">
+<span class="md-text">				Types provides type information for the package.
+				The NeedTypes LoadMode bit sets this field for packages matching the
+				patterns; type information for dependencies may be missing or incomplete,
+				unless NeedDeps and NeedImports are also set.
+				
+				Each call to [Load] returns a consistent set of type
+				symbols, as defined by the comment at [types.Identical].
+				Avoid mixing type information from two or more calls to [Load].</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="loaderPackage-fold-field-TypesInfo"><label for="loaderPackage-fold-field-TypesInfo"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-684" class="path-duplicate">Package</a>.<a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-518">TypesInfo</a> <i>*<a href="../../../../go/types.html">types</a>.<a href="../../../../go/types.html#name-Info">Info</a></i></label><span id='loaderPackage-fold-field-TypesInfo-docs' class="fold-docs">
+<span class="md-text">				TypesInfo provides type information about the package's syntax trees.
+				It is set only when Syntax is set.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="loaderPackage-fold-field-TypesSizes"><label for="loaderPackage-fold-field-TypesSizes"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-684" class="path-duplicate">Package</a>.<a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-521">TypesSizes</a> <i><a href="../../../../go/types.html">types</a>.<a href="../../../../go/types.html#name-Sizes">Sizes</a></i></label><span id='loaderPackage-fold-field-TypesSizes-docs' class="fold-docs">
+<span class="md-text">				TypesSizes provides the effective size function for types in TypesInfo.</span>
+</span></span>
+			<input type='checkbox' checked class="showhide" id="loaderPackage-showhide-fields"><i><label for="loaderPackage-showhide-fields" class="show-inline">/* 9 unexporteds ... */</label><label for="loaderPackage-showhide-fields" class="hide-inline">/* 9 unexporteds: */</label></i><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="loaderPackage-fold-field-color"><label for="loaderPackage-fold-field-color"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-687">color</a> <i><a href="../../../../builtin.html#name-uint8">uint8</a></i></label><span id='loaderPackage-fold-field-color-docs' class="fold-docs">
+<span class="md-text">				// for cycle detection</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="loaderPackage-fold-field-goVersion"><label for="loaderPackage-fold-field-goVersion"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-691">goVersion</a> <i><a href="../../../../builtin.html#name-int">int</a></i></label><span id='loaderPackage-fold-field-goVersion-docs' class="fold-docs">
+<span class="md-text">				// minor version number of go command on PATH</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="loaderPackage-fold-field-importErrors"><label for="loaderPackage-fold-field-importErrors"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-685">importErrors</a> <i>map[<a href="../../../../builtin.html#name-string">string</a>]<a href="../../../../builtin.html#name-error">error</a></i></label><span id='loaderPackage-fold-field-importErrors-docs' class="fold-docs">
+<span class="md-text">				// maps each bad import to its error</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="loaderPackage-fold-field-initial"><label for="loaderPackage-fold-field-initial"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-690">initial</a> <i><a href="../../../../builtin.html#name-bool">bool</a></i></label><span id='loaderPackage-fold-field-initial-docs' class="fold-docs">
+<span class="md-text">				// package was matched by a pattern</span>
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-686">loadOnce</a> <i><a href="../../../../sync.html">sync</a>.<a href="../../../../sync.html#name-Once">Once</a></i></span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="loaderPackage-fold-field-needsrc"><label for="loaderPackage-fold-field-needsrc"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-688">needsrc</a> <i><a href="../../../../builtin.html#name-bool">bool</a></i></label><span id='loaderPackage-fold-field-needsrc-docs' class="fold-docs">
+<span class="md-text">				// load from source (Mode &gt;= LoadTypes)</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="loaderPackage-fold-field-needtypes"><label for="loaderPackage-fold-field-needtypes"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-689">needtypes</a> <i><a href="../../../../builtin.html#name-bool">bool</a></i></label><span id='loaderPackage-fold-field-needtypes-docs' class="fold-docs">
+<span class="md-text">				// type information is either requested or depended on</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="loaderPackage-fold-field-depsErrors"><label for="loaderPackage-fold-field-depsErrors"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-684">Package</a>.<a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-529">depsErrors</a> <i>[]*<a href="../internal/packagesinternal.html">packagesinternal</a>.<a href="../internal/packagesinternal.html#name-PackageError">PackageError</a></i></label><span id='loaderPackage-fold-field-depsErrors-docs' class="fold-docs">
+<span class="md-text">				depsErrors is the DepsErrors field from the go list response, if any.</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="loaderPackage-fold-field-forTest"><label for="loaderPackage-fold-field-forTest"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-684" class="path-duplicate">Package</a>.<a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-526">forTest</a> <i><a href="../../../../builtin.html#name-string">string</a></i></label><span id='loaderPackage-fold-field-forTest-docs' class="fold-docs">
+<span class="md-text">				forTest is the package under test, if any.</span>
+</span></i></span></span>
+		<input type='checkbox' class="fold" id="loaderPackage-fold-methods"><label for="loaderPackage-fold-methods">Methods (<i>total 3, all are exported</i>)</label><span id='loaderPackage-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="loaderPackage-fold-method-MarshalJSON"><label for="loaderPackage-fold-method-MarshalJSON">( loaderPackage) <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-628">MarshalJSON</a>() ([]<a href="../../../../builtin.html#name-byte">byte</a>, <a href="../../../../builtin.html#name-error">error</a>)</label><span id='loaderPackage-fold-method-MarshalJSON-docs' class="fold-docs">
+<span class="md-text">				MarshalJSON returns the Package in its JSON form.
+				For the most part, the structure fields are written out unmodified, and
+				the type and syntax fields are skipped.
+				The imports are written out as just a map of path to package id.
+				The errors are written using a custom type that tries to preserve the
+				structure of error types we know about.
+				
+				This method exists to enable support for additional build systems.  It is
+				not intended for use by clients of the API and we may change the format.</span>
+</span></span><span>
+			<span class="nodocs">( loaderPackage) <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-680">String</a>() <a href="../../../../builtin.html#name-string">string</a></span></span><span>
+			<input type='checkbox' class="fold" id="loaderPackage-fold-method-UnmarshalJSON"><label for="loaderPackage-fold-method-UnmarshalJSON">( loaderPackage) <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-653">UnmarshalJSON</a>(b []<a href="../../../../builtin.html#name-byte">byte</a>) <a href="../../../../builtin.html#name-error">error</a></label><span id='loaderPackage-fold-method-UnmarshalJSON-docs' class="fold-docs">
+<span class="md-text">				UnmarshalJSON reads in a Package from its JSON format.
+				See MarshalJSON for details about the format accepted.</span>
+</span></span></span>
+		<input type='checkbox' class="fold" id="loaderPackage-fold-impls"><label for="loaderPackage-fold-impls">Implements (<i>at least 7, in which 4 are exported</i>)</label><span id='loaderPackage-fold-impls-items' class="fold-items"><span>
+			 loaderPackage : encoding/json.<a href="../../../../encoding/json.html#name-Marshaler">Marshaler</a></span><span>
+			 loaderPackage : encoding/json.<a href="../../../../encoding/json.html#name-Unmarshaler">Unmarshaler</a></span><span>
+			 loaderPackage : expvar.<a href="../../../../expvar.html#name-Var">Var</a></span><span>
+			 loaderPackage : fmt.<a href="../../../../fmt.html#name-Stringer">Stringer</a></span>
+			<input type='checkbox' checked class="showhide" id="loaderPackage-showhide-impls"><i><label for="loaderPackage-showhide-impls" class="show-inline">/* 3+ unexporteds ... */</label><label for="loaderPackage-showhide-impls" class="hide-inline">/* 3+ unexporteds: */</label></i><span class="hidden"><i>
+			 loaderPackage : context.<a href="../../../../context.html#name-stringer">stringer</a></i></span><span class="hidden"><i>
+			 loaderPackage : github.com/aws/smithy-go/middleware.<a href="../../../../github.com/aws/smithy-go/middleware.html#name-stringer">stringer</a></i></span><span class="hidden"><i>
+			 loaderPackage : runtime.<a href="../../../../runtime.html#name-stringer">stringer</a></i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-parseValue" data-popularity="0">	<input type='checkbox' class="fold" id="parseValue-fold-content"><label for="parseValue-fold-content"> <a href="../../../../../use/golang.org/x/tools/go/packages..parseValue^ad4ba.html">type</a> <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-712">parseValue</a> <i>(struct)</i></label><span id='parseValue-fold-content-docs' class="fold-docs">
+
+		<input type='checkbox' class="fold" id="parseValue-fold-fields"><label for="parseValue-fold-fields">Fields (<i>total 3, none are exported</i>)</label><span id='parseValue-fold-fields-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="parseValue-showhide-fields"><i><label for="parseValue-showhide-fields" class="show-inline">/* 3 unexporteds ... */</label><label for="parseValue-showhide-fields" class="hide-inline">/* 3 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-714">err</a> <i><a href="../../../../builtin.html#name-error">error</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-713">f</a> <i>*<a href="../../../../go/ast.html">ast</a>.<a href="../../../../go/ast.html#name-File">File</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-715">ready</a> <i>chan struct{}</i></span></i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-responseDeduper" data-popularity="225">	<input type='checkbox' class="fold" id="responseDeduper-fold-content"><label for="responseDeduper-fold-content"> <a href="../../../../../use/golang.org/x/tools/go/packages..responseDeduper^a7c73.html">type</a> <a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-39">responseDeduper</a> <i>(struct)</i></label><span id='responseDeduper-fold-content-docs' class="fold-docs">
+<span class="md-text">		responseDeduper wraps a DriverResponse, deduplicating its contents.</span>
+
+		<input type='checkbox' class="fold" id="responseDeduper-fold-fields"><label for="responseDeduper-fold-fields">Fields (<i>total 3, none are exported</i>)</label><span id='responseDeduper-fold-fields-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="responseDeduper-showhide-fields"><i><label for="responseDeduper-showhide-fields" class="show-inline">/* 3 unexporteds ... */</label><label for="responseDeduper-showhide-fields" class="hide-inline">/* 3 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-42">dr</a> <i>*<a href="#name-DriverResponse">DriverResponse</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-41">seenPackages</a> <i>map[<a href="../../../../builtin.html#name-string">string</a>]*<a href="#name-Package">Package</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-40">seenRoots</a> <i>map[<a href="../../../../builtin.html#name-string">string</a>]<a href="../../../../builtin.html#name-bool">bool</a></i></span></i></span></span>
+		<input type='checkbox' class="fold" id="responseDeduper-fold-methods"><label for="responseDeduper-fold-methods">Methods (<i>total 3, none are exported</i>)</label><span id='responseDeduper-fold-methods-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="responseDeduper-showhide-methods"><i><label for="responseDeduper-showhide-methods" class="show-inline">/* 3 unexporteds ... */</label><label for="responseDeduper-showhide-methods" class="hide-inline">/* 3 unexporteds: */</label></i><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="responseDeduper-fold-method-addAll"><label for="responseDeduper-fold-method-addAll">(*responseDeduper) <a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-54">addAll</a>(dr *<a href="#name-DriverResponse">DriverResponse</a>)</label><span id='responseDeduper-fold-method-addAll-docs' class="fold-docs">
+<span class="md-text">				addAll fills in r with a DriverResponse.</span>
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*responseDeduper) <a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-64">addPackage</a>(p *<a href="#name-Package">Package</a>)</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*responseDeduper) <a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-72">addRoot</a>(id <a href="../../../../builtin.html#name-string">string</a>)</span></i></span></span>
+		<input type='checkbox' class="fold" id="responseDeduper-fold-results"><label for="responseDeduper-fold-results">As Outputs Of (<i>at least one unexported</i>)</label><span id='responseDeduper-fold-results-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="responseDeduper-showhide-inputofs"><i><label for="responseDeduper-showhide-inputofs" class="show-inline">/* at least one unexported ... */</label><label for="responseDeduper-showhide-inputofs" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			func <a href="#name-newDeduper">newDeduper</a>() *<b>responseDeduper</b></i></span></span>
+
+</span></div></div>
+<div id="exported-functions"><span class="title">Package-Level Functions<span class="title-stat"><i> (total 22, in which 3 are exported)</i></span></span>
+
+<div class="anchor value-res" id="name-Load">	<input type='checkbox' class="fold" id="Load-fold-content"><label for="Load-fold-content"> <a href="../../../../../use/golang.org/x/tools/go/packages..Load.html">func</a> <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-266">Load</a>(cfg *<a href="#name-Config">Config</a>, patterns ...<a href="../../../../builtin.html#name-string">string</a>) ([]*<a href="#name-Package">Package</a>, <a href="../../../../builtin.html#name-error">error</a>)</label><span id='Load-fold-content-docs' class="fold-docs">
+<span class="md-text">		Load loads and returns the Go packages named by the given patterns.
+		
+		Config specifies loading options;
+		nil behaves the same as an empty Config.
+		
+		The [Config.Mode] field is a set of bits that determine what kinds
+		of information should be computed and returned. Modes that require
+		more information tend to be slower. See [LoadMode] for details
+		and important caveats. Its zero value is equivalent to
+		NeedName | NeedFiles | NeedCompiledGoFiles.
+		
+		Each call to Load returns a new set of [Package] instances.
+		The Packages and their Imports form a directed acyclic graph.
+		
+		If the [NeedTypes] mode flag was set, each call to Load uses a new
+		[types.Importer], so [types.Object] and [types.Type] values from
+		different calls to Load must not be mixed as they will have
+		inconsistent notions of type identity.
+		
+		If any of the patterns was invalid as defined by the
+		underlying build system, Load returns an error.
+		It may return an empty list of packages without an error,
+		for instance for an empty expansion of a valid wildcard.
+		Errors associated with a particular package are recorded in the
+		corresponding Package's Errors list, and do not cause Load to
+		return an error. Clients may need to handle such errors before
+		proceeding with further analysis. The PrintErrors function is
+		provided for convenient display of all errors.</span>
+
+</span></div><div class="anchor value-res" id="name-PrintErrors">	<input type='checkbox' class="fold" id="PrintErrors-fold-content"><label for="PrintErrors-fold-content"> <a href="../../../../../use/golang.org/x/tools/go/packages..PrintErrors.html">func</a> <a href="../../../../../src/golang.org/x/tools/go/packages/visit.go.html#line-50">PrintErrors</a>(pkgs []*<a href="#name-Package">Package</a>) <a href="../../../../builtin.html#name-int">int</a></label><span id='PrintErrors-fold-content-docs' class="fold-docs">
+<span class="md-text">		PrintErrors prints to os.Stderr the accumulated errors of all
+		packages in the import graph rooted at pkgs, dependencies first.
+		PrintErrors returns the number of errors printed.</span>
+
+</span></div><div class="anchor value-res" id="name-Visit">	<input type='checkbox' class="fold" id="Visit-fold-content"><label for="Visit-fold-content"> <a href="../../../../../use/golang.org/x/tools/go/packages..Visit.html">func</a> <a href="../../../../../src/golang.org/x/tools/go/packages/visit.go.html#line-19">Visit</a>(pkgs []*<a href="#name-Package">Package</a>, pre func(*<a href="#name-Package">Package</a>) <a href="../../../../builtin.html#name-bool">bool</a>, post func(*<a href="#name-Package">Package</a>))</label><span id='Visit-fold-content-docs' class="fold-docs">
+<span class="md-text">		Visit visits all the packages in the import graph whose roots are
+		pkgs, calling the optional pre function the first time each package
+		is encountered (preorder), and the optional post function after a
+		package's dependencies have been visited (postorder).
+		The boolean result of pre(pkg) determines whether
+		the imports of package pkg are visited.</span>
+
+</span></div>	<input type='checkbox' class="showhide" id="unexported-functions-showhide"><i><label for="unexported-functions-showhide" class="show-inline">/* 19 unexporteds ... */</label><label for="unexported-functions-showhide" class="hide-inline">/* 19 unexporteds: */</label></i><div class="anchor value-res hidden" id="name-absJoin"><i>	<input type='checkbox' class="fold" id="absJoin-fold-content"><label for="absJoin-fold-content"> <a href="../../../../../use/golang.org/x/tools/go/packages..absJoin^56009.html">func</a> <a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-728">absJoin</a>(dir <a href="../../../../builtin.html#name-string">string</a>, fileses ...[]<a href="../../../../builtin.html#name-string">string</a>) (res []<a href="../../../../builtin.html#name-string">string</a>)</label><span id='absJoin-fold-content-docs' class="fold-docs">
+<span class="md-text">		absJoin absolutizes and flattens the lists of files.</span>
+
+</span></i></div><div class="anchor value-res hidden" id="name-callDriverOnChunks"><i>	<span class="nodocs"> <a href="../../../../../use/golang.org/x/tools/go/packages..callDriverOnChunks^0c0f3.html">func</a> <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-377">callDriverOnChunks</a>(driver <a href="#name-driver">driver</a>, cfg *<a href="#name-Config">Config</a>, chunks [][]<a href="../../../../builtin.html#name-string">string</a>) (*<a href="#name-DriverResponse">DriverResponse</a>, <a href="../../../../builtin.html#name-error">error</a>)</span></i></div><div class="anchor value-res hidden" id="name-cmdDebugStr"><i>	<span class="nodocs"> <a href="../../../../../use/golang.org/x/tools/go/packages..cmdDebugStr^6c494.html">func</a> <a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-1008">cmdDebugStr</a>(cmd *<a href="../../../../os/exec.html">exec</a>.<a href="../../../../os/exec.html#name-Cmd">Cmd</a>) <a href="../../../../builtin.html#name-string">string</a></span></i></div><div class="anchor value-res hidden" id="name-containsGoFile"><i>	<span class="nodocs"> <a href="../../../../../use/golang.org/x/tools/go/packages..containsGoFile^c4ef4.html">func</a> <a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-999">containsGoFile</a>(s []<a href="../../../../builtin.html#name-string">string</a>) <a href="../../../../builtin.html#name-bool">bool</a></span></i></div><div class="anchor value-res hidden" id="name-defaultDriver"><i>	<input type='checkbox' class="fold" id="defaultDriver-fold-content"><label for="defaultDriver-fold-content"> <a href="../../../../../use/golang.org/x/tools/go/packages..defaultDriver^52dd9.html">func</a> <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-300">defaultDriver</a>(cfg *<a href="#name-Config">Config</a>, patterns ...<a href="../../../../builtin.html#name-string">string</a>) (*<a href="#name-DriverResponse">DriverResponse</a>, <a href="../../../../builtin.html#name-bool">bool</a>, <a href="../../../../builtin.html#name-error">error</a>)</label><span id='defaultDriver-fold-content-docs' class="fold-docs">
+<span class="md-text">		defaultDriver is a driver that implements go/packages' fallback behavior.
+		It will try to request to an external driver, if one exists. If there's
+		no external driver, or the driver returns a response with NotHandled set,
+		defaultDriver will fall back to the go list driver.
+		The boolean result indicates that an external driver handled the request.</span>
+
+</span></i></div><div class="anchor value-res hidden" id="name-findExternalDriver"><i>	<input type='checkbox' class="fold" id="findExternalDriver-fold-content"><label for="findExternalDriver-fold-content"> <a href="../../../../../use/golang.org/x/tools/go/packages..findExternalDriver^3f153.html">func</a> <a href="../../../../../src/golang.org/x/tools/go/packages/external.go.html#line-88">findExternalDriver</a>(cfg *<a href="#name-Config">Config</a>) <a href="#name-driver">driver</a></label><span id='findExternalDriver-fold-content-docs' class="fold-docs">
+<span class="md-text">		findExternalDriver returns the file path of a tool that supplies
+		the build system package structure, or "" if not found."
+		If GOPACKAGESDRIVER is set in the environment findExternalTool returns its
+		value, otherwise it searches for a binary named gopackagesdriver on the PATH.</span>
+
+</span></i></div><div class="anchor value-res hidden" id="name-golistargs"><i>	<span class="nodocs"> <a href="../../../../../use/golang.org/x/tools/go/packages..golistargs^f5361.html">func</a> <a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-806">golistargs</a>(cfg *<a href="#name-Config">Config</a>, words []<a href="../../../../builtin.html#name-string">string</a>, goVersion <a href="../../../../builtin.html#name-int">int</a>) []<a href="../../../../builtin.html#name-string">string</a></span></i></div><div class="anchor value-res hidden" id="name-goListDriver"><i>	<input type='checkbox' class="fold" id="goListDriver-fold-content"><label for="goListDriver-fold-content"> <a href="../../../../../use/golang.org/x/tools/go/packages..goListDriver^81d5a.html">func</a> <a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-131">goListDriver</a>(cfg *<a href="#name-Config">Config</a>, patterns ...<a href="../../../../builtin.html#name-string">string</a>) (_ *<a href="#name-DriverResponse">DriverResponse</a>, err <a href="../../../../builtin.html#name-error">error</a>)</label><span id='goListDriver-fold-content-docs' class="fold-docs">
+<span class="md-text">		goListDriver uses the go list command to interpret the patterns and produce
+		the build system package structure.
+		See driver for more details.</span>
+
+</span></i></div><div class="anchor value-res hidden" id="name-impliedLoadMode"><i>	<input type='checkbox' class="fold" id="impliedLoadMode-fold-content"><label for="impliedLoadMode-fold-content"> <a href="../../../../../use/golang.org/x/tools/go/packages..impliedLoadMode^c0478.html">func</a> <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-1497">impliedLoadMode</a>(loadMode <a href="#name-LoadMode">LoadMode</a>) <a href="#name-LoadMode">LoadMode</a></label><span id='impliedLoadMode-fold-content-docs' class="fold-docs">
+<span class="md-text">		impliedLoadMode returns loadMode with its dependencies.</span>
+
+</span></i></div><div class="anchor value-res hidden" id="name-init"><i>	<span class="nodocs"> <a href="../../../../../use/golang.org/x/tools/go/packages..init^bb540.html">func</a> <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-554">init</a>()</span></i></div><div class="anchor value-res hidden" id="name-jsonFlag"><i>	<span class="nodocs"> <a href="../../../../../use/golang.org/x/tools/go/packages..jsonFlag^6a4db.html">func</a> <a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-740">jsonFlag</a>(cfg *<a href="#name-Config">Config</a>, goVersion <a href="../../../../builtin.html#name-int">int</a>) <a href="../../../../builtin.html#name-string">string</a></span></i></div><div class="anchor value-res hidden" id="name-mergeResponses"><i>	<span class="nodocs"> <a href="../../../../../use/golang.org/x/tools/go/packages..mergeResponses^677a5.html">func</a> <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-404">mergeResponses</a>(responses ...*<a href="#name-DriverResponse">DriverResponse</a>) *<a href="#name-DriverResponse">DriverResponse</a></span></i></div><div class="anchor value-res hidden" id="name-newDeduper"><i>	<span class="nodocs"> <a href="../../../../../use/golang.org/x/tools/go/packages..newDeduper^4d633.html">func</a> <a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-45">newDeduper</a>() *<a href="#name-responseDeduper">responseDeduper</a></span></i></div><div class="anchor value-res hidden" id="name-newLoader"><i>	<span class="nodocs"> <a href="../../../../../use/golang.org/x/tools/go/packages..newLoader^aa0c7.html">func</a> <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-718">newLoader</a>(cfg *<a href="#name-Config">Config</a>) *<a href="#name-loader">loader</a></span></i></div><div class="anchor value-res hidden" id="name-otherFiles"><i>	<span class="nodocs"> <a href="../../../../../use/golang.org/x/tools/go/packages..otherFiles^23a91.html">func</a> <a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-353">otherFiles</a>(p *<a href="#name-jsonPackage">jsonPackage</a>) [][]<a href="../../../../builtin.html#name-string">string</a></span></i></div><div class="anchor value-res hidden" id="name-sameFile"><i>	<input type='checkbox' class="fold" id="sameFile-fold-content"><label for="sameFile-fold-content"> <a href="../../../../../use/golang.org/x/tools/go/packages..sameFile^4aaa0.html">func</a> <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-1369">sameFile</a>(x, y <a href="../../../../builtin.html#name-string">string</a>) <a href="../../../../builtin.html#name-bool">bool</a></label><span id='sameFile-fold-content-docs' class="fold-docs">
+<span class="md-text">		sameFile returns true if x and y have the same basename and denote
+		the same file.</span>
+
+</span></i></div><div class="anchor value-res hidden" id="name-slicesClip"><i>	<input type='checkbox' class="fold" id="slicesClip-fold-content"><label for="slicesClip-fold-content"> <a href="../../../../../use/golang.org/x/tools/go/packages..slicesClip^d13b9.html">func</a> <a href="../../../../../src/golang.org/x/tools/go/packages/external.go.html#line-156">slicesClip</a>[S, E](s S) S</label><span id='slicesClip-fold-content-docs' class="fold-docs">
+
+		Type Parameters:
+			S: ~[]E
+			E: <a href="../../../../builtin.html#name-any">any</a>
+
+<span class="md-text">		slicesClip removes unused capacity from the slice, returning s[:len(s):len(s)].
+		TODO(adonovan): use go1.21 slices.Clip.</span>
+
+</span></i></div><div class="anchor value-res hidden" id="name-splitIntoChunks"><i>	<input type='checkbox' class="fold" id="splitIntoChunks-fold-content"><label for="splitIntoChunks-fold-content"> <a href="../../../../../use/golang.org/x/tools/go/packages..splitIntoChunks^dcec2.html">func</a> <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-350">splitIntoChunks</a>(patterns []<a href="../../../../builtin.html#name-string">string</a>, argMax <a href="../../../../builtin.html#name-int">int</a>) ([][]<a href="../../../../builtin.html#name-string">string</a>, <a href="../../../../builtin.html#name-error">error</a>)</label><span id='splitIntoChunks-fold-content-docs' class="fold-docs">
+<span class="md-text">		splitIntoChunks chunks the slice so that the total number of characters
+		in a chunk is no longer than argMax.</span>
+
+</span></i></div><div class="anchor value-res hidden" id="name-usesExportData"><i>	<span class="nodocs"> <a href="../../../../../use/golang.org/x/tools/go/packages..usesExportData^e27e1.html">func</a> <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-1506">usesExportData</a>(cfg *<a href="#name-Config">Config</a>) <a href="../../../../builtin.html#name-bool">bool</a></span></i></div></div>
+<div id="exported-variables"><span class="title">Package-Level Variables<span class="title-stat"><i> (total 4, none are exported)</i></span></span>
+
+	<input type='checkbox' class="showhide" id="unexported-variables-showhide"><i><label for="unexported-variables-showhide" class="show-inline">/* 4 unexporteds ... */</label><label for="unexported-variables-showhide" class="hide-inline">/* 4 unexporteds: */</label></i><div class="anchor value-res hidden" id="name-allModes"><i>	<span class="nodocs">  <a href="../../../../../use/golang.org/x/tools/go/packages..allModes^89717.html">var</a> <a href="../../../../../src/golang.org/x/tools/go/packages/loadmode_string.go.html#line-12">allModes</a> []<a href="#name-LoadMode">LoadMode</a></span></i></div><div class="anchor value-res hidden" id="name-debug"><i>	<input type='checkbox' class="fold" id="debug-fold-content"><label for="debug-fold-content">  <a href="../../../../../use/golang.org/x/tools/go/packages..debug^0b8e9.html">var</a> <a href="../../../../../src/golang.org/x/tools/go/packages/golist.go.html#line-30">debug</a> <a href="../../../../builtin.html#name-bool">bool</a></label><span id='debug-fold-content-docs' class="fold-docs">
+<span class="md-text">		debug controls verbose logging.</span>
+
+</span></i></div><div class="anchor value-res hidden" id="name-ioLimit"><i>	<input type='checkbox' class="fold" id="ioLimit-fold-content"><label for="ioLimit-fold-content">  <a href="../../../../../use/golang.org/x/tools/go/packages..ioLimit^1e3f1.html">var</a> <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-1287">ioLimit</a> chan <a href="../../../../builtin.html#name-bool">bool</a></label><span id='ioLimit-fold-content-docs' class="fold-docs">
+<span class="md-text">		We use a counting semaphore to limit
+		the number of parallel I/O calls per process.</span>
+
+</span></i></div><div class="anchor value-res hidden" id="name-modeStrings"><i>	<span class="nodocs">  <a href="../../../../../use/golang.org/x/tools/go/packages..modeStrings^44433.html">var</a> <a href="../../../../../src/golang.org/x/tools/go/packages/loadmode_string.go.html#line-25">modeStrings</a> []<a href="../../../../builtin.html#name-string">string</a></span></i></div></div>
+<div id="exported-constants"><span class="title">Package-Level Constants<span class="title-stat"><i> (total 26, in which 23 are exported)</i></span></span>
+
+<div class="anchor value-res" id="name-ListError">	<span class="nodocs"><a href="../../../../../use/golang.org/x/tools/go/packages..ListError.html">const</a> <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-586">ListError</a> <a href="#name-ErrorKind">ErrorKind</a> = 1</span></div><div class="anchor value-res" id="name-LoadAllSyntax">	<input type='checkbox' class="fold" id="LoadAllSyntax-fold-content"><label for="LoadAllSyntax-fold-content"><a href="../../../../../use/golang.org/x/tools/go/packages..LoadAllSyntax.html">const</a> <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-128">LoadAllSyntax</a> <a href="#name-LoadMode">LoadMode</a> = 991</label><span id='LoadAllSyntax-fold-content-docs' class="fold-docs">
+<span class="md-text">		Deprecated: LoadAllSyntax exists for historical compatibility
+		and should not be used. Please directly specify the needed fields using the Need values.</span>
+
+</span></div><div class="anchor value-res" id="name-LoadFiles">	<input type='checkbox' class="fold" id="LoadFiles-fold-content"><label for="LoadFiles-fold-content"><a href="../../../../../use/golang.org/x/tools/go/packages..LoadFiles.html">const</a> <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-112">LoadFiles</a> <a href="#name-LoadMode">LoadMode</a> = 7</label><span id='LoadFiles-fold-content-docs' class="fold-docs">
+<span class="md-text">		Deprecated: LoadFiles exists for historical compatibility
+		and should not be used. Please directly specify the needed fields using the Need values.</span>
+
+</span></div><div class="anchor value-res" id="name-LoadImports">	<input type='checkbox' class="fold" id="LoadImports-fold-content"><label for="LoadImports-fold-content"><a href="../../../../../use/golang.org/x/tools/go/packages..LoadImports.html">const</a> <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-116">LoadImports</a> <a href="#name-LoadMode">LoadMode</a> = 15</label><span id='LoadImports-fold-content-docs' class="fold-docs">
+<span class="md-text">		Deprecated: LoadImports exists for historical compatibility
+		and should not be used. Please directly specify the needed fields using the Need values.</span>
+
+</span></div><div class="anchor value-res" id="name-LoadSyntax">	<input type='checkbox' class="fold" id="LoadSyntax-fold-content"><label for="LoadSyntax-fold-content"><a href="../../../../../use/golang.org/x/tools/go/packages..LoadSyntax.html">const</a> <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-124">LoadSyntax</a> <a href="#name-LoadMode">LoadMode</a> = 975</label><span id='LoadSyntax-fold-content-docs' class="fold-docs">
+<span class="md-text">		Deprecated: LoadSyntax exists for historical compatibility
+		and should not be used. Please directly specify the needed fields using the Need values.</span>
+
+</span></div><div class="anchor value-res" id="name-LoadTypes">	<input type='checkbox' class="fold" id="LoadTypes-fold-content"><label for="LoadTypes-fold-content"><a href="../../../../../use/golang.org/x/tools/go/packages..LoadTypes.html">const</a> <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-120">LoadTypes</a> <a href="#name-LoadMode">LoadMode</a> = 591</label><span id='LoadTypes-fold-content-docs' class="fold-docs">
+<span class="md-text">		Deprecated: LoadTypes exists for historical compatibility
+		and should not be used. Please directly specify the needed fields using the Need values.</span>
+
+</span></div><div class="anchor value-res" id="name-NeedCompiledGoFiles">	<input type='checkbox' class="fold" id="NeedCompiledGoFiles-fold-content"><label for="NeedCompiledGoFiles-fold-content"><a href="../../../../../use/golang.org/x/tools/go/packages..NeedCompiledGoFiles.html">const</a> <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-64">NeedCompiledGoFiles</a> <a href="#name-LoadMode">LoadMode</a> = 4</label><span id='NeedCompiledGoFiles-fold-content-docs' class="fold-docs">
+<span class="md-text">		NeedCompiledGoFiles adds CompiledGoFiles.</span>
+
+</span></div><div class="anchor value-res" id="name-NeedDeps">	<input type='checkbox' class="fold" id="NeedDeps-fold-content"><label for="NeedDeps-fold-content"><a href="../../../../../use/golang.org/x/tools/go/packages..NeedDeps.html">const</a> <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-71">NeedDeps</a> <a href="#name-LoadMode">LoadMode</a> = 16</label><span id='NeedDeps-fold-content-docs' class="fold-docs">
+<span class="md-text">		NeedDeps adds the fields requested by the LoadMode in the packages in Imports.</span>
+
+</span></div><div class="anchor value-res" id="name-NeedEmbedFiles">	<input type='checkbox' class="fold" id="NeedEmbedFiles-fold-content"><label for="NeedEmbedFiles-fold-content"><a href="../../../../../use/golang.org/x/tools/go/packages..NeedEmbedFiles.html">const</a> <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-103">NeedEmbedFiles</a> <a href="#name-LoadMode">LoadMode</a> = 16384</label><span id='NeedEmbedFiles-fold-content-docs' class="fold-docs">
+<span class="md-text">		NeedEmbedFiles adds EmbedFiles.</span>
+
+</span></div><div class="anchor value-res" id="name-NeedEmbedPatterns">	<input type='checkbox' class="fold" id="NeedEmbedPatterns-fold-content"><label for="NeedEmbedPatterns-fold-content"><a href="../../../../../use/golang.org/x/tools/go/packages..NeedEmbedPatterns.html">const</a> <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-106">NeedEmbedPatterns</a> <a href="#name-LoadMode">LoadMode</a> = 32768</label><span id='NeedEmbedPatterns-fold-content-docs' class="fold-docs">
+<span class="md-text">		NeedEmbedPatterns adds EmbedPatterns.</span>
+
+</span></div><div class="anchor value-res" id="name-NeedExportFile">	<input type='checkbox' class="fold" id="NeedExportFile-fold-content"><label for="NeedExportFile-fold-content"><a href="../../../../../use/golang.org/x/tools/go/packages..NeedExportFile.html">const</a> <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-74">NeedExportFile</a> <a href="#name-LoadMode">LoadMode</a> = 32</label><span id='NeedExportFile-fold-content-docs' class="fold-docs">
+<span class="md-text">		NeedExportFile adds ExportFile.</span>
+
+</span></div><div class="anchor value-res" id="name-NeedExportsFile">	<input type='checkbox' class="fold" id="NeedExportsFile-fold-content"><label for="NeedExportsFile-fold-content"><a href="../../../../../use/golang.org/x/tools/go/packages..NeedExportsFile.html">const</a> <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-131">NeedExportsFile</a> <a href="#name-LoadMode">LoadMode</a> = 32</label><span id='NeedExportsFile-fold-content-docs' class="fold-docs">
+<span class="md-text">		Deprecated: NeedExportsFile is a historical misspelling of NeedExportFile.</span>
+
+</span></div><div class="anchor value-res" id="name-NeedFiles">	<input type='checkbox' class="fold" id="NeedFiles-fold-content"><label for="NeedFiles-fold-content"><a href="../../../../../use/golang.org/x/tools/go/packages..NeedFiles.html">const</a> <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-61">NeedFiles</a> <a href="#name-LoadMode">LoadMode</a> = 2</label><span id='NeedFiles-fold-content-docs' class="fold-docs">
+<span class="md-text">		NeedFiles adds GoFiles and OtherFiles.</span>
+
+</span></div><div class="anchor value-res" id="name-NeedImports">	<input type='checkbox' class="fold" id="NeedImports-fold-content"><label for="NeedImports-fold-content"><a href="../../../../../use/golang.org/x/tools/go/packages..NeedImports.html">const</a> <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-68">NeedImports</a> <a href="#name-LoadMode">LoadMode</a> = 8</label><span id='NeedImports-fold-content-docs' class="fold-docs">
+<span class="md-text">		NeedImports adds Imports. If NeedDeps is not set, the Imports field will contain
+		"placeholder" Packages with only the ID set.</span>
+
+</span></div><div class="anchor value-res" id="name-NeedModule">	<input type='checkbox' class="fold" id="NeedModule-fold-content"><label for="NeedModule-fold-content"><a href="../../../../../use/golang.org/x/tools/go/packages..NeedModule.html">const</a> <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-100">NeedModule</a> <a href="#name-LoadMode">LoadMode</a> = 8192</label><span id='NeedModule-fold-content-docs' class="fold-docs">
+<span class="md-text">		NeedModule adds Module.</span>
+
+</span></div><div class="anchor value-res" id="name-NeedName">	<input type='checkbox' class="fold" id="NeedName-fold-content"><label for="NeedName-fold-content"><a href="../../../../../use/golang.org/x/tools/go/packages..NeedName.html">const</a> <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-58">NeedName</a> <a href="#name-LoadMode">LoadMode</a> = 1</label><span id='NeedName-fold-content-docs' class="fold-docs">
+<span class="md-text">		NeedName adds Name and PkgPath.</span>
+
+</span></div><div class="anchor value-res" id="name-NeedSyntax">	<input type='checkbox' class="fold" id="NeedSyntax-fold-content"><label for="NeedSyntax-fold-content"><a href="../../../../../use/golang.org/x/tools/go/packages..NeedSyntax.html">const</a> <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-80">NeedSyntax</a> <a href="#name-LoadMode">LoadMode</a> = 128</label><span id='NeedSyntax-fold-content-docs' class="fold-docs">
+<span class="md-text">		NeedSyntax adds Syntax.</span>
+
+</span></div><div class="anchor value-res" id="name-NeedTypes">	<input type='checkbox' class="fold" id="NeedTypes-fold-content"><label for="NeedTypes-fold-content"><a href="../../../../../use/golang.org/x/tools/go/packages..NeedTypes.html">const</a> <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-77">NeedTypes</a> <a href="#name-LoadMode">LoadMode</a> = 64</label><span id='NeedTypes-fold-content-docs' class="fold-docs">
+<span class="md-text">		NeedTypes adds Types, Fset, and IllTyped.</span>
+
+</span></div><div class="anchor value-res" id="name-NeedTypesInfo">	<input type='checkbox' class="fold" id="NeedTypesInfo-fold-content"><label for="NeedTypesInfo-fold-content"><a href="../../../../../use/golang.org/x/tools/go/packages..NeedTypesInfo.html">const</a> <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-83">NeedTypesInfo</a> <a href="#name-LoadMode">LoadMode</a> = 256</label><span id='NeedTypesInfo-fold-content-docs' class="fold-docs">
+<span class="md-text">		NeedTypesInfo adds TypesInfo.</span>
+
+</span></div><div class="anchor value-res" id="name-NeedTypesSizes">	<input type='checkbox' class="fold" id="NeedTypesSizes-fold-content"><label for="NeedTypesSizes-fold-content"><a href="../../../../../use/golang.org/x/tools/go/packages..NeedTypesSizes.html">const</a> <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-86">NeedTypesSizes</a> <a href="#name-LoadMode">LoadMode</a> = 512</label><span id='NeedTypesSizes-fold-content-docs' class="fold-docs">
+<span class="md-text">		NeedTypesSizes adds TypesSizes.</span>
+
+</span></div><div class="anchor value-res" id="name-ParseError">	<span class="nodocs"><a href="../../../../../use/golang.org/x/tools/go/packages..ParseError.html">const</a> <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-587">ParseError</a> <a href="#name-ErrorKind">ErrorKind</a> = 2</span></div><div class="anchor value-res" id="name-TypeError">	<span class="nodocs"><a href="../../../../../use/golang.org/x/tools/go/packages..TypeError.html">const</a> <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-588">TypeError</a> <a href="#name-ErrorKind">ErrorKind</a> = 3</span></div><div class="anchor value-res" id="name-UnknownError">	<span class="nodocs"><a href="../../../../../use/golang.org/x/tools/go/packages..UnknownError.html">const</a> <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-585">UnknownError</a> <a href="#name-ErrorKind">ErrorKind</a> = 0</span></div>	<input type='checkbox' class="showhide" id="unexported-constants-showhide"><i><label for="unexported-constants-showhide" class="show-inline">/* 3 unexporteds ... */</label><label for="unexported-constants-showhide" class="hide-inline">/* 3 unexporteds: */</label></i><div class="anchor value-res hidden" id="name-needInternalDepsErrors"><i>	<input type='checkbox' class="fold" id="needInternalDepsErrors-fold-content"><label for="needInternalDepsErrors-fold-content"><a href="../../../../../use/golang.org/x/tools/go/packages..needInternalDepsErrors^ea88f.html">const</a> <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-89">needInternalDepsErrors</a> <a href="#name-LoadMode">LoadMode</a> = 1024</label><span id='needInternalDepsErrors-fold-content-docs' class="fold-docs">
+<span class="md-text">		needInternalDepsErrors adds the internal deps errors field for use by gopls.</span>
+
+</span></i></div><div class="anchor value-res hidden" id="name-needInternalForTest"><i>	<input type='checkbox' class="fold" id="needInternalForTest-fold-content"><label for="needInternalForTest-fold-content"><a href="../../../../../use/golang.org/x/tools/go/packages..needInternalForTest^856b8.html">const</a> <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-93">needInternalForTest</a> <a href="#name-LoadMode">LoadMode</a> = 2048</label><span id='needInternalForTest-fold-content-docs' class="fold-docs">
+<span class="md-text">		needInternalForTest adds the internal forTest field.
+		Tests must also be set on the context for this field to be populated.</span>
+
+</span></i></div><div class="anchor value-res hidden" id="name-typecheckCgo"><i>	<input type='checkbox' class="fold" id="typecheckCgo-fold-content"><label for="typecheckCgo-fold-content"><a href="../../../../../use/golang.org/x/tools/go/packages..typecheckCgo^c4011.html">const</a> <a href="../../../../../src/golang.org/x/tools/go/packages/packages.go.html#line-97">typecheckCgo</a> <a href="#name-LoadMode">LoadMode</a> = 4096</label><span id='typecheckCgo-fold-content-docs' class="fold-docs">
+<span class="md-text">		typecheckCgo enables full support for type checking cgo. Requires Go 1.15+.
+		Modifies CompiledGoFiles and Types, and has no effect on its own.</span>
+
+</span></i></div></div></code></pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

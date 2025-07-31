@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: doc.go in package golang.org/x/tools/go/packages</title>
+<link href="../../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	doc.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../../pkg/golang.org/x/tools/go/packages.html">golang.org/x/tools/go/packages</a>
+</code></pre>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2018 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<div class="anchor" id="doc"><span class="codeline" id="line-5"><code><span class="comment">/*</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment">Package packages loads Go packages for inspection and analysis.</span></code></span>
+<span class="codeline" id="line-7"><code></code></span>
+<span class="codeline" id="line-8"><code><span class="comment">The [Load] function takes as input a list of patterns and returns a</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment">list of [Package] values describing individual packages matched by those</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment">patterns.</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment">A [Config] specifies configuration options, the most important of which is</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment">the [LoadMode], which controls the amount of detail in the loaded packages.</span></code></span>
+<span class="codeline" id="line-13"><code></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">Load passes most patterns directly to the underlying build tool.</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">The default build tool is the go command.</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">Its supported patterns are described at</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">https://pkg.go.dev/cmd/go#hdr-Package_lists_and_patterns.</span></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">Other build systems may be supported by providing a "driver";</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">see [The driver protocol].</span></code></span>
+<span class="codeline" id="line-20"><code></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">All patterns with the prefix "query=", where query is a</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">non-empty string of letters from [a-z], are reserved and may be</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">interpreted as query operators.</span></code></span>
+<span class="codeline" id="line-24"><code></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">Two query operators are currently supported: "file" and "pattern".</span></code></span>
+<span class="codeline" id="line-26"><code></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">The query "file=path/to/file.go" matches the package or packages enclosing</span></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">the Go source file path/to/file.go.  For example "file=~/go/src/fmt/print.go"</span></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">might return the packages "fmt" and "fmt [fmt.test]".</span></code></span>
+<span class="codeline" id="line-30"><code></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">The query "pattern=string" causes "string" to be passed directly to</span></code></span>
+<span class="codeline" id="line-32"><code><span class="comment">the underlying build tool. In most cases this is unnecessary,</span></code></span>
+<span class="codeline" id="line-33"><code><span class="comment">but an application can use Load("pattern=" + x) as an escaping mechanism</span></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">to ensure that x is not interpreted as a query operator if it contains '='.</span></code></span>
+<span class="codeline" id="line-35"><code></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">All other query operators are reserved for future use and currently</span></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">cause Load to report an error.</span></code></span>
+<span class="codeline" id="line-38"><code></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">The Package struct provides basic information about the package, including</span></code></span>
+<span class="codeline" id="line-40"><code></code></span>
+<span class="codeline" id="line-41"><code><span class="comment">  - ID, a unique identifier for the package in the returned set;</span></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">  - GoFiles, the names of the package's Go source files;</span></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">  - Imports, a map from source import strings to the Packages they name;</span></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">  - Types, the type information for the package's exported symbols;</span></code></span>
+<span class="codeline" id="line-45"><code><span class="comment">  - Syntax, the parsed syntax trees for the package's source code; and</span></code></span>
+<span class="codeline" id="line-46"><code><span class="comment">  - TypesInfo, the result of a complete type-check of the package syntax trees.</span></code></span>
+<span class="codeline" id="line-47"><code></code></span>
+<span class="codeline" id="line-48"><code><span class="comment">(See the documentation for type Package for the complete list of fields</span></code></span>
+<span class="codeline" id="line-49"><code><span class="comment">and more detailed descriptions.)</span></code></span>
+<span class="codeline" id="line-50"><code></code></span>
+<span class="codeline" id="line-51"><code><span class="comment">For example,</span></code></span>
+<span class="codeline" id="line-52"><code></code></span>
+<span class="codeline" id="line-53"><code><span class="comment">	Load(nil, "bytes", "unicode...")</span></code></span>
+<span class="codeline" id="line-54"><code></code></span>
+<span class="codeline" id="line-55"><code><span class="comment">returns four Package structs describing the standard library packages</span></code></span>
+<span class="codeline" id="line-56"><code><span class="comment">bytes, unicode, unicode/utf16, and unicode/utf8. Note that one pattern</span></code></span>
+<span class="codeline" id="line-57"><code><span class="comment">can match multiple packages and that a package might be matched by</span></code></span>
+<span class="codeline" id="line-58"><code><span class="comment">multiple patterns: in general it is not possible to determine which</span></code></span>
+<span class="codeline" id="line-59"><code><span class="comment">packages correspond to which patterns.</span></code></span>
+<span class="codeline" id="line-60"><code></code></span>
+<span class="codeline" id="line-61"><code><span class="comment">Note that the list returned by Load contains only the packages matched</span></code></span>
+<span class="codeline" id="line-62"><code><span class="comment">by the patterns. Their dependencies can be found by walking the import</span></code></span>
+<span class="codeline" id="line-63"><code><span class="comment">graph using the Imports fields.</span></code></span>
+<span class="codeline" id="line-64"><code></code></span>
+<span class="codeline" id="line-65"><code><span class="comment">The Load function can be configured by passing a pointer to a Config as</span></code></span>
+<span class="codeline" id="line-66"><code><span class="comment">the first argument. A nil Config is equivalent to the zero Config, which</span></code></span>
+<span class="codeline" id="line-67"><code><span class="comment">causes Load to run in LoadFiles mode, collecting minimal information.</span></code></span>
+<span class="codeline" id="line-68"><code><span class="comment">See the documentation for type Config for details.</span></code></span>
+<span class="codeline" id="line-69"><code></code></span>
+<span class="codeline" id="line-70"><code><span class="comment">As noted earlier, the Config.Mode controls the amount of detail</span></code></span>
+<span class="codeline" id="line-71"><code><span class="comment">reported about the loaded packages. See the documentation for type LoadMode</span></code></span>
+<span class="codeline" id="line-72"><code><span class="comment">for details.</span></code></span>
+<span class="codeline" id="line-73"><code></code></span>
+<span class="codeline" id="line-74"><code><span class="comment">Most tools should pass their command-line arguments (after any flags)</span></code></span>
+<span class="codeline" id="line-75"><code><span class="comment">uninterpreted to [Load], so that it can interpret them</span></code></span>
+<span class="codeline" id="line-76"><code><span class="comment">according to the conventions of the underlying build system.</span></code></span>
+<span class="codeline" id="line-77"><code></code></span>
+<span class="codeline" id="line-78"><code><span class="comment">See the Example function for typical usage.</span></code></span>
+<span class="codeline" id="line-79"><code></code></span>
+<span class="codeline" id="line-80"><code><span class="comment"># The driver protocol</span></code></span>
+<span class="codeline" id="line-81"><code></code></span>
+<span class="codeline" id="line-82"><code><span class="comment">[Load] may be used to load Go packages even in Go projects that use</span></code></span>
+<span class="codeline" id="line-83"><code><span class="comment">alternative build systems, by installing an appropriate "driver"</span></code></span>
+<span class="codeline" id="line-84"><code><span class="comment">program for the build system and specifying its location in the</span></code></span>
+<span class="codeline" id="line-85"><code><span class="comment">GOPACKAGESDRIVER environment variable.</span></code></span>
+<span class="codeline" id="line-86"><code><span class="comment">For example,</span></code></span>
+<span class="codeline" id="line-87"><code><span class="comment">https://github.com/bazelbuild/rules_go/wiki/Editor-and-tool-integration</span></code></span>
+<span class="codeline" id="line-88"><code><span class="comment">explains how to use the driver for Bazel.</span></code></span>
+<span class="codeline" id="line-89"><code></code></span>
+<span class="codeline" id="line-90"><code><span class="comment">The driver program is responsible for interpreting patterns in its</span></code></span>
+<span class="codeline" id="line-91"><code><span class="comment">preferred notation and reporting information about the packages that</span></code></span>
+<span class="codeline" id="line-92"><code><span class="comment">those patterns identify. Drivers must also support the special "file="</span></code></span>
+<span class="codeline" id="line-93"><code><span class="comment">and "pattern=" patterns described above.</span></code></span>
+<span class="codeline" id="line-94"><code></code></span>
+<span class="codeline" id="line-95"><code><span class="comment">The patterns are provided as positional command-line arguments. A</span></code></span>
+<span class="codeline" id="line-96"><code><span class="comment">JSON-encoded [DriverRequest] message providing additional information</span></code></span>
+<span class="codeline" id="line-97"><code><span class="comment">is written to the driver's standard input. The driver must write a</span></code></span>
+<span class="codeline" id="line-98"><code><span class="comment">JSON-encoded [DriverResponse] message to its standard output. (This</span></code></span>
+<span class="codeline" id="line-99"><code><span class="comment">message differs from the JSON schema produced by 'go list'.)</span></code></span>
+<span class="codeline" id="line-100"><code><span class="comment">*/</span></code></span></div><span class="codeline" id="line-101"><code><span class="keyword">package</span> packages <span class="comment">// import "golang.org/x/tools/go/packages"</span></code></span>
+<span class="codeline" id="line-102"><code></code></span>
+<span class="codeline" id="line-103"><code><span class="comment">/*</span></code></span>
+<span class="codeline" id="line-104"><code></code></span>
+<span class="codeline" id="line-105"><code><span class="comment">Motivation and design considerations</span></code></span>
+<span class="codeline" id="line-106"><code></code></span>
+<span class="codeline" id="line-107"><code><span class="comment">The new package's design solves problems addressed by two existing</span></code></span>
+<span class="codeline" id="line-108"><code><span class="comment">packages: go/build, which locates and describes packages, and</span></code></span>
+<span class="codeline" id="line-109"><code><span class="comment">golang.org/x/tools/go/loader, which loads, parses and type-checks them.</span></code></span>
+<span class="codeline" id="line-110"><code><span class="comment">The go/build.Package structure encodes too much of the 'go build' way</span></code></span>
+<span class="codeline" id="line-111"><code><span class="comment">of organizing projects, leaving us in need of a data type that describes a</span></code></span>
+<span class="codeline" id="line-112"><code><span class="comment">package of Go source code independent of the underlying build system.</span></code></span>
+<span class="codeline" id="line-113"><code><span class="comment">We wanted something that works equally well with go build and vgo, and</span></code></span>
+<span class="codeline" id="line-114"><code><span class="comment">also other build systems such as Bazel and Blaze, making it possible to</span></code></span>
+<span class="codeline" id="line-115"><code><span class="comment">construct analysis tools that work in all these environments.</span></code></span>
+<span class="codeline" id="line-116"><code><span class="comment">Tools such as errcheck and staticcheck were essentially unavailable to</span></code></span>
+<span class="codeline" id="line-117"><code><span class="comment">the Go community at Google, and some of Google's internal tools for Go</span></code></span>
+<span class="codeline" id="line-118"><code><span class="comment">are unavailable externally.</span></code></span>
+<span class="codeline" id="line-119"><code><span class="comment">This new package provides a uniform way to obtain package metadata by</span></code></span>
+<span class="codeline" id="line-120"><code><span class="comment">querying each of these build systems, optionally supporting their</span></code></span>
+<span class="codeline" id="line-121"><code><span class="comment">preferred command-line notations for packages, so that tools integrate</span></code></span>
+<span class="codeline" id="line-122"><code><span class="comment">neatly with users' build environments. The Metadata query function</span></code></span>
+<span class="codeline" id="line-123"><code><span class="comment">executes an external query tool appropriate to the current workspace.</span></code></span>
+<span class="codeline" id="line-124"><code></code></span>
+<span class="codeline" id="line-125"><code><span class="comment">Loading packages always returns the complete import graph "all the way down",</span></code></span>
+<span class="codeline" id="line-126"><code><span class="comment">even if all you want is information about a single package, because the query</span></code></span>
+<span class="codeline" id="line-127"><code><span class="comment">mechanisms of all the build systems we currently support ({go,vgo} list, and</span></code></span>
+<span class="codeline" id="line-128"><code><span class="comment">blaze/bazel aspect-based query) cannot provide detailed information</span></code></span>
+<span class="codeline" id="line-129"><code><span class="comment">about one package without visiting all its dependencies too, so there is</span></code></span>
+<span class="codeline" id="line-130"><code><span class="comment">no additional asymptotic cost to providing transitive information.</span></code></span>
+<span class="codeline" id="line-131"><code><span class="comment">(This property might not be true of a hypothetical 5th build system.)</span></code></span>
+<span class="codeline" id="line-132"><code></code></span>
+<span class="codeline" id="line-133"><code><span class="comment">In calls to TypeCheck, all initial packages, and any package that</span></code></span>
+<span class="codeline" id="line-134"><code><span class="comment">transitively depends on one of them, must be loaded from source.</span></code></span>
+<span class="codeline" id="line-135"><code><span class="comment">Consider A-&gt;B-&gt;C-&gt;D-&gt;E: if A,C are initial, A,B,C must be loaded from</span></code></span>
+<span class="codeline" id="line-136"><code><span class="comment">source; D may be loaded from export data, and E may not be loaded at all</span></code></span>
+<span class="codeline" id="line-137"><code><span class="comment">(though it's possible that D's export data mentions it, so a</span></code></span>
+<span class="codeline" id="line-138"><code><span class="comment">types.Package may be created for it and exposed.)</span></code></span>
+<span class="codeline" id="line-139"><code></code></span>
+<span class="codeline" id="line-140"><code><span class="comment">The old loader had a feature to suppress type-checking of function</span></code></span>
+<span class="codeline" id="line-141"><code><span class="comment">bodies on a per-package basis, primarily intended to reduce the work of</span></code></span>
+<span class="codeline" id="line-142"><code><span class="comment">obtaining type information for imported packages. Now that imports are</span></code></span>
+<span class="codeline" id="line-143"><code><span class="comment">satisfied by export data, the optimization no longer seems necessary.</span></code></span>
+<span class="codeline" id="line-144"><code></code></span>
+<span class="codeline" id="line-145"><code><span class="comment">Despite some early attempts, the old loader did not exploit export data,</span></code></span>
+<span class="codeline" id="line-146"><code><span class="comment">instead always using the equivalent of WholeProgram mode. This was due</span></code></span>
+<span class="codeline" id="line-147"><code><span class="comment">to the complexity of mixing source and export data packages (now</span></code></span>
+<span class="codeline" id="line-148"><code><span class="comment">resolved by the upward traversal mentioned above), and because export data</span></code></span>
+<span class="codeline" id="line-149"><code><span class="comment">files were nearly always missing or stale. Now that 'go build' supports</span></code></span>
+<span class="codeline" id="line-150"><code><span class="comment">caching, all the underlying build systems can guarantee to produce</span></code></span>
+<span class="codeline" id="line-151"><code><span class="comment">export data in a reasonable (amortized) time.</span></code></span>
+<span class="codeline" id="line-152"><code></code></span>
+<span class="codeline" id="line-153"><code><span class="comment">Test "main" packages synthesized by the build system are now reported as</span></code></span>
+<span class="codeline" id="line-154"><code><span class="comment">first-class packages, avoiding the need for clients (such as go/ssa) to</span></code></span>
+<span class="codeline" id="line-155"><code><span class="comment">reinvent this generation logic.</span></code></span>
+<span class="codeline" id="line-156"><code></code></span>
+<span class="codeline" id="line-157"><code><span class="comment">One way in which go/packages is simpler than the old loader is in its</span></code></span>
+<span class="codeline" id="line-158"><code><span class="comment">treatment of in-package tests. In-package tests are packages that</span></code></span>
+<span class="codeline" id="line-159"><code><span class="comment">consist of all the files of the library under test, plus the test files.</span></code></span>
+<span class="codeline" id="line-160"><code><span class="comment">The old loader constructed in-package tests by a two-phase process of</span></code></span>
+<span class="codeline" id="line-161"><code><span class="comment">mutation called "augmentation": first it would construct and type check</span></code></span>
+<span class="codeline" id="line-162"><code><span class="comment">all the ordinary library packages and type-check the packages that</span></code></span>
+<span class="codeline" id="line-163"><code><span class="comment">depend on them; then it would add more (test) files to the package and</span></code></span>
+<span class="codeline" id="line-164"><code><span class="comment">type-check again. This two-phase approach had four major problems:</span></code></span>
+<span class="codeline" id="line-165"><code><span class="comment">1) in processing the tests, the loader modified the library package,</span></code></span>
+<span class="codeline" id="line-166"><code><span class="comment">   leaving no way for a client application to see both the test</span></code></span>
+<span class="codeline" id="line-167"><code><span class="comment">   package and the library package; one would mutate into the other.</span></code></span>
+<span class="codeline" id="line-168"><code><span class="comment">2) because test files can declare additional methods on types defined in</span></code></span>
+<span class="codeline" id="line-169"><code><span class="comment">   the library portion of the package, the dispatch of method calls in</span></code></span>
+<span class="codeline" id="line-170"><code><span class="comment">   the library portion was affected by the presence of the test files.</span></code></span>
+<span class="codeline" id="line-171"><code><span class="comment">   This should have been a clue that the packages were logically</span></code></span>
+<span class="codeline" id="line-172"><code><span class="comment">   different.</span></code></span>
+<span class="codeline" id="line-173"><code><span class="comment">3) this model of "augmentation" assumed at most one in-package test</span></code></span>
+<span class="codeline" id="line-174"><code><span class="comment">   per library package, which is true of projects using 'go build',</span></code></span>
+<span class="codeline" id="line-175"><code><span class="comment">   but not other build systems.</span></code></span>
+<span class="codeline" id="line-176"><code><span class="comment">4) because of the two-phase nature of test processing, all packages that</span></code></span>
+<span class="codeline" id="line-177"><code><span class="comment">   import the library package had to be processed before augmentation,</span></code></span>
+<span class="codeline" id="line-178"><code><span class="comment">   forcing a "one-shot" API and preventing the client from calling Load</span></code></span>
+<span class="codeline" id="line-179"><code><span class="comment">   in several times in sequence as is now possible in WholeProgram mode.</span></code></span>
+<span class="codeline" id="line-180"><code><span class="comment">   (TypeCheck mode has a similar one-shot restriction for a different reason.)</span></code></span>
+<span class="codeline" id="line-181"><code></code></span>
+<span class="codeline" id="line-182"><code><span class="comment">Early drafts of this package supported "multi-shot" operation.</span></code></span>
+<span class="codeline" id="line-183"><code><span class="comment">Although it allowed clients to make a sequence of calls (or concurrent</span></code></span>
+<span class="codeline" id="line-184"><code><span class="comment">calls) to Load, building up the graph of Packages incrementally,</span></code></span>
+<span class="codeline" id="line-185"><code><span class="comment">it was of marginal value: it complicated the API</span></code></span>
+<span class="codeline" id="line-186"><code><span class="comment">(since it allowed some options to vary across calls but not others),</span></code></span>
+<span class="codeline" id="line-187"><code><span class="comment">it complicated the implementation,</span></code></span>
+<span class="codeline" id="line-188"><code><span class="comment">it cannot be made to work in Types mode, as explained above,</span></code></span>
+<span class="codeline" id="line-189"><code><span class="comment">and it was less efficient than making one combined call (when this is possible).</span></code></span>
+<span class="codeline" id="line-190"><code><span class="comment">Among the clients we have inspected, none made multiple calls to load</span></code></span>
+<span class="codeline" id="line-191"><code><span class="comment">but could not be easily and satisfactorily modified to make only a single call.</span></code></span>
+<span class="codeline" id="line-192"><code><span class="comment">However, applications changes may be required.</span></code></span>
+<span class="codeline" id="line-193"><code><span class="comment">For example, the ssadump command loads the user-specified packages</span></code></span>
+<span class="codeline" id="line-194"><code><span class="comment">and in addition the runtime package.  It is tempting to simply append</span></code></span>
+<span class="codeline" id="line-195"><code><span class="comment">"runtime" to the user-provided list, but that does not work if the user</span></code></span>
+<span class="codeline" id="line-196"><code><span class="comment">specified an ad-hoc package such as [a.go b.go].</span></code></span>
+<span class="codeline" id="line-197"><code><span class="comment">Instead, ssadump no longer requests the runtime package,</span></code></span>
+<span class="codeline" id="line-198"><code><span class="comment">but seeks it among the dependencies of the user-specified packages,</span></code></span>
+<span class="codeline" id="line-199"><code><span class="comment">and emits an error if it is not found.</span></code></span>
+<span class="codeline" id="line-200"><code></code></span>
+<span class="codeline" id="line-201"><code><span class="comment">Questions &amp; Tasks</span></code></span>
+<span class="codeline" id="line-202"><code></code></span>
+<span class="codeline" id="line-203"><code><span class="comment">- Add GOARCH/GOOS?</span></code></span>
+<span class="codeline" id="line-204"><code><span class="comment">  They are not portable concepts, but could be made portable.</span></code></span>
+<span class="codeline" id="line-205"><code><span class="comment">  Our goal has been to allow users to express themselves using the conventions</span></code></span>
+<span class="codeline" id="line-206"><code><span class="comment">  of the underlying build system: if the build system honors GOARCH</span></code></span>
+<span class="codeline" id="line-207"><code><span class="comment">  during a build and during a metadata query, then so should</span></code></span>
+<span class="codeline" id="line-208"><code><span class="comment">  applications built atop that query mechanism.</span></code></span>
+<span class="codeline" id="line-209"><code><span class="comment">  Conversely, if the target architecture of the build is determined by</span></code></span>
+<span class="codeline" id="line-210"><code><span class="comment">  command-line flags, the application can pass the relevant</span></code></span>
+<span class="codeline" id="line-211"><code><span class="comment">  flags through to the build system using a command such as:</span></code></span>
+<span class="codeline" id="line-212"><code><span class="comment">    myapp -query_flag="--cpu=amd64" -query_flag="--os=darwin"</span></code></span>
+<span class="codeline" id="line-213"><code><span class="comment">  However, this approach is low-level, unwieldy, and non-portable.</span></code></span>
+<span class="codeline" id="line-214"><code><span class="comment">  GOOS and GOARCH seem important enough to warrant a dedicated option.</span></code></span>
+<span class="codeline" id="line-215"><code></code></span>
+<span class="codeline" id="line-216"><code><span class="comment">- How should we handle partial failures such as a mixture of good and</span></code></span>
+<span class="codeline" id="line-217"><code><span class="comment">  malformed patterns, existing and non-existent packages, successful and</span></code></span>
+<span class="codeline" id="line-218"><code><span class="comment">  failed builds, import failures, import cycles, and so on, in a call to</span></code></span>
+<span class="codeline" id="line-219"><code><span class="comment">  Load?</span></code></span>
+<span class="codeline" id="line-220"><code></code></span>
+<span class="codeline" id="line-221"><code><span class="comment">- Support bazel, blaze, and go1.10 list, not just go1.11 list.</span></code></span>
+<span class="codeline" id="line-222"><code></code></span>
+<span class="codeline" id="line-223"><code><span class="comment">- Handle (and test) various partial success cases, e.g.</span></code></span>
+<span class="codeline" id="line-224"><code><span class="comment">  a mixture of good packages and:</span></code></span>
+<span class="codeline" id="line-225"><code><span class="comment">  invalid patterns</span></code></span>
+<span class="codeline" id="line-226"><code><span class="comment">  nonexistent packages</span></code></span>
+<span class="codeline" id="line-227"><code><span class="comment">  empty packages</span></code></span>
+<span class="codeline" id="line-228"><code><span class="comment">  packages with malformed package or import declarations</span></code></span>
+<span class="codeline" id="line-229"><code><span class="comment">  unreadable files</span></code></span>
+<span class="codeline" id="line-230"><code><span class="comment">  import cycles</span></code></span>
+<span class="codeline" id="line-231"><code><span class="comment">  other parse errors</span></code></span>
+<span class="codeline" id="line-232"><code><span class="comment">  type errors</span></code></span>
+<span class="codeline" id="line-233"><code><span class="comment">  Make sure we record errors at the correct place in the graph.</span></code></span>
+<span class="codeline" id="line-234"><code></code></span>
+<span class="codeline" id="line-235"><code><span class="comment">- Missing packages among initial arguments are not reported.</span></code></span>
+<span class="codeline" id="line-236"><code><span class="comment">  Return bogus packages for them, like golist does.</span></code></span>
+<span class="codeline" id="line-237"><code></code></span>
+<span class="codeline" id="line-238"><code><span class="comment">- "undeclared name" errors (for example) are reported out of source file</span></code></span>
+<span class="codeline" id="line-239"><code><span class="comment">  order. I suspect this is due to the breadth-first resolution now used</span></code></span>
+<span class="codeline" id="line-240"><code><span class="comment">  by go/types. Is that a bug? Discuss with gri.</span></code></span>
+<span class="codeline" id="line-241"><code></code></span>
+<span class="codeline" id="line-242"><code><span class="comment">*/</span></code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

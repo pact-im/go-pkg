@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: sync.go in package golang.org/x/tools/internal/pkgbits</title>
+<link href="../../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	sync.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html">golang.org/x/tools/internal/pkgbits</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2021 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> pkgbits</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-8"><code>	<label for="i0"><span class="lit-string i0">"fmt"</span></label></code></span>
+<span class="codeline" id="line-9"><code>	<label for="i1"><span class="lit-string i1">"strings"</span></label></code></span>
+<span class="codeline" id="line-10"><code>)</code></span>
+<span class="codeline" id="line-11"><code></code></span>
+<span class="codeline" id="line-12"><code><span class="comment">// fmtFrames formats a backtrace for reporting reader/writer desyncs.</span></code></span>
+<span class="codeline" id="line-13"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-fmtFrames" class="ident">fmtFrames</a></label>(<label for="r1" class="ident">pcs</label> ...<a href="../../../../../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>) []<a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-14"><code>	<label for="r2" class="ident">res</label> := <a href="../../../../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>, <span class="lit-number">0</span>, <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r1" class="ident">pcs</label>))</code></span>
+<span class="codeline" id="line-15"><code>	<a href="frames_go17.go.html#line-15" class="ident">walkFrames</a>(<label for="r1" class="ident">pcs</label>, <span class="keyword">func</span>(<label for="r3" class="ident">file</label> <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r4" class="ident">line</label> <a href="../../../../../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r5" class="ident">name</label> <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r6" class="ident">offset</label> <a href="../../../../../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>) {</code></span>
+<span class="codeline" id="line-16"><code>		<span class="comment">// Trim package from function name. It's just redundant noise.</span></code></span>
+<span class="codeline" id="line-17"><code>		<label for="r5" class="ident">name</label> = <a href="../../../../../../pkg/strings.html" class="ident i1">strings</a>.<a href="../../../../../strings/strings.go.html#line-1125" class="ident">TrimPrefix</a>(<label for="r5" class="ident">name</label>, <span class="lit-string">"cmd/compile/internal/noder."</span>)</code></span>
+<span class="codeline" id="line-18"><code></code></span>
+<span class="codeline" id="line-19"><code>		<label for="r2" class="ident">res</label> = <a href="../../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r2" class="ident">res</label>, <a href="../../../../../../pkg/fmt.html" class="ident i0">fmt</a>.<a href="../../../../../fmt/print.go.html#line-237" class="ident">Sprintf</a>(<span class="lit-string">"%s:%v: %s +0x%v"</span>, <label for="r3" class="ident">file</label>, <label for="r4" class="ident">line</label>, <label for="r5" class="ident">name</label>, <label for="r6" class="ident">offset</label>))</code></span>
+<span class="codeline" id="line-20"><code>	})</code></span>
+<span class="codeline" id="line-21"><code>	<span class="keyword">return</span> <label for="r2" class="ident">res</label></code></span>
+<span class="codeline" id="line-22"><code>}</code></span>
+<span class="codeline" id="line-23"><code></code></span>
+<span class="codeline" id="line-24"><code><span class="keyword">type</span> <a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-frameVisitor" class="ident">frameVisitor</a> <span class="keyword">func</span>(file <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>, line <a href="../../../../../../pkg/builtin.html#name-int" class="ident">int</a>, name <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>, offset <a href="../../../../../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>)</code></span>
+<span class="codeline" id="line-25"><code></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">// SyncMarker is an enum type that represents markers that may be</span></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">// written to export data to ensure the reader and writer stay</span></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">// synchronized.</span></code></span>
+<span class="codeline" id="line-29"><code><span class="keyword">type</span> <a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncMarker" class="ident">SyncMarker</a> <a href="../../../../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-30"><code></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">//go:generate stringer -type=SyncMarker -trimprefix=Sync</span></code></span>
+<span class="codeline" id="line-32"><code></code></span>
+<span class="codeline" id="line-33"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-34"><code>	_ <a href="#line-29" class="ident">SyncMarker</a> = <a href="../../../../../../pkg/builtin.html#name-iota" class="ident">iota</a></code></span>
+<span class="codeline" id="line-35"><code></code></span>
+<span class="codeline" id="line-36"><code>	<span class="comment">// Public markers (known to go/types importers).</span></code></span>
+<span class="codeline" id="line-37"><code></code></span>
+<span class="codeline" id="line-38"><code>	<span class="comment">// Low-level coding markers.</span></code></span>
+<span class="codeline" id="line-39"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncEOF" class="ident">SyncEOF</a></code></span>
+<span class="codeline" id="line-40"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncBool" class="ident">SyncBool</a></code></span>
+<span class="codeline" id="line-41"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncInt64" class="ident">SyncInt64</a></code></span>
+<span class="codeline" id="line-42"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncUint64" class="ident">SyncUint64</a></code></span>
+<span class="codeline" id="line-43"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncString" class="ident">SyncString</a></code></span>
+<span class="codeline" id="line-44"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncValue" class="ident">SyncValue</a></code></span>
+<span class="codeline" id="line-45"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncVal" class="ident">SyncVal</a></code></span>
+<span class="codeline" id="line-46"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncRelocs" class="ident">SyncRelocs</a></code></span>
+<span class="codeline" id="line-47"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncReloc" class="ident">SyncReloc</a></code></span>
+<span class="codeline" id="line-48"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncUseReloc" class="ident">SyncUseReloc</a></code></span>
+<span class="codeline" id="line-49"><code></code></span>
+<span class="codeline" id="line-50"><code>	<span class="comment">// Higher-level object and type markers.</span></code></span>
+<span class="codeline" id="line-51"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncPublic" class="ident">SyncPublic</a></code></span>
+<span class="codeline" id="line-52"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncPos" class="ident">SyncPos</a></code></span>
+<span class="codeline" id="line-53"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncPosBase" class="ident">SyncPosBase</a></code></span>
+<span class="codeline" id="line-54"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncObject" class="ident">SyncObject</a></code></span>
+<span class="codeline" id="line-55"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncObject1" class="ident">SyncObject1</a></code></span>
+<span class="codeline" id="line-56"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncPkg" class="ident">SyncPkg</a></code></span>
+<span class="codeline" id="line-57"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncPkgDef" class="ident">SyncPkgDef</a></code></span>
+<span class="codeline" id="line-58"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncMethod" class="ident">SyncMethod</a></code></span>
+<span class="codeline" id="line-59"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncType" class="ident">SyncType</a></code></span>
+<span class="codeline" id="line-60"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncTypeIdx" class="ident">SyncTypeIdx</a></code></span>
+<span class="codeline" id="line-61"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncTypeParamNames" class="ident">SyncTypeParamNames</a></code></span>
+<span class="codeline" id="line-62"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncSignature" class="ident">SyncSignature</a></code></span>
+<span class="codeline" id="line-63"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncParams" class="ident">SyncParams</a></code></span>
+<span class="codeline" id="line-64"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncParam" class="ident">SyncParam</a></code></span>
+<span class="codeline" id="line-65"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncCodeObj" class="ident">SyncCodeObj</a></code></span>
+<span class="codeline" id="line-66"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncSym" class="ident">SyncSym</a></code></span>
+<span class="codeline" id="line-67"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncLocalIdent" class="ident">SyncLocalIdent</a></code></span>
+<span class="codeline" id="line-68"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncSelector" class="ident">SyncSelector</a></code></span>
+<span class="codeline" id="line-69"><code></code></span>
+<span class="codeline" id="line-70"><code>	<span class="comment">// Private markers (only known to cmd/compile).</span></code></span>
+<span class="codeline" id="line-71"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncPrivate" class="ident">SyncPrivate</a></code></span>
+<span class="codeline" id="line-72"><code></code></span>
+<span class="codeline" id="line-73"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncFuncExt" class="ident">SyncFuncExt</a></code></span>
+<span class="codeline" id="line-74"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncVarExt" class="ident">SyncVarExt</a></code></span>
+<span class="codeline" id="line-75"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncTypeExt" class="ident">SyncTypeExt</a></code></span>
+<span class="codeline" id="line-76"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncPragma" class="ident">SyncPragma</a></code></span>
+<span class="codeline" id="line-77"><code></code></span>
+<span class="codeline" id="line-78"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncExprList" class="ident">SyncExprList</a></code></span>
+<span class="codeline" id="line-79"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncExprs" class="ident">SyncExprs</a></code></span>
+<span class="codeline" id="line-80"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncExpr" class="ident">SyncExpr</a></code></span>
+<span class="codeline" id="line-81"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncExprType" class="ident">SyncExprType</a></code></span>
+<span class="codeline" id="line-82"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncAssign" class="ident">SyncAssign</a></code></span>
+<span class="codeline" id="line-83"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncOp" class="ident">SyncOp</a></code></span>
+<span class="codeline" id="line-84"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncFuncLit" class="ident">SyncFuncLit</a></code></span>
+<span class="codeline" id="line-85"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncCompLit" class="ident">SyncCompLit</a></code></span>
+<span class="codeline" id="line-86"><code></code></span>
+<span class="codeline" id="line-87"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncDecl" class="ident">SyncDecl</a></code></span>
+<span class="codeline" id="line-88"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncFuncBody" class="ident">SyncFuncBody</a></code></span>
+<span class="codeline" id="line-89"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncOpenScope" class="ident">SyncOpenScope</a></code></span>
+<span class="codeline" id="line-90"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncCloseScope" class="ident">SyncCloseScope</a></code></span>
+<span class="codeline" id="line-91"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncCloseAnotherScope" class="ident">SyncCloseAnotherScope</a></code></span>
+<span class="codeline" id="line-92"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncDeclNames" class="ident">SyncDeclNames</a></code></span>
+<span class="codeline" id="line-93"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncDeclName" class="ident">SyncDeclName</a></code></span>
+<span class="codeline" id="line-94"><code></code></span>
+<span class="codeline" id="line-95"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncStmts" class="ident">SyncStmts</a></code></span>
+<span class="codeline" id="line-96"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncBlockStmt" class="ident">SyncBlockStmt</a></code></span>
+<span class="codeline" id="line-97"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncIfStmt" class="ident">SyncIfStmt</a></code></span>
+<span class="codeline" id="line-98"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncForStmt" class="ident">SyncForStmt</a></code></span>
+<span class="codeline" id="line-99"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncSwitchStmt" class="ident">SyncSwitchStmt</a></code></span>
+<span class="codeline" id="line-100"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncRangeStmt" class="ident">SyncRangeStmt</a></code></span>
+<span class="codeline" id="line-101"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncCaseClause" class="ident">SyncCaseClause</a></code></span>
+<span class="codeline" id="line-102"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncCommClause" class="ident">SyncCommClause</a></code></span>
+<span class="codeline" id="line-103"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncSelectStmt" class="ident">SyncSelectStmt</a></code></span>
+<span class="codeline" id="line-104"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncDecls" class="ident">SyncDecls</a></code></span>
+<span class="codeline" id="line-105"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncLabeledStmt" class="ident">SyncLabeledStmt</a></code></span>
+<span class="codeline" id="line-106"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncUseObjLocal" class="ident">SyncUseObjLocal</a></code></span>
+<span class="codeline" id="line-107"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncAddLocal" class="ident">SyncAddLocal</a></code></span>
+<span class="codeline" id="line-108"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncLinkname" class="ident">SyncLinkname</a></code></span>
+<span class="codeline" id="line-109"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncStmt1" class="ident">SyncStmt1</a></code></span>
+<span class="codeline" id="line-110"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncStmtsEnd" class="ident">SyncStmtsEnd</a></code></span>
+<span class="codeline" id="line-111"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncLabel" class="ident">SyncLabel</a></code></span>
+<span class="codeline" id="line-112"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-SyncOptLabel" class="ident">SyncOptLabel</a></code></span>
+<span class="codeline" id="line-113"><code>)</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

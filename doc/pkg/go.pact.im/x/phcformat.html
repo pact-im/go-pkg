@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Package: go.pact.im/x/phcformat</title>
+<link href="../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="package-details"><code><span style="font-size:xx-large;">package <b>phcformat</b></span>
+
+<span class="title">Import Path</span>
+	<a href="../../../index.html#pkg-go.pact.im/x/phcformat">go.pact.im/x/phcformat</a><i> (on <a href="https://pkg.go.dev/go.pact.im/x/phcformat" target="_blank">go.dev</a>)</i>
+
+<span class="title">Dependency Relation</span>
+	imports <a href="../../../dep/go.pact.im/x/phcformat.html">5 packages</a>, and imported by <a href="../../../dep/go.pact.im/x/phcformat.html#imported-by">one package</a>
+
+<div id="files"><span class="title">Involved Source Files</span>
+
+	<span class="nodocs">    <a href="../../../src/go.pact.im/x/phcformat/append.go.html">append.go</a></span>
+	<span class="nodocs">    <a href="../../../src/go.pact.im/x/phcformat/params.go.html">params.go</a></span>
+	<span class="nodocs">    <a href="../../../src/go.pact.im/x/phcformat/parse.go.html">parse.go</a></span>
+	<input type='checkbox' checked class="fold" id="file-3-fold-content"><label for="file-3-fold-content">  <a href="../../../src/go.pact.im/x/phcformat/phcformat.go.html#doc">d</a> <a href="../../../src/go.pact.im/x/phcformat/phcformat.go.html">phcformat.go</a></label><span id='file-3-fold-content-items' class="fold-items">
+<span class="md-text">		Package phcformat implements PHC string format parser and encoder.
+		
+		See https://github.com/P-H-C/phc-string-format</span></span></div>
+<div id="examples"><span class="title">Code Examples</span>
+
+	<input type='checkbox' class="fold" id="example-0-fold-content"><label for="example-0-fold-content">Append_argon2id</label><span id='example-0-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+		
+			"go.pact.im/x/option"
+		
+			"go.pact.im/x/phcformat"
+			"go.pact.im/x/phcformat/encode"
+		)
+		
+		func main() {
+			var (
+				// version is the version of the Argon2 algorithm.
+				//
+				// Example:
+				//  version := argon2.Version
+				version = 19
+				// salt is the random salt bytes.
+				//
+				// Example:
+				//  import "crypto/rand"
+				//  salt := make([]byte, 16)
+				//  if _, err := io.ReadFull(rand.Reader, salt); err != nil {
+				//      panic(err)
+				//  }
+				salt = []byte{
+					0x81, 0x98, 0x95, 0xFC, 0xCD, 0x60, 0x3D, 0xCD,
+					0xB6, 0x12, 0x50, 0x07, 0xFC, 0x98, 0x75, 0x1F,
+				}
+				// time is the time constraint parameter.
+				time = uint32(2)
+				// memory is the time constraint parameter.
+				memory = uint32(64 * 1024)
+				// threads is the parallelism parameter.
+				threads = uint8(1)
+				// output is the hash function output.
+				//
+				// Example:
+				//  output := argon2.IDKey([]byte("pass"), salt, time, memory, threads, 32)
+				output = []byte{
+					0xDA, 0x9F, 0xFE, 0x1E, 0x01, 0x48, 0xD4, 0xE1,
+					0x07, 0x32, 0xFD, 0xAA, 0x88, 0xC3, 0x7A, 0x5C,
+					0xC8, 0xC0, 0xC4, 0x23, 0xC7, 0xED, 0xA5, 0xC9,
+					0x09, 0x78, 0x21, 0xE7, 0xD9, 0x7C, 0x0D, 0xBD,
+				}
+			)
+			newParam := func(k string, v uint) encode.KV[encode.String, encode.Byte, encode.Uint] {
+				return encode.NewKV(encode.NewByte('='), encode.NewString(k), encode.NewUint(v))
+			}
+			fmt.Println(string(phcformat.Append(nil,
+				encode.String("argon2id"),
+				option.Value(encode.NewUint(uint(version))),
+				option.Value(encode.NewList(
+					encode.NewByte(','),
+					newParam("m", uint(memory)),
+					newParam("t", uint(time)),
+					newParam("p", uint(threads)),
+				)),
+				option.Value(encode.NewBase64(salt)),
+				option.Value(encode.NewBase64(output)),
+			)))
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-1-fold-content"><label for="example-1-fold-content">IterParams</label><span id='example-1-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+		
+			"go.pact.im/x/option"
+		
+			"go.pact.im/x/phcformat"
+		)
+		
+		func main() {
+			params := option.Value("a=b,c=d")
+			it := phcformat.IterParams(option.UnwrapOrZero(params))
+			for ; it.Valid; it = it.Next() {
+				fmt.Println(it.Name, it.Value)
+			}
+			if it.After != "" {
+				panic("parse error")
+			}
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-2-fold-content"><label for="example-2-fold-content">MustParse</label><span id='example-2-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+		
+			"go.pact.im/x/option"
+		
+			"go.pact.im/x/phcformat"
+		)
+		
+		func main() {
+			h := phcformat.MustParse("$name$v=42$k=v$salt$hash")
+			fmt.Println(h)
+			fmt.Println(h.ID)
+			fmt.Println(option.UnwrapOrZero(h.Version))
+			fmt.Println(option.UnwrapOrZero(h.Params))
+			fmt.Println(option.UnwrapOrZero(h.Salt))
+			fmt.Println(option.UnwrapOrZero(h.Output))
+		}
+</span>
+</div>
+<div id="exported-types"><span class="title">Package-Level Type Names<span class="title-stat"><i> (total 2, both are exported)</i></span></span>
+
+<div id="exported-types-buttons" class="js-on">	/* sort exporteds by: <label id="sort-types-by-alphabet" class="button">alphabet</label> | <label id="sort-types-by-popularity" class="button">popularity</label> */</div><div class="anchor type-res" id="name-Hash" data-popularity="450">	<input type='checkbox' class="fold" id="Hash-fold-content"><label for="Hash-fold-content"> <a href="../../../use/go.pact.im/x/phcformat..Hash.html">type</a> <a href="../../../src/go.pact.im/x/phcformat/phcformat.go.html#line-11">Hash</a> <i>(struct)</i></label><span id='Hash-fold-content-docs' class="fold-docs">
+<span class="md-text">		Hash represents a hash function in PHC string format.</span>
+
+		<input type='checkbox' class="fold" id="Hash-fold-fields"><label for="Hash-fold-fields">Fields (<i>total 6, all are exported</i>)</label><span id='Hash-fold-fields-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="Hash-fold-field-ID"><label for="Hash-fold-field-ID"><a href="../../../src/go.pact.im/x/phcformat/phcformat.go.html#line-16">ID</a> <i><a href="../../builtin.html#name-string">string</a></i></label><span id='Hash-fold-field-ID-docs' class="fold-docs">
+<span class="md-text">				ID is the symbolic name for the function. The function symbolic name
+				is a sequence of characters in: [a-z0-9-] (lowercase letters, digits,
+				and the minus sign). No other characters are allowed. A name must not
+				exceed 32 characters in length. Note that it is allowed to be empty.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Hash-fold-field-Output"><label for="Hash-fold-field-Output"><a href="../../../src/go.pact.im/x/phcformat/phcformat.go.html#line-30">Output</a> <i><a href="option.html">option</a>.<a href="option.html#name-Of">Of</a>[<a href="../../builtin.html#name-string">string</a>]</i></label><span id='Hash-fold-field-Output-docs' class="fold-docs">
+<span class="md-text">				Output is the base64-encoded function output.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Hash-fold-field-Params"><label for="Hash-fold-field-Params"><a href="../../../src/go.pact.im/x/phcformat/phcformat.go.html#line-24">Params</a> <i><a href="option.html">option</a>.<a href="option.html#name-Of">Of</a>[<a href="../../builtin.html#name-string">string</a>]</i></label><span id='Hash-fold-field-Params-docs' class="fold-docs">
+<span class="md-text">				Params is a comma-separated sequence of "key=value" parameter pairs.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Hash-fold-field-Raw"><label for="Hash-fold-field-Raw"><a href="../../../src/go.pact.im/x/phcformat/phcformat.go.html#line-33">Raw</a> <i><a href="../../builtin.html#name-string">string</a></i></label><span id='Hash-fold-field-Raw-docs' class="fold-docs">
+<span class="md-text">				Raw is the unparsed hash in PHC string format.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Hash-fold-field-Salt"><label for="Hash-fold-field-Salt"><a href="../../../src/go.pact.im/x/phcformat/phcformat.go.html#line-27">Salt</a> <i><a href="option.html">option</a>.<a href="option.html#name-Of">Of</a>[<a href="../../builtin.html#name-string">string</a>]</i></label><span id='Hash-fold-field-Salt-docs' class="fold-docs">
+<span class="md-text">				Salt is an encoded salt string.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Hash-fold-field-Version"><label for="Hash-fold-field-Version"><a href="../../../src/go.pact.im/x/phcformat/phcformat.go.html#line-21">Version</a> <i><a href="option.html">option</a>.<a href="option.html#name-Of">Of</a>[<a href="../../builtin.html#name-string">string</a>]</i></label><span id='Hash-fold-field-Version-docs' class="fold-docs">
+<span class="md-text">				Version is the algorithm version. The function version is a sequence
+				of characters in: [0-9]. Note that it is allowed to be empty.
+				prohibited)</span>
+</span></span></span>
+		<input type='checkbox' class="fold" id="Hash-fold-methods"><label for="Hash-fold-methods">Methods (<i>only one, which is exported</i>)</label><span id='Hash-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="Hash-fold-method-String"><label for="Hash-fold-method-String">( Hash) <a href="../../../src/go.pact.im/x/phcformat/phcformat.go.html#line-38">String</a>() <a href="../../builtin.html#name-string">string</a></label><span id='Hash-fold-method-String-docs' class="fold-docs">
+<span class="md-text">				String implements the fmt.Stringer interface. It returns the hash in PHC
+				string format.</span>
+</span></span></span>
+		<input type='checkbox' class="fold" id="Hash-fold-impls"><label for="Hash-fold-impls">Implements (<i>at least 5, in which 2 are exported</i>)</label><span id='Hash-fold-impls-items' class="fold-items"><span>
+			 Hash : expvar.<a href="../../expvar.html#name-Var">Var</a></span><span>
+			 Hash : fmt.<a href="../../fmt.html#name-Stringer">Stringer</a></span>
+			<input type='checkbox' class="showhide" id="Hash-showhide-impls"><i><label for="Hash-showhide-impls" class="show-inline">/* 3+ unexporteds ... */</label><label for="Hash-showhide-impls" class="hide-inline">/* 3+ unexporteds: */</label></i><span class="hidden"><i>
+			 Hash : context.<a href="../../context.html#name-stringer">stringer</a></i></span><span class="hidden"><i>
+			 Hash : github.com/aws/smithy-go/middleware.<a href="../../github.com/aws/smithy-go/middleware.html#name-stringer">stringer</a></i></span><span class="hidden"><i>
+			 Hash : runtime.<a href="../../runtime.html#name-stringer">stringer</a></i></span></span>
+		<input type='checkbox' class="fold" id="Hash-fold-results"><label for="Hash-fold-results">As Outputs Of (<i>at least 2, both are exported</i>)</label><span id='Hash-fold-results-items' class="fold-items"><span>
+			func <a href="#name-MustParse">MustParse</a>(s <a href="../../builtin.html#name-string">string</a>) <b>Hash</b></span><span>
+			func <a href="#name-Parse">Parse</a>(s <a href="../../builtin.html#name-string">string</a>) (<b>Hash</b>, <a href="../../builtin.html#name-bool">bool</a>)</span></span>
+
+</span></div><div class="anchor type-res" id="name-ParamsIterator" data-popularity="200">	<input type='checkbox' class="fold" id="ParamsIterator-fold-content"><label for="ParamsIterator-fold-content"> <a href="../../../use/go.pact.im/x/phcformat..ParamsIterator.html">type</a> <a href="../../../src/go.pact.im/x/phcformat/params.go.html#line-10">ParamsIterator</a> <i>(struct)</i></label><span id='ParamsIterator-fold-content-docs' class="fold-docs">
+<span class="md-text">		ParamsIterator iterates over comma-separated key=value parameter pairs. Note
+		that iterator does not validate characters in parameter’s key and value.</span>
+
+		<input type='checkbox' class="fold" id="ParamsIterator-fold-fields"><label for="ParamsIterator-fold-fields">Fields (<i>total 4, all are exported</i>)</label><span id='ParamsIterator-fold-fields-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="ParamsIterator-fold-field-After"><label for="ParamsIterator-fold-field-After"><a href="../../../src/go.pact.im/x/phcformat/params.go.html#line-16">After</a> <i><a href="../../builtin.html#name-string">string</a></i></label><span id='ParamsIterator-fold-field-After-docs' class="fold-docs">
+<span class="md-text">				After is the string with remaining parameters.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="ParamsIterator-fold-field-Name"><label for="ParamsIterator-fold-field-Name"><a href="../../../src/go.pact.im/x/phcformat/params.go.html#line-12">Name</a> <i><a href="../../builtin.html#name-string">string</a></i></label><span id='ParamsIterator-fold-field-Name-docs' class="fold-docs">
+<span class="md-text">				Name is the name of the current parameter.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="ParamsIterator-fold-field-Valid"><label for="ParamsIterator-fold-field-Valid"><a href="../../../src/go.pact.im/x/phcformat/params.go.html#line-19">Valid</a> <i><a href="../../builtin.html#name-bool">bool</a></i></label><span id='ParamsIterator-fold-field-Valid-docs' class="fold-docs">
+<span class="md-text">				Valid indicates that the iterator is valid. On parse error, After
+				will contain unparsed bytes.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="ParamsIterator-fold-field-Value"><label for="ParamsIterator-fold-field-Value"><a href="../../../src/go.pact.im/x/phcformat/params.go.html#line-14">Value</a> <i><a href="../../builtin.html#name-string">string</a></i></label><span id='ParamsIterator-fold-field-Value-docs' class="fold-docs">
+<span class="md-text">				Value is the value of the current parameter.</span>
+</span></span></span>
+		<input type='checkbox' class="fold" id="ParamsIterator-fold-methods"><label for="ParamsIterator-fold-methods">Methods (<i>only one, which is exported</i>)</label><span id='ParamsIterator-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="ParamsIterator-fold-method-Next"><label for="ParamsIterator-fold-method-Next">( ParamsIterator) <a href="../../../src/go.pact.im/x/phcformat/params.go.html#line-32">Next</a>() <b>ParamsIterator</b></label><span id='ParamsIterator-fold-method-Next-docs' class="fold-docs">
+<span class="md-text">				Next advances to the next parameter in the sequence.</span>
+</span></span></span>
+		<input type='checkbox' class="fold" id="ParamsIterator-fold-results"><label for="ParamsIterator-fold-results">As Outputs Of (<i>at least 2, both are exported</i>)</label><span id='ParamsIterator-fold-results-items' class="fold-items"><span>
+			func <a href="#name-IterParams">IterParams</a>(s <a href="../../builtin.html#name-string">string</a>) <b>ParamsIterator</b></span><span>
+			func ParamsIterator.<a href="../../../src/go.pact.im/x/phcformat/params.go.html#line-32">Next</a>() <b>ParamsIterator</b></span></span>
+
+</span></div></div>
+<div id="exported-functions"><span class="title">Package-Level Functions<span class="title-stat"><i> (total 12, in which 4 are exported)</i></span></span>
+
+<div class="anchor value-res" id="name-Append">	<input type='checkbox' class="fold" id="Append-fold-content"><label for="Append-fold-content"> <a href="../../../use/go.pact.im/x/phcformat..Append.html">func</a> <a href="../../../src/go.pact.im/x/phcformat/append.go.html#line-24">Append</a>[NameAppender, VersionAppender, ParamsAppender, SaltAppender, OutputAppender](dst []<a href="../../builtin.html#name-byte">byte</a>, name NameAppender, version <a href="option.html">option</a>.<a href="option.html#name-Of">Of</a>[VersionAppender], params <a href="option.html">option</a>.<a href="option.html#name-Of">Of</a>[ParamsAppender], salt <a href="option.html">option</a>.<a href="option.html#name-Of">Of</a>[SaltAppender], output <a href="option.html">option</a>.<a href="option.html#name-Of">Of</a>[OutputAppender]) []<a href="../../builtin.html#name-byte">byte</a></label><span id='Append-fold-content-docs' class="fold-docs">
+
+		Type Parameters:
+			NameAppender: <a href="phcformat/encode.html">encode</a>.<a href="phcformat/encode.html#name-Appender">Appender</a>
+			VersionAppender: <a href="phcformat/encode.html">encode</a>.<a href="phcformat/encode.html#name-Appender">Appender</a>
+			ParamsAppender: <a href="phcformat/encode.html">encode</a>.<a href="phcformat/encode.html#name-Appender">Appender</a>
+			SaltAppender: <a href="phcformat/encode.html">encode</a>.<a href="phcformat/encode.html#name-Appender">Appender</a>
+			OutputAppender: <a href="phcformat/encode.html">encode</a>.<a href="phcformat/encode.html#name-Appender">Appender</a>
+
+<span class="md-text">		Append appends the given parameters in a PHC string format to dst and returns
+		the resulting slice.
+		
+		The caller is responsible for ensuring that:
+		  - name is a sequence of characters in “a-z0-9-”.
+		  - version is a sequence of characters in “0-9”.
+		  - params is a sequence of comma-separated name and value pairs (separated by
+		    equals sign) where name is a sequence of characters in “a-z0-9-” and value
+		    is a sequence of characters in “a-zA-Z0-9/+.-”. If version is not set and
+		    only a single parameter named “v” is given, to avoid ambiguity, its value
+		    must not be a sequence of characters in “0-9” (as in version).
+		  - salt is a sequence of characters in “a-zA-Z0-9/+.-”.
+		  - output is a sequence of characters in “A-Za-z0-9+/” (base64 character set)
+		    and salt is set. That is, it must be a base64-encoded string and implies
+		    that salt is set.</span>
+
+</span></div><div class="anchor value-res" id="name-IterParams">	<input type='checkbox' class="fold" id="IterParams-fold-content"><label for="IterParams-fold-content"> <a href="../../../use/go.pact.im/x/phcformat..IterParams.html">func</a> <a href="../../../src/go.pact.im/x/phcformat/params.go.html#line-23">IterParams</a>(s <a href="../../builtin.html#name-string">string</a>) <a href="#name-ParamsIterator">ParamsIterator</a></label><span id='IterParams-fold-content-docs' class="fold-docs">
+<span class="md-text">		IterParams returns a ParamsIterator for the given string.</span>
+
+</span></div><div class="anchor value-res" id="name-MustParse">	<input type='checkbox' class="fold" id="MustParse-fold-content"><label for="MustParse-fold-content"> <a href="../../../use/go.pact.im/x/phcformat..MustParse.html">func</a> <a href="../../../src/go.pact.im/x/phcformat/parse.go.html#line-11">MustParse</a>(s <a href="../../builtin.html#name-string">string</a>) <a href="#name-Hash">Hash</a></label><span id='MustParse-fold-content-docs' class="fold-docs">
+<span class="md-text">		MustParse is like Parse but panics on parse error.</span>
+
+</span></div><div class="anchor value-res" id="name-Parse">	<input type='checkbox' class="fold" id="Parse-fold-content"><label for="Parse-fold-content"> <a href="../../../use/go.pact.im/x/phcformat..Parse.html">func</a> <a href="../../../src/go.pact.im/x/phcformat/parse.go.html#line-21">Parse</a>(s <a href="../../builtin.html#name-string">string</a>) (<a href="#name-Hash">Hash</a>, <a href="../../builtin.html#name-bool">bool</a>)</label><span id='Parse-fold-content-docs' class="fold-docs">
+<span class="md-text">		Parse parses PHC formatted string s. It returns the parsed hash and a boolean
+		value indicating either success or parse error.</span>
+
+</span></div>	<input type='checkbox' class="showhide" id="unexported-functions-showhide"><i><label for="unexported-functions-showhide" class="show-inline">/* 8 unexporteds ... */</label><label for="unexported-functions-showhide" class="hide-inline">/* 8 unexporteds: */</label></i><div class="anchor value-res hidden" id="name-nextParam"><i>	<input type='checkbox' class="fold" id="nextParam-fold-content"><label for="nextParam-fold-content"> <a href="../../../use/go.pact.im/x/phcformat..nextParam^6a687.html">func</a> <a href="../../../src/go.pact.im/x/phcformat/params.go.html#line-38">nextParam</a>(s <a href="../../builtin.html#name-string">string</a>) (name, value, after <a href="../../builtin.html#name-string">string</a>, ok <a href="../../builtin.html#name-bool">bool</a>)</label><span id='nextParam-fold-content-docs' class="fold-docs">
+<span class="md-text">		nextParam returns the next parameter in s and the remaining string.</span>
+
+</span></i></div><div class="anchor value-res hidden" id="name-optionAppenderWithPrefix"><i>	<input type='checkbox' class="fold" id="optionAppenderWithPrefix-fold-content"><label for="optionAppenderWithPrefix-fold-content"> <a href="../../../use/go.pact.im/x/phcformat..optionAppenderWithPrefix^4124c.html">func</a> <a href="../../../src/go.pact.im/x/phcformat/append.go.html#line-52">optionAppenderWithPrefix</a>[PrefixAppender, OptionAppender](prefix PrefixAppender, opt <a href="option.html">option</a>.<a href="option.html#name-Of">Of</a>[OptionAppender]) <a href="phcformat/encode.html">encode</a>.<a href="phcformat/encode.html#name-Option">Option</a>[<a href="phcformat/encode.html">encode</a>.<a href="phcformat/encode.html#name-Concat">Concat</a>[PrefixAppender, OptionAppender]]</label><span id='optionAppenderWithPrefix-fold-content-docs' class="fold-docs">
+
+		Type Parameters:
+			PrefixAppender: <a href="phcformat/encode.html">encode</a>.<a href="phcformat/encode.html#name-Appender">Appender</a>
+			OptionAppender: <a href="phcformat/encode.html">encode</a>.<a href="phcformat/encode.html#name-Appender">Appender</a>
+
+<span class="md-text">		optionAppenderWithPrefix returns an encode.Appender that, if set, is prefixed
+		with the given prefix.</span>
+
+</span></i></div><div class="anchor value-res hidden" id="name-validID"><i>	<span class="nodocs"> <a href="../../../use/go.pact.im/x/phcformat..validID^14381.html">func</a> <a href="../../../src/go.pact.im/x/phcformat/phcformat.go.html#line-42">validID</a>(c <a href="../../builtin.html#name-byte">byte</a>) <a href="../../builtin.html#name-bool">bool</a></span></i></div><div class="anchor value-res hidden" id="name-validOutput"><i>	<span class="nodocs"> <a href="../../../use/go.pact.im/x/phcformat..validOutput^3d84b.html">func</a> <a href="../../../src/go.pact.im/x/phcformat/phcformat.go.html#line-62">validOutput</a>(c <a href="../../builtin.html#name-byte">byte</a>) <a href="../../builtin.html#name-bool">bool</a></span></i></div><div class="anchor value-res hidden" id="name-validParamName"><i>	<span class="nodocs"> <a href="../../../use/go.pact.im/x/phcformat..validParamName^2bb66.html">func</a> <a href="../../../src/go.pact.im/x/phcformat/phcformat.go.html#line-50">validParamName</a>(c <a href="../../builtin.html#name-byte">byte</a>) <a href="../../builtin.html#name-bool">bool</a></span></i></div><div class="anchor value-res hidden" id="name-validParamValue"><i>	<span class="nodocs"> <a href="../../../use/go.pact.im/x/phcformat..validParamValue^eecd9.html">func</a> <a href="../../../src/go.pact.im/x/phcformat/phcformat.go.html#line-54">validParamValue</a>(c <a href="../../builtin.html#name-byte">byte</a>) <a href="../../builtin.html#name-bool">bool</a></span></i></div><div class="anchor value-res hidden" id="name-validSalt"><i>	<span class="nodocs"> <a href="../../../use/go.pact.im/x/phcformat..validSalt^319bf.html">func</a> <a href="../../../src/go.pact.im/x/phcformat/phcformat.go.html#line-58">validSalt</a>(c <a href="../../builtin.html#name-byte">byte</a>) <a href="../../builtin.html#name-bool">bool</a></span></i></div><div class="anchor value-res hidden" id="name-validVersion"><i>	<span class="nodocs"> <a href="../../../use/go.pact.im/x/phcformat..validVersion^245b0.html">func</a> <a href="../../../src/go.pact.im/x/phcformat/phcformat.go.html#line-46">validVersion</a>(c <a href="../../builtin.html#name-byte">byte</a>) <a href="../../builtin.html#name-bool">bool</a></span></i></div></div></code></pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

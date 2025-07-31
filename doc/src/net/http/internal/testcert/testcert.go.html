@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: testcert.go in package net/http/internal/testcert</title>
+<link href="../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	testcert.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../pkg/net/http/internal/testcert.html">net/http/internal/testcert</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2015 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<div class="anchor" id="doc"><span class="codeline" id="line-5"><code><span class="comment">// Package testcert contains a test-only localhost certificate.</span></code></span></div><span class="codeline" id="line-6"><code><span class="keyword">package</span> testcert</code></span>
+<span class="codeline" id="line-7"><code></code></span>
+<span class="codeline" id="line-8"><code><span class="keyword">import</span> <label for="i0"><span class="lit-string i0">"strings"</span></label></code></span>
+<span class="codeline" id="line-9"><code></code></span>
+<span class="codeline" id="line-10"><code><span class="comment">// LocalhostCert is a PEM-encoded TLS cert with SAN IPs</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment">// "127.0.0.1" and "[::1]", expiring at Jan 29 16:00:00 2084 GMT.</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment">// generated from src/crypto/tls:</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">// go run generate_cert.go  --rsa-bits 2048 --host 127.0.0.1,::1,example.com,*.example.com --ca --start-date "Jan 1 00:00:00 1970" --duration=1000000h</span></code></span>
+<span class="codeline" id="line-14"><code><span class="keyword">var</span> <a href="../../../../../pkg/net/http/internal/testcert.html#name-LocalhostCert" class="ident">LocalhostCert</a> = []<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>(<span class="lit-string">`-----BEGIN CERTIFICATE-----</span></code></span>
+<span class="codeline" id="line-15"><code><span class="lit-string">MIIDSDCCAjCgAwIBAgIQEP/md970HysdBTpuzDOf0DANBgkqhkiG9w0BAQsFADAS</span></code></span>
+<span class="codeline" id="line-16"><code><span class="lit-string">MRAwDgYDVQQKEwdBY21lIENvMCAXDTcwMDEwMTAwMDAwMFoYDzIwODQwMTI5MTYw</span></code></span>
+<span class="codeline" id="line-17"><code><span class="lit-string">MDAwWjASMRAwDgYDVQQKEwdBY21lIENvMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A</span></code></span>
+<span class="codeline" id="line-18"><code><span class="lit-string">MIIBCgKCAQEAxcl69ROJdxjN+MJZnbFrYxyQooADCsJ6VDkuMyNQIix/Hk15Nk/u</span></code></span>
+<span class="codeline" id="line-19"><code><span class="lit-string">FyBX1Me++aEpGmY3RIY4fUvELqT/srvAHsTXwVVSttMcY8pcAFmXSqo3x4MuUTG/</span></code></span>
+<span class="codeline" id="line-20"><code><span class="lit-string">jCX3Vftj0r3EM5M8ImY1rzA/jqTTLJg00rD+DmuDABcqQvoXw/RV8w1yTRi5BPoH</span></code></span>
+<span class="codeline" id="line-21"><code><span class="lit-string">DFD/AWTt/YgMvk1l2Yq/xI8VbMUIpjBoGXxWsSevQ5i2s1mk9/yZzu0Ysp1tTlzD</span></code></span>
+<span class="codeline" id="line-22"><code><span class="lit-string">qOPa4ysFjBitdXiwfxjxtv5nXqOCP5rheKO0sWLk0fetMp1OV5JSJMAJw6c2ZMkl</span></code></span>
+<span class="codeline" id="line-23"><code><span class="lit-string">U2WMqAEpRjdE/vHfIuNg+yGaRRqI07NZRQIDAQABo4GXMIGUMA4GA1UdDwEB/wQE</span></code></span>
+<span class="codeline" id="line-24"><code><span class="lit-string">AwICpDATBgNVHSUEDDAKBggrBgEFBQcDATAPBgNVHRMBAf8EBTADAQH/MB0GA1Ud</span></code></span>
+<span class="codeline" id="line-25"><code><span class="lit-string">DgQWBBQR5QIzmacmw78ZI1C4MXw7Q0wJ1jA9BgNVHREENjA0ggtleGFtcGxlLmNv</span></code></span>
+<span class="codeline" id="line-26"><code><span class="lit-string">bYINKi5leGFtcGxlLmNvbYcEfwAAAYcQAAAAAAAAAAAAAAAAAAAAATANBgkqhkiG</span></code></span>
+<span class="codeline" id="line-27"><code><span class="lit-string">9w0BAQsFAAOCAQEACrRNgiioUDzxQftd0fwOa6iRRcPampZRDtuaF68yNHoNWbOu</span></code></span>
+<span class="codeline" id="line-28"><code><span class="lit-string">LUwc05eOWxRq3iABGSk2xg+FXM3DDeW4HhAhCFptq7jbVZ+4Jj6HeJG9mYRatAxR</span></code></span>
+<span class="codeline" id="line-29"><code><span class="lit-string">Y/dEpa0D0EHhDxxVg6UzKOXB355n0IetGE/aWvyTV9SiDs6QsaC57Q9qq1/mitx5</span></code></span>
+<span class="codeline" id="line-30"><code><span class="lit-string">2GFBoapol9L5FxCc77bztzK8CpLujkBi25Vk6GAFbl27opLfpyxkM+rX/T6MXCPO</span></code></span>
+<span class="codeline" id="line-31"><code><span class="lit-string">6/YBacNZ7ff1/57Etg4i5mNA6ubCpuc4Gi9oYqCNNohftr2lkJr7REdDR6OW0lsL</span></code></span>
+<span class="codeline" id="line-32"><code><span class="lit-string">rF7r4gUnKeC7mYIH1zypY7laskopiLFAfe96Kg==</span></code></span>
+<span class="codeline" id="line-33"><code><span class="lit-string">-----END CERTIFICATE-----`</span>)</code></span>
+<span class="codeline" id="line-34"><code></code></span>
+<span class="codeline" id="line-35"><code><span class="comment">// LocalhostKey is the private key for LocalhostCert.</span></code></span>
+<span class="codeline" id="line-36"><code><span class="keyword">var</span> <a href="../../../../../pkg/net/http/internal/testcert.html#name-LocalhostKey" class="ident">LocalhostKey</a> = []<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>(<a href="#line-65" class="ident">testingKey</a>(<span class="lit-string">`-----BEGIN RSA TESTING KEY-----</span></code></span>
+<span class="codeline" id="line-37"><code><span class="lit-string">MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDFyXr1E4l3GM34</span></code></span>
+<span class="codeline" id="line-38"><code><span class="lit-string">wlmdsWtjHJCigAMKwnpUOS4zI1AiLH8eTXk2T+4XIFfUx775oSkaZjdEhjh9S8Qu</span></code></span>
+<span class="codeline" id="line-39"><code><span class="lit-string">pP+yu8AexNfBVVK20xxjylwAWZdKqjfHgy5RMb+MJfdV+2PSvcQzkzwiZjWvMD+O</span></code></span>
+<span class="codeline" id="line-40"><code><span class="lit-string">pNMsmDTSsP4Oa4MAFypC+hfD9FXzDXJNGLkE+gcMUP8BZO39iAy+TWXZir/EjxVs</span></code></span>
+<span class="codeline" id="line-41"><code><span class="lit-string">xQimMGgZfFaxJ69DmLazWaT3/JnO7RiynW1OXMOo49rjKwWMGK11eLB/GPG2/mde</span></code></span>
+<span class="codeline" id="line-42"><code><span class="lit-string">o4I/muF4o7SxYuTR960ynU5XklIkwAnDpzZkySVTZYyoASlGN0T+8d8i42D7IZpF</span></code></span>
+<span class="codeline" id="line-43"><code><span class="lit-string">GojTs1lFAgMBAAECggEAIYthUi1lFBDd5gG4Rzlu+BlBIn5JhcqkCqLEBiJIFfOr</span></code></span>
+<span class="codeline" id="line-44"><code><span class="lit-string">/4yuMRrvS3bNzqWt6xJ9MSAC4ZlN/VobRLnxL/QNymoiGYUKCT3Ww8nvPpPzR9OE</span></code></span>
+<span class="codeline" id="line-45"><code><span class="lit-string">sE68TUL9tJw/zZJcRMKwgvrGqSLimfq53MxxkE+kLdOc0v9C8YH8Re26mB5ZcWYa</span></code></span>
+<span class="codeline" id="line-46"><code><span class="lit-string">7YFyZQpKsQYnsmu/05cMbpOQrQWhtmIqRoyn8mG/par2s3NzjtpSE9NINyz26uFc</span></code></span>
+<span class="codeline" id="line-47"><code><span class="lit-string">k/3ovFJQIHkUmTS7KHD3BgY5vuCqP98HramYnOysJ0WoYgvSDNCWw3037s5CCwJT</span></code></span>
+<span class="codeline" id="line-48"><code><span class="lit-string">gCKuM+Ow6liFrj83RrdKBpm5QUGjfNpYP31o+QNP4QKBgQDSrUQ2XdgtAnibAV7u</span></code></span>
+<span class="codeline" id="line-49"><code><span class="lit-string">7kbxOxro0EhIKso0Y/6LbDQgcXgxLqltkmeqZgG8nC3Z793lhlSasz2snhzzooV5</span></code></span>
+<span class="codeline" id="line-50"><code><span class="lit-string">5fTy1y8ikXqjhG0nNkInFyOhsI0auE28CFoDowaQd+5cmCatpN4Grqo5PNRXxm1w</span></code></span>
+<span class="codeline" id="line-51"><code><span class="lit-string">HktfPEgoP11NNCFHvvN5fEKbbQKBgQDwVlOaV20IvW3IPq7cXZyiyabouFF9eTRo</span></code></span>
+<span class="codeline" id="line-52"><code><span class="lit-string">VJka1Uv+JtyvL2P0NKkjYHOdN8gRblWqxQtJoTNk020rVA4UP1heiXALy50gvj/p</span></code></span>
+<span class="codeline" id="line-53"><code><span class="lit-string">hMcybPTLYSPOhAGx838KIcvGR5oskP1aUCmFbFQzGELxhJ9diVVjxUtbG2DuwPKd</span></code></span>
+<span class="codeline" id="line-54"><code><span class="lit-string">tD9TLxT2OQKBgQCcdlHSjp+dzdgERmBa0ludjGfPv9/uuNizUBAbO6D690psPFtY</span></code></span>
+<span class="codeline" id="line-55"><code><span class="lit-string">JQMYaemgSd1DngEOFVWADt4e9M5Lose+YCoqr+UxpxmNlyv5kzJOFcFAs/4XeglB</span></code></span>
+<span class="codeline" id="line-56"><code><span class="lit-string">PHKdgNW/NVKxMc6H54l9LPr+x05sYdGlEtqnP/3W5jhEvhJ5Vjc8YiyVgQKBgQCl</span></code></span>
+<span class="codeline" id="line-57"><code><span class="lit-string">zwjyrGo+42GACy7cPYE5FeIfIDqoVByB9guC5bD98JXEDu/opQQjsgFRcBCJZhOY</span></code></span>
+<span class="codeline" id="line-58"><code><span class="lit-string">M0UsURiB8ROaFu13rpQq9KrmmF0ZH+g8FSzQbzcbsTLg4VXCDXmR5esOKowFPypr</span></code></span>
+<span class="codeline" id="line-59"><code><span class="lit-string">Sm667BfTAGP++D5ya7MLmCv6+RKQ5XD8uEQQAaV2kQKBgAD8qeJuWIXZT0VKkQrn</span></code></span>
+<span class="codeline" id="line-60"><code><span class="lit-string">nIhgtzGERF/6sZdQGW2LxTbUDWG74AfFkkEbeBfwEkCZXY/xmnYqYABhvlSex8jU</span></code></span>
+<span class="codeline" id="line-61"><code><span class="lit-string">supU6Eea21esIxIub2zv/Np0ojUb6rlqTPS4Ox1E27D787EJ3VOXpriSD10vyNnZ</span></code></span>
+<span class="codeline" id="line-62"><code><span class="lit-string">jel6uj2FOP9g54s+GzlSVg/T</span></code></span>
+<span class="codeline" id="line-63"><code><span class="lit-string">-----END RSA TESTING KEY-----`</span>))</code></span>
+<span class="codeline" id="line-64"><code></code></span>
+<span class="codeline" id="line-65"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../../pkg/net/http/internal/testcert.html#name-testingKey" class="ident">testingKey</a></label>(<label for="r1" class="ident">s</label> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a> { <span class="keyword">return</span> <a href="../../../../../pkg/strings.html" class="ident i0">strings</a>.<a href="../../../../strings/strings.go.html#line-1180" class="ident">ReplaceAll</a>(<label for="r1" class="ident">s</label>, <span class="lit-string">"TESTING KEY"</span>, <span class="lit-string">"PRIVATE KEY"</span>) }</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

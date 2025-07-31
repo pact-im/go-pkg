@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Package: iter</title>
+<link href="../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="package-details"><code><span style="font-size:xx-large;">package <b>iter</b></span>
+
+<span class="title">Import Path</span>
+	<a href="../index.html#pkg-iter">iter</a><i> (on <a href="https://pkg.go.dev/iter" target="_blank">go.dev</a>)</i>
+
+<span class="title">Dependency Relation</span>
+	imports <a href="../dep/iter.html">3 packages</a>, and imported by <a href="../dep/iter.html#imported-by">8 packages</a>
+
+<div id="files"><span class="title">Involved Source Files</span>
+
+	<input type='checkbox' checked class="fold" id="file-0-fold-content"><label for="file-0-fold-content">  <a href="../src/iter/iter.go.html#doc">d</a> <a href="../src/iter/iter.go.html">iter.go</a></label><span id='file-0-fold-content-items' class="fold-items">
+<span class="md-text">		Package iter provides basic definitions and operations related to
+		iterators over sequences.
+		
+		# Iterators
+		
+		An iterator is a function that passes successive elements of a
+		sequence to a callback function, conventionally named yield.
+		The function stops either when the sequence is finished or
+		when yield returns false, indicating to stop the iteration early.
+		This package defines [Seq] and [Seq2]
+		(pronounced like seek—the first syllable of sequence)
+		as shorthands for iterators that pass 1 or 2 values per sequence element
+		to yield:
+		
+			type (
+				Seq[V any]     func(yield func(V) bool)
+				Seq2[K, V any] func(yield func(K, V) bool)
+			)
+		
+		Seq2 represents a sequence of paired values, conventionally key-value
+		or index-value pairs.
+		
+		Yield returns true if the iterator should continue with the next
+		element in the sequence, false if it should stop.
+		
+		For instance, [maps.Keys] returns an iterator that produces the sequence
+		of keys of the map m, implemented as follows:
+		
+			func Keys[Map ~map[K]V, K comparable, V any](m Map) iter.Seq[K] {
+				return func(yield func(K) bool) {
+					for k := range m {
+						if !yield(k) {
+							return
+						}
+					}
+				}
+			}
+		
+		Further examples can be found in [The Go Blog: Range Over Function Types].
+		
+		Iterator functions are most often called by a [range loop], as in:
+		
+			func PrintAll[V any](seq iter.Seq[V]) {
+				for v := range seq {
+					fmt.Println(v)
+				}
+			}
+		
+		# Naming Conventions
+		
+		Iterator functions and methods are named for the sequence being walked:
+		
+			// All returns an iterator over all elements in s.
+			func (s *Set[V]) All() iter.Seq[V]
+		
+		The iterator method on a collection type is conventionally named All,
+		because it iterates a sequence of all the values in the collection.
+		
+		For a type containing multiple possible sequences, the iterator's name
+		can indicate which sequence is being provided:
+		
+			// Cities returns an iterator over the major cities in the country.
+			func (c *Country) Cities() iter.Seq[*City]
+		
+			// Languages returns an iterator over the official spoken languages of the country.
+			func (c *Country) Languages() iter.Seq[string]
+		
+		If an iterator requires additional configuration, the constructor function
+		can take additional configuration arguments:
+		
+			// Scan returns an iterator over key-value pairs with min ≤ key ≤ max.
+			func (m *Map[K, V]) Scan(min, max K) iter.Seq2[K, V]
+		
+			// Split returns an iterator over the (possibly-empty) substrings of s
+			// separated by sep.
+			func Split(s, sep string) iter.Seq[string]
+		
+		When there are multiple possible iteration orders, the method name may
+		indicate that order:
+		
+			// All returns an iterator over the list from head to tail.
+			func (l *List[V]) All() iter.Seq[V]
+		
+			// Backward returns an iterator over the list from tail to head.
+			func (l *List[V]) Backward() iter.Seq[V]
+		
+			// Preorder returns an iterator over all nodes of the syntax tree
+			// beneath (and including) the specified root, in depth-first preorder,
+			// visiting a parent node before its children.
+			func Preorder(root Node) iter.Seq[Node]
+		
+		# Single-Use Iterators
+		
+		Most iterators provide the ability to walk an entire sequence:
+		when called, the iterator does any setup necessary to start the
+		sequence, then calls yield on successive elements of the sequence,
+		and then cleans up before returning. Calling the iterator again
+		walks the sequence again.
+		
+		Some iterators break that convention, providing the ability to walk a
+		sequence only once. These “single-use iterators” typically report values
+		from a data stream that cannot be rewound to start over.
+		Calling the iterator again after stopping early may continue the
+		stream, but calling it again after the sequence is finished will yield
+		no values at all. Doc comments for functions or methods that return
+		single-use iterators should document this fact:
+		
+			// Lines returns an iterator over lines read from r.
+			// It returns a single-use iterator.
+			func (r *Reader) Lines() iter.Seq[string]
+		
+		# Pulling Values
+		
+		Functions and methods that accept or return iterators
+		should use the standard [Seq] or [Seq2] types, to ensure
+		compatibility with range loops and other iterator adapters.
+		The standard iterators can be thought of as “push iterators”, which
+		push values to the yield function.
+		
+		Sometimes a range loop is not the most natural way to consume values
+		of the sequence. In this case, [Pull] converts a standard push iterator
+		to a “pull iterator”, which can be called to pull one value at a time
+		from the sequence. [Pull] starts an iterator and returns a pair
+		of functions—next and stop—which return the next value from the iterator
+		and stop it, respectively.
+		
+		For example:
+		
+			// Pairs returns an iterator over successive pairs of values from seq.
+			func Pairs[V any](seq iter.Seq[V]) iter.Seq2[V, V] {
+				return func(yield func(V, V) bool) {
+					next, stop := iter.Pull(seq)
+					defer stop()
+					for {
+						v1, ok1 := next()
+						if !ok1 {
+							return
+						}
+						v2, ok2 := next()
+						// If ok2 is false, v2 should be the
+						// zero value; yield one last pair.
+						if !yield(v1, v2) {
+							return
+						}
+						if !ok2 {
+							return
+						}
+					}
+				}
+			}
+		
+		If clients do not consume the sequence to completion, they must call stop,
+		which allows the iterator function to finish and return. As shown in
+		the example, the conventional way to ensure this is to use defer.
+		
+		# Standard Library Usage
+		
+		A few packages in the standard library provide iterator-based APIs,
+		most notably the [maps] and [slices] packages.
+		For example, [maps.Keys] returns an iterator over the keys of a map,
+		while [slices.Sorted] collects the values of an iterator into a slice,
+		sorts them, and returns the slice, so to iterate over the sorted keys of a map:
+		
+			for _, key := range slices.Sorted(maps.Keys(m)) {
+				...
+			}
+		
+		# Mutation
+		
+		Iterators provide only the values of the sequence, not any direct way
+		to modify it. If an iterator wishes to provide a mechanism for modifying
+		a sequence during iteration, the usual approach is to define a position type
+		with the extra operations and then provide an iterator over positions.
+		
+		For example, a tree implementation might provide:
+		
+			// Positions returns an iterator over positions in the sequence.
+			func (t *Tree[V]) Positions() iter.Seq[*Pos]
+		
+			// A Pos represents a position in the sequence.
+			// It is only valid during the yield call it is passed to.
+			type Pos[V any] struct { ... }
+		
+			// Pos returns the value at the cursor.
+			func (p *Pos[V]) Value() V
+		
+			// Delete deletes the value at this point in the iteration.
+			func (p *Pos[V]) Delete()
+		
+			// Set changes the value v at the cursor.
+			func (p *Pos[V]) Set(v V)
+		
+		And then a client could delete boring values from the tree using:
+		
+			for p := range t.Positions() {
+				if boring(p.Value()) {
+					p.Delete()
+				}
+			}
+		
+		[The Go Blog: Range Over Function Types]: https://go.dev/blog/range-functions
+		[range loop]: https://go.dev/ref/spec#For_range</span></span></div>
+<div id="exported-types"><span class="title">Package-Level Type Names<span class="title-stat"><i> (total 3, in which 2 are exported)</i></span></span>
+
+<div id="exported-types-buttons" class="js-on">	/* sort exporteds by: <label id="sort-types-by-alphabet" class="button">alphabet</label> | <label id="sort-types-by-popularity" class="button">popularity</label> */</div><div class="anchor type-res" id="name-Seq" data-popularity="2610">	<input type='checkbox' class="fold" id="Seq-fold-content"><label for="Seq-fold-content"> <a href="../use/iter..Seq.html">type</a> <a href="../src/iter/iter.go.html#line-221">Seq</a>[V] <i>(func)</i></label><span id='Seq-fold-content-docs' class="fold-docs">
+
+		Type Parameters:
+			V: <a href="builtin.html#name-any">any</a>
+
+<span class="md-text">		Seq is an iterator over sequences of individual values.
+		When called as seq(yield), seq calls yield(v) for each value v in the sequence,
+		stopping early if yield returns false.
+		See the [iter] package documentation for more details.</span>
+
+		<input type='checkbox' class="fold" id="Seq-fold-results"><label for="Seq-fold-results">As Outputs Of (<i>at least 32, in which 27 are exported</i>)</label><span id='Seq-fold-results-items' class="fold-items"><span>
+			func bytes.<a href="bytes.html#name-FieldsFuncSeq">FieldsFuncSeq</a>(s []<a href="builtin.html#name-byte">byte</a>, f func(<a href="builtin.html#name-rune">rune</a>) <a href="builtin.html#name-bool">bool</a>) <b>Seq</b>[[]<a href="builtin.html#name-byte">byte</a>]</span><span>
+			func bytes.<a href="bytes.html#name-FieldsSeq">FieldsSeq</a>(s []<a href="builtin.html#name-byte">byte</a>) <b>Seq</b>[[]<a href="builtin.html#name-byte">byte</a>]</span><span>
+			func bytes.<a href="bytes.html#name-Lines">Lines</a>(s []<a href="builtin.html#name-byte">byte</a>) <b>Seq</b>[[]<a href="builtin.html#name-byte">byte</a>]</span><span>
+			func bytes.<a href="bytes.html#name-SplitAfterSeq">SplitAfterSeq</a>(s, sep []<a href="builtin.html#name-byte">byte</a>) <b>Seq</b>[[]<a href="builtin.html#name-byte">byte</a>]</span><span>
+			func bytes.<a href="bytes.html#name-SplitSeq">SplitSeq</a>(s, sep []<a href="builtin.html#name-byte">byte</a>) <b>Seq</b>[[]<a href="builtin.html#name-byte">byte</a>]</span><span>
+			func go/ast.<a href="go/ast.html#name-Preorder">Preorder</a>(root <a href="go/ast.html">ast</a>.<a href="go/ast.html#name-Node">Node</a>) <b>Seq</b>[<a href="go/ast.html">ast</a>.<a href="go/ast.html#name-Node">Node</a>]</span><span>
+			func go/types.(*<a href="go/types.html#name-Interface">Interface</a>).<a href="../src/go/types/iter.go.html#line-47">EmbeddedTypes</a>() <b>Seq</b>[<a href="go/types.html">types</a>.<a href="go/types.html#name-Type">Type</a>]</span><span>
+			func go/types.(*<a href="go/types.html#name-Interface">Interface</a>).<a href="../src/go/types/iter.go.html#line-34">ExplicitMethods</a>() <b>Seq</b>[*<a href="go/types.html">types</a>.<a href="go/types.html#name-Func">Func</a>]</span><span>
+			func go/types.(*<a href="go/types.html#name-Interface">Interface</a>).<a href="../src/go/types/iter.go.html#line-20">Methods</a>() <b>Seq</b>[*<a href="go/types.html">types</a>.<a href="go/types.html#name-Func">Func</a>]</span><span>
+			func go/types.(*<a href="go/types.html#name-MethodSet">MethodSet</a>).<a href="../src/go/types/iter.go.html#line-112">Methods</a>() <b>Seq</b>[*<a href="go/types.html">types</a>.<a href="go/types.html#name-Selection">Selection</a>]</span><span>
+			func go/types.(*<a href="go/types.html#name-Named">Named</a>).<a href="../src/go/types/iter.go.html#line-60">Methods</a>() <b>Seq</b>[*<a href="go/types.html">types</a>.<a href="go/types.html#name-Func">Func</a>]</span><span>
+			func go/types.(*<a href="go/types.html#name-Scope">Scope</a>).<a href="../src/go/types/iter.go.html#line-73">Children</a>() <b>Seq</b>[*<a href="go/types.html">types</a>.<a href="go/types.html#name-Scope">Scope</a>]</span><span>
+			func go/types.(*<a href="go/types.html#name-Struct">Struct</a>).<a href="../src/go/types/iter.go.html#line-86">Fields</a>() <b>Seq</b>[*<a href="go/types.html">types</a>.<a href="go/types.html#name-Var">Var</a>]</span><span>
+			func go/types.(*<a href="go/types.html#name-Tuple">Tuple</a>).<a href="../src/go/types/iter.go.html#line-99">Variables</a>() <b>Seq</b>[*<a href="go/types.html">types</a>.<a href="go/types.html#name-Var">Var</a>]</span><span>
+			func go/types.(*<a href="go/types.html#name-TypeList">TypeList</a>).<a href="../src/go/types/iter.go.html#line-151">Types</a>() <b>Seq</b>[<a href="go/types.html">types</a>.<a href="go/types.html#name-Type">Type</a>]</span><span>
+			func go/types.(*<a href="go/types.html#name-TypeParamList">TypeParamList</a>).<a href="../src/go/types/iter.go.html#line-138">TypeParams</a>() <b>Seq</b>[*<a href="go/types.html">types</a>.<a href="go/types.html#name-TypeParam">TypeParam</a>]</span><span>
+			func go/types.(*<a href="go/types.html#name-Union">Union</a>).<a href="../src/go/types/iter.go.html#line-125">Terms</a>() <b>Seq</b>[*<a href="go/types.html">types</a>.<a href="go/types.html#name-Term">Term</a>]</span><span>
+			func maps.<a href="maps.html#name-Keys">Keys</a>[Map, K, V](m Map) <b>Seq</b>[K]</span><span>
+			func maps.<a href="maps.html#name-Values">Values</a>[Map, K, V](m Map) <b>Seq</b>[V]</span><span>
+			func reflect.<a href="reflect.html#name-Value">Value</a>.<a href="../src/reflect/iter.go.html#line-38">Seq</a>() <b>Seq</b>[<a href="reflect.html">reflect</a>.<a href="reflect.html#name-Value">Value</a>]</span><span>
+			func slices.<a href="slices.html#name-Chunk">Chunk</a>[Slice, E](s Slice, n <a href="builtin.html#name-int">int</a>) <b>Seq</b>[Slice]</span><span>
+			func slices.<a href="slices.html#name-Values">Values</a>[Slice, E](s Slice) <b>Seq</b>[E]</span><span>
+			func strings.<a href="strings.html#name-FieldsFuncSeq">FieldsFuncSeq</a>(s <a href="builtin.html#name-string">string</a>, f func(<a href="builtin.html#name-rune">rune</a>) <a href="builtin.html#name-bool">bool</a>) <b>Seq</b>[<a href="builtin.html#name-string">string</a>]</span><span>
+			func strings.<a href="strings.html#name-FieldsSeq">FieldsSeq</a>(s <a href="builtin.html#name-string">string</a>) <b>Seq</b>[<a href="builtin.html#name-string">string</a>]</span><span>
+			func strings.<a href="strings.html#name-Lines">Lines</a>(s <a href="builtin.html#name-string">string</a>) <b>Seq</b>[<a href="builtin.html#name-string">string</a>]</span><span>
+			func strings.<a href="strings.html#name-SplitAfterSeq">SplitAfterSeq</a>(s, sep <a href="builtin.html#name-string">string</a>) <b>Seq</b>[<a href="builtin.html#name-string">string</a>]</span><span>
+			func strings.<a href="strings.html#name-SplitSeq">SplitSeq</a>(s, sep <a href="builtin.html#name-string">string</a>) <b>Seq</b>[<a href="builtin.html#name-string">string</a>]</span>
+			<input type='checkbox' class="showhide" id="Seq-showhide-inputofs"><i><label for="Seq-showhide-inputofs" class="show-inline">/* 5+ unexporteds ... */</label><label for="Seq-showhide-inputofs" class="hide-inline">/* 5+ unexporteds: */</label></i><span class="hidden"><i>
+			func bytes.<a href="bytes.html#name-explodeSeq">explodeSeq</a>(s []<a href="builtin.html#name-byte">byte</a>) <b>Seq</b>[[]<a href="builtin.html#name-byte">byte</a>]</i></span><span class="hidden"><i>
+			func bytes.<a href="bytes.html#name-splitSeq">splitSeq</a>(s, sep []<a href="builtin.html#name-byte">byte</a>, sepSave <a href="builtin.html#name-int">int</a>) <b>Seq</b>[[]<a href="builtin.html#name-byte">byte</a>]</i></span><span class="hidden"><i>
+			func reflect.<a href="reflect.html#name-rangeNum">rangeNum</a>[T, N](num N, t <a href="reflect.html">reflect</a>.<a href="reflect.html#name-Type">Type</a>) <b>Seq</b>[<a href="reflect.html">reflect</a>.<a href="reflect.html#name-Value">Value</a>]</i></span><span class="hidden"><i>
+			func strings.<a href="strings.html#name-explodeSeq">explodeSeq</a>(s <a href="builtin.html#name-string">string</a>) <b>Seq</b>[<a href="builtin.html#name-string">string</a>]</i></span><span class="hidden"><i>
+			func strings.<a href="strings.html#name-splitSeq">splitSeq</a>(s, sep <a href="builtin.html#name-string">string</a>, sepSave <a href="builtin.html#name-int">int</a>) <b>Seq</b>[<a href="builtin.html#name-string">string</a>]</i></span></span>
+		<input type='checkbox' class="fold" id="Seq-fold-params"><label for="Seq-fold-params">As Inputs Of (<i>at least 6, all are exported</i>)</label><span id='Seq-fold-params-items' class="fold-items"><span>
+			func <a href="#name-Pull">Pull</a>[V](seq <b>Seq</b>[V]) (next func() (V, <a href="builtin.html#name-bool">bool</a>), stop func())</span><span>
+			func slices.<a href="slices.html#name-AppendSeq">AppendSeq</a>[Slice, E](s Slice, seq <b>Seq</b>[E]) Slice</span><span>
+			func slices.<a href="slices.html#name-Collect">Collect</a>[E](seq <b>Seq</b>[E]) []E</span><span>
+			func slices.<a href="slices.html#name-Sorted">Sorted</a>[E](seq <b>Seq</b>[E]) []E</span><span>
+			func slices.<a href="slices.html#name-SortedFunc">SortedFunc</a>[E](seq <b>Seq</b>[E], cmp func(E, E) <a href="builtin.html#name-int">int</a>) []E</span><span>
+			func slices.<a href="slices.html#name-SortedStableFunc">SortedStableFunc</a>[E](seq <b>Seq</b>[E], cmp func(E, E) <a href="builtin.html#name-int">int</a>) []E</span></span>
+
+</span></div><div class="anchor type-res" id="name-Seq2" data-popularity="405">	<input type='checkbox' class="fold" id="Seq2-fold-content"><label for="Seq2-fold-content"> <a href="../use/iter..Seq2.html">type</a> <a href="../src/iter/iter.go.html#line-227">Seq2</a>[K, V] <i>(func)</i></label><span id='Seq2-fold-content-docs' class="fold-docs">
+
+		Type Parameters:
+			K: <a href="builtin.html#name-any">any</a>
+			V: <a href="builtin.html#name-any">any</a>
+
+<span class="md-text">		Seq2 is an iterator over sequences of pairs of values, most commonly key-value pairs.
+		When called as seq(yield), seq calls yield(k, v) for each pair (k, v) in the sequence,
+		stopping early if yield returns false.
+		See the [iter] package documentation for more details.</span>
+
+		<input type='checkbox' class="fold" id="Seq2-fold-results"><label for="Seq2-fold-results">As Outputs Of (<i>at least 4, all are exported</i>)</label><span id='Seq2-fold-results-items' class="fold-items"><span>
+			func maps.<a href="maps.html#name-All">All</a>[Map, K, V](m Map) <b>Seq2</b>[K, V]</span><span>
+			func reflect.<a href="reflect.html#name-Value">Value</a>.<a href="../src/reflect/iter.go.html#line-124">Seq2</a>() <b>Seq2</b>[<a href="reflect.html">reflect</a>.<a href="reflect.html#name-Value">Value</a>, <a href="reflect.html">reflect</a>.<a href="reflect.html#name-Value">Value</a>]</span><span>
+			func slices.<a href="slices.html#name-All">All</a>[Slice, E](s Slice) <b>Seq2</b>[<a href="builtin.html#name-int">int</a>, E]</span><span>
+			func slices.<a href="slices.html#name-Backward">Backward</a>[Slice, E](s Slice) <b>Seq2</b>[<a href="builtin.html#name-int">int</a>, E]</span></span>
+		<input type='checkbox' class="fold" id="Seq2-fold-params"><label for="Seq2-fold-params">As Inputs Of (<i>at least 3, all are exported</i>)</label><span id='Seq2-fold-params-items' class="fold-items"><span>
+			func <a href="#name-Pull2">Pull2</a>[K, V](seq <b>Seq2</b>[K, V]) (next func() (K, V, <a href="builtin.html#name-bool">bool</a>), stop func())</span><span>
+			func maps.<a href="maps.html#name-Collect">Collect</a>[K, V](seq <b>Seq2</b>[K, V]) map[K]V</span><span>
+			func maps.<a href="maps.html#name-Insert">Insert</a>[Map, K, V](m Map, seq <b>Seq2</b>[K, V])</span></span>
+
+</span></div></div><div>	<input type='checkbox' class="showhide" id="unexported-typenames-showhide"><i><label for="unexported-typenames-showhide" class="show-inline">/* one unexported ... */</label><label for="unexported-typenames-showhide" class="hide-inline">/* one unexported: */</label></i><div class="anchor type-res hidden" id="name-coro" data-popularity="110">	<input type='checkbox' class="fold" id="coro-fold-content"><label for="coro-fold-content"> <a href="../use/iter..coro^4c142.html">type</a> <a href="../src/iter/iter.go.html#line-229">coro</a> <i>(struct)</i></label><span id='coro-fold-content-docs' class="fold-docs">
+
+		<input type='checkbox' class="fold" id="coro-fold-results"><label for="coro-fold-results">As Outputs Of (<i>at least one unexported</i>)</label><span id='coro-fold-results-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="coro-showhide-inputofs"><i><label for="coro-showhide-inputofs" class="show-inline">/* at least one unexported ... */</label><label for="coro-showhide-inputofs" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			func <a href="#name-newcoro">newcoro</a>(func(*<b>coro</b>)) *<b>coro</b></i></span></span>
+		<input type='checkbox' class="fold" id="coro-fold-params"><label for="coro-fold-params">As Inputs Of (<i>at least one unexported</i>)</label><span id='coro-fold-params-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="coro-showhide-outputofs"><i><label for="coro-showhide-outputofs" class="show-inline">/* at least one unexported ... */</label><label for="coro-showhide-outputofs" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			func <a href="#name-coroswitch">coroswitch</a>(*<b>coro</b>)</i></span></span>
+
+</span></div></div>
+<div id="exported-functions"><span class="title">Package-Level Functions<span class="title-stat"><i> (total 4, in which 2 are exported)</i></span></span>
+
+<div class="anchor value-res" id="name-Pull">	<input type='checkbox' class="fold" id="Pull-fold-content"><label for="Pull-fold-content"> <a href="../use/iter..Pull.html">func</a> <a href="../src/iter/iter.go.html#line-259">Pull</a>[V](seq <a href="#name-Seq">Seq</a>[V]) (next func() (V, <a href="builtin.html#name-bool">bool</a>), stop func())</label><span id='Pull-fold-content-docs' class="fold-docs">
+
+		Type Parameters:
+			V: <a href="builtin.html#name-any">any</a>
+
+<span class="md-text">		Pull converts the “push-style” iterator sequence seq
+		into a “pull-style” iterator accessed by the two functions
+		next and stop.
+		
+		Next returns the next value in the sequence
+		and a boolean indicating whether the value is valid.
+		When the sequence is over, next returns the zero V and false.
+		It is valid to call next after reaching the end of the sequence
+		or after calling stop. These calls will continue
+		to return the zero V and false.
+		
+		Stop ends the iteration. It must be called when the caller is
+		no longer interested in next values and next has not yet
+		signaled that the sequence is over (with a false boolean return).
+		It is valid to call stop multiple times and when next has
+		already returned false. Typically, callers should “defer stop()”.
+		
+		It is an error to call next or stop from multiple goroutines
+		simultaneously.
+		
+		If the iterator panics during a call to next (or stop),
+		then next (or stop) itself panics with the same value.</span>
+
+</span></div><div class="anchor value-res" id="name-Pull2">	<input type='checkbox' class="fold" id="Pull2-fold-content"><label for="Pull2-fold-content"> <a href="../use/iter..Pull2.html">func</a> <a href="../src/iter/iter.go.html#line-374">Pull2</a>[K, V](seq <a href="#name-Seq2">Seq2</a>[K, V]) (next func() (K, V, <a href="builtin.html#name-bool">bool</a>), stop func())</label><span id='Pull2-fold-content-docs' class="fold-docs">
+
+		Type Parameters:
+			K: <a href="builtin.html#name-any">any</a>
+			V: <a href="builtin.html#name-any">any</a>
+
+<span class="md-text">		Pull2 converts the “push-style” iterator sequence seq
+		into a “pull-style” iterator accessed by the two functions
+		next and stop.
+		
+		Next returns the next pair in the sequence
+		and a boolean indicating whether the pair is valid.
+		When the sequence is over, next returns a pair of zero values and false.
+		It is valid to call next after reaching the end of the sequence
+		or after calling stop. These calls will continue
+		to return a pair of zero values and false.
+		
+		Stop ends the iteration. It must be called when the caller is
+		no longer interested in next values and next has not yet
+		signaled that the sequence is over (with a false boolean return).
+		It is valid to call stop multiple times and when next has
+		already returned false. Typically, callers should “defer stop()”.
+		
+		It is an error to call next or stop from multiple goroutines
+		simultaneously.
+		
+		If the iterator panics during a call to next (or stop),
+		then next (or stop) itself panics with the same value.</span>
+
+</span></div>	<input type='checkbox' class="showhide" id="unexported-functions-showhide"><i><label for="unexported-functions-showhide" class="show-inline">/* 2 unexporteds ... */</label><label for="unexported-functions-showhide" class="hide-inline">/* 2 unexporteds: */</label></i><div class="anchor value-res hidden" id="name-coroswitch"><i>	<span class="nodocs"> <a href="../use/iter..coroswitch^18d8c.html">func</a> <a href="../src/iter/iter.go.html#line-235">coroswitch</a>(*<a href="#name-coro">coro</a>)</span></i></div><div class="anchor value-res hidden" id="name-newcoro"><i>	<span class="nodocs"> <a href="../use/iter..newcoro^9f6df.html">func</a> <a href="../src/iter/iter.go.html#line-232">newcoro</a>(func(*<a href="#name-coro">coro</a>)) *<a href="#name-coro">coro</a></span></i></div></div>
+<div id="exported-variables"><span class="title">Package-Level Variables<span class="title-stat"><i> (only one, which is unexported)</i></span></span>
+
+	<input type='checkbox' class="showhide" id="unexported-variables-showhide"><i><label for="unexported-variables-showhide" class="show-inline">/* one unexported ... */</label><label for="unexported-variables-showhide" class="hide-inline">/* one unexported: */</label></i><div class="anchor value-res hidden" id="name-goexitPanicValue"><i>	<input type='checkbox' class="fold" id="goexitPanicValue-fold-content"><label for="goexitPanicValue-fold-content">  <a href="../use/iter..goexitPanicValue^4911d.html">var</a> <a href="../src/iter/iter.go.html#line-471">goexitPanicValue</a> <a href="builtin.html#name-any">any</a></label><span id='goexitPanicValue-fold-content-docs' class="fold-docs">
+<span class="md-text">		goexitPanicValue is a sentinel value indicating that an iterator
+		exited via runtime.Goexit.</span>
+
+</span></i></div></div></code></pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

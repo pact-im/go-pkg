@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: hex_encode_amd64.s in package github.com/tmthrgd/go-hex</title>
+<link href="../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	hex_encode_amd64.s
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../pkg/github.com/tmthrgd/go-hex.html">github.com/tmthrgd/go-hex</a>
+</code></pre>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code>// Copyright 2016 Tom Thorogood. All rights reserved.</code></span>
+<span class="codeline" id="line-2"><code>// Use of this source code is governed by a</code></span>
+<span class="codeline" id="line-3"><code>// Modified BSD License license that can be found in</code></span>
+<span class="codeline" id="line-4"><code>// the LICENSE file.</code></span>
+<span class="codeline" id="line-5"><code>//</code></span>
+<span class="codeline" id="line-6"><code>// Copyright 2005-2016, Wojciech Muła. All rights reserved.</code></span>
+<span class="codeline" id="line-7"><code>// Use of this source code is governed by a</code></span>
+<span class="codeline" id="line-8"><code>// Simplified BSD License license that can be found in</code></span>
+<span class="codeline" id="line-9"><code>// the LICENSE file.</code></span>
+<span class="codeline" id="line-10"><code>//</code></span>
+<span class="codeline" id="line-11"><code>// This file is auto-generated - do not modify</code></span>
+<span class="codeline" id="line-12"><code></code></span>
+<span class="codeline" id="line-13"><code>// +build amd64,!gccgo,!appengine</code></span>
+<span class="codeline" id="line-14"><code></code></span>
+<span class="codeline" id="line-15"><code>#include "textflag.h"</code></span>
+<span class="codeline" id="line-16"><code></code></span>
+<span class="codeline" id="line-17"><code>DATA encodeMask&lt;&gt;+0x00(SB)/8, $0x0f0f0f0f0f0f0f0f</code></span>
+<span class="codeline" id="line-18"><code>DATA encodeMask&lt;&gt;+0x08(SB)/8, $0x0f0f0f0f0f0f0f0f</code></span>
+<span class="codeline" id="line-19"><code>GLOBL encodeMask&lt;&gt;(SB),RODATA,$16</code></span>
+<span class="codeline" id="line-20"><code></code></span>
+<span class="codeline" id="line-21"><code>TEXT ·encodeAVX(SB),NOSPLIT,$0</code></span>
+<span class="codeline" id="line-22"><code>	MOVQ dst+0(FP), DI</code></span>
+<span class="codeline" id="line-23"><code>	MOVQ src+8(FP), SI</code></span>
+<span class="codeline" id="line-24"><code>	MOVQ len+16(FP), BX</code></span>
+<span class="codeline" id="line-25"><code>	MOVQ alpha+24(FP), DX</code></span>
+<span class="codeline" id="line-26"><code>	MOVOU (DX), X15</code></span>
+<span class="codeline" id="line-27"><code>	CMPQ BX, $16</code></span>
+<span class="codeline" id="line-28"><code>	JB tail</code></span>
+<span class="codeline" id="line-29"><code>bigloop:</code></span>
+<span class="codeline" id="line-30"><code>	MOVOU -16(SI)(BX*1), X0</code></span>
+<span class="codeline" id="line-31"><code>	VPAND encodeMask&lt;&gt;(SB), X0, X1</code></span>
+<span class="codeline" id="line-32"><code>	PSRLW $4, X0</code></span>
+<span class="codeline" id="line-33"><code>	PAND encodeMask&lt;&gt;(SB), X0</code></span>
+<span class="codeline" id="line-34"><code>	VPUNPCKHBW X1, X0, X3</code></span>
+<span class="codeline" id="line-35"><code>	PUNPCKLBW X1, X0</code></span>
+<span class="codeline" id="line-36"><code>	VPSHUFB X0, X15, X1</code></span>
+<span class="codeline" id="line-37"><code>	VPSHUFB X3, X15, X2</code></span>
+<span class="codeline" id="line-38"><code>	MOVOU X2, -16(DI)(BX*2)</code></span>
+<span class="codeline" id="line-39"><code>	MOVOU X1, -32(DI)(BX*2)</code></span>
+<span class="codeline" id="line-40"><code>	SUBQ $16, BX</code></span>
+<span class="codeline" id="line-41"><code>	JZ ret</code></span>
+<span class="codeline" id="line-42"><code>	CMPQ BX, $16</code></span>
+<span class="codeline" id="line-43"><code>	JAE bigloop</code></span>
+<span class="codeline" id="line-44"><code>tail:</code></span>
+<span class="codeline" id="line-45"><code>	CMPQ BX, $2</code></span>
+<span class="codeline" id="line-46"><code>	JB tail_in_1</code></span>
+<span class="codeline" id="line-47"><code>	JE tail_in_2</code></span>
+<span class="codeline" id="line-48"><code>	CMPQ BX, $4</code></span>
+<span class="codeline" id="line-49"><code>	JB tail_in_3</code></span>
+<span class="codeline" id="line-50"><code>	JE tail_in_4</code></span>
+<span class="codeline" id="line-51"><code>	CMPQ BX, $6</code></span>
+<span class="codeline" id="line-52"><code>	JB tail_in_5</code></span>
+<span class="codeline" id="line-53"><code>	JE tail_in_6</code></span>
+<span class="codeline" id="line-54"><code>	CMPQ BX, $8</code></span>
+<span class="codeline" id="line-55"><code>	JB tail_in_7</code></span>
+<span class="codeline" id="line-56"><code>tail_in_8:</code></span>
+<span class="codeline" id="line-57"><code>	MOVQ (SI), X0</code></span>
+<span class="codeline" id="line-58"><code>	JMP tail_conv</code></span>
+<span class="codeline" id="line-59"><code>tail_in_7:</code></span>
+<span class="codeline" id="line-60"><code>	PINSRB $6, 6(SI), X0</code></span>
+<span class="codeline" id="line-61"><code>tail_in_6:</code></span>
+<span class="codeline" id="line-62"><code>	PINSRB $5, 5(SI), X0</code></span>
+<span class="codeline" id="line-63"><code>tail_in_5:</code></span>
+<span class="codeline" id="line-64"><code>	PINSRB $4, 4(SI), X0</code></span>
+<span class="codeline" id="line-65"><code>tail_in_4:</code></span>
+<span class="codeline" id="line-66"><code>	PINSRD $0, (SI), X0</code></span>
+<span class="codeline" id="line-67"><code>	JMP tail_conv</code></span>
+<span class="codeline" id="line-68"><code>tail_in_3:</code></span>
+<span class="codeline" id="line-69"><code>	PINSRB $2, 2(SI), X0</code></span>
+<span class="codeline" id="line-70"><code>tail_in_2:</code></span>
+<span class="codeline" id="line-71"><code>	PINSRB $1, 1(SI), X0</code></span>
+<span class="codeline" id="line-72"><code>tail_in_1:</code></span>
+<span class="codeline" id="line-73"><code>	PINSRB $0, (SI), X0</code></span>
+<span class="codeline" id="line-74"><code>tail_conv:</code></span>
+<span class="codeline" id="line-75"><code>	VPAND encodeMask&lt;&gt;(SB), X0, X1</code></span>
+<span class="codeline" id="line-76"><code>	PSRLW $4, X0</code></span>
+<span class="codeline" id="line-77"><code>	PAND encodeMask&lt;&gt;(SB), X0</code></span>
+<span class="codeline" id="line-78"><code>	PUNPCKLBW X1, X0</code></span>
+<span class="codeline" id="line-79"><code>	VPSHUFB X0, X15, X1</code></span>
+<span class="codeline" id="line-80"><code>	CMPQ BX, $2</code></span>
+<span class="codeline" id="line-81"><code>	JB tail_out_1</code></span>
+<span class="codeline" id="line-82"><code>	JE tail_out_2</code></span>
+<span class="codeline" id="line-83"><code>	CMPQ BX, $4</code></span>
+<span class="codeline" id="line-84"><code>	JB tail_out_3</code></span>
+<span class="codeline" id="line-85"><code>	JE tail_out_4</code></span>
+<span class="codeline" id="line-86"><code>	CMPQ BX, $6</code></span>
+<span class="codeline" id="line-87"><code>	JB tail_out_5</code></span>
+<span class="codeline" id="line-88"><code>	JE tail_out_6</code></span>
+<span class="codeline" id="line-89"><code>	CMPQ BX, $8</code></span>
+<span class="codeline" id="line-90"><code>	JB tail_out_7</code></span>
+<span class="codeline" id="line-91"><code>tail_out_8:</code></span>
+<span class="codeline" id="line-92"><code>	MOVOU X1, (DI)</code></span>
+<span class="codeline" id="line-93"><code>	SUBQ $8, BX</code></span>
+<span class="codeline" id="line-94"><code>	JZ ret</code></span>
+<span class="codeline" id="line-95"><code>	ADDQ $8, SI</code></span>
+<span class="codeline" id="line-96"><code>	ADDQ $16, DI</code></span>
+<span class="codeline" id="line-97"><code>	JMP tail</code></span>
+<span class="codeline" id="line-98"><code>tail_out_7:</code></span>
+<span class="codeline" id="line-99"><code>	PEXTRB $13, X1, 13(DI)</code></span>
+<span class="codeline" id="line-100"><code>	PEXTRB $12, X1, 12(DI)</code></span>
+<span class="codeline" id="line-101"><code>tail_out_6:</code></span>
+<span class="codeline" id="line-102"><code>	PEXTRB $11, X1, 11(DI)</code></span>
+<span class="codeline" id="line-103"><code>	PEXTRB $10, X1, 10(DI)</code></span>
+<span class="codeline" id="line-104"><code>tail_out_5:</code></span>
+<span class="codeline" id="line-105"><code>	PEXTRB $9, X1, 9(DI)</code></span>
+<span class="codeline" id="line-106"><code>	PEXTRB $8, X1, 8(DI)</code></span>
+<span class="codeline" id="line-107"><code>tail_out_4:</code></span>
+<span class="codeline" id="line-108"><code>	MOVQ X1, (DI)</code></span>
+<span class="codeline" id="line-109"><code>	RET</code></span>
+<span class="codeline" id="line-110"><code>tail_out_3:</code></span>
+<span class="codeline" id="line-111"><code>	PEXTRB $5, X1, 5(DI)</code></span>
+<span class="codeline" id="line-112"><code>	PEXTRB $4, X1, 4(DI)</code></span>
+<span class="codeline" id="line-113"><code>tail_out_2:</code></span>
+<span class="codeline" id="line-114"><code>	PEXTRB $3, X1, 3(DI)</code></span>
+<span class="codeline" id="line-115"><code>	PEXTRB $2, X1, 2(DI)</code></span>
+<span class="codeline" id="line-116"><code>tail_out_1:</code></span>
+<span class="codeline" id="line-117"><code>	PEXTRB $1, X1, 1(DI)</code></span>
+<span class="codeline" id="line-118"><code>	PEXTRB $0, X1, (DI)</code></span>
+<span class="codeline" id="line-119"><code>ret:</code></span>
+<span class="codeline" id="line-120"><code>	RET</code></span>
+<span class="codeline" id="line-121"><code></code></span>
+<span class="codeline" id="line-122"><code>TEXT ·encodeSSE(SB),NOSPLIT,$0</code></span>
+<span class="codeline" id="line-123"><code>	MOVQ dst+0(FP), DI</code></span>
+<span class="codeline" id="line-124"><code>	MOVQ src+8(FP), SI</code></span>
+<span class="codeline" id="line-125"><code>	MOVQ len+16(FP), BX</code></span>
+<span class="codeline" id="line-126"><code>	MOVQ alpha+24(FP), DX</code></span>
+<span class="codeline" id="line-127"><code>	MOVOU (DX), X15</code></span>
+<span class="codeline" id="line-128"><code>	CMPQ BX, $16</code></span>
+<span class="codeline" id="line-129"><code>	JB tail</code></span>
+<span class="codeline" id="line-130"><code>bigloop:</code></span>
+<span class="codeline" id="line-131"><code>	MOVOU -16(SI)(BX*1), X0</code></span>
+<span class="codeline" id="line-132"><code>	MOVOU X0, X1</code></span>
+<span class="codeline" id="line-133"><code>	PAND encodeMask&lt;&gt;(SB), X1</code></span>
+<span class="codeline" id="line-134"><code>	PSRLW $4, X0</code></span>
+<span class="codeline" id="line-135"><code>	PAND encodeMask&lt;&gt;(SB), X0</code></span>
+<span class="codeline" id="line-136"><code>	MOVOU X0, X3</code></span>
+<span class="codeline" id="line-137"><code>	PUNPCKHBW X1, X3</code></span>
+<span class="codeline" id="line-138"><code>	PUNPCKLBW X1, X0</code></span>
+<span class="codeline" id="line-139"><code>	MOVOU X15, X1</code></span>
+<span class="codeline" id="line-140"><code>	PSHUFB X0, X1</code></span>
+<span class="codeline" id="line-141"><code>	MOVOU X15, X2</code></span>
+<span class="codeline" id="line-142"><code>	PSHUFB X3, X2</code></span>
+<span class="codeline" id="line-143"><code>	MOVOU X2, -16(DI)(BX*2)</code></span>
+<span class="codeline" id="line-144"><code>	MOVOU X1, -32(DI)(BX*2)</code></span>
+<span class="codeline" id="line-145"><code>	SUBQ $16, BX</code></span>
+<span class="codeline" id="line-146"><code>	JZ ret</code></span>
+<span class="codeline" id="line-147"><code>	CMPQ BX, $16</code></span>
+<span class="codeline" id="line-148"><code>	JAE bigloop</code></span>
+<span class="codeline" id="line-149"><code>tail:</code></span>
+<span class="codeline" id="line-150"><code>	CMPQ BX, $2</code></span>
+<span class="codeline" id="line-151"><code>	JB tail_in_1</code></span>
+<span class="codeline" id="line-152"><code>	JE tail_in_2</code></span>
+<span class="codeline" id="line-153"><code>	CMPQ BX, $4</code></span>
+<span class="codeline" id="line-154"><code>	JB tail_in_3</code></span>
+<span class="codeline" id="line-155"><code>	JE tail_in_4</code></span>
+<span class="codeline" id="line-156"><code>	CMPQ BX, $6</code></span>
+<span class="codeline" id="line-157"><code>	JB tail_in_5</code></span>
+<span class="codeline" id="line-158"><code>	JE tail_in_6</code></span>
+<span class="codeline" id="line-159"><code>	CMPQ BX, $8</code></span>
+<span class="codeline" id="line-160"><code>	JB tail_in_7</code></span>
+<span class="codeline" id="line-161"><code>tail_in_8:</code></span>
+<span class="codeline" id="line-162"><code>	MOVQ (SI), X0</code></span>
+<span class="codeline" id="line-163"><code>	JMP tail_conv</code></span>
+<span class="codeline" id="line-164"><code>tail_in_7:</code></span>
+<span class="codeline" id="line-165"><code>	PINSRB $6, 6(SI), X0</code></span>
+<span class="codeline" id="line-166"><code>tail_in_6:</code></span>
+<span class="codeline" id="line-167"><code>	PINSRB $5, 5(SI), X0</code></span>
+<span class="codeline" id="line-168"><code>tail_in_5:</code></span>
+<span class="codeline" id="line-169"><code>	PINSRB $4, 4(SI), X0</code></span>
+<span class="codeline" id="line-170"><code>tail_in_4:</code></span>
+<span class="codeline" id="line-171"><code>	PINSRD $0, (SI), X0</code></span>
+<span class="codeline" id="line-172"><code>	JMP tail_conv</code></span>
+<span class="codeline" id="line-173"><code>tail_in_3:</code></span>
+<span class="codeline" id="line-174"><code>	PINSRB $2, 2(SI), X0</code></span>
+<span class="codeline" id="line-175"><code>tail_in_2:</code></span>
+<span class="codeline" id="line-176"><code>	PINSRB $1, 1(SI), X0</code></span>
+<span class="codeline" id="line-177"><code>tail_in_1:</code></span>
+<span class="codeline" id="line-178"><code>	PINSRB $0, (SI), X0</code></span>
+<span class="codeline" id="line-179"><code>tail_conv:</code></span>
+<span class="codeline" id="line-180"><code>	MOVOU X0, X1</code></span>
+<span class="codeline" id="line-181"><code>	PAND encodeMask&lt;&gt;(SB), X1</code></span>
+<span class="codeline" id="line-182"><code>	PSRLW $4, X0</code></span>
+<span class="codeline" id="line-183"><code>	PAND encodeMask&lt;&gt;(SB), X0</code></span>
+<span class="codeline" id="line-184"><code>	PUNPCKLBW X1, X0</code></span>
+<span class="codeline" id="line-185"><code>	MOVOU X15, X1</code></span>
+<span class="codeline" id="line-186"><code>	PSHUFB X0, X1</code></span>
+<span class="codeline" id="line-187"><code>	CMPQ BX, $2</code></span>
+<span class="codeline" id="line-188"><code>	JB tail_out_1</code></span>
+<span class="codeline" id="line-189"><code>	JE tail_out_2</code></span>
+<span class="codeline" id="line-190"><code>	CMPQ BX, $4</code></span>
+<span class="codeline" id="line-191"><code>	JB tail_out_3</code></span>
+<span class="codeline" id="line-192"><code>	JE tail_out_4</code></span>
+<span class="codeline" id="line-193"><code>	CMPQ BX, $6</code></span>
+<span class="codeline" id="line-194"><code>	JB tail_out_5</code></span>
+<span class="codeline" id="line-195"><code>	JE tail_out_6</code></span>
+<span class="codeline" id="line-196"><code>	CMPQ BX, $8</code></span>
+<span class="codeline" id="line-197"><code>	JB tail_out_7</code></span>
+<span class="codeline" id="line-198"><code>tail_out_8:</code></span>
+<span class="codeline" id="line-199"><code>	MOVOU X1, (DI)</code></span>
+<span class="codeline" id="line-200"><code>	SUBQ $8, BX</code></span>
+<span class="codeline" id="line-201"><code>	JZ ret</code></span>
+<span class="codeline" id="line-202"><code>	ADDQ $8, SI</code></span>
+<span class="codeline" id="line-203"><code>	ADDQ $16, DI</code></span>
+<span class="codeline" id="line-204"><code>	JMP tail</code></span>
+<span class="codeline" id="line-205"><code>tail_out_7:</code></span>
+<span class="codeline" id="line-206"><code>	PEXTRB $13, X1, 13(DI)</code></span>
+<span class="codeline" id="line-207"><code>	PEXTRB $12, X1, 12(DI)</code></span>
+<span class="codeline" id="line-208"><code>tail_out_6:</code></span>
+<span class="codeline" id="line-209"><code>	PEXTRB $11, X1, 11(DI)</code></span>
+<span class="codeline" id="line-210"><code>	PEXTRB $10, X1, 10(DI)</code></span>
+<span class="codeline" id="line-211"><code>tail_out_5:</code></span>
+<span class="codeline" id="line-212"><code>	PEXTRB $9, X1, 9(DI)</code></span>
+<span class="codeline" id="line-213"><code>	PEXTRB $8, X1, 8(DI)</code></span>
+<span class="codeline" id="line-214"><code>tail_out_4:</code></span>
+<span class="codeline" id="line-215"><code>	MOVQ X1, (DI)</code></span>
+<span class="codeline" id="line-216"><code>	RET</code></span>
+<span class="codeline" id="line-217"><code>tail_out_3:</code></span>
+<span class="codeline" id="line-218"><code>	PEXTRB $5, X1, 5(DI)</code></span>
+<span class="codeline" id="line-219"><code>	PEXTRB $4, X1, 4(DI)</code></span>
+<span class="codeline" id="line-220"><code>tail_out_2:</code></span>
+<span class="codeline" id="line-221"><code>	PEXTRB $3, X1, 3(DI)</code></span>
+<span class="codeline" id="line-222"><code>	PEXTRB $2, X1, 2(DI)</code></span>
+<span class="codeline" id="line-223"><code>tail_out_1:</code></span>
+<span class="codeline" id="line-224"><code>	PEXTRB $1, X1, 1(DI)</code></span>
+<span class="codeline" id="line-225"><code>	PEXTRB $0, X1, (DI)</code></span>
+<span class="codeline" id="line-226"><code>ret:</code></span>
+<span class="codeline" id="line-227"><code>	RET</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

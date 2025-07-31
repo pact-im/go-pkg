@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: blamka_amd64.s in package golang.org/x/crypto/argon2</title>
+<link href="../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	blamka_amd64.s
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../pkg/golang.org/x/crypto/argon2.html">golang.org/x/crypto/argon2</a>
+</code></pre>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code>// Copyright 2017 The Go Authors. All rights reserved.</code></span>
+<span class="codeline" id="line-2"><code>// Use of this source code is governed by a BSD-style</code></span>
+<span class="codeline" id="line-3"><code>// license that can be found in the LICENSE file.</code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code>//go:build amd64 &amp;&amp; gc &amp;&amp; !purego</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code>#include "textflag.h"</code></span>
+<span class="codeline" id="line-8"><code></code></span>
+<span class="codeline" id="line-9"><code>DATA ·c40&lt;&gt;+0x00(SB)/8, $0x0201000706050403</code></span>
+<span class="codeline" id="line-10"><code>DATA ·c40&lt;&gt;+0x08(SB)/8, $0x0a09080f0e0d0c0b</code></span>
+<span class="codeline" id="line-11"><code>GLOBL ·c40&lt;&gt;(SB), (NOPTR+RODATA), $16</code></span>
+<span class="codeline" id="line-12"><code></code></span>
+<span class="codeline" id="line-13"><code>DATA ·c48&lt;&gt;+0x00(SB)/8, $0x0100070605040302</code></span>
+<span class="codeline" id="line-14"><code>DATA ·c48&lt;&gt;+0x08(SB)/8, $0x09080f0e0d0c0b0a</code></span>
+<span class="codeline" id="line-15"><code>GLOBL ·c48&lt;&gt;(SB), (NOPTR+RODATA), $16</code></span>
+<span class="codeline" id="line-16"><code></code></span>
+<span class="codeline" id="line-17"><code>#define SHUFFLE(v2, v3, v4, v5, v6, v7, t1, t2) \</code></span>
+<span class="codeline" id="line-18"><code>	MOVO       v4, t1; \</code></span>
+<span class="codeline" id="line-19"><code>	MOVO       v5, v4; \</code></span>
+<span class="codeline" id="line-20"><code>	MOVO       t1, v5; \</code></span>
+<span class="codeline" id="line-21"><code>	MOVO       v6, t1; \</code></span>
+<span class="codeline" id="line-22"><code>	PUNPCKLQDQ v6, t2; \</code></span>
+<span class="codeline" id="line-23"><code>	PUNPCKHQDQ v7, v6; \</code></span>
+<span class="codeline" id="line-24"><code>	PUNPCKHQDQ t2, v6; \</code></span>
+<span class="codeline" id="line-25"><code>	PUNPCKLQDQ v7, t2; \</code></span>
+<span class="codeline" id="line-26"><code>	MOVO       t1, v7; \</code></span>
+<span class="codeline" id="line-27"><code>	MOVO       v2, t1; \</code></span>
+<span class="codeline" id="line-28"><code>	PUNPCKHQDQ t2, v7; \</code></span>
+<span class="codeline" id="line-29"><code>	PUNPCKLQDQ v3, t2; \</code></span>
+<span class="codeline" id="line-30"><code>	PUNPCKHQDQ t2, v2; \</code></span>
+<span class="codeline" id="line-31"><code>	PUNPCKLQDQ t1, t2; \</code></span>
+<span class="codeline" id="line-32"><code>	PUNPCKHQDQ t2, v3</code></span>
+<span class="codeline" id="line-33"><code></code></span>
+<span class="codeline" id="line-34"><code>#define SHUFFLE_INV(v2, v3, v4, v5, v6, v7, t1, t2) \</code></span>
+<span class="codeline" id="line-35"><code>	MOVO       v4, t1; \</code></span>
+<span class="codeline" id="line-36"><code>	MOVO       v5, v4; \</code></span>
+<span class="codeline" id="line-37"><code>	MOVO       t1, v5; \</code></span>
+<span class="codeline" id="line-38"><code>	MOVO       v2, t1; \</code></span>
+<span class="codeline" id="line-39"><code>	PUNPCKLQDQ v2, t2; \</code></span>
+<span class="codeline" id="line-40"><code>	PUNPCKHQDQ v3, v2; \</code></span>
+<span class="codeline" id="line-41"><code>	PUNPCKHQDQ t2, v2; \</code></span>
+<span class="codeline" id="line-42"><code>	PUNPCKLQDQ v3, t2; \</code></span>
+<span class="codeline" id="line-43"><code>	MOVO       t1, v3; \</code></span>
+<span class="codeline" id="line-44"><code>	MOVO       v6, t1; \</code></span>
+<span class="codeline" id="line-45"><code>	PUNPCKHQDQ t2, v3; \</code></span>
+<span class="codeline" id="line-46"><code>	PUNPCKLQDQ v7, t2; \</code></span>
+<span class="codeline" id="line-47"><code>	PUNPCKHQDQ t2, v6; \</code></span>
+<span class="codeline" id="line-48"><code>	PUNPCKLQDQ t1, t2; \</code></span>
+<span class="codeline" id="line-49"><code>	PUNPCKHQDQ t2, v7</code></span>
+<span class="codeline" id="line-50"><code></code></span>
+<span class="codeline" id="line-51"><code>#define HALF_ROUND(v0, v1, v2, v3, v4, v5, v6, v7, t0, c40, c48) \</code></span>
+<span class="codeline" id="line-52"><code>	MOVO    v0, t0;        \</code></span>
+<span class="codeline" id="line-53"><code>	PMULULQ v2, t0;        \</code></span>
+<span class="codeline" id="line-54"><code>	PADDQ   v2, v0;        \</code></span>
+<span class="codeline" id="line-55"><code>	PADDQ   t0, v0;        \</code></span>
+<span class="codeline" id="line-56"><code>	PADDQ   t0, v0;        \</code></span>
+<span class="codeline" id="line-57"><code>	PXOR    v0, v6;        \</code></span>
+<span class="codeline" id="line-58"><code>	PSHUFD  $0xB1, v6, v6; \</code></span>
+<span class="codeline" id="line-59"><code>	MOVO    v4, t0;        \</code></span>
+<span class="codeline" id="line-60"><code>	PMULULQ v6, t0;        \</code></span>
+<span class="codeline" id="line-61"><code>	PADDQ   v6, v4;        \</code></span>
+<span class="codeline" id="line-62"><code>	PADDQ   t0, v4;        \</code></span>
+<span class="codeline" id="line-63"><code>	PADDQ   t0, v4;        \</code></span>
+<span class="codeline" id="line-64"><code>	PXOR    v4, v2;        \</code></span>
+<span class="codeline" id="line-65"><code>	PSHUFB  c40, v2;       \</code></span>
+<span class="codeline" id="line-66"><code>	MOVO    v0, t0;        \</code></span>
+<span class="codeline" id="line-67"><code>	PMULULQ v2, t0;        \</code></span>
+<span class="codeline" id="line-68"><code>	PADDQ   v2, v0;        \</code></span>
+<span class="codeline" id="line-69"><code>	PADDQ   t0, v0;        \</code></span>
+<span class="codeline" id="line-70"><code>	PADDQ   t0, v0;        \</code></span>
+<span class="codeline" id="line-71"><code>	PXOR    v0, v6;        \</code></span>
+<span class="codeline" id="line-72"><code>	PSHUFB  c48, v6;       \</code></span>
+<span class="codeline" id="line-73"><code>	MOVO    v4, t0;        \</code></span>
+<span class="codeline" id="line-74"><code>	PMULULQ v6, t0;        \</code></span>
+<span class="codeline" id="line-75"><code>	PADDQ   v6, v4;        \</code></span>
+<span class="codeline" id="line-76"><code>	PADDQ   t0, v4;        \</code></span>
+<span class="codeline" id="line-77"><code>	PADDQ   t0, v4;        \</code></span>
+<span class="codeline" id="line-78"><code>	PXOR    v4, v2;        \</code></span>
+<span class="codeline" id="line-79"><code>	MOVO    v2, t0;        \</code></span>
+<span class="codeline" id="line-80"><code>	PADDQ   v2, t0;        \</code></span>
+<span class="codeline" id="line-81"><code>	PSRLQ   $63, v2;       \</code></span>
+<span class="codeline" id="line-82"><code>	PXOR    t0, v2;        \</code></span>
+<span class="codeline" id="line-83"><code>	MOVO    v1, t0;        \</code></span>
+<span class="codeline" id="line-84"><code>	PMULULQ v3, t0;        \</code></span>
+<span class="codeline" id="line-85"><code>	PADDQ   v3, v1;        \</code></span>
+<span class="codeline" id="line-86"><code>	PADDQ   t0, v1;        \</code></span>
+<span class="codeline" id="line-87"><code>	PADDQ   t0, v1;        \</code></span>
+<span class="codeline" id="line-88"><code>	PXOR    v1, v7;        \</code></span>
+<span class="codeline" id="line-89"><code>	PSHUFD  $0xB1, v7, v7; \</code></span>
+<span class="codeline" id="line-90"><code>	MOVO    v5, t0;        \</code></span>
+<span class="codeline" id="line-91"><code>	PMULULQ v7, t0;        \</code></span>
+<span class="codeline" id="line-92"><code>	PADDQ   v7, v5;        \</code></span>
+<span class="codeline" id="line-93"><code>	PADDQ   t0, v5;        \</code></span>
+<span class="codeline" id="line-94"><code>	PADDQ   t0, v5;        \</code></span>
+<span class="codeline" id="line-95"><code>	PXOR    v5, v3;        \</code></span>
+<span class="codeline" id="line-96"><code>	PSHUFB  c40, v3;       \</code></span>
+<span class="codeline" id="line-97"><code>	MOVO    v1, t0;        \</code></span>
+<span class="codeline" id="line-98"><code>	PMULULQ v3, t0;        \</code></span>
+<span class="codeline" id="line-99"><code>	PADDQ   v3, v1;        \</code></span>
+<span class="codeline" id="line-100"><code>	PADDQ   t0, v1;        \</code></span>
+<span class="codeline" id="line-101"><code>	PADDQ   t0, v1;        \</code></span>
+<span class="codeline" id="line-102"><code>	PXOR    v1, v7;        \</code></span>
+<span class="codeline" id="line-103"><code>	PSHUFB  c48, v7;       \</code></span>
+<span class="codeline" id="line-104"><code>	MOVO    v5, t0;        \</code></span>
+<span class="codeline" id="line-105"><code>	PMULULQ v7, t0;        \</code></span>
+<span class="codeline" id="line-106"><code>	PADDQ   v7, v5;        \</code></span>
+<span class="codeline" id="line-107"><code>	PADDQ   t0, v5;        \</code></span>
+<span class="codeline" id="line-108"><code>	PADDQ   t0, v5;        \</code></span>
+<span class="codeline" id="line-109"><code>	PXOR    v5, v3;        \</code></span>
+<span class="codeline" id="line-110"><code>	MOVO    v3, t0;        \</code></span>
+<span class="codeline" id="line-111"><code>	PADDQ   v3, t0;        \</code></span>
+<span class="codeline" id="line-112"><code>	PSRLQ   $63, v3;       \</code></span>
+<span class="codeline" id="line-113"><code>	PXOR    t0, v3</code></span>
+<span class="codeline" id="line-114"><code></code></span>
+<span class="codeline" id="line-115"><code>#define LOAD_MSG_0(block, off) \</code></span>
+<span class="codeline" id="line-116"><code>	MOVOU 8*(off+0)(block), X0;  \</code></span>
+<span class="codeline" id="line-117"><code>	MOVOU 8*(off+2)(block), X1;  \</code></span>
+<span class="codeline" id="line-118"><code>	MOVOU 8*(off+4)(block), X2;  \</code></span>
+<span class="codeline" id="line-119"><code>	MOVOU 8*(off+6)(block), X3;  \</code></span>
+<span class="codeline" id="line-120"><code>	MOVOU 8*(off+8)(block), X4;  \</code></span>
+<span class="codeline" id="line-121"><code>	MOVOU 8*(off+10)(block), X5; \</code></span>
+<span class="codeline" id="line-122"><code>	MOVOU 8*(off+12)(block), X6; \</code></span>
+<span class="codeline" id="line-123"><code>	MOVOU 8*(off+14)(block), X7</code></span>
+<span class="codeline" id="line-124"><code></code></span>
+<span class="codeline" id="line-125"><code>#define STORE_MSG_0(block, off) \</code></span>
+<span class="codeline" id="line-126"><code>	MOVOU X0, 8*(off+0)(block);  \</code></span>
+<span class="codeline" id="line-127"><code>	MOVOU X1, 8*(off+2)(block);  \</code></span>
+<span class="codeline" id="line-128"><code>	MOVOU X2, 8*(off+4)(block);  \</code></span>
+<span class="codeline" id="line-129"><code>	MOVOU X3, 8*(off+6)(block);  \</code></span>
+<span class="codeline" id="line-130"><code>	MOVOU X4, 8*(off+8)(block);  \</code></span>
+<span class="codeline" id="line-131"><code>	MOVOU X5, 8*(off+10)(block); \</code></span>
+<span class="codeline" id="line-132"><code>	MOVOU X6, 8*(off+12)(block); \</code></span>
+<span class="codeline" id="line-133"><code>	MOVOU X7, 8*(off+14)(block)</code></span>
+<span class="codeline" id="line-134"><code></code></span>
+<span class="codeline" id="line-135"><code>#define LOAD_MSG_1(block, off) \</code></span>
+<span class="codeline" id="line-136"><code>	MOVOU 8*off+0*8(block), X0;  \</code></span>
+<span class="codeline" id="line-137"><code>	MOVOU 8*off+16*8(block), X1; \</code></span>
+<span class="codeline" id="line-138"><code>	MOVOU 8*off+32*8(block), X2; \</code></span>
+<span class="codeline" id="line-139"><code>	MOVOU 8*off+48*8(block), X3; \</code></span>
+<span class="codeline" id="line-140"><code>	MOVOU 8*off+64*8(block), X4; \</code></span>
+<span class="codeline" id="line-141"><code>	MOVOU 8*off+80*8(block), X5; \</code></span>
+<span class="codeline" id="line-142"><code>	MOVOU 8*off+96*8(block), X6; \</code></span>
+<span class="codeline" id="line-143"><code>	MOVOU 8*off+112*8(block), X7</code></span>
+<span class="codeline" id="line-144"><code></code></span>
+<span class="codeline" id="line-145"><code>#define STORE_MSG_1(block, off) \</code></span>
+<span class="codeline" id="line-146"><code>	MOVOU X0, 8*off+0*8(block);  \</code></span>
+<span class="codeline" id="line-147"><code>	MOVOU X1, 8*off+16*8(block); \</code></span>
+<span class="codeline" id="line-148"><code>	MOVOU X2, 8*off+32*8(block); \</code></span>
+<span class="codeline" id="line-149"><code>	MOVOU X3, 8*off+48*8(block); \</code></span>
+<span class="codeline" id="line-150"><code>	MOVOU X4, 8*off+64*8(block); \</code></span>
+<span class="codeline" id="line-151"><code>	MOVOU X5, 8*off+80*8(block); \</code></span>
+<span class="codeline" id="line-152"><code>	MOVOU X6, 8*off+96*8(block); \</code></span>
+<span class="codeline" id="line-153"><code>	MOVOU X7, 8*off+112*8(block)</code></span>
+<span class="codeline" id="line-154"><code></code></span>
+<span class="codeline" id="line-155"><code>#define BLAMKA_ROUND_0(block, off, t0, t1, c40, c48) \</code></span>
+<span class="codeline" id="line-156"><code>	LOAD_MSG_0(block, off);                                   \</code></span>
+<span class="codeline" id="line-157"><code>	HALF_ROUND(X0, X1, X2, X3, X4, X5, X6, X7, t0, c40, c48); \</code></span>
+<span class="codeline" id="line-158"><code>	SHUFFLE(X2, X3, X4, X5, X6, X7, t0, t1);                  \</code></span>
+<span class="codeline" id="line-159"><code>	HALF_ROUND(X0, X1, X2, X3, X4, X5, X6, X7, t0, c40, c48); \</code></span>
+<span class="codeline" id="line-160"><code>	SHUFFLE_INV(X2, X3, X4, X5, X6, X7, t0, t1);              \</code></span>
+<span class="codeline" id="line-161"><code>	STORE_MSG_0(block, off)</code></span>
+<span class="codeline" id="line-162"><code></code></span>
+<span class="codeline" id="line-163"><code>#define BLAMKA_ROUND_1(block, off, t0, t1, c40, c48) \</code></span>
+<span class="codeline" id="line-164"><code>	LOAD_MSG_1(block, off);                                   \</code></span>
+<span class="codeline" id="line-165"><code>	HALF_ROUND(X0, X1, X2, X3, X4, X5, X6, X7, t0, c40, c48); \</code></span>
+<span class="codeline" id="line-166"><code>	SHUFFLE(X2, X3, X4, X5, X6, X7, t0, t1);                  \</code></span>
+<span class="codeline" id="line-167"><code>	HALF_ROUND(X0, X1, X2, X3, X4, X5, X6, X7, t0, c40, c48); \</code></span>
+<span class="codeline" id="line-168"><code>	SHUFFLE_INV(X2, X3, X4, X5, X6, X7, t0, t1);              \</code></span>
+<span class="codeline" id="line-169"><code>	STORE_MSG_1(block, off)</code></span>
+<span class="codeline" id="line-170"><code></code></span>
+<span class="codeline" id="line-171"><code>// func blamkaSSE4(b *block)</code></span>
+<span class="codeline" id="line-172"><code>TEXT ·blamkaSSE4(SB), 4, $0-8</code></span>
+<span class="codeline" id="line-173"><code>	MOVQ b+0(FP), AX</code></span>
+<span class="codeline" id="line-174"><code></code></span>
+<span class="codeline" id="line-175"><code>	MOVOU ·c40&lt;&gt;(SB), X10</code></span>
+<span class="codeline" id="line-176"><code>	MOVOU ·c48&lt;&gt;(SB), X11</code></span>
+<span class="codeline" id="line-177"><code></code></span>
+<span class="codeline" id="line-178"><code>	BLAMKA_ROUND_0(AX, 0, X8, X9, X10, X11)</code></span>
+<span class="codeline" id="line-179"><code>	BLAMKA_ROUND_0(AX, 16, X8, X9, X10, X11)</code></span>
+<span class="codeline" id="line-180"><code>	BLAMKA_ROUND_0(AX, 32, X8, X9, X10, X11)</code></span>
+<span class="codeline" id="line-181"><code>	BLAMKA_ROUND_0(AX, 48, X8, X9, X10, X11)</code></span>
+<span class="codeline" id="line-182"><code>	BLAMKA_ROUND_0(AX, 64, X8, X9, X10, X11)</code></span>
+<span class="codeline" id="line-183"><code>	BLAMKA_ROUND_0(AX, 80, X8, X9, X10, X11)</code></span>
+<span class="codeline" id="line-184"><code>	BLAMKA_ROUND_0(AX, 96, X8, X9, X10, X11)</code></span>
+<span class="codeline" id="line-185"><code>	BLAMKA_ROUND_0(AX, 112, X8, X9, X10, X11)</code></span>
+<span class="codeline" id="line-186"><code></code></span>
+<span class="codeline" id="line-187"><code>	BLAMKA_ROUND_1(AX, 0, X8, X9, X10, X11)</code></span>
+<span class="codeline" id="line-188"><code>	BLAMKA_ROUND_1(AX, 2, X8, X9, X10, X11)</code></span>
+<span class="codeline" id="line-189"><code>	BLAMKA_ROUND_1(AX, 4, X8, X9, X10, X11)</code></span>
+<span class="codeline" id="line-190"><code>	BLAMKA_ROUND_1(AX, 6, X8, X9, X10, X11)</code></span>
+<span class="codeline" id="line-191"><code>	BLAMKA_ROUND_1(AX, 8, X8, X9, X10, X11)</code></span>
+<span class="codeline" id="line-192"><code>	BLAMKA_ROUND_1(AX, 10, X8, X9, X10, X11)</code></span>
+<span class="codeline" id="line-193"><code>	BLAMKA_ROUND_1(AX, 12, X8, X9, X10, X11)</code></span>
+<span class="codeline" id="line-194"><code>	BLAMKA_ROUND_1(AX, 14, X8, X9, X10, X11)</code></span>
+<span class="codeline" id="line-195"><code>	RET</code></span>
+<span class="codeline" id="line-196"><code></code></span>
+<span class="codeline" id="line-197"><code>// func mixBlocksSSE2(out, a, b, c *block)</code></span>
+<span class="codeline" id="line-198"><code>TEXT ·mixBlocksSSE2(SB), 4, $0-32</code></span>
+<span class="codeline" id="line-199"><code>	MOVQ out+0(FP), DX</code></span>
+<span class="codeline" id="line-200"><code>	MOVQ a+8(FP), AX</code></span>
+<span class="codeline" id="line-201"><code>	MOVQ b+16(FP), BX</code></span>
+<span class="codeline" id="line-202"><code>	MOVQ c+24(FP), CX</code></span>
+<span class="codeline" id="line-203"><code>	MOVQ $128, DI</code></span>
+<span class="codeline" id="line-204"><code></code></span>
+<span class="codeline" id="line-205"><code>loop:</code></span>
+<span class="codeline" id="line-206"><code>	MOVOU 0(AX), X0</code></span>
+<span class="codeline" id="line-207"><code>	MOVOU 0(BX), X1</code></span>
+<span class="codeline" id="line-208"><code>	MOVOU 0(CX), X2</code></span>
+<span class="codeline" id="line-209"><code>	PXOR  X1, X0</code></span>
+<span class="codeline" id="line-210"><code>	PXOR  X2, X0</code></span>
+<span class="codeline" id="line-211"><code>	MOVOU X0, 0(DX)</code></span>
+<span class="codeline" id="line-212"><code>	ADDQ  $16, AX</code></span>
+<span class="codeline" id="line-213"><code>	ADDQ  $16, BX</code></span>
+<span class="codeline" id="line-214"><code>	ADDQ  $16, CX</code></span>
+<span class="codeline" id="line-215"><code>	ADDQ  $16, DX</code></span>
+<span class="codeline" id="line-216"><code>	SUBQ  $2, DI</code></span>
+<span class="codeline" id="line-217"><code>	JA    loop</code></span>
+<span class="codeline" id="line-218"><code>	RET</code></span>
+<span class="codeline" id="line-219"><code></code></span>
+<span class="codeline" id="line-220"><code>// func xorBlocksSSE2(out, a, b, c *block)</code></span>
+<span class="codeline" id="line-221"><code>TEXT ·xorBlocksSSE2(SB), 4, $0-32</code></span>
+<span class="codeline" id="line-222"><code>	MOVQ out+0(FP), DX</code></span>
+<span class="codeline" id="line-223"><code>	MOVQ a+8(FP), AX</code></span>
+<span class="codeline" id="line-224"><code>	MOVQ b+16(FP), BX</code></span>
+<span class="codeline" id="line-225"><code>	MOVQ c+24(FP), CX</code></span>
+<span class="codeline" id="line-226"><code>	MOVQ $128, DI</code></span>
+<span class="codeline" id="line-227"><code></code></span>
+<span class="codeline" id="line-228"><code>loop:</code></span>
+<span class="codeline" id="line-229"><code>	MOVOU 0(AX), X0</code></span>
+<span class="codeline" id="line-230"><code>	MOVOU 0(BX), X1</code></span>
+<span class="codeline" id="line-231"><code>	MOVOU 0(CX), X2</code></span>
+<span class="codeline" id="line-232"><code>	MOVOU 0(DX), X3</code></span>
+<span class="codeline" id="line-233"><code>	PXOR  X1, X0</code></span>
+<span class="codeline" id="line-234"><code>	PXOR  X2, X0</code></span>
+<span class="codeline" id="line-235"><code>	PXOR  X3, X0</code></span>
+<span class="codeline" id="line-236"><code>	MOVOU X0, 0(DX)</code></span>
+<span class="codeline" id="line-237"><code>	ADDQ  $16, AX</code></span>
+<span class="codeline" id="line-238"><code>	ADDQ  $16, BX</code></span>
+<span class="codeline" id="line-239"><code>	ADDQ  $16, CX</code></span>
+<span class="codeline" id="line-240"><code>	ADDQ  $16, DX</code></span>
+<span class="codeline" id="line-241"><code>	SUBQ  $2, DI</code></span>
+<span class="codeline" id="line-242"><code>	JA    loop</code></span>
+<span class="codeline" id="line-243"><code>	RET</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

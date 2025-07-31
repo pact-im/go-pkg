@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: presign_middleware.go in package github.com/aws/aws-sdk-go-v2/internal/v4a</title>
+<link href="../../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	presign_middleware.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../../pkg/github.com/aws/aws-sdk-go-v2/internal/v4a.html">github.com/aws/aws-sdk-go-v2/internal/v4a</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3,
+input[id=i4]:checked ~pre .i4,
+input[id=i5]:checked ~pre .i5,
+input[id=i6]:checked ~pre .i6,
+input[id=i7]:checked ~pre .i7,
+input[id=i8]:checked ~pre .i8
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+<input id="i4" type="radio" name="i"/>
+<input id="i5" type="radio" name="i"/>
+<input id="i6" type="radio" name="i"/>
+<input id="i7" type="radio" name="i"/>
+<input id="i8" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="keyword">package</span> v4a</code></span>
+<span class="codeline" id="line-2"><code></code></span>
+<span class="codeline" id="line-3"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-4"><code>	<label for="i0"><span class="lit-string i0">"context"</span></label></code></span>
+<span class="codeline" id="line-5"><code>	<label for="i1"><span class="lit-string i1">"fmt"</span></label></code></span>
+<span class="codeline" id="line-6"><code>	<label for="i2"><span class="lit-string i2">"net/http"</span></label></code></span>
+<span class="codeline" id="line-7"><code>	<label for="i3"><span class="lit-string i3">"time"</span></label></code></span>
+<span class="codeline" id="line-8"><code></code></span>
+<span class="codeline" id="line-9"><code>	<a href="../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws/middleware.html" class="ident i4">awsmiddleware</a> <label for="i4"><span class="lit-string i4">"github.com/aws/aws-sdk-go-v2/aws/middleware"</span></label></code></span>
+<span class="codeline" id="line-10"><code>	<a href="../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws/signer/v4.html" class="ident i5">v4</a> <label for="i5"><span class="lit-string i5">"github.com/aws/aws-sdk-go-v2/aws/signer/v4"</span></label></code></span>
+<span class="codeline" id="line-11"><code>	<label for="i6"><span class="lit-string i6">"github.com/aws/aws-sdk-go-v2/internal/sdk"</span></label></code></span>
+<span class="codeline" id="line-12"><code>	<label for="i7"><span class="lit-string i7">"github.com/aws/smithy-go/middleware"</span></label></code></span>
+<span class="codeline" id="line-13"><code>	<a href="../../../../../../pkg/github.com/aws/smithy-go/transport/http.html" class="ident i8">smithyHTTP</a> <label for="i8"><span class="lit-string i8">"github.com/aws/smithy-go/transport/http"</span></label></code></span>
+<span class="codeline" id="line-14"><code>)</code></span>
+<span class="codeline" id="line-15"><code></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">// HTTPPresigner is an interface to a SigV4a signer that can sign create a</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">// presigned URL for a HTTP requests.</span></code></span>
+<span class="codeline" id="line-18"><code><span class="keyword">type</span> <a href="../../../../../../pkg/github.com/aws/aws-sdk-go-v2/internal/v4a.html#name-HTTPPresigner" class="ident">HTTPPresigner</a> <span class="keyword">interface</span> {</code></span>
+<span class="codeline" id="line-19"><code>	<a href="../../../../../../imp/github.com/aws/aws-sdk-go-v2/internal/v4a.HTTPPresigner.html#name-PresignHTTP" class="ident">PresignHTTP</a>(</code></span>
+<span class="codeline" id="line-20"><code>		ctx <a href="../../../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../../../context/context.go.html#line-71" class="ident">Context</a>, credentials <a href="credentials.go.html#line-17" class="ident">Credentials</a>, r *<a href="../../../../../../pkg/net/http.html" class="ident i2">http</a>.<a href="../../../../../net/http/request.go.html#line-113" class="ident">Request</a>,</code></span>
+<span class="codeline" id="line-21"><code>		payloadHash <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>, service <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>, regionSet []<a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>, signingTime <a href="../../../../../../pkg/time.html" class="ident i3">time</a>.<a href="../../../../../time/time.go.html#line-140" class="ident">Time</a>,</code></span>
+<span class="codeline" id="line-22"><code>		optFns ...<span class="keyword">func</span>(*<a href="v4a.go.html#line-67" class="ident">SignerOptions</a>),</code></span>
+<span class="codeline" id="line-23"><code>	) (url <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>, signedHeader <a href="../../../../../../pkg/net/http.html" class="ident i2">http</a>.<a href="../../../../../net/http/header.go.html#line-24" class="ident">Header</a>, err <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
+<span class="codeline" id="line-24"><code>}</code></span>
+<span class="codeline" id="line-25"><code></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">// PresignHTTPRequestMiddlewareOptions is the options for the PresignHTTPRequestMiddleware middleware.</span></code></span>
+<span class="codeline" id="line-27"><code><span class="keyword">type</span> <a href="../../../../../../pkg/github.com/aws/aws-sdk-go-v2/internal/v4a.html#name-PresignHTTPRequestMiddlewareOptions" class="ident">PresignHTTPRequestMiddlewareOptions</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-28"><code>	<a href="../../../../../../use/github.com/aws/aws-sdk-go-v2/internal/v4a..PresignHTTPRequestMiddlewareOptions.CredentialsProvider.html" class="ident">CredentialsProvider</a> <a href="credentials.go.html#line-139" class="ident">CredentialsProvider</a></code></span>
+<span class="codeline" id="line-29"><code>	<a href="../../../../../../use/github.com/aws/aws-sdk-go-v2/internal/v4a..PresignHTTPRequestMiddlewareOptions.Presigner.html" class="ident">Presigner</a>           <a href="#line-18" class="ident">HTTPPresigner</a></code></span>
+<span class="codeline" id="line-30"><code>	<a href="../../../../../../use/github.com/aws/aws-sdk-go-v2/internal/v4a..PresignHTTPRequestMiddlewareOptions.LogSigning.html" class="ident">LogSigning</a>          <a href="../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-31"><code>}</code></span>
+<span class="codeline" id="line-32"><code></code></span>
+<span class="codeline" id="line-33"><code><span class="comment">// PresignHTTPRequestMiddleware provides the Finalize middleware for creating a</span></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">// presigned URL for an HTTP request.</span></code></span>
+<span class="codeline" id="line-35"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">// Will short circuit the middleware stack and not forward onto the next</span></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">// Finalize handler.</span></code></span>
+<span class="codeline" id="line-38"><code><span class="keyword">type</span> <a href="../../../../../../pkg/github.com/aws/aws-sdk-go-v2/internal/v4a.html#name-PresignHTTPRequestMiddleware" class="ident">PresignHTTPRequestMiddleware</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-39"><code>	<a href="../../../../../../use/github.com/aws/aws-sdk-go-v2/internal/v4a..PresignHTTPRequestMiddleware.credentialsProvider^9e66e.html" class="ident">credentialsProvider</a> <a href="credentials.go.html#line-139" class="ident">CredentialsProvider</a></code></span>
+<span class="codeline" id="line-40"><code>	<a href="../../../../../../use/github.com/aws/aws-sdk-go-v2/internal/v4a..PresignHTTPRequestMiddleware.presigner^fb412.html" class="ident">presigner</a>           <a href="#line-18" class="ident">HTTPPresigner</a></code></span>
+<span class="codeline" id="line-41"><code>	<a href="../../../../../../use/github.com/aws/aws-sdk-go-v2/internal/v4a..PresignHTTPRequestMiddleware.logSigning^6855e.html" class="ident">logSigning</a>          <a href="../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-42"><code>}</code></span>
+<span class="codeline" id="line-43"><code></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">// NewPresignHTTPRequestMiddleware returns a new PresignHTTPRequestMiddleware</span></code></span>
+<span class="codeline" id="line-45"><code><span class="comment">// initialized with the presigner.</span></code></span>
+<span class="codeline" id="line-46"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../../../pkg/github.com/aws/aws-sdk-go-v2/internal/v4a.html#name-NewPresignHTTPRequestMiddleware" class="ident">NewPresignHTTPRequestMiddleware</a></label>(<label for="r1" class="ident">options</label> <a href="#line-27" class="ident">PresignHTTPRequestMiddlewareOptions</a>) *<a href="#line-38" class="ident">PresignHTTPRequestMiddleware</a> {</code></span>
+<span class="codeline" id="line-47"><code>	<span class="keyword">return</span> &amp;<a href="#line-38" class="ident">PresignHTTPRequestMiddleware</a>{</code></span>
+<span class="codeline" id="line-48"><code>		<a href="#line-39" class="ident">credentialsProvider</a>: <label for="r1" class="ident">options</label>.<a href="#line-28" class="ident">CredentialsProvider</a>,</code></span>
+<span class="codeline" id="line-49"><code>		<a href="#line-40" class="ident">presigner</a>:           <label for="r1" class="ident">options</label>.<a href="#line-29" class="ident">Presigner</a>,</code></span>
+<span class="codeline" id="line-50"><code>		<a href="#line-41" class="ident">logSigning</a>:          <label for="r1" class="ident">options</label>.<a href="#line-30" class="ident">LogSigning</a>,</code></span>
+<span class="codeline" id="line-51"><code>	}</code></span>
+<span class="codeline" id="line-52"><code>}</code></span>
+<span class="codeline" id="line-53"><code></code></span>
+<span class="codeline" id="line-54"><code><span class="comment">// ID provides the middleware ID.</span></code></span>
+<span class="codeline" id="line-55"><code><span class="keyword">func</span> (*<a href="#line-38" class="ident">PresignHTTPRequestMiddleware</a>) <label for="r2" class="ident"><a href="../../../../../../use/github.com/aws/aws-sdk-go-v2/internal/v4a..PresignHTTPRequestMiddleware.ID^38439.html" class="ident">ID</a></label>() <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a> { <span class="keyword">return</span> <span class="lit-string">"PresignHTTPRequest"</span> }</code></span>
+<span class="codeline" id="line-56"><code></code></span>
+<span class="codeline" id="line-57"><code><span class="comment">// HandleFinalize will take the provided input and create a presigned url for</span></code></span>
+<span class="codeline" id="line-58"><code><span class="comment">// the http request using the SigV4 presign authentication scheme.</span></code></span>
+<span class="codeline" id="line-59"><code><span class="keyword">func</span> (<label for="r3" class="ident">s</label> *<a href="#line-38" class="ident">PresignHTTPRequestMiddleware</a>) <label for="r4" class="ident"><a href="../../../../../../use/github.com/aws/aws-sdk-go-v2/internal/v4a..PresignHTTPRequestMiddleware.HandleFinalize.html" class="ident">HandleFinalize</a></label>(</code></span>
+<span class="codeline" id="line-60"><code>	<label for="r5" class="ident">ctx</label> <a href="../../../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../../../context/context.go.html#line-71" class="ident">Context</a>, <label for="r6" class="ident">in</label> <a href="../../../../../../pkg/github.com/aws/smithy-go/middleware.html" class="ident i7">middleware</a>.<a href="../../../smithy-go/middleware/step_finalize.go.html#line-8" class="ident">FinalizeInput</a>, <label for="r7" class="ident">next</label> <a href="../../../../../../pkg/github.com/aws/smithy-go/middleware.html" class="ident i7">middleware</a>.<a href="../../../smithy-go/middleware/step_finalize.go.html#line-19" class="ident">FinalizeHandler</a>,</code></span>
+<span class="codeline" id="line-61"><code>) (</code></span>
+<span class="codeline" id="line-62"><code>	<label for="r8" class="ident">out</label> <a href="../../../../../../pkg/github.com/aws/smithy-go/middleware.html" class="ident i7">middleware</a>.<a href="../../../smithy-go/middleware/step_finalize.go.html#line-13" class="ident">FinalizeOutput</a>, <label for="r9" class="ident">metadata</label> <a href="../../../../../../pkg/github.com/aws/smithy-go/middleware.html" class="ident i7">middleware</a>.<a href="../../../smithy-go/middleware/metadata.go.html#line-16" class="ident">Metadata</a>, <label for="r10" class="ident">err</label> <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>,</code></span>
+<span class="codeline" id="line-63"><code>) {</code></span>
+<span class="codeline" id="line-64"><code>	<label for="r11" class="ident">req</label>, <label for="r12" class="ident">ok</label> := <label for="r6" class="ident">in</label>.<a href="../../../smithy-go/middleware/step_finalize.go.html#line-9" class="ident">Request</a>.(*<a href="../../../../../../pkg/github.com/aws/smithy-go/transport/http.html" class="ident i8">smithyHTTP</a>.<a href="../../../smithy-go/transport/http/request.go.html#line-17" class="ident">Request</a>)</code></span>
+<span class="codeline" id="line-65"><code>	<span class="keyword">if</span> !<label for="r12" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-66"><code>		<span class="keyword">return</span> <label for="r8" class="ident">out</label>, <label for="r9" class="ident">metadata</label>, &amp;<a href="error.go.html#line-6" class="ident">SigningError</a>{</code></span>
+<span class="codeline" id="line-67"><code>			<a href="error.go.html#line-7" class="ident">Err</a>: <a href="../../../../../../pkg/fmt.html" class="ident i1">fmt</a>.<a href="../../../../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"unexpected request middleware type %T"</span>, <label for="r6" class="ident">in</label>.<a href="../../../smithy-go/middleware/step_finalize.go.html#line-9" class="ident">Request</a>),</code></span>
+<span class="codeline" id="line-68"><code>		}</code></span>
+<span class="codeline" id="line-69"><code>	}</code></span>
+<span class="codeline" id="line-70"><code></code></span>
+<span class="codeline" id="line-71"><code>	<label for="r13" class="ident">httpReq</label> := <label for="r11" class="ident">req</label>.<a href="../../../smithy-go/transport/http/request.go.html#line-161" class="ident">Build</a>(<label for="r5" class="ident">ctx</label>)</code></span>
+<span class="codeline" id="line-72"><code>	<span class="keyword">if</span> !<a href="middleware.go.html#line-85" class="ident">hasCredentialProvider</a>(<label for="r3" class="ident">s</label>.<a href="#line-39" class="ident">credentialsProvider</a>) {</code></span>
+<span class="codeline" id="line-73"><code>		<label for="r8" class="ident">out</label>.<a href="../../../smithy-go/middleware/step_finalize.go.html#line-14" class="ident">Result</a> = &amp;<a href="../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws/signer/v4.html" class="ident i5">v4</a>.<a href="../../aws/signer/v4/presign_middleware.go.html#line-28" class="ident">PresignedHTTPRequest</a>{</code></span>
+<span class="codeline" id="line-74"><code>			<a href="../../aws/signer/v4/presign_middleware.go.html#line-29" class="ident">URL</a>:          <label for="r13" class="ident">httpReq</label>.<a href="../../../../../net/http/request.go.html#line-130" class="ident">URL</a>.<a href="../../../../../net/url/url.go.html#line-830" class="ident">String</a>(),</code></span>
+<span class="codeline" id="line-75"><code>			<a href="../../aws/signer/v4/presign_middleware.go.html#line-30" class="ident">Method</a>:       <label for="r13" class="ident">httpReq</label>.<a href="../../../../../net/http/request.go.html#line-116" class="ident">Method</a>,</code></span>
+<span class="codeline" id="line-76"><code>			<a href="../../aws/signer/v4/presign_middleware.go.html#line-31" class="ident">SignedHeader</a>: <a href="../../../../../../pkg/net/http.html" class="ident i2">http</a>.<a href="../../../../../net/http/header.go.html#line-24" class="ident">Header</a>{},</code></span>
+<span class="codeline" id="line-77"><code>		}</code></span>
+<span class="codeline" id="line-78"><code></code></span>
+<span class="codeline" id="line-79"><code>		<span class="keyword">return</span> <label for="r8" class="ident">out</label>, <label for="r9" class="ident">metadata</label>, <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-80"><code>	}</code></span>
+<span class="codeline" id="line-81"><code></code></span>
+<span class="codeline" id="line-82"><code>	<label for="r14" class="ident">signingName</label> := <a href="../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws/middleware.html" class="ident i4">awsmiddleware</a>.<a href="../../aws/middleware/metadata.go.html#line-66" class="ident">GetSigningName</a>(<label for="r5" class="ident">ctx</label>)</code></span>
+<span class="codeline" id="line-83"><code>	<label for="r15" class="ident">signingRegion</label> := <a href="../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws/middleware.html" class="ident i4">awsmiddleware</a>.<a href="../../aws/middleware/metadata.go.html#line-75" class="ident">GetSigningRegion</a>(<label for="r5" class="ident">ctx</label>)</code></span>
+<span class="codeline" id="line-84"><code>	<label for="r16" class="ident">payloadHash</label> := <a href="../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws/signer/v4.html" class="ident i5">v4</a>.<a href="../../aws/signer/v4/middleware.go.html#line-384" class="ident">GetPayloadHash</a>(<label for="r5" class="ident">ctx</label>)</code></span>
+<span class="codeline" id="line-85"><code>	<span class="keyword">if</span> <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r16" class="ident">payloadHash</label>) == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-86"><code>		<span class="keyword">return</span> <label for="r8" class="ident">out</label>, <label for="r9" class="ident">metadata</label>, &amp;<a href="error.go.html#line-6" class="ident">SigningError</a>{</code></span>
+<span class="codeline" id="line-87"><code>			<a href="error.go.html#line-7" class="ident">Err</a>: <a href="../../../../../../pkg/fmt.html" class="ident i1">fmt</a>.<a href="../../../../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"computed payload hash missing from context"</span>),</code></span>
+<span class="codeline" id="line-88"><code>		}</code></span>
+<span class="codeline" id="line-89"><code>	}</code></span>
+<span class="codeline" id="line-90"><code></code></span>
+<span class="codeline" id="line-91"><code>	<label for="r17" class="ident">credentials</label>, <label for="r10" class="ident">err</label> := <label for="r3" class="ident">s</label>.<a href="#line-39" class="ident">credentialsProvider</a>.<a href="credentials.go.html#line-140" class="ident">RetrievePrivateKey</a>(<label for="r5" class="ident">ctx</label>)</code></span>
+<span class="codeline" id="line-92"><code>	<span class="keyword">if</span> <label for="r10" class="ident">err</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-93"><code>		<span class="keyword">return</span> <label for="r8" class="ident">out</label>, <label for="r9" class="ident">metadata</label>, &amp;<a href="error.go.html#line-6" class="ident">SigningError</a>{</code></span>
+<span class="codeline" id="line-94"><code>			<a href="error.go.html#line-7" class="ident">Err</a>: <a href="../../../../../../pkg/fmt.html" class="ident i1">fmt</a>.<a href="../../../../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"failed to retrieve credentials: %w"</span>, <label for="r10" class="ident">err</label>),</code></span>
+<span class="codeline" id="line-95"><code>		}</code></span>
+<span class="codeline" id="line-96"><code>	}</code></span>
+<span class="codeline" id="line-97"><code></code></span>
+<span class="codeline" id="line-98"><code>	<label for="r18" class="ident">u</label>, <label for="r19" class="ident">h</label>, <label for="r10" class="ident">err</label> := <label for="r3" class="ident">s</label>.<a href="#line-40" class="ident">presigner</a>.<a href="#line-19" class="ident">PresignHTTP</a>(<label for="r5" class="ident">ctx</label>, <label for="r17" class="ident">credentials</label>,</code></span>
+<span class="codeline" id="line-99"><code>		<label for="r13" class="ident">httpReq</label>, <label for="r16" class="ident">payloadHash</label>, <label for="r14" class="ident">signingName</label>, []<a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>{<label for="r15" class="ident">signingRegion</label>}, <a href="../../../../../../pkg/github.com/aws/aws-sdk-go-v2/internal/sdk.html" class="ident i6">sdk</a>.<a href="../sdk/time.go.html#line-16" class="ident">NowTime</a>(),</code></span>
+<span class="codeline" id="line-100"><code>		<span class="keyword">func</span>(<label for="r20" class="ident">o</label> *<a href="v4a.go.html#line-67" class="ident">SignerOptions</a>) {</code></span>
+<span class="codeline" id="line-101"><code>			<label for="r20" class="ident">o</label>.<a href="v4a.go.html#line-68" class="ident">Logger</a> = <a href="../../../../../../pkg/github.com/aws/smithy-go/middleware.html" class="ident i7">middleware</a>.<a href="../../../smithy-go/middleware/logging.go.html#line-15" class="ident">GetLogger</a>(<label for="r5" class="ident">ctx</label>)</code></span>
+<span class="codeline" id="line-102"><code>			<label for="r20" class="ident">o</label>.<a href="v4a.go.html#line-69" class="ident">LogSigning</a> = <label for="r3" class="ident">s</label>.<a href="#line-41" class="ident">logSigning</a></code></span>
+<span class="codeline" id="line-103"><code>		})</code></span>
+<span class="codeline" id="line-104"><code>	<span class="keyword">if</span> <label for="r10" class="ident">err</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-105"><code>		<span class="keyword">return</span> <label for="r8" class="ident">out</label>, <label for="r9" class="ident">metadata</label>, &amp;<a href="error.go.html#line-6" class="ident">SigningError</a>{</code></span>
+<span class="codeline" id="line-106"><code>			<a href="error.go.html#line-7" class="ident">Err</a>: <a href="../../../../../../pkg/fmt.html" class="ident i1">fmt</a>.<a href="../../../../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"failed to sign http request, %w"</span>, <label for="r10" class="ident">err</label>),</code></span>
+<span class="codeline" id="line-107"><code>		}</code></span>
+<span class="codeline" id="line-108"><code>	}</code></span>
+<span class="codeline" id="line-109"><code></code></span>
+<span class="codeline" id="line-110"><code>	<label for="r8" class="ident">out</label>.<a href="../../../smithy-go/middleware/step_finalize.go.html#line-14" class="ident">Result</a> = &amp;<a href="../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws/signer/v4.html" class="ident i5">v4</a>.<a href="../../aws/signer/v4/presign_middleware.go.html#line-28" class="ident">PresignedHTTPRequest</a>{</code></span>
+<span class="codeline" id="line-111"><code>		<a href="../../aws/signer/v4/presign_middleware.go.html#line-29" class="ident">URL</a>:          <label for="r18" class="ident">u</label>,</code></span>
+<span class="codeline" id="line-112"><code>		<a href="../../aws/signer/v4/presign_middleware.go.html#line-30" class="ident">Method</a>:       <label for="r13" class="ident">httpReq</label>.<a href="../../../../../net/http/request.go.html#line-116" class="ident">Method</a>,</code></span>
+<span class="codeline" id="line-113"><code>		<a href="../../aws/signer/v4/presign_middleware.go.html#line-31" class="ident">SignedHeader</a>: <label for="r19" class="ident">h</label>,</code></span>
+<span class="codeline" id="line-114"><code>	}</code></span>
+<span class="codeline" id="line-115"><code></code></span>
+<span class="codeline" id="line-116"><code>	<span class="keyword">return</span> <label for="r8" class="ident">out</label>, <label for="r9" class="ident">metadata</label>, <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-117"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: arn.go in package github.com/aws/aws-sdk-go-v2/aws/arn</title>
+<link href="../../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	arn.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws/arn.html">github.com/aws/aws-sdk-go-v2/aws/arn</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<div class="anchor" id="doc"><span class="codeline" id="line-1"><code><span class="comment">// Package arn provides a parser for interacting with Amazon Resource Names.</span></code></span></div><span class="codeline" id="line-2"><code><span class="keyword">package</span> arn</code></span>
+<span class="codeline" id="line-3"><code></code></span>
+<span class="codeline" id="line-4"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-5"><code>	<label for="i0"><span class="lit-string i0">"errors"</span></label></code></span>
+<span class="codeline" id="line-6"><code>	<label for="i1"><span class="lit-string i1">"strings"</span></label></code></span>
+<span class="codeline" id="line-7"><code>)</code></span>
+<span class="codeline" id="line-8"><code></code></span>
+<span class="codeline" id="line-9"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-10"><code>	<a href="../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws/arn.html#name-arnDelimiter" class="ident">arnDelimiter</a> = <span class="lit-string">":"</span></code></span>
+<span class="codeline" id="line-11"><code>	<a href="../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws/arn.html#name-arnSections" class="ident">arnSections</a>  = <span class="lit-number">6</span></code></span>
+<span class="codeline" id="line-12"><code>	<a href="../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws/arn.html#name-arnPrefix" class="ident">arnPrefix</a>    = <span class="lit-string">"arn:"</span></code></span>
+<span class="codeline" id="line-13"><code></code></span>
+<span class="codeline" id="line-14"><code>	<span class="comment">// zero-indexed</span></code></span>
+<span class="codeline" id="line-15"><code>	<a href="../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws/arn.html#name-sectionPartition" class="ident">sectionPartition</a> = <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-16"><code>	<a href="../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws/arn.html#name-sectionService" class="ident">sectionService</a>   = <span class="lit-number">2</span></code></span>
+<span class="codeline" id="line-17"><code>	<a href="../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws/arn.html#name-sectionRegion" class="ident">sectionRegion</a>    = <span class="lit-number">3</span></code></span>
+<span class="codeline" id="line-18"><code>	<a href="../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws/arn.html#name-sectionAccountID" class="ident">sectionAccountID</a> = <span class="lit-number">4</span></code></span>
+<span class="codeline" id="line-19"><code>	<a href="../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws/arn.html#name-sectionResource" class="ident">sectionResource</a>  = <span class="lit-number">5</span></code></span>
+<span class="codeline" id="line-20"><code></code></span>
+<span class="codeline" id="line-21"><code>	<span class="comment">// errors</span></code></span>
+<span class="codeline" id="line-22"><code>	<a href="../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws/arn.html#name-invalidPrefix" class="ident">invalidPrefix</a>   = <span class="lit-string">"arn: invalid prefix"</span></code></span>
+<span class="codeline" id="line-23"><code>	<a href="../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws/arn.html#name-invalidSections" class="ident">invalidSections</a> = <span class="lit-string">"arn: not enough sections"</span></code></span>
+<span class="codeline" id="line-24"><code>)</code></span>
+<span class="codeline" id="line-25"><code></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">// ARN captures the individual fields of an Amazon Resource Name.</span></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">// See http://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html for more information.</span></code></span>
+<span class="codeline" id="line-28"><code><span class="keyword">type</span> <a href="../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws/arn.html#name-ARN" class="ident">ARN</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-29"><code>	<span class="comment">// The partition that the resource is in. For standard AWS regions, the partition is "aws". If you have resources in</span></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">	// other partitions, the partition is "aws-partitionname". For example, the partition for resources in the China</span></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">	// (Beijing) region is "aws-cn".</span></code></span>
+<span class="codeline" id="line-32"><code>	<a href="../../../../../../use/github.com/aws/aws-sdk-go-v2/aws/arn..ARN.Partition.html" class="ident">Partition</a> <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-33"><code></code></span>
+<span class="codeline" id="line-34"><code>	<span class="comment">// The service namespace that identifies the AWS product (for example, Amazon S3, IAM, or Amazon RDS). For a list of</span></code></span>
+<span class="codeline" id="line-35"><code><span class="comment">	// namespaces, see</span></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">	// http://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html#genref-aws-service-namespaces.</span></code></span>
+<span class="codeline" id="line-37"><code>	<a href="../../../../../../use/github.com/aws/aws-sdk-go-v2/aws/arn..ARN.Service.html" class="ident">Service</a> <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-38"><code></code></span>
+<span class="codeline" id="line-39"><code>	<span class="comment">// The region the resource resides in. Note that the ARNs for some resources do not require a region, so this</span></code></span>
+<span class="codeline" id="line-40"><code><span class="comment">	// component might be omitted.</span></code></span>
+<span class="codeline" id="line-41"><code>	<a href="../../../../../../use/github.com/aws/aws-sdk-go-v2/aws/arn..ARN.Region.html" class="ident">Region</a> <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-42"><code></code></span>
+<span class="codeline" id="line-43"><code>	<span class="comment">// The ID of the AWS account that owns the resource, without the hyphens. For example, 123456789012. Note that the</span></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">	// ARNs for some resources don't require an account number, so this component might be omitted.</span></code></span>
+<span class="codeline" id="line-45"><code>	<a href="../../../../../../use/github.com/aws/aws-sdk-go-v2/aws/arn..ARN.AccountID.html" class="ident">AccountID</a> <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-46"><code></code></span>
+<span class="codeline" id="line-47"><code>	<span class="comment">// The content of this part of the ARN varies by service. It often includes an indicator of the type of resource —</span></code></span>
+<span class="codeline" id="line-48"><code><span class="comment">	// for example, an IAM user or Amazon RDS database - followed by a slash (/) or a colon (:), followed by the</span></code></span>
+<span class="codeline" id="line-49"><code><span class="comment">	// resource name itself. Some services allows paths for resource names, as described in</span></code></span>
+<span class="codeline" id="line-50"><code><span class="comment">	// http://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html#arns-paths.</span></code></span>
+<span class="codeline" id="line-51"><code>	<a href="../../../../../../use/github.com/aws/aws-sdk-go-v2/aws/arn..ARN.Resource.html" class="ident">Resource</a> <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-52"><code>}</code></span>
+<span class="codeline" id="line-53"><code></code></span>
+<span class="codeline" id="line-54"><code><span class="comment">// Parse parses an ARN into its constituent parts.</span></code></span>
+<span class="codeline" id="line-55"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-56"><code><span class="comment">// Some example ARNs:</span></code></span>
+<span class="codeline" id="line-57"><code><span class="comment">// arn:aws:elasticbeanstalk:us-east-1:123456789012:environment/My App/MyEnvironment</span></code></span>
+<span class="codeline" id="line-58"><code><span class="comment">// arn:aws:iam::123456789012:user/David</span></code></span>
+<span class="codeline" id="line-59"><code><span class="comment">// arn:aws:rds:eu-west-1:123456789012:db:mysql-db</span></code></span>
+<span class="codeline" id="line-60"><code><span class="comment">// arn:aws:s3:::my_corporate_bucket/exampleobject.png</span></code></span>
+<span class="codeline" id="line-61"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws/arn.html#name-Parse" class="ident">Parse</a></label>(<label for="r1" class="ident">arn</label> <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>) (<a href="#line-28" class="ident">ARN</a>, <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-62"><code>	<span class="keyword">if</span> !<a href="../../../../../../pkg/strings.html" class="ident i1">strings</a>.<a href="../../../../../strings/strings.go.html#line-516" class="ident">HasPrefix</a>(<label for="r1" class="ident">arn</label>, <a href="#line-12" class="ident">arnPrefix</a>) {</code></span>
+<span class="codeline" id="line-63"><code>		<span class="keyword">return</span> <a href="#line-28" class="ident">ARN</a>{}, <a href="../../../../../../pkg/errors.html" class="ident i0">errors</a>.<a href="../../../../../errors/errors.go.html#line-64" class="ident">New</a>(<a href="#line-22" class="ident">invalidPrefix</a>)</code></span>
+<span class="codeline" id="line-64"><code>	}</code></span>
+<span class="codeline" id="line-65"><code>	<label for="r2" class="ident">sections</label> := <a href="../../../../../../pkg/strings.html" class="ident i1">strings</a>.<a href="../../../../../strings/strings.go.html#line-333" class="ident">SplitN</a>(<label for="r1" class="ident">arn</label>, <a href="#line-10" class="ident">arnDelimiter</a>, <a href="#line-11" class="ident">arnSections</a>)</code></span>
+<span class="codeline" id="line-66"><code>	<span class="keyword">if</span> <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r2" class="ident">sections</label>) != <a href="#line-11" class="ident">arnSections</a> {</code></span>
+<span class="codeline" id="line-67"><code>		<span class="keyword">return</span> <a href="#line-28" class="ident">ARN</a>{}, <a href="../../../../../../pkg/errors.html" class="ident i0">errors</a>.<a href="../../../../../errors/errors.go.html#line-64" class="ident">New</a>(<a href="#line-23" class="ident">invalidSections</a>)</code></span>
+<span class="codeline" id="line-68"><code>	}</code></span>
+<span class="codeline" id="line-69"><code>	<span class="keyword">return</span> <a href="#line-28" class="ident">ARN</a>{</code></span>
+<span class="codeline" id="line-70"><code>		<a href="#line-32" class="ident">Partition</a>: <label for="r2" class="ident">sections</label>[<a href="#line-15" class="ident">sectionPartition</a>],</code></span>
+<span class="codeline" id="line-71"><code>		<a href="#line-37" class="ident">Service</a>:   <label for="r2" class="ident">sections</label>[<a href="#line-16" class="ident">sectionService</a>],</code></span>
+<span class="codeline" id="line-72"><code>		<a href="#line-41" class="ident">Region</a>:    <label for="r2" class="ident">sections</label>[<a href="#line-17" class="ident">sectionRegion</a>],</code></span>
+<span class="codeline" id="line-73"><code>		<a href="#line-45" class="ident">AccountID</a>: <label for="r2" class="ident">sections</label>[<a href="#line-18" class="ident">sectionAccountID</a>],</code></span>
+<span class="codeline" id="line-74"><code>		<a href="#line-51" class="ident">Resource</a>:  <label for="r2" class="ident">sections</label>[<a href="#line-19" class="ident">sectionResource</a>],</code></span>
+<span class="codeline" id="line-75"><code>	}, <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-76"><code>}</code></span>
+<span class="codeline" id="line-77"><code></code></span>
+<span class="codeline" id="line-78"><code><span class="comment">// IsARN returns whether the given string is an arn</span></code></span>
+<span class="codeline" id="line-79"><code><span class="comment">// by looking for whether the string starts with arn:</span></code></span>
+<span class="codeline" id="line-80"><code><span class="keyword">func</span> <label for="r3" class="ident"><a href="../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws/arn.html#name-IsARN" class="ident">IsARN</a></label>(<label for="r4" class="ident">arn</label> <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-81"><code>	<span class="keyword">return</span> <a href="../../../../../../pkg/strings.html" class="ident i1">strings</a>.<a href="../../../../../strings/strings.go.html#line-516" class="ident">HasPrefix</a>(<label for="r4" class="ident">arn</label>, <a href="#line-12" class="ident">arnPrefix</a>) &amp;&amp; <a href="../../../../../../pkg/strings.html" class="ident i1">strings</a>.<a href="../../../../../strings/strings.go.html#line-42" class="ident">Count</a>(<label for="r4" class="ident">arn</label>, <span class="lit-string">":"</span>) &gt;= <a href="#line-11" class="ident">arnSections</a>-<span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-82"><code>}</code></span>
+<span class="codeline" id="line-83"><code></code></span>
+<span class="codeline" id="line-84"><code><span class="comment">// String returns the canonical representation of the ARN</span></code></span>
+<span class="codeline" id="line-85"><code><span class="keyword">func</span> (<label for="r5" class="ident">arn</label> <a href="#line-28" class="ident">ARN</a>) <label for="r6" class="ident"><a href="../../../../../../use/github.com/aws/aws-sdk-go-v2/aws/arn..ARN.String.html" class="ident">String</a></label>() <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-86"><code>	<span class="keyword">return</span> <a href="#line-12" class="ident">arnPrefix</a> +</code></span>
+<span class="codeline" id="line-87"><code>		<label for="r5" class="ident">arn</label>.<a href="#line-32" class="ident">Partition</a> + <a href="#line-10" class="ident">arnDelimiter</a> +</code></span>
+<span class="codeline" id="line-88"><code>		<label for="r5" class="ident">arn</label>.<a href="#line-37" class="ident">Service</a> + <a href="#line-10" class="ident">arnDelimiter</a> +</code></span>
+<span class="codeline" id="line-89"><code>		<label for="r5" class="ident">arn</label>.<a href="#line-41" class="ident">Region</a> + <a href="#line-10" class="ident">arnDelimiter</a> +</code></span>
+<span class="codeline" id="line-90"><code>		<label for="r5" class="ident">arn</label>.<a href="#line-45" class="ident">AccountID</a> + <a href="#line-10" class="ident">arnDelimiter</a> +</code></span>
+<span class="codeline" id="line-91"><code>		<label for="r5" class="ident">arn</label>.<a href="#line-51" class="ident">Resource</a></code></span>
+<span class="codeline" id="line-92"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

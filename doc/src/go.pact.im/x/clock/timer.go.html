@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: timer.go in package go.pact.im/x/clock</title>
+<link href="../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	timer.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../pkg/go.pact.im/x/clock.html">go.pact.im/x/clock</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="keyword">package</span> clock</code></span>
+<span class="codeline" id="line-2"><code></code></span>
+<span class="codeline" id="line-3"><code><span class="keyword">import</span> <label for="i0"><span class="lit-string i0">"time"</span></label></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="comment">// TimerScheduler is the interface implemented by a clock that provides an</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment">// optimized implementation of ScheduleTimer.</span></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">type</span> <a href="../../../../pkg/go.pact.im/x/clock.html#name-TimerScheduler" class="ident">TimerScheduler</a> <span class="keyword">interface</span> {</code></span>
+<span class="codeline" id="line-8"><code>	<a href="clock.go.html#line-26" class="ident">Scheduler</a></code></span>
+<span class="codeline" id="line-9"><code></code></span>
+<span class="codeline" id="line-10"><code>	<span class="comment">// Timer creates a new Timer that will send the current time on</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment">	// its channel after at least duration d.</span></code></span>
+<span class="codeline" id="line-12"><code>	<a href="../../../../imp/go.pact.im/x/clock.TimerScheduler.html#name-Timer" class="ident">Timer</a>(d <a href="../../../../pkg/time.html" class="ident i0">time</a>.<a href="../../../time/time.go.html#line-911" class="ident">Duration</a>) <a href="#line-17" class="ident">Timer</a></code></span>
+<span class="codeline" id="line-13"><code>}</code></span>
+<span class="codeline" id="line-14"><code></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">// The Timer type represents a single event. When the Timer expires, the</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">// current time will be sent on C.</span></code></span>
+<span class="codeline" id="line-17"><code><span class="keyword">type</span> <a href="../../../../pkg/go.pact.im/x/clock.html#name-Timer" class="ident">Timer</a> <span class="keyword">interface</span> {</code></span>
+<span class="codeline" id="line-18"><code>	<span class="comment">// C returns the channel on which the current time is sent when the</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">	// timer expires.</span></code></span>
+<span class="codeline" id="line-20"><code>	<a href="../../../../imp/go.pact.im/x/clock.Timer.html#name-C" class="ident">C</a>() &lt;-<span class="keyword">chan</span> <a href="../../../../pkg/time.html" class="ident i0">time</a>.<a href="../../../time/time.go.html#line-140" class="ident">Time</a></code></span>
+<span class="codeline" id="line-21"><code></code></span>
+<span class="codeline" id="line-22"><code>	<span class="comment">// Stop prevents the Timer from firing. It returns true if the call stops the</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">	// timer, false if the timer has already expired or been stopped. Stop does not</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">	// close the channel, to prevent a read from the channel succeeding incorrectly.</span></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">	// To ensure the channel is empty after a call to Stop, check the return value</span></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">	// and drain the channel. For example, assuming the program has not received</span></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">	// from t.C already:</span></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">	// 	if !t.Stop() {</span></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">	// 		&lt;-t.C()</span></code></span>
+<span class="codeline" id="line-32"><code><span class="comment">	// 	}</span></code></span>
+<span class="codeline" id="line-33"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">	// This cannot be done concurrent to other receives from the Timer’s channel or</span></code></span>
+<span class="codeline" id="line-35"><code><span class="comment">	// other calls to the Timer’s Stop method.</span></code></span>
+<span class="codeline" id="line-36"><code>	<a href="../../../../imp/go.pact.im/x/clock.Timer.html#name-Stop" class="ident">Stop</a>() <a href="../../../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-37"><code></code></span>
+<span class="codeline" id="line-38"><code>	<span class="comment">// Reset changes the timer to expire after duration d. Reset should be</span></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">	// invoked only on stopped or expired timers with drained channels.</span></code></span>
+<span class="codeline" id="line-40"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-41"><code><span class="comment">	// If a program has already received a value from t.C, the timer is known to</span></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">	// have expired and the channel drained, so t.Reset can be used directly. If a</span></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">	// program has not yet received a value from t.C, however, the timer must be</span></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">	// stopped and—if Stop reports that the timer expired before being stopped—the</span></code></span>
+<span class="codeline" id="line-45"><code><span class="comment">	// channel explicitly drained:</span></code></span>
+<span class="codeline" id="line-46"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-47"><code><span class="comment">	// 	select {</span></code></span>
+<span class="codeline" id="line-48"><code><span class="comment">	// 	case &lt;-t.C():</span></code></span>
+<span class="codeline" id="line-49"><code><span class="comment">	// 		// Timer expired.</span></code></span>
+<span class="codeline" id="line-50"><code><span class="comment">	// 	case &lt;-done:</span></code></span>
+<span class="codeline" id="line-51"><code><span class="comment">	// 		if !t.Stop() {</span></code></span>
+<span class="codeline" id="line-52"><code><span class="comment">	// 			&lt;-t.C()</span></code></span>
+<span class="codeline" id="line-53"><code><span class="comment">	// 		}</span></code></span>
+<span class="codeline" id="line-54"><code><span class="comment">	// 	}</span></code></span>
+<span class="codeline" id="line-55"><code><span class="comment">	// 	t.Reset(d)</span></code></span>
+<span class="codeline" id="line-56"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-57"><code><span class="comment">	// Reset should always be invoked on stopped or expired channels, as</span></code></span>
+<span class="codeline" id="line-58"><code><span class="comment">	// described above. This should not be done concurrent to other receives</span></code></span>
+<span class="codeline" id="line-59"><code><span class="comment">	// from the Timer’s channel.</span></code></span>
+<span class="codeline" id="line-60"><code>	<a href="../../../../imp/go.pact.im/x/clock.Timer.html#name-Reset" class="ident">Reset</a>(d <a href="../../../../pkg/time.html" class="ident i0">time</a>.<a href="../../../time/time.go.html#line-911" class="ident">Duration</a>)</code></span>
+<span class="codeline" id="line-61"><code>}</code></span>
+<span class="codeline" id="line-62"><code></code></span>
+<span class="codeline" id="line-63"><code><span class="comment">// Timer creates a new Timer that will send the current time on its channel</span></code></span>
+<span class="codeline" id="line-64"><code><span class="comment">// after at least duration d.</span></code></span>
+<span class="codeline" id="line-65"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-66"><code><span class="comment">// Unless the underlying Scheduler implements TimerScheduler, Timer calls</span></code></span>
+<span class="codeline" id="line-67"><code><span class="comment">// Schedule and sends the current time on the channel when the Event expires.</span></code></span>
+<span class="codeline" id="line-68"><code><span class="keyword">func</span> (<label for="r0" class="ident">c</label> *<a href="clock.go.html#line-56" class="ident">Clock</a>) <label for="r1" class="ident"><a href="../../../../use/go.pact.im/x/clock..Clock.Timer.html" class="ident">Timer</a></label>(<label for="r2" class="ident">d</label> <a href="../../../../pkg/time.html" class="ident i0">time</a>.<a href="../../../time/time.go.html#line-911" class="ident">Duration</a>) <a href="#line-17" class="ident">Timer</a> {</code></span>
+<span class="codeline" id="line-69"><code>	<label for="r3" class="ident">s</label> := <label for="r0" class="ident">c</label>.<a href="clock.go.html#line-75" class="ident">sched</a>()</code></span>
+<span class="codeline" id="line-70"><code>	<span class="keyword">if</span> <label for="r4" class="ident">s</label>, <label for="r5" class="ident">ok</label> := <label for="r3" class="ident">s</label>.(<a href="#line-7" class="ident">TimerScheduler</a>); <label for="r5" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-71"><code>		<span class="keyword">return</span> <label for="r4" class="ident">s</label>.<a href="#line-12" class="ident">Timer</a>(<label for="r2" class="ident">d</label>)</code></span>
+<span class="codeline" id="line-72"><code>	}</code></span>
+<span class="codeline" id="line-73"><code></code></span>
+<span class="codeline" id="line-74"><code>	<label for="r6" class="ident">ch</label> := <a href="../../../runtime/chan.go.html#line-75">make</a>(<span class="keyword">chan</span> <a href="../../../../pkg/time.html" class="ident i0">time</a>.<a href="../../../time/time.go.html#line-140" class="ident">Time</a>, <span class="lit-number">1</span>)</code></span>
+<span class="codeline" id="line-75"><code>	<label for="r7" class="ident">event</label> := <label for="r3" class="ident">s</label>.<a href="clock.go.html#line-30" class="ident">Schedule</a>(<label for="r2" class="ident">d</label>, <span class="keyword">func</span>(<label for="r8" class="ident">now</label> <a href="../../../../pkg/time.html" class="ident i0">time</a>.<a href="../../../time/time.go.html#line-140" class="ident">Time</a>) {</code></span>
+<span class="codeline" id="line-76"><code>		<span class="comment">// Do a non-blocking send of current time on ch. Default case</span></code></span>
+<span class="codeline" id="line-77"><code><span class="comment">		// is unreachable if the timer is used correctly. See also the</span></code></span>
+<span class="codeline" id="line-78"><code><span class="comment">		// docs for Timer’s Reset method.</span></code></span>
+<span class="codeline" id="line-79"><code>		<a href="../../../runtime/chan.go.html#line-781"><span class="keyword">select</span></a> {</code></span>
+<span class="codeline" id="line-80"><code>		<span class="keyword">case</span> <label for="r6" class="ident">ch</label> <a href="../../../runtime/chan.go.html#line-176">&lt;-</a> <label for="r8" class="ident">now</label>:</code></span>
+<span class="codeline" id="line-81"><code>		<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-82"><code>		}</code></span>
+<span class="codeline" id="line-83"><code>	})</code></span>
+<span class="codeline" id="line-84"><code>	<span class="keyword">return</span> &amp;<a href="#line-88" class="ident">eventTimer</a>{<label for="r7" class="ident">event</label>, <label for="r6" class="ident">ch</label>}</code></span>
+<span class="codeline" id="line-85"><code>}</code></span>
+<span class="codeline" id="line-86"><code></code></span>
+<span class="codeline" id="line-87"><code><span class="comment">// eventTimer is a Timer adapter for Event.</span></code></span>
+<span class="codeline" id="line-88"><code><span class="keyword">type</span> <a href="../../../../pkg/go.pact.im/x/clock.html#name-eventTimer" class="ident">eventTimer</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-89"><code>	<a href="../../../../use/go.pact.im/x/clock..eventTimer^2b37f.e^3f79b.html" class="ident">e</a> <a href="clock.go.html#line-35" class="ident">Event</a></code></span>
+<span class="codeline" id="line-90"><code>	<a href="../../../../use/go.pact.im/x/clock..eventTimer^2b37f.c^2e7d2.html" class="ident">c</a> <span class="keyword">chan</span> <a href="../../../../pkg/time.html" class="ident i0">time</a>.<a href="../../../time/time.go.html#line-140" class="ident">Time</a></code></span>
+<span class="codeline" id="line-91"><code>}</code></span>
+<span class="codeline" id="line-92"><code></code></span>
+<span class="codeline" id="line-93"><code><span class="comment">// C implements the Timer interface.</span></code></span>
+<span class="codeline" id="line-94"><code><span class="keyword">func</span> (<label for="r9" class="ident">t</label> *<a href="#line-88" class="ident">eventTimer</a>) <label for="r10" class="ident"><a href="../../../../use/go.pact.im/x/clock..eventTimer^2b37f.C.html" class="ident">C</a></label>() &lt;-<span class="keyword">chan</span> <a href="../../../../pkg/time.html" class="ident i0">time</a>.<a href="../../../time/time.go.html#line-140" class="ident">Time</a> {</code></span>
+<span class="codeline" id="line-95"><code>	<span class="keyword">return</span> <label for="r9" class="ident">t</label>.<a href="#line-90" class="ident">c</a></code></span>
+<span class="codeline" id="line-96"><code>}</code></span>
+<span class="codeline" id="line-97"><code></code></span>
+<span class="codeline" id="line-98"><code><span class="comment">// Stop implements the Timer interface.</span></code></span>
+<span class="codeline" id="line-99"><code><span class="keyword">func</span> (<label for="r11" class="ident">t</label> *<a href="#line-88" class="ident">eventTimer</a>) <label for="r12" class="ident"><a href="../../../../use/go.pact.im/x/clock..eventTimer^2b37f.Stop.html" class="ident">Stop</a></label>() <a href="../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-100"><code>	<span class="keyword">return</span> <label for="r11" class="ident">t</label>.<a href="#line-89" class="ident">e</a>.<a href="clock.go.html#line-41" class="ident">Stop</a>()</code></span>
+<span class="codeline" id="line-101"><code>}</code></span>
+<span class="codeline" id="line-102"><code></code></span>
+<span class="codeline" id="line-103"><code><span class="comment">// Reset implements the Timer interface.</span></code></span>
+<span class="codeline" id="line-104"><code><span class="keyword">func</span> (<label for="r13" class="ident">t</label> *<a href="#line-88" class="ident">eventTimer</a>) <label for="r14" class="ident"><a href="../../../../use/go.pact.im/x/clock..eventTimer^2b37f.Reset.html" class="ident">Reset</a></label>(<label for="r15" class="ident">d</label> <a href="../../../../pkg/time.html" class="ident i0">time</a>.<a href="../../../time/time.go.html#line-911" class="ident">Duration</a>) {</code></span>
+<span class="codeline" id="line-105"><code>	_ = <label for="r13" class="ident">t</label>.<a href="#line-89" class="ident">e</a>.<a href="clock.go.html#line-52" class="ident">Reset</a>(<label for="r15" class="ident">d</label>)</code></span>
+<span class="codeline" id="line-106"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

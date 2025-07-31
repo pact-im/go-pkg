@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: blake2b_amd64.s in package golang.org/x/crypto/blake2b</title>
+<link href="../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	blake2b_amd64.s
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../pkg/golang.org/x/crypto/blake2b.html">golang.org/x/crypto/blake2b</a>
+</code></pre>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code>// Copyright 2016 The Go Authors. All rights reserved.</code></span>
+<span class="codeline" id="line-2"><code>// Use of this source code is governed by a BSD-style</code></span>
+<span class="codeline" id="line-3"><code>// license that can be found in the LICENSE file.</code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code>//go:build amd64 &amp;&amp; gc &amp;&amp; !purego</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code>#include "textflag.h"</code></span>
+<span class="codeline" id="line-8"><code></code></span>
+<span class="codeline" id="line-9"><code>DATA ·iv0&lt;&gt;+0x00(SB)/8, $0x6a09e667f3bcc908</code></span>
+<span class="codeline" id="line-10"><code>DATA ·iv0&lt;&gt;+0x08(SB)/8, $0xbb67ae8584caa73b</code></span>
+<span class="codeline" id="line-11"><code>GLOBL ·iv0&lt;&gt;(SB), (NOPTR+RODATA), $16</code></span>
+<span class="codeline" id="line-12"><code></code></span>
+<span class="codeline" id="line-13"><code>DATA ·iv1&lt;&gt;+0x00(SB)/8, $0x3c6ef372fe94f82b</code></span>
+<span class="codeline" id="line-14"><code>DATA ·iv1&lt;&gt;+0x08(SB)/8, $0xa54ff53a5f1d36f1</code></span>
+<span class="codeline" id="line-15"><code>GLOBL ·iv1&lt;&gt;(SB), (NOPTR+RODATA), $16</code></span>
+<span class="codeline" id="line-16"><code></code></span>
+<span class="codeline" id="line-17"><code>DATA ·iv2&lt;&gt;+0x00(SB)/8, $0x510e527fade682d1</code></span>
+<span class="codeline" id="line-18"><code>DATA ·iv2&lt;&gt;+0x08(SB)/8, $0x9b05688c2b3e6c1f</code></span>
+<span class="codeline" id="line-19"><code>GLOBL ·iv2&lt;&gt;(SB), (NOPTR+RODATA), $16</code></span>
+<span class="codeline" id="line-20"><code></code></span>
+<span class="codeline" id="line-21"><code>DATA ·iv3&lt;&gt;+0x00(SB)/8, $0x1f83d9abfb41bd6b</code></span>
+<span class="codeline" id="line-22"><code>DATA ·iv3&lt;&gt;+0x08(SB)/8, $0x5be0cd19137e2179</code></span>
+<span class="codeline" id="line-23"><code>GLOBL ·iv3&lt;&gt;(SB), (NOPTR+RODATA), $16</code></span>
+<span class="codeline" id="line-24"><code></code></span>
+<span class="codeline" id="line-25"><code>DATA ·c40&lt;&gt;+0x00(SB)/8, $0x0201000706050403</code></span>
+<span class="codeline" id="line-26"><code>DATA ·c40&lt;&gt;+0x08(SB)/8, $0x0a09080f0e0d0c0b</code></span>
+<span class="codeline" id="line-27"><code>GLOBL ·c40&lt;&gt;(SB), (NOPTR+RODATA), $16</code></span>
+<span class="codeline" id="line-28"><code></code></span>
+<span class="codeline" id="line-29"><code>DATA ·c48&lt;&gt;+0x00(SB)/8, $0x0100070605040302</code></span>
+<span class="codeline" id="line-30"><code>DATA ·c48&lt;&gt;+0x08(SB)/8, $0x09080f0e0d0c0b0a</code></span>
+<span class="codeline" id="line-31"><code>GLOBL ·c48&lt;&gt;(SB), (NOPTR+RODATA), $16</code></span>
+<span class="codeline" id="line-32"><code></code></span>
+<span class="codeline" id="line-33"><code>#define SHUFFLE(v2, v3, v4, v5, v6, v7, t1, t2) \</code></span>
+<span class="codeline" id="line-34"><code>	MOVO       v4, t1; \</code></span>
+<span class="codeline" id="line-35"><code>	MOVO       v5, v4; \</code></span>
+<span class="codeline" id="line-36"><code>	MOVO       t1, v5; \</code></span>
+<span class="codeline" id="line-37"><code>	MOVO       v6, t1; \</code></span>
+<span class="codeline" id="line-38"><code>	PUNPCKLQDQ v6, t2; \</code></span>
+<span class="codeline" id="line-39"><code>	PUNPCKHQDQ v7, v6; \</code></span>
+<span class="codeline" id="line-40"><code>	PUNPCKHQDQ t2, v6; \</code></span>
+<span class="codeline" id="line-41"><code>	PUNPCKLQDQ v7, t2; \</code></span>
+<span class="codeline" id="line-42"><code>	MOVO       t1, v7; \</code></span>
+<span class="codeline" id="line-43"><code>	MOVO       v2, t1; \</code></span>
+<span class="codeline" id="line-44"><code>	PUNPCKHQDQ t2, v7; \</code></span>
+<span class="codeline" id="line-45"><code>	PUNPCKLQDQ v3, t2; \</code></span>
+<span class="codeline" id="line-46"><code>	PUNPCKHQDQ t2, v2; \</code></span>
+<span class="codeline" id="line-47"><code>	PUNPCKLQDQ t1, t2; \</code></span>
+<span class="codeline" id="line-48"><code>	PUNPCKHQDQ t2, v3</code></span>
+<span class="codeline" id="line-49"><code></code></span>
+<span class="codeline" id="line-50"><code>#define SHUFFLE_INV(v2, v3, v4, v5, v6, v7, t1, t2) \</code></span>
+<span class="codeline" id="line-51"><code>	MOVO       v4, t1; \</code></span>
+<span class="codeline" id="line-52"><code>	MOVO       v5, v4; \</code></span>
+<span class="codeline" id="line-53"><code>	MOVO       t1, v5; \</code></span>
+<span class="codeline" id="line-54"><code>	MOVO       v2, t1; \</code></span>
+<span class="codeline" id="line-55"><code>	PUNPCKLQDQ v2, t2; \</code></span>
+<span class="codeline" id="line-56"><code>	PUNPCKHQDQ v3, v2; \</code></span>
+<span class="codeline" id="line-57"><code>	PUNPCKHQDQ t2, v2; \</code></span>
+<span class="codeline" id="line-58"><code>	PUNPCKLQDQ v3, t2; \</code></span>
+<span class="codeline" id="line-59"><code>	MOVO       t1, v3; \</code></span>
+<span class="codeline" id="line-60"><code>	MOVO       v6, t1; \</code></span>
+<span class="codeline" id="line-61"><code>	PUNPCKHQDQ t2, v3; \</code></span>
+<span class="codeline" id="line-62"><code>	PUNPCKLQDQ v7, t2; \</code></span>
+<span class="codeline" id="line-63"><code>	PUNPCKHQDQ t2, v6; \</code></span>
+<span class="codeline" id="line-64"><code>	PUNPCKLQDQ t1, t2; \</code></span>
+<span class="codeline" id="line-65"><code>	PUNPCKHQDQ t2, v7</code></span>
+<span class="codeline" id="line-66"><code></code></span>
+<span class="codeline" id="line-67"><code>#define HALF_ROUND(v0, v1, v2, v3, v4, v5, v6, v7, m0, m1, m2, m3, t0, c40, c48) \</code></span>
+<span class="codeline" id="line-68"><code>	PADDQ  m0, v0;        \</code></span>
+<span class="codeline" id="line-69"><code>	PADDQ  m1, v1;        \</code></span>
+<span class="codeline" id="line-70"><code>	PADDQ  v2, v0;        \</code></span>
+<span class="codeline" id="line-71"><code>	PADDQ  v3, v1;        \</code></span>
+<span class="codeline" id="line-72"><code>	PXOR   v0, v6;        \</code></span>
+<span class="codeline" id="line-73"><code>	PXOR   v1, v7;        \</code></span>
+<span class="codeline" id="line-74"><code>	PSHUFD $0xB1, v6, v6; \</code></span>
+<span class="codeline" id="line-75"><code>	PSHUFD $0xB1, v7, v7; \</code></span>
+<span class="codeline" id="line-76"><code>	PADDQ  v6, v4;        \</code></span>
+<span class="codeline" id="line-77"><code>	PADDQ  v7, v5;        \</code></span>
+<span class="codeline" id="line-78"><code>	PXOR   v4, v2;        \</code></span>
+<span class="codeline" id="line-79"><code>	PXOR   v5, v3;        \</code></span>
+<span class="codeline" id="line-80"><code>	PSHUFB c40, v2;       \</code></span>
+<span class="codeline" id="line-81"><code>	PSHUFB c40, v3;       \</code></span>
+<span class="codeline" id="line-82"><code>	PADDQ  m2, v0;        \</code></span>
+<span class="codeline" id="line-83"><code>	PADDQ  m3, v1;        \</code></span>
+<span class="codeline" id="line-84"><code>	PADDQ  v2, v0;        \</code></span>
+<span class="codeline" id="line-85"><code>	PADDQ  v3, v1;        \</code></span>
+<span class="codeline" id="line-86"><code>	PXOR   v0, v6;        \</code></span>
+<span class="codeline" id="line-87"><code>	PXOR   v1, v7;        \</code></span>
+<span class="codeline" id="line-88"><code>	PSHUFB c48, v6;       \</code></span>
+<span class="codeline" id="line-89"><code>	PSHUFB c48, v7;       \</code></span>
+<span class="codeline" id="line-90"><code>	PADDQ  v6, v4;        \</code></span>
+<span class="codeline" id="line-91"><code>	PADDQ  v7, v5;        \</code></span>
+<span class="codeline" id="line-92"><code>	PXOR   v4, v2;        \</code></span>
+<span class="codeline" id="line-93"><code>	PXOR   v5, v3;        \</code></span>
+<span class="codeline" id="line-94"><code>	MOVOU  v2, t0;        \</code></span>
+<span class="codeline" id="line-95"><code>	PADDQ  v2, t0;        \</code></span>
+<span class="codeline" id="line-96"><code>	PSRLQ  $63, v2;       \</code></span>
+<span class="codeline" id="line-97"><code>	PXOR   t0, v2;        \</code></span>
+<span class="codeline" id="line-98"><code>	MOVOU  v3, t0;        \</code></span>
+<span class="codeline" id="line-99"><code>	PADDQ  v3, t0;        \</code></span>
+<span class="codeline" id="line-100"><code>	PSRLQ  $63, v3;       \</code></span>
+<span class="codeline" id="line-101"><code>	PXOR   t0, v3</code></span>
+<span class="codeline" id="line-102"><code></code></span>
+<span class="codeline" id="line-103"><code>#define LOAD_MSG(m0, m1, m2, m3, src, i0, i1, i2, i3, i4, i5, i6, i7) \</code></span>
+<span class="codeline" id="line-104"><code>	MOVQ   i0*8(src), m0;     \</code></span>
+<span class="codeline" id="line-105"><code>	PINSRQ $1, i1*8(src), m0; \</code></span>
+<span class="codeline" id="line-106"><code>	MOVQ   i2*8(src), m1;     \</code></span>
+<span class="codeline" id="line-107"><code>	PINSRQ $1, i3*8(src), m1; \</code></span>
+<span class="codeline" id="line-108"><code>	MOVQ   i4*8(src), m2;     \</code></span>
+<span class="codeline" id="line-109"><code>	PINSRQ $1, i5*8(src), m2; \</code></span>
+<span class="codeline" id="line-110"><code>	MOVQ   i6*8(src), m3;     \</code></span>
+<span class="codeline" id="line-111"><code>	PINSRQ $1, i7*8(src), m3</code></span>
+<span class="codeline" id="line-112"><code></code></span>
+<span class="codeline" id="line-113"><code>// func hashBlocksSSE4(h *[8]uint64, c *[2]uint64, flag uint64, blocks []byte)</code></span>
+<span class="codeline" id="line-114"><code>TEXT ·hashBlocksSSE4(SB), 4, $288-48 // frame size = 272 + 16 byte alignment</code></span>
+<span class="codeline" id="line-115"><code>	MOVQ h+0(FP), AX</code></span>
+<span class="codeline" id="line-116"><code>	MOVQ c+8(FP), BX</code></span>
+<span class="codeline" id="line-117"><code>	MOVQ flag+16(FP), CX</code></span>
+<span class="codeline" id="line-118"><code>	MOVQ blocks_base+24(FP), SI</code></span>
+<span class="codeline" id="line-119"><code>	MOVQ blocks_len+32(FP), DI</code></span>
+<span class="codeline" id="line-120"><code></code></span>
+<span class="codeline" id="line-121"><code>	MOVQ SP, R10</code></span>
+<span class="codeline" id="line-122"><code>	ADDQ $15, R10</code></span>
+<span class="codeline" id="line-123"><code>	ANDQ $~15, R10</code></span>
+<span class="codeline" id="line-124"><code></code></span>
+<span class="codeline" id="line-125"><code>	MOVOU ·iv3&lt;&gt;(SB), X0</code></span>
+<span class="codeline" id="line-126"><code>	MOVO  X0, 0(R10)</code></span>
+<span class="codeline" id="line-127"><code>	XORQ  CX, 0(R10)     // 0(R10) = ·iv3 ^ (CX || 0)</code></span>
+<span class="codeline" id="line-128"><code></code></span>
+<span class="codeline" id="line-129"><code>	MOVOU ·c40&lt;&gt;(SB), X13</code></span>
+<span class="codeline" id="line-130"><code>	MOVOU ·c48&lt;&gt;(SB), X14</code></span>
+<span class="codeline" id="line-131"><code></code></span>
+<span class="codeline" id="line-132"><code>	MOVOU 0(AX), X12</code></span>
+<span class="codeline" id="line-133"><code>	MOVOU 16(AX), X15</code></span>
+<span class="codeline" id="line-134"><code></code></span>
+<span class="codeline" id="line-135"><code>	MOVQ 0(BX), R8</code></span>
+<span class="codeline" id="line-136"><code>	MOVQ 8(BX), R9</code></span>
+<span class="codeline" id="line-137"><code></code></span>
+<span class="codeline" id="line-138"><code>loop:</code></span>
+<span class="codeline" id="line-139"><code>	ADDQ $128, R8</code></span>
+<span class="codeline" id="line-140"><code>	CMPQ R8, $128</code></span>
+<span class="codeline" id="line-141"><code>	JGE  noinc</code></span>
+<span class="codeline" id="line-142"><code>	INCQ R9</code></span>
+<span class="codeline" id="line-143"><code></code></span>
+<span class="codeline" id="line-144"><code>noinc:</code></span>
+<span class="codeline" id="line-145"><code>	MOVQ R8, X8</code></span>
+<span class="codeline" id="line-146"><code>	PINSRQ $1, R9, X8</code></span>
+<span class="codeline" id="line-147"><code></code></span>
+<span class="codeline" id="line-148"><code>	MOVO X12, X0</code></span>
+<span class="codeline" id="line-149"><code>	MOVO X15, X1</code></span>
+<span class="codeline" id="line-150"><code>	MOVOU 32(AX), X2</code></span>
+<span class="codeline" id="line-151"><code>	MOVOU 48(AX), X3</code></span>
+<span class="codeline" id="line-152"><code>	MOVOU ·iv0&lt;&gt;(SB), X4</code></span>
+<span class="codeline" id="line-153"><code>	MOVOU ·iv1&lt;&gt;(SB), X5</code></span>
+<span class="codeline" id="line-154"><code>	MOVOU ·iv2&lt;&gt;(SB), X6</code></span>
+<span class="codeline" id="line-155"><code></code></span>
+<span class="codeline" id="line-156"><code>	PXOR X8, X6</code></span>
+<span class="codeline" id="line-157"><code>	MOVO 0(R10), X7</code></span>
+<span class="codeline" id="line-158"><code></code></span>
+<span class="codeline" id="line-159"><code>	LOAD_MSG(X8, X9, X10, X11, SI, 0, 2, 4, 6, 1, 3, 5, 7)</code></span>
+<span class="codeline" id="line-160"><code>	MOVO X8, 16(R10)</code></span>
+<span class="codeline" id="line-161"><code>	MOVO X9, 32(R10)</code></span>
+<span class="codeline" id="line-162"><code>	MOVO X10, 48(R10)</code></span>
+<span class="codeline" id="line-163"><code>	MOVO X11, 64(R10)</code></span>
+<span class="codeline" id="line-164"><code>	HALF_ROUND(X0, X1, X2, X3, X4, X5, X6, X7, X8, X9, X10, X11, X11, X13, X14)</code></span>
+<span class="codeline" id="line-165"><code>	SHUFFLE(X2, X3, X4, X5, X6, X7, X8, X9)</code></span>
+<span class="codeline" id="line-166"><code>	LOAD_MSG(X8, X9, X10, X11, SI, 8, 10, 12, 14, 9, 11, 13, 15)</code></span>
+<span class="codeline" id="line-167"><code>	MOVO X8, 80(R10)</code></span>
+<span class="codeline" id="line-168"><code>	MOVO X9, 96(R10)</code></span>
+<span class="codeline" id="line-169"><code>	MOVO X10, 112(R10)</code></span>
+<span class="codeline" id="line-170"><code>	MOVO X11, 128(R10)</code></span>
+<span class="codeline" id="line-171"><code>	HALF_ROUND(X0, X1, X2, X3, X4, X5, X6, X7, X8, X9, X10, X11, X11, X13, X14)</code></span>
+<span class="codeline" id="line-172"><code>	SHUFFLE_INV(X2, X3, X4, X5, X6, X7, X8, X9)</code></span>
+<span class="codeline" id="line-173"><code></code></span>
+<span class="codeline" id="line-174"><code>	LOAD_MSG(X8, X9, X10, X11, SI, 14, 4, 9, 13, 10, 8, 15, 6)</code></span>
+<span class="codeline" id="line-175"><code>	MOVO X8, 144(R10)</code></span>
+<span class="codeline" id="line-176"><code>	MOVO X9, 160(R10)</code></span>
+<span class="codeline" id="line-177"><code>	MOVO X10, 176(R10)</code></span>
+<span class="codeline" id="line-178"><code>	MOVO X11, 192(R10)</code></span>
+<span class="codeline" id="line-179"><code>	HALF_ROUND(X0, X1, X2, X3, X4, X5, X6, X7, X8, X9, X10, X11, X11, X13, X14)</code></span>
+<span class="codeline" id="line-180"><code>	SHUFFLE(X2, X3, X4, X5, X6, X7, X8, X9)</code></span>
+<span class="codeline" id="line-181"><code>	LOAD_MSG(X8, X9, X10, X11, SI, 1, 0, 11, 5, 12, 2, 7, 3)</code></span>
+<span class="codeline" id="line-182"><code>	MOVO X8, 208(R10)</code></span>
+<span class="codeline" id="line-183"><code>	MOVO X9, 224(R10)</code></span>
+<span class="codeline" id="line-184"><code>	MOVO X10, 240(R10)</code></span>
+<span class="codeline" id="line-185"><code>	MOVO X11, 256(R10)</code></span>
+<span class="codeline" id="line-186"><code>	HALF_ROUND(X0, X1, X2, X3, X4, X5, X6, X7, X8, X9, X10, X11, X11, X13, X14)</code></span>
+<span class="codeline" id="line-187"><code>	SHUFFLE_INV(X2, X3, X4, X5, X6, X7, X8, X9)</code></span>
+<span class="codeline" id="line-188"><code></code></span>
+<span class="codeline" id="line-189"><code>	LOAD_MSG(X8, X9, X10, X11, SI, 11, 12, 5, 15, 8, 0, 2, 13)</code></span>
+<span class="codeline" id="line-190"><code>	HALF_ROUND(X0, X1, X2, X3, X4, X5, X6, X7, X8, X9, X10, X11, X11, X13, X14)</code></span>
+<span class="codeline" id="line-191"><code>	SHUFFLE(X2, X3, X4, X5, X6, X7, X8, X9)</code></span>
+<span class="codeline" id="line-192"><code>	LOAD_MSG(X8, X9, X10, X11, SI, 10, 3, 7, 9, 14, 6, 1, 4)</code></span>
+<span class="codeline" id="line-193"><code>	HALF_ROUND(X0, X1, X2, X3, X4, X5, X6, X7, X8, X9, X10, X11, X11, X13, X14)</code></span>
+<span class="codeline" id="line-194"><code>	SHUFFLE_INV(X2, X3, X4, X5, X6, X7, X8, X9)</code></span>
+<span class="codeline" id="line-195"><code></code></span>
+<span class="codeline" id="line-196"><code>	LOAD_MSG(X8, X9, X10, X11, SI, 7, 3, 13, 11, 9, 1, 12, 14)</code></span>
+<span class="codeline" id="line-197"><code>	HALF_ROUND(X0, X1, X2, X3, X4, X5, X6, X7, X8, X9, X10, X11, X11, X13, X14)</code></span>
+<span class="codeline" id="line-198"><code>	SHUFFLE(X2, X3, X4, X5, X6, X7, X8, X9)</code></span>
+<span class="codeline" id="line-199"><code>	LOAD_MSG(X8, X9, X10, X11, SI, 2, 5, 4, 15, 6, 10, 0, 8)</code></span>
+<span class="codeline" id="line-200"><code>	HALF_ROUND(X0, X1, X2, X3, X4, X5, X6, X7, X8, X9, X10, X11, X11, X13, X14)</code></span>
+<span class="codeline" id="line-201"><code>	SHUFFLE_INV(X2, X3, X4, X5, X6, X7, X8, X9)</code></span>
+<span class="codeline" id="line-202"><code></code></span>
+<span class="codeline" id="line-203"><code>	LOAD_MSG(X8, X9, X10, X11, SI, 9, 5, 2, 10, 0, 7, 4, 15)</code></span>
+<span class="codeline" id="line-204"><code>	HALF_ROUND(X0, X1, X2, X3, X4, X5, X6, X7, X8, X9, X10, X11, X11, X13, X14)</code></span>
+<span class="codeline" id="line-205"><code>	SHUFFLE(X2, X3, X4, X5, X6, X7, X8, X9)</code></span>
+<span class="codeline" id="line-206"><code>	LOAD_MSG(X8, X9, X10, X11, SI, 14, 11, 6, 3, 1, 12, 8, 13)</code></span>
+<span class="codeline" id="line-207"><code>	HALF_ROUND(X0, X1, X2, X3, X4, X5, X6, X7, X8, X9, X10, X11, X11, X13, X14)</code></span>
+<span class="codeline" id="line-208"><code>	SHUFFLE_INV(X2, X3, X4, X5, X6, X7, X8, X9)</code></span>
+<span class="codeline" id="line-209"><code></code></span>
+<span class="codeline" id="line-210"><code>	LOAD_MSG(X8, X9, X10, X11, SI, 2, 6, 0, 8, 12, 10, 11, 3)</code></span>
+<span class="codeline" id="line-211"><code>	HALF_ROUND(X0, X1, X2, X3, X4, X5, X6, X7, X8, X9, X10, X11, X11, X13, X14)</code></span>
+<span class="codeline" id="line-212"><code>	SHUFFLE(X2, X3, X4, X5, X6, X7, X8, X9)</code></span>
+<span class="codeline" id="line-213"><code>	LOAD_MSG(X8, X9, X10, X11, SI, 4, 7, 15, 1, 13, 5, 14, 9)</code></span>
+<span class="codeline" id="line-214"><code>	HALF_ROUND(X0, X1, X2, X3, X4, X5, X6, X7, X8, X9, X10, X11, X11, X13, X14)</code></span>
+<span class="codeline" id="line-215"><code>	SHUFFLE_INV(X2, X3, X4, X5, X6, X7, X8, X9)</code></span>
+<span class="codeline" id="line-216"><code></code></span>
+<span class="codeline" id="line-217"><code>	LOAD_MSG(X8, X9, X10, X11, SI, 12, 1, 14, 4, 5, 15, 13, 10)</code></span>
+<span class="codeline" id="line-218"><code>	HALF_ROUND(X0, X1, X2, X3, X4, X5, X6, X7, X8, X9, X10, X11, X11, X13, X14)</code></span>
+<span class="codeline" id="line-219"><code>	SHUFFLE(X2, X3, X4, X5, X6, X7, X8, X9)</code></span>
+<span class="codeline" id="line-220"><code>	LOAD_MSG(X8, X9, X10, X11, SI, 0, 6, 9, 8, 7, 3, 2, 11)</code></span>
+<span class="codeline" id="line-221"><code>	HALF_ROUND(X0, X1, X2, X3, X4, X5, X6, X7, X8, X9, X10, X11, X11, X13, X14)</code></span>
+<span class="codeline" id="line-222"><code>	SHUFFLE_INV(X2, X3, X4, X5, X6, X7, X8, X9)</code></span>
+<span class="codeline" id="line-223"><code></code></span>
+<span class="codeline" id="line-224"><code>	LOAD_MSG(X8, X9, X10, X11, SI, 13, 7, 12, 3, 11, 14, 1, 9)</code></span>
+<span class="codeline" id="line-225"><code>	HALF_ROUND(X0, X1, X2, X3, X4, X5, X6, X7, X8, X9, X10, X11, X11, X13, X14)</code></span>
+<span class="codeline" id="line-226"><code>	SHUFFLE(X2, X3, X4, X5, X6, X7, X8, X9)</code></span>
+<span class="codeline" id="line-227"><code>	LOAD_MSG(X8, X9, X10, X11, SI, 5, 15, 8, 2, 0, 4, 6, 10)</code></span>
+<span class="codeline" id="line-228"><code>	HALF_ROUND(X0, X1, X2, X3, X4, X5, X6, X7, X8, X9, X10, X11, X11, X13, X14)</code></span>
+<span class="codeline" id="line-229"><code>	SHUFFLE_INV(X2, X3, X4, X5, X6, X7, X8, X9)</code></span>
+<span class="codeline" id="line-230"><code></code></span>
+<span class="codeline" id="line-231"><code>	LOAD_MSG(X8, X9, X10, X11, SI, 6, 14, 11, 0, 15, 9, 3, 8)</code></span>
+<span class="codeline" id="line-232"><code>	HALF_ROUND(X0, X1, X2, X3, X4, X5, X6, X7, X8, X9, X10, X11, X11, X13, X14)</code></span>
+<span class="codeline" id="line-233"><code>	SHUFFLE(X2, X3, X4, X5, X6, X7, X8, X9)</code></span>
+<span class="codeline" id="line-234"><code>	LOAD_MSG(X8, X9, X10, X11, SI, 12, 13, 1, 10, 2, 7, 4, 5)</code></span>
+<span class="codeline" id="line-235"><code>	HALF_ROUND(X0, X1, X2, X3, X4, X5, X6, X7, X8, X9, X10, X11, X11, X13, X14)</code></span>
+<span class="codeline" id="line-236"><code>	SHUFFLE_INV(X2, X3, X4, X5, X6, X7, X8, X9)</code></span>
+<span class="codeline" id="line-237"><code></code></span>
+<span class="codeline" id="line-238"><code>	LOAD_MSG(X8, X9, X10, X11, SI, 10, 8, 7, 1, 2, 4, 6, 5)</code></span>
+<span class="codeline" id="line-239"><code>	HALF_ROUND(X0, X1, X2, X3, X4, X5, X6, X7, X8, X9, X10, X11, X11, X13, X14)</code></span>
+<span class="codeline" id="line-240"><code>	SHUFFLE(X2, X3, X4, X5, X6, X7, X8, X9)</code></span>
+<span class="codeline" id="line-241"><code>	LOAD_MSG(X8, X9, X10, X11, SI, 15, 9, 3, 13, 11, 14, 12, 0)</code></span>
+<span class="codeline" id="line-242"><code>	HALF_ROUND(X0, X1, X2, X3, X4, X5, X6, X7, X8, X9, X10, X11, X11, X13, X14)</code></span>
+<span class="codeline" id="line-243"><code>	SHUFFLE_INV(X2, X3, X4, X5, X6, X7, X8, X9)</code></span>
+<span class="codeline" id="line-244"><code></code></span>
+<span class="codeline" id="line-245"><code>	HALF_ROUND(X0, X1, X2, X3, X4, X5, X6, X7, 16(R10), 32(R10), 48(R10), 64(R10), X11, X13, X14)</code></span>
+<span class="codeline" id="line-246"><code>	SHUFFLE(X2, X3, X4, X5, X6, X7, X8, X9)</code></span>
+<span class="codeline" id="line-247"><code>	HALF_ROUND(X0, X1, X2, X3, X4, X5, X6, X7, 80(R10), 96(R10), 112(R10), 128(R10), X11, X13, X14)</code></span>
+<span class="codeline" id="line-248"><code>	SHUFFLE_INV(X2, X3, X4, X5, X6, X7, X8, X9)</code></span>
+<span class="codeline" id="line-249"><code></code></span>
+<span class="codeline" id="line-250"><code>	HALF_ROUND(X0, X1, X2, X3, X4, X5, X6, X7, 144(R10), 160(R10), 176(R10), 192(R10), X11, X13, X14)</code></span>
+<span class="codeline" id="line-251"><code>	SHUFFLE(X2, X3, X4, X5, X6, X7, X8, X9)</code></span>
+<span class="codeline" id="line-252"><code>	HALF_ROUND(X0, X1, X2, X3, X4, X5, X6, X7, 208(R10), 224(R10), 240(R10), 256(R10), X11, X13, X14)</code></span>
+<span class="codeline" id="line-253"><code>	SHUFFLE_INV(X2, X3, X4, X5, X6, X7, X8, X9)</code></span>
+<span class="codeline" id="line-254"><code></code></span>
+<span class="codeline" id="line-255"><code>	MOVOU 32(AX), X10</code></span>
+<span class="codeline" id="line-256"><code>	MOVOU 48(AX), X11</code></span>
+<span class="codeline" id="line-257"><code>	PXOR  X0, X12</code></span>
+<span class="codeline" id="line-258"><code>	PXOR  X1, X15</code></span>
+<span class="codeline" id="line-259"><code>	PXOR  X2, X10</code></span>
+<span class="codeline" id="line-260"><code>	PXOR  X3, X11</code></span>
+<span class="codeline" id="line-261"><code>	PXOR  X4, X12</code></span>
+<span class="codeline" id="line-262"><code>	PXOR  X5, X15</code></span>
+<span class="codeline" id="line-263"><code>	PXOR  X6, X10</code></span>
+<span class="codeline" id="line-264"><code>	PXOR  X7, X11</code></span>
+<span class="codeline" id="line-265"><code>	MOVOU X10, 32(AX)</code></span>
+<span class="codeline" id="line-266"><code>	MOVOU X11, 48(AX)</code></span>
+<span class="codeline" id="line-267"><code></code></span>
+<span class="codeline" id="line-268"><code>	LEAQ 128(SI), SI</code></span>
+<span class="codeline" id="line-269"><code>	SUBQ $128, DI</code></span>
+<span class="codeline" id="line-270"><code>	JNE  loop</code></span>
+<span class="codeline" id="line-271"><code></code></span>
+<span class="codeline" id="line-272"><code>	MOVOU X12, 0(AX)</code></span>
+<span class="codeline" id="line-273"><code>	MOVOU X15, 16(AX)</code></span>
+<span class="codeline" id="line-274"><code></code></span>
+<span class="codeline" id="line-275"><code>	MOVQ R8, 0(BX)</code></span>
+<span class="codeline" id="line-276"><code>	MOVQ R9, 8(BX)</code></span>
+<span class="codeline" id="line-277"><code></code></span>
+<span class="codeline" id="line-278"><code>	RET</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

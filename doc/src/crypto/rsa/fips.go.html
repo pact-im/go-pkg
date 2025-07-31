@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: fips.go in package crypto/rsa</title>
+<link href="../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	fips.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../pkg/crypto/rsa.html">crypto/rsa</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30],
+input[id=r31]:checked ~pre label[for=r31],
+input[id=r32]:checked ~pre label[for=r32],
+input[id=r33]:checked ~pre label[for=r33],
+input[id=r34]:checked ~pre label[for=r34],
+input[id=r35]:checked ~pre label[for=r35],
+input[id=r36]:checked ~pre label[for=r36],
+input[id=r37]:checked ~pre label[for=r37],
+input[id=r38]:checked ~pre label[for=r38],
+input[id=r39]:checked ~pre label[for=r39],
+input[id=r40]:checked ~pre label[for=r40],
+input[id=r41]:checked ~pre label[for=r41],
+input[id=r42]:checked ~pre label[for=r42],
+input[id=r43]:checked ~pre label[for=r43],
+input[id=r44]:checked ~pre label[for=r44],
+input[id=r45]:checked ~pre label[for=r45],
+input[id=r46]:checked ~pre label[for=r46],
+input[id=r47]:checked ~pre label[for=r47],
+input[id=r48]:checked ~pre label[for=r48],
+input[id=r49]:checked ~pre label[for=r49],
+input[id=r50]:checked ~pre label[for=r50],
+input[id=r51]:checked ~pre label[for=r51],
+input[id=r52]:checked ~pre label[for=r52],
+input[id=r53]:checked ~pre label[for=r53],
+input[id=r54]:checked ~pre label[for=r54],
+input[id=r55]:checked ~pre label[for=r55],
+input[id=r56]:checked ~pre label[for=r56],
+input[id=r57]:checked ~pre label[for=r57],
+input[id=r58]:checked ~pre label[for=r58],
+input[id=r59]:checked ~pre label[for=r59],
+input[id=r60]:checked ~pre label[for=r60],
+input[id=r61]:checked ~pre label[for=r61],
+input[id=r62]:checked ~pre label[for=r62],
+input[id=r63]:checked ~pre label[for=r63],
+input[id=r64]:checked ~pre label[for=r64],
+input[id=r65]:checked ~pre label[for=r65],
+input[id=r66]:checked ~pre label[for=r66],
+input[id=r67]:checked ~pre label[for=r67],
+input[id=r68]:checked ~pre label[for=r68],
+input[id=r69]:checked ~pre label[for=r69],
+input[id=r70]:checked ~pre label[for=r70],
+input[id=r71]:checked ~pre label[for=r71],
+input[id=r72]:checked ~pre label[for=r72],
+input[id=r73]:checked ~pre label[for=r73],
+input[id=r74]:checked ~pre label[for=r74],
+input[id=r75]:checked ~pre label[for=r75],
+input[id=r76]:checked ~pre label[for=r76],
+input[id=r77]:checked ~pre label[for=r77],
+input[id=r78]:checked ~pre label[for=r78],
+input[id=r79]:checked ~pre label[for=r79],
+input[id=r80]:checked ~pre label[for=r80],
+input[id=r81]:checked ~pre label[for=r81],
+input[id=r82]:checked ~pre label[for=r82],
+input[id=r83]:checked ~pre label[for=r83],
+input[id=r84]:checked ~pre label[for=r84],
+input[id=r85]:checked ~pre label[for=r85],
+input[id=r86]:checked ~pre label[for=r86],
+input[id=r87]:checked ~pre label[for=r87],
+input[id=r88]:checked ~pre label[for=r88],
+input[id=r89]:checked ~pre label[for=r89],
+input[id=r90]:checked ~pre label[for=r90],
+input[id=r91]:checked ~pre label[for=r91],
+input[id=r92]:checked ~pre label[for=r92],
+input[id=r93]:checked ~pre label[for=r93],
+input[id=r94]:checked ~pre label[for=r94],
+input[id=r95]:checked ~pre label[for=r95],
+input[id=r96]:checked ~pre label[for=r96],
+input[id=r97]:checked ~pre label[for=r97],
+input[id=r98]:checked ~pre label[for=r98],
+input[id=r99]:checked ~pre label[for=r99],
+input[id=r100]:checked ~pre label[for=r100],
+input[id=r101]:checked ~pre label[for=r101]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3,
+input[id=i4]:checked ~pre .i4,
+input[id=i5]:checked ~pre .i5,
+input[id=i6]:checked ~pre .i6,
+input[id=i7]:checked ~pre .i7
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="r31" type="radio" name="g"/>
+<input id="r32" type="radio" name="g"/>
+<input id="r33" type="radio" name="g"/>
+<input id="r34" type="radio" name="g"/>
+<input id="r35" type="radio" name="g"/>
+<input id="r36" type="radio" name="g"/>
+<input id="r37" type="radio" name="g"/>
+<input id="r38" type="radio" name="g"/>
+<input id="r39" type="radio" name="g"/>
+<input id="r40" type="radio" name="g"/>
+<input id="r41" type="radio" name="g"/>
+<input id="r42" type="radio" name="g"/>
+<input id="r43" type="radio" name="g"/>
+<input id="r44" type="radio" name="g"/>
+<input id="r45" type="radio" name="g"/>
+<input id="r46" type="radio" name="g"/>
+<input id="r47" type="radio" name="g"/>
+<input id="r48" type="radio" name="g"/>
+<input id="r49" type="radio" name="g"/>
+<input id="r50" type="radio" name="g"/>
+<input id="r51" type="radio" name="g"/>
+<input id="r52" type="radio" name="g"/>
+<input id="r53" type="radio" name="g"/>
+<input id="r54" type="radio" name="g"/>
+<input id="r55" type="radio" name="g"/>
+<input id="r56" type="radio" name="g"/>
+<input id="r57" type="radio" name="g"/>
+<input id="r58" type="radio" name="g"/>
+<input id="r59" type="radio" name="g"/>
+<input id="r60" type="radio" name="g"/>
+<input id="r61" type="radio" name="g"/>
+<input id="r62" type="radio" name="g"/>
+<input id="r63" type="radio" name="g"/>
+<input id="r64" type="radio" name="g"/>
+<input id="r65" type="radio" name="g"/>
+<input id="r66" type="radio" name="g"/>
+<input id="r67" type="radio" name="g"/>
+<input id="r68" type="radio" name="g"/>
+<input id="r69" type="radio" name="g"/>
+<input id="r70" type="radio" name="g"/>
+<input id="r71" type="radio" name="g"/>
+<input id="r72" type="radio" name="g"/>
+<input id="r73" type="radio" name="g"/>
+<input id="r74" type="radio" name="g"/>
+<input id="r75" type="radio" name="g"/>
+<input id="r76" type="radio" name="g"/>
+<input id="r77" type="radio" name="g"/>
+<input id="r78" type="radio" name="g"/>
+<input id="r79" type="radio" name="g"/>
+<input id="r80" type="radio" name="g"/>
+<input id="r81" type="radio" name="g"/>
+<input id="r82" type="radio" name="g"/>
+<input id="r83" type="radio" name="g"/>
+<input id="r84" type="radio" name="g"/>
+<input id="r85" type="radio" name="g"/>
+<input id="r86" type="radio" name="g"/>
+<input id="r87" type="radio" name="g"/>
+<input id="r88" type="radio" name="g"/>
+<input id="r89" type="radio" name="g"/>
+<input id="r90" type="radio" name="g"/>
+<input id="r91" type="radio" name="g"/>
+<input id="r92" type="radio" name="g"/>
+<input id="r93" type="radio" name="g"/>
+<input id="r94" type="radio" name="g"/>
+<input id="r95" type="radio" name="g"/>
+<input id="r96" type="radio" name="g"/>
+<input id="r97" type="radio" name="g"/>
+<input id="r98" type="radio" name="g"/>
+<input id="r99" type="radio" name="g"/>
+<input id="r100" type="radio" name="g"/>
+<input id="r101" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+<input id="i4" type="radio" name="i"/>
+<input id="i5" type="radio" name="i"/>
+<input id="i6" type="radio" name="i"/>
+<input id="i7" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2024 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> rsa</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-8"><code>	<label for="i0"><span class="lit-string i0">"crypto"</span></label></code></span>
+<span class="codeline" id="line-9"><code>	<label for="i1"><span class="lit-string i1">"crypto/internal/boring"</span></label></code></span>
+<span class="codeline" id="line-10"><code>	<label for="i2"><span class="lit-string i2">"crypto/internal/fips140/rsa"</span></label></code></span>
+<span class="codeline" id="line-11"><code>	<label for="i3"><span class="lit-string i3">"crypto/internal/fips140hash"</span></label></code></span>
+<span class="codeline" id="line-12"><code>	<label for="i4"><span class="lit-string i4">"crypto/internal/fips140only"</span></label></code></span>
+<span class="codeline" id="line-13"><code>	<label for="i5"><span class="lit-string i5">"errors"</span></label></code></span>
+<span class="codeline" id="line-14"><code>	<label for="i6"><span class="lit-string i6">"hash"</span></label></code></span>
+<span class="codeline" id="line-15"><code>	<label for="i7"><span class="lit-string i7">"io"</span></label></code></span>
+<span class="codeline" id="line-16"><code>)</code></span>
+<span class="codeline" id="line-17"><code></code></span>
+<span class="codeline" id="line-18"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-19"><code>	<span class="comment">// PSSSaltLengthAuto causes the salt in a PSS signature to be as large</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">	// as possible when signing, and to be auto-detected when verifying.</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">	// When signing in FIPS 140-3 mode, the salt length is capped at the length</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">	// of the hash function used in the signature.</span></code></span>
+<span class="codeline" id="line-24"><code>	<a href="../../../pkg/crypto/rsa.html#name-PSSSaltLengthAuto" class="ident">PSSSaltLengthAuto</a> = <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-25"><code>	<span class="comment">// PSSSaltLengthEqualsHash causes the salt length to equal the length</span></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">	// of the hash used in the signature.</span></code></span>
+<span class="codeline" id="line-27"><code>	<a href="../../../pkg/crypto/rsa.html#name-PSSSaltLengthEqualsHash" class="ident">PSSSaltLengthEqualsHash</a> = -<span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-28"><code>)</code></span>
+<span class="codeline" id="line-29"><code></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">// PSSOptions contains options for creating and verifying PSS signatures.</span></code></span>
+<span class="codeline" id="line-31"><code><span class="keyword">type</span> <a href="../../../pkg/crypto/rsa.html#name-PSSOptions" class="ident">PSSOptions</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-32"><code>	<span class="comment">// SaltLength controls the length of the salt used in the PSS signature. It</span></code></span>
+<span class="codeline" id="line-33"><code><span class="comment">	// can either be a positive number of bytes, or one of the special</span></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">	// PSSSaltLength constants.</span></code></span>
+<span class="codeline" id="line-35"><code>	<a href="../../../use/crypto/rsa..PSSOptions.SaltLength.html" class="ident">SaltLength</a> <a href="../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-36"><code></code></span>
+<span class="codeline" id="line-37"><code>	<span class="comment">// Hash is the hash function used to generate the message digest. If not</span></code></span>
+<span class="codeline" id="line-38"><code><span class="comment">	// zero, it overrides the hash function passed to SignPSS. It's required</span></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">	// when using PrivateKey.Sign.</span></code></span>
+<span class="codeline" id="line-40"><code>	<a href="../../../use/crypto/rsa..PSSOptions.Hash.html" class="ident">Hash</a> <a href="../../../pkg/crypto.html" class="ident i0">crypto</a>.<a href="../crypto.go.html#line-16" class="ident">Hash</a></code></span>
+<span class="codeline" id="line-41"><code>}</code></span>
+<span class="codeline" id="line-42"><code></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">// HashFunc returns opts.Hash so that [PSSOptions] implements [crypto.SignerOpts].</span></code></span>
+<span class="codeline" id="line-44"><code><span class="keyword">func</span> (<label for="r0" class="ident">opts</label> *<a href="#line-31" class="ident">PSSOptions</a>) <label for="r1" class="ident"><a href="../../../use/crypto/rsa..PSSOptions.HashFunc.html" class="ident">HashFunc</a></label>() <a href="../../../pkg/crypto.html" class="ident i0">crypto</a>.<a href="../crypto.go.html#line-16" class="ident">Hash</a> {</code></span>
+<span class="codeline" id="line-45"><code>	<span class="keyword">return</span> <label for="r0" class="ident">opts</label>.<a href="#line-40" class="ident">Hash</a></code></span>
+<span class="codeline" id="line-46"><code>}</code></span>
+<span class="codeline" id="line-47"><code></code></span>
+<span class="codeline" id="line-48"><code><span class="keyword">func</span> (<label for="r2" class="ident">opts</label> *<a href="#line-31" class="ident">PSSOptions</a>) <label for="r3" class="ident"><a href="../../../use/crypto/rsa..PSSOptions.saltLength^92f54.html" class="ident">saltLength</a></label>() <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-49"><code>	<span class="keyword">if</span> <label for="r2" class="ident">opts</label> == <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-50"><code>		<span class="keyword">return</span> <a href="#line-24" class="ident">PSSSaltLengthAuto</a></code></span>
+<span class="codeline" id="line-51"><code>	}</code></span>
+<span class="codeline" id="line-52"><code>	<span class="keyword">return</span> <label for="r2" class="ident">opts</label>.<a href="#line-35" class="ident">SaltLength</a></code></span>
+<span class="codeline" id="line-53"><code>}</code></span>
+<span class="codeline" id="line-54"><code></code></span>
+<span class="codeline" id="line-55"><code><span class="comment">// SignPSS calculates the signature of digest using PSS.</span></code></span>
+<span class="codeline" id="line-56"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-57"><code><span class="comment">// digest must be the result of hashing the input message using the given hash</span></code></span>
+<span class="codeline" id="line-58"><code><span class="comment">// function. The opts argument may be nil, in which case sensible defaults are</span></code></span>
+<span class="codeline" id="line-59"><code><span class="comment">// used. If opts.Hash is set, it overrides hash.</span></code></span>
+<span class="codeline" id="line-60"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-61"><code><span class="comment">// The signature is randomized depending on the message, key, and salt size,</span></code></span>
+<span class="codeline" id="line-62"><code><span class="comment">// using bytes from rand. Most applications should use [crypto/rand.Reader] as</span></code></span>
+<span class="codeline" id="line-63"><code><span class="comment">// rand.</span></code></span>
+<span class="codeline" id="line-64"><code><span class="keyword">func</span> <label for="r4" class="ident"><a href="../../../pkg/crypto/rsa.html#name-SignPSS" class="ident">SignPSS</a></label>(<label for="r5" class="ident">rand</label> <a href="../../../pkg/io.html" class="ident i7">io</a>.<a href="../../io/io.go.html#line-86" class="ident">Reader</a>, <label for="r6" class="ident">priv</label> *<a href="rsa.go.html#line-107" class="ident">PrivateKey</a>, <label for="r7" class="ident">hash</label> <a href="../../../pkg/crypto.html" class="ident i0">crypto</a>.<a href="../crypto.go.html#line-16" class="ident">Hash</a>, <label for="r8" class="ident">digest</label> []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r9" class="ident">opts</label> *<a href="#line-31" class="ident">PSSOptions</a>) ([]<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-65"><code>	<span class="keyword">if</span> <label for="r10" class="ident">err</label> := <a href="rsa.go.html#line-261" class="ident">checkPublicKeySize</a>(&amp;<label for="r6" class="ident">priv</label>.<a href="rsa.go.html#line-108" class="ident">PublicKey</a>); <label for="r10" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-66"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r10" class="ident">err</label></code></span>
+<span class="codeline" id="line-67"><code>	}</code></span>
+<span class="codeline" id="line-68"><code></code></span>
+<span class="codeline" id="line-69"><code>	<span class="keyword">if</span> <label for="r9" class="ident">opts</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> &amp;&amp; <label for="r9" class="ident">opts</label>.<a href="#line-40" class="ident">Hash</a> != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-70"><code>		<label for="r7" class="ident">hash</label> = <label for="r9" class="ident">opts</label>.<a href="#line-40" class="ident">Hash</a></code></span>
+<span class="codeline" id="line-71"><code>	}</code></span>
+<span class="codeline" id="line-72"><code></code></span>
+<span class="codeline" id="line-73"><code>	<span class="keyword">if</span> <a href="../../../pkg/crypto/internal/boring.html" class="ident i1">boring</a>.<a href="../internal/boring/doc.go.html#line-14" class="ident">Enabled</a> &amp;&amp; <label for="r5" class="ident">rand</label> == <a href="../../../pkg/crypto/internal/boring.html" class="ident i1">boring</a>.<a href="../internal/boring/notboring.go.html#line-35" class="ident">RandReader</a> {</code></span>
+<span class="codeline" id="line-74"><code>		<label for="r11" class="ident">bkey</label>, <label for="r12" class="ident">err</label> := <a href="notboring.go.html#line-14" class="ident">boringPrivateKey</a>(<label for="r6" class="ident">priv</label>)</code></span>
+<span class="codeline" id="line-75"><code>		<span class="keyword">if</span> <label for="r12" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-76"><code>			<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r12" class="ident">err</label></code></span>
+<span class="codeline" id="line-77"><code>		}</code></span>
+<span class="codeline" id="line-78"><code>		<span class="keyword">return</span> <a href="../../../pkg/crypto/internal/boring.html" class="ident i1">boring</a>.<a href="../internal/boring/notboring.go.html#line-105" class="ident">SignRSAPSS</a>(<label for="r11" class="ident">bkey</label>, <label for="r7" class="ident">hash</label>, <label for="r8" class="ident">digest</label>, <label for="r9" class="ident">opts</label>.<a href="#line-48" class="ident">saltLength</a>())</code></span>
+<span class="codeline" id="line-79"><code>	}</code></span>
+<span class="codeline" id="line-80"><code>	<a href="../../../pkg/crypto/internal/boring.html" class="ident i1">boring</a>.<a href="../internal/boring/notboring.go.html#line-29" class="ident">UnreachableExceptTests</a>()</code></span>
+<span class="codeline" id="line-81"><code></code></span>
+<span class="codeline" id="line-82"><code>	<label for="r13" class="ident">h</label> := <a href="../../../pkg/crypto/internal/fips140hash.html" class="ident i3">fips140hash</a>.<a href="../internal/fips140hash/hash.go.html#line-23" class="ident">Unwrap</a>(<label for="r7" class="ident">hash</label>.<a href="../crypto.go.html#line-127" class="ident">New</a>())</code></span>
+<span class="codeline" id="line-83"><code></code></span>
+<span class="codeline" id="line-84"><code>	<span class="keyword">if</span> <label for="r14" class="ident">err</label> := <a href="#line-421" class="ident">checkFIPS140OnlyPrivateKey</a>(<label for="r6" class="ident">priv</label>); <label for="r14" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-85"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r14" class="ident">err</label></code></span>
+<span class="codeline" id="line-86"><code>	}</code></span>
+<span class="codeline" id="line-87"><code>	<span class="keyword">if</span> <a href="../../../pkg/crypto/internal/fips140only.html" class="ident i4">fips140only</a>.<a href="../internal/fips140only/fips140only.go.html#line-19" class="ident">Enabled</a> &amp;&amp; !<a href="../../../pkg/crypto/internal/fips140only.html" class="ident i4">fips140only</a>.<a href="../internal/fips140only/fips140only.go.html#line-21" class="ident">ApprovedHash</a>(<label for="r13" class="ident">h</label>) {</code></span>
+<span class="codeline" id="line-88"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../pkg/errors.html" class="ident i5">errors</a>.<a href="../../errors/errors.go.html#line-64" class="ident">New</a>(<span class="lit-string">"crypto/rsa: use of hash functions other than SHA-2 or SHA-3 is not allowed in FIPS 140-only mode"</span>)</code></span>
+<span class="codeline" id="line-89"><code>	}</code></span>
+<span class="codeline" id="line-90"><code>	<span class="keyword">if</span> <a href="../../../pkg/crypto/internal/fips140only.html" class="ident i4">fips140only</a>.<a href="../internal/fips140only/fips140only.go.html#line-19" class="ident">Enabled</a> &amp;&amp; !<a href="../../../pkg/crypto/internal/fips140only.html" class="ident i4">fips140only</a>.<a href="../internal/fips140only/fips140only.go.html#line-30" class="ident">ApprovedRandomReader</a>(<label for="r5" class="ident">rand</label>) {</code></span>
+<span class="codeline" id="line-91"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../pkg/errors.html" class="ident i5">errors</a>.<a href="../../errors/errors.go.html#line-64" class="ident">New</a>(<span class="lit-string">"crypto/rsa: only crypto/rand.Reader is allowed in FIPS 140-only mode"</span>)</code></span>
+<span class="codeline" id="line-92"><code>	}</code></span>
+<span class="codeline" id="line-93"><code></code></span>
+<span class="codeline" id="line-94"><code>	<label for="r15" class="ident">k</label>, <label for="r16" class="ident">err</label> := <a href="rsa.go.html#line-632" class="ident">fipsPrivateKey</a>(<label for="r6" class="ident">priv</label>)</code></span>
+<span class="codeline" id="line-95"><code>	<span class="keyword">if</span> <label for="r16" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-96"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r16" class="ident">err</label></code></span>
+<span class="codeline" id="line-97"><code>	}</code></span>
+<span class="codeline" id="line-98"><code></code></span>
+<span class="codeline" id="line-99"><code>	<label for="r17" class="ident">saltLength</label> := <label for="r9" class="ident">opts</label>.<a href="#line-48" class="ident">saltLength</a>()</code></span>
+<span class="codeline" id="line-100"><code>	<span class="keyword">if</span> <a href="../../../pkg/crypto/internal/fips140only.html" class="ident i4">fips140only</a>.<a href="../internal/fips140only/fips140only.go.html#line-19" class="ident">Enabled</a> &amp;&amp; <label for="r17" class="ident">saltLength</label> &gt; <label for="r13" class="ident">h</label>.<a href="../../hash/hash.go.html#line-39" class="ident">Size</a>() {</code></span>
+<span class="codeline" id="line-101"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../pkg/errors.html" class="ident i5">errors</a>.<a href="../../errors/errors.go.html#line-64" class="ident">New</a>(<span class="lit-string">"crypto/rsa: use of PSS salt longer than the hash is not allowed in FIPS 140-only mode"</span>)</code></span>
+<span class="codeline" id="line-102"><code>	}</code></span>
+<span class="codeline" id="line-103"><code>	<span class="keyword">switch</span> <label for="r17" class="ident">saltLength</label> {</code></span>
+<span class="codeline" id="line-104"><code>	<span class="keyword">case</span> <a href="#line-24" class="ident">PSSSaltLengthAuto</a>:</code></span>
+<span class="codeline" id="line-105"><code>		<label for="r17" class="ident">saltLength</label>, <label for="r16" class="ident">err</label> = <a href="../../../pkg/crypto/internal/fips140/rsa.html" class="ident i2">rsa</a>.<a href="../internal/fips140/rsa/pkcs1v22.go.html#line-253" class="ident">PSSMaxSaltLength</a>(<label for="r15" class="ident">k</label>.<a href="../internal/fips140/rsa/rsa.go.html#line-44" class="ident">PublicKey</a>(), <label for="r13" class="ident">h</label>)</code></span>
+<span class="codeline" id="line-106"><code>		<span class="keyword">if</span> <label for="r16" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-107"><code>			<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="#line-383" class="ident">fipsError</a>(<label for="r16" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-108"><code>		}</code></span>
+<span class="codeline" id="line-109"><code>	<span class="keyword">case</span> <a href="#line-27" class="ident">PSSSaltLengthEqualsHash</a>:</code></span>
+<span class="codeline" id="line-110"><code>		<label for="r17" class="ident">saltLength</label> = <label for="r13" class="ident">h</label>.<a href="../../hash/hash.go.html#line-39" class="ident">Size</a>()</code></span>
+<span class="codeline" id="line-111"><code>	<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-112"><code>		<span class="comment">// If we get here saltLength is either &gt; 0 or &lt; -1, in the</span></code></span>
+<span class="codeline" id="line-113"><code><span class="comment">		// latter case we fail out.</span></code></span>
+<span class="codeline" id="line-114"><code>		<span class="keyword">if</span> <label for="r17" class="ident">saltLength</label> &lt;= <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-115"><code>			<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../pkg/errors.html" class="ident i5">errors</a>.<a href="../../errors/errors.go.html#line-64" class="ident">New</a>(<span class="lit-string">"crypto/rsa: invalid PSS salt length"</span>)</code></span>
+<span class="codeline" id="line-116"><code>		}</code></span>
+<span class="codeline" id="line-117"><code>	}</code></span>
+<span class="codeline" id="line-118"><code></code></span>
+<span class="codeline" id="line-119"><code>	<span class="keyword">return</span> <a href="#line-395" class="ident">fipsError2</a>(<a href="../../../pkg/crypto/internal/fips140/rsa.html" class="ident i2">rsa</a>.<a href="../internal/fips140/rsa/pkcs1v22.go.html#line-267" class="ident">SignPSS</a>(<label for="r5" class="ident">rand</label>, <label for="r15" class="ident">k</label>, <label for="r13" class="ident">h</label>, <label for="r8" class="ident">digest</label>, <label for="r17" class="ident">saltLength</label>))</code></span>
+<span class="codeline" id="line-120"><code>}</code></span>
+<span class="codeline" id="line-121"><code></code></span>
+<span class="codeline" id="line-122"><code><span class="comment">// VerifyPSS verifies a PSS signature.</span></code></span>
+<span class="codeline" id="line-123"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-124"><code><span class="comment">// A valid signature is indicated by returning a nil error. digest must be the</span></code></span>
+<span class="codeline" id="line-125"><code><span class="comment">// result of hashing the input message using the given hash function. The opts</span></code></span>
+<span class="codeline" id="line-126"><code><span class="comment">// argument may be nil, in which case sensible defaults are used. opts.Hash is</span></code></span>
+<span class="codeline" id="line-127"><code><span class="comment">// ignored.</span></code></span>
+<span class="codeline" id="line-128"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-129"><code><span class="comment">// The inputs are not considered confidential, and may leak through timing side</span></code></span>
+<span class="codeline" id="line-130"><code><span class="comment">// channels, or if an attacker has control of part of the inputs.</span></code></span>
+<span class="codeline" id="line-131"><code><span class="keyword">func</span> <label for="r18" class="ident"><a href="../../../pkg/crypto/rsa.html#name-VerifyPSS" class="ident">VerifyPSS</a></label>(<label for="r19" class="ident">pub</label> *<a href="rsa.go.html#line-68" class="ident">PublicKey</a>, <label for="r20" class="ident">hash</label> <a href="../../../pkg/crypto.html" class="ident i0">crypto</a>.<a href="../crypto.go.html#line-16" class="ident">Hash</a>, <label for="r21" class="ident">digest</label> []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r22" class="ident">sig</label> []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r23" class="ident">opts</label> *<a href="#line-31" class="ident">PSSOptions</a>) <a href="../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-132"><code>	<span class="keyword">if</span> <label for="r24" class="ident">err</label> := <a href="rsa.go.html#line-261" class="ident">checkPublicKeySize</a>(<label for="r19" class="ident">pub</label>); <label for="r24" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-133"><code>		<span class="keyword">return</span> <label for="r24" class="ident">err</label></code></span>
+<span class="codeline" id="line-134"><code>	}</code></span>
+<span class="codeline" id="line-135"><code></code></span>
+<span class="codeline" id="line-136"><code>	<span class="keyword">if</span> <a href="../../../pkg/crypto/internal/boring.html" class="ident i1">boring</a>.<a href="../internal/boring/doc.go.html#line-14" class="ident">Enabled</a> {</code></span>
+<span class="codeline" id="line-137"><code>		<label for="r25" class="ident">bkey</label>, <label for="r26" class="ident">err</label> := <a href="notboring.go.html#line-11" class="ident">boringPublicKey</a>(<label for="r19" class="ident">pub</label>)</code></span>
+<span class="codeline" id="line-138"><code>		<span class="keyword">if</span> <label for="r26" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-139"><code>			<span class="keyword">return</span> <label for="r26" class="ident">err</label></code></span>
+<span class="codeline" id="line-140"><code>		}</code></span>
+<span class="codeline" id="line-141"><code>		<span class="keyword">if</span> <label for="r27" class="ident">err</label> := <a href="../../../pkg/crypto/internal/boring.html" class="ident i1">boring</a>.<a href="../internal/boring/notboring.go.html#line-111" class="ident">VerifyRSAPSS</a>(<label for="r25" class="ident">bkey</label>, <label for="r20" class="ident">hash</label>, <label for="r21" class="ident">digest</label>, <label for="r22" class="ident">sig</label>, <label for="r23" class="ident">opts</label>.<a href="#line-48" class="ident">saltLength</a>()); <label for="r27" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-142"><code>			<span class="keyword">return</span> <a href="rsa.go.html#line-503" class="ident">ErrVerification</a></code></span>
+<span class="codeline" id="line-143"><code>		}</code></span>
+<span class="codeline" id="line-144"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-145"><code>	}</code></span>
+<span class="codeline" id="line-146"><code></code></span>
+<span class="codeline" id="line-147"><code>	<label for="r28" class="ident">h</label> := <a href="../../../pkg/crypto/internal/fips140hash.html" class="ident i3">fips140hash</a>.<a href="../internal/fips140hash/hash.go.html#line-23" class="ident">Unwrap</a>(<label for="r20" class="ident">hash</label>.<a href="../crypto.go.html#line-127" class="ident">New</a>())</code></span>
+<span class="codeline" id="line-148"><code></code></span>
+<span class="codeline" id="line-149"><code>	<span class="keyword">if</span> <label for="r29" class="ident">err</label> := <a href="#line-399" class="ident">checkFIPS140OnlyPublicKey</a>(<label for="r19" class="ident">pub</label>); <label for="r29" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-150"><code>		<span class="keyword">return</span> <label for="r29" class="ident">err</label></code></span>
+<span class="codeline" id="line-151"><code>	}</code></span>
+<span class="codeline" id="line-152"><code>	<span class="keyword">if</span> <a href="../../../pkg/crypto/internal/fips140only.html" class="ident i4">fips140only</a>.<a href="../internal/fips140only/fips140only.go.html#line-19" class="ident">Enabled</a> &amp;&amp; !<a href="../../../pkg/crypto/internal/fips140only.html" class="ident i4">fips140only</a>.<a href="../internal/fips140only/fips140only.go.html#line-21" class="ident">ApprovedHash</a>(<label for="r28" class="ident">h</label>) {</code></span>
+<span class="codeline" id="line-153"><code>		<span class="keyword">return</span> <a href="../../../pkg/errors.html" class="ident i5">errors</a>.<a href="../../errors/errors.go.html#line-64" class="ident">New</a>(<span class="lit-string">"crypto/rsa: use of hash functions other than SHA-2 or SHA-3 is not allowed in FIPS 140-only mode"</span>)</code></span>
+<span class="codeline" id="line-154"><code>	}</code></span>
+<span class="codeline" id="line-155"><code></code></span>
+<span class="codeline" id="line-156"><code>	<label for="r30" class="ident">k</label>, <label for="r31" class="ident">err</label> := <a href="rsa.go.html#line-624" class="ident">fipsPublicKey</a>(<label for="r19" class="ident">pub</label>)</code></span>
+<span class="codeline" id="line-157"><code>	<span class="keyword">if</span> <label for="r31" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-158"><code>		<span class="keyword">return</span> <label for="r31" class="ident">err</label></code></span>
+<span class="codeline" id="line-159"><code>	}</code></span>
+<span class="codeline" id="line-160"><code></code></span>
+<span class="codeline" id="line-161"><code>	<label for="r32" class="ident">saltLength</label> := <label for="r23" class="ident">opts</label>.<a href="#line-48" class="ident">saltLength</a>()</code></span>
+<span class="codeline" id="line-162"><code>	<span class="keyword">if</span> <a href="../../../pkg/crypto/internal/fips140only.html" class="ident i4">fips140only</a>.<a href="../internal/fips140only/fips140only.go.html#line-19" class="ident">Enabled</a> &amp;&amp; <label for="r32" class="ident">saltLength</label> &gt; <label for="r28" class="ident">h</label>.<a href="../../hash/hash.go.html#line-39" class="ident">Size</a>() {</code></span>
+<span class="codeline" id="line-163"><code>		<span class="keyword">return</span> <a href="../../../pkg/errors.html" class="ident i5">errors</a>.<a href="../../errors/errors.go.html#line-64" class="ident">New</a>(<span class="lit-string">"crypto/rsa: use of PSS salt longer than the hash is not allowed in FIPS 140-only mode"</span>)</code></span>
+<span class="codeline" id="line-164"><code>	}</code></span>
+<span class="codeline" id="line-165"><code>	<span class="keyword">switch</span> <label for="r32" class="ident">saltLength</label> {</code></span>
+<span class="codeline" id="line-166"><code>	<span class="keyword">case</span> <a href="#line-24" class="ident">PSSSaltLengthAuto</a>:</code></span>
+<span class="codeline" id="line-167"><code>		<span class="keyword">return</span> <a href="#line-383" class="ident">fipsError</a>(<a href="../../../pkg/crypto/internal/fips140/rsa.html" class="ident i2">rsa</a>.<a href="../internal/fips140/rsa/pkcs1v22.go.html#line-314" class="ident">VerifyPSS</a>(<label for="r30" class="ident">k</label>, <label for="r28" class="ident">h</label>, <label for="r21" class="ident">digest</label>, <label for="r22" class="ident">sig</label>))</code></span>
+<span class="codeline" id="line-168"><code>	<span class="keyword">case</span> <a href="#line-27" class="ident">PSSSaltLengthEqualsHash</a>:</code></span>
+<span class="codeline" id="line-169"><code>		<span class="keyword">return</span> <a href="#line-383" class="ident">fipsError</a>(<a href="../../../pkg/crypto/internal/fips140/rsa.html" class="ident i2">rsa</a>.<a href="../internal/fips140/rsa/pkcs1v22.go.html#line-319" class="ident">VerifyPSSWithSaltLength</a>(<label for="r30" class="ident">k</label>, <label for="r28" class="ident">h</label>, <label for="r21" class="ident">digest</label>, <label for="r22" class="ident">sig</label>, <label for="r28" class="ident">h</label>.<a href="../../hash/hash.go.html#line-39" class="ident">Size</a>()))</code></span>
+<span class="codeline" id="line-170"><code>	<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-171"><code>		<span class="keyword">return</span> <a href="#line-383" class="ident">fipsError</a>(<a href="../../../pkg/crypto/internal/fips140/rsa.html" class="ident i2">rsa</a>.<a href="../internal/fips140/rsa/pkcs1v22.go.html#line-319" class="ident">VerifyPSSWithSaltLength</a>(<label for="r30" class="ident">k</label>, <label for="r28" class="ident">h</label>, <label for="r21" class="ident">digest</label>, <label for="r22" class="ident">sig</label>, <label for="r32" class="ident">saltLength</label>))</code></span>
+<span class="codeline" id="line-172"><code>	}</code></span>
+<span class="codeline" id="line-173"><code>}</code></span>
+<span class="codeline" id="line-174"><code></code></span>
+<span class="codeline" id="line-175"><code><span class="comment">// EncryptOAEP encrypts the given message with RSA-OAEP.</span></code></span>
+<span class="codeline" id="line-176"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-177"><code><span class="comment">// OAEP is parameterised by a hash function that is used as a random oracle.</span></code></span>
+<span class="codeline" id="line-178"><code><span class="comment">// Encryption and decryption of a given message must use the same hash function</span></code></span>
+<span class="codeline" id="line-179"><code><span class="comment">// and sha256.New() is a reasonable choice.</span></code></span>
+<span class="codeline" id="line-180"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-181"><code><span class="comment">// The random parameter is used as a source of entropy to ensure that</span></code></span>
+<span class="codeline" id="line-182"><code><span class="comment">// encrypting the same message twice doesn't result in the same ciphertext.</span></code></span>
+<span class="codeline" id="line-183"><code><span class="comment">// Most applications should use [crypto/rand.Reader] as random.</span></code></span>
+<span class="codeline" id="line-184"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-185"><code><span class="comment">// The label parameter may contain arbitrary data that will not be encrypted,</span></code></span>
+<span class="codeline" id="line-186"><code><span class="comment">// but which gives important context to the message. For example, if a given</span></code></span>
+<span class="codeline" id="line-187"><code><span class="comment">// public key is used to encrypt two types of messages then distinct label</span></code></span>
+<span class="codeline" id="line-188"><code><span class="comment">// values could be used to ensure that a ciphertext for one purpose cannot be</span></code></span>
+<span class="codeline" id="line-189"><code><span class="comment">// used for another by an attacker. If not required it can be empty.</span></code></span>
+<span class="codeline" id="line-190"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-191"><code><span class="comment">// The message must be no longer than the length of the public modulus minus</span></code></span>
+<span class="codeline" id="line-192"><code><span class="comment">// twice the hash length, minus a further 2.</span></code></span>
+<span class="codeline" id="line-193"><code><span class="keyword">func</span> <label for="r33" class="ident"><a href="../../../pkg/crypto/rsa.html#name-EncryptOAEP" class="ident">EncryptOAEP</a></label>(<label for="r34" class="ident">hash</label> <a href="../../../pkg/hash.html" class="ident i6">hash</a>.<a href="../../hash/hash.go.html#line-26" class="ident">Hash</a>, <label for="r35" class="ident">random</label> <a href="../../../pkg/io.html" class="ident i7">io</a>.<a href="../../io/io.go.html#line-86" class="ident">Reader</a>, <label for="r36" class="ident">pub</label> *<a href="rsa.go.html#line-68" class="ident">PublicKey</a>, <label for="r37" class="ident">msg</label> []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r38" class="ident">label</label> []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) ([]<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-194"><code>	<span class="keyword">if</span> <label for="r39" class="ident">err</label> := <a href="rsa.go.html#line-261" class="ident">checkPublicKeySize</a>(<label for="r36" class="ident">pub</label>); <label for="r39" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-195"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r39" class="ident">err</label></code></span>
+<span class="codeline" id="line-196"><code>	}</code></span>
+<span class="codeline" id="line-197"><code></code></span>
+<span class="codeline" id="line-198"><code>	<span class="keyword">defer</span> <label for="r34" class="ident">hash</label>.<a href="../../hash/hash.go.html#line-36" class="ident">Reset</a>()</code></span>
+<span class="codeline" id="line-199"><code></code></span>
+<span class="codeline" id="line-200"><code>	<span class="keyword">if</span> <a href="../../../pkg/crypto/internal/boring.html" class="ident i1">boring</a>.<a href="../internal/boring/doc.go.html#line-14" class="ident">Enabled</a> &amp;&amp; <label for="r35" class="ident">random</label> == <a href="../../../pkg/crypto/internal/boring.html" class="ident i1">boring</a>.<a href="../internal/boring/notboring.go.html#line-35" class="ident">RandReader</a> {</code></span>
+<span class="codeline" id="line-201"><code>		<label for="r34" class="ident">hash</label>.<a href="../../hash/hash.go.html#line-36" class="ident">Reset</a>()</code></span>
+<span class="codeline" id="line-202"><code>		<label for="r40" class="ident">k</label> := <label for="r36" class="ident">pub</label>.<a href="rsa.go.html#line-78" class="ident">Size</a>()</code></span>
+<span class="codeline" id="line-203"><code>		<span class="keyword">if</span> <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r37" class="ident">msg</label>) &gt; <label for="r40" class="ident">k</label>-<span class="lit-number">2</span>*<label for="r34" class="ident">hash</label>.<a href="../../hash/hash.go.html#line-39" class="ident">Size</a>()-<span class="lit-number">2</span> {</code></span>
+<span class="codeline" id="line-204"><code>			<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="rsa.go.html#line-495" class="ident">ErrMessageTooLong</a></code></span>
+<span class="codeline" id="line-205"><code>		}</code></span>
+<span class="codeline" id="line-206"><code>		<label for="r41" class="ident">bkey</label>, <label for="r42" class="ident">err</label> := <a href="notboring.go.html#line-11" class="ident">boringPublicKey</a>(<label for="r36" class="ident">pub</label>)</code></span>
+<span class="codeline" id="line-207"><code>		<span class="keyword">if</span> <label for="r42" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-208"><code>			<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r42" class="ident">err</label></code></span>
+<span class="codeline" id="line-209"><code>		}</code></span>
+<span class="codeline" id="line-210"><code>		<span class="keyword">return</span> <a href="../../../pkg/crypto/internal/boring.html" class="ident i1">boring</a>.<a href="../internal/boring/notboring.go.html#line-86" class="ident">EncryptRSAOAEP</a>(<label for="r34" class="ident">hash</label>, <label for="r34" class="ident">hash</label>, <label for="r41" class="ident">bkey</label>, <label for="r37" class="ident">msg</label>, <label for="r38" class="ident">label</label>)</code></span>
+<span class="codeline" id="line-211"><code>	}</code></span>
+<span class="codeline" id="line-212"><code>	<a href="../../../pkg/crypto/internal/boring.html" class="ident i1">boring</a>.<a href="../internal/boring/notboring.go.html#line-29" class="ident">UnreachableExceptTests</a>()</code></span>
+<span class="codeline" id="line-213"><code></code></span>
+<span class="codeline" id="line-214"><code>	<label for="r34" class="ident">hash</label> = <a href="../../../pkg/crypto/internal/fips140hash.html" class="ident i3">fips140hash</a>.<a href="../internal/fips140hash/hash.go.html#line-23" class="ident">Unwrap</a>(<label for="r34" class="ident">hash</label>)</code></span>
+<span class="codeline" id="line-215"><code></code></span>
+<span class="codeline" id="line-216"><code>	<span class="keyword">if</span> <label for="r43" class="ident">err</label> := <a href="#line-399" class="ident">checkFIPS140OnlyPublicKey</a>(<label for="r36" class="ident">pub</label>); <label for="r43" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-217"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r43" class="ident">err</label></code></span>
+<span class="codeline" id="line-218"><code>	}</code></span>
+<span class="codeline" id="line-219"><code>	<span class="keyword">if</span> <a href="../../../pkg/crypto/internal/fips140only.html" class="ident i4">fips140only</a>.<a href="../internal/fips140only/fips140only.go.html#line-19" class="ident">Enabled</a> &amp;&amp; !<a href="../../../pkg/crypto/internal/fips140only.html" class="ident i4">fips140only</a>.<a href="../internal/fips140only/fips140only.go.html#line-21" class="ident">ApprovedHash</a>(<label for="r34" class="ident">hash</label>) {</code></span>
+<span class="codeline" id="line-220"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../pkg/errors.html" class="ident i5">errors</a>.<a href="../../errors/errors.go.html#line-64" class="ident">New</a>(<span class="lit-string">"crypto/rsa: use of hash functions other than SHA-2 or SHA-3 is not allowed in FIPS 140-only mode"</span>)</code></span>
+<span class="codeline" id="line-221"><code>	}</code></span>
+<span class="codeline" id="line-222"><code>	<span class="keyword">if</span> <a href="../../../pkg/crypto/internal/fips140only.html" class="ident i4">fips140only</a>.<a href="../internal/fips140only/fips140only.go.html#line-19" class="ident">Enabled</a> &amp;&amp; !<a href="../../../pkg/crypto/internal/fips140only.html" class="ident i4">fips140only</a>.<a href="../internal/fips140only/fips140only.go.html#line-30" class="ident">ApprovedRandomReader</a>(<label for="r35" class="ident">random</label>) {</code></span>
+<span class="codeline" id="line-223"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../pkg/errors.html" class="ident i5">errors</a>.<a href="../../errors/errors.go.html#line-64" class="ident">New</a>(<span class="lit-string">"crypto/rsa: only crypto/rand.Reader is allowed in FIPS 140-only mode"</span>)</code></span>
+<span class="codeline" id="line-224"><code>	}</code></span>
+<span class="codeline" id="line-225"><code></code></span>
+<span class="codeline" id="line-226"><code>	<label for="r44" class="ident">k</label>, <label for="r45" class="ident">err</label> := <a href="rsa.go.html#line-624" class="ident">fipsPublicKey</a>(<label for="r36" class="ident">pub</label>)</code></span>
+<span class="codeline" id="line-227"><code>	<span class="keyword">if</span> <label for="r45" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-228"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r45" class="ident">err</label></code></span>
+<span class="codeline" id="line-229"><code>	}</code></span>
+<span class="codeline" id="line-230"><code>	<span class="keyword">return</span> <a href="#line-395" class="ident">fipsError2</a>(<a href="../../../pkg/crypto/internal/fips140/rsa.html" class="ident i2">rsa</a>.<a href="../internal/fips140/rsa/pkcs1v22.go.html#line-371" class="ident">EncryptOAEP</a>(<label for="r34" class="ident">hash</label>, <label for="r34" class="ident">hash</label>, <label for="r35" class="ident">random</label>, <label for="r44" class="ident">k</label>, <label for="r37" class="ident">msg</label>, <label for="r38" class="ident">label</label>))</code></span>
+<span class="codeline" id="line-231"><code>}</code></span>
+<span class="codeline" id="line-232"><code></code></span>
+<span class="codeline" id="line-233"><code><span class="comment">// DecryptOAEP decrypts ciphertext using RSA-OAEP.</span></code></span>
+<span class="codeline" id="line-234"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-235"><code><span class="comment">// OAEP is parameterised by a hash function that is used as a random oracle.</span></code></span>
+<span class="codeline" id="line-236"><code><span class="comment">// Encryption and decryption of a given message must use the same hash function</span></code></span>
+<span class="codeline" id="line-237"><code><span class="comment">// and sha256.New() is a reasonable choice.</span></code></span>
+<span class="codeline" id="line-238"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-239"><code><span class="comment">// The random parameter is legacy and ignored, and it can be nil.</span></code></span>
+<span class="codeline" id="line-240"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-241"><code><span class="comment">// The label parameter must match the value given when encrypting. See</span></code></span>
+<span class="codeline" id="line-242"><code><span class="comment">// [EncryptOAEP] for details.</span></code></span>
+<span class="codeline" id="line-243"><code><span class="keyword">func</span> <label for="r46" class="ident"><a href="../../../pkg/crypto/rsa.html#name-DecryptOAEP" class="ident">DecryptOAEP</a></label>(<label for="r47" class="ident">hash</label> <a href="../../../pkg/hash.html" class="ident i6">hash</a>.<a href="../../hash/hash.go.html#line-26" class="ident">Hash</a>, <label for="r48" class="ident">random</label> <a href="../../../pkg/io.html" class="ident i7">io</a>.<a href="../../io/io.go.html#line-86" class="ident">Reader</a>, <label for="r49" class="ident">priv</label> *<a href="rsa.go.html#line-107" class="ident">PrivateKey</a>, <label for="r50" class="ident">ciphertext</label> []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r51" class="ident">label</label> []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) ([]<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-244"><code>	<span class="keyword">defer</span> <label for="r47" class="ident">hash</label>.<a href="../../hash/hash.go.html#line-36" class="ident">Reset</a>()</code></span>
+<span class="codeline" id="line-245"><code>	<span class="keyword">return</span> <a href="#line-248" class="ident">decryptOAEP</a>(<label for="r47" class="ident">hash</label>, <label for="r47" class="ident">hash</label>, <label for="r49" class="ident">priv</label>, <label for="r50" class="ident">ciphertext</label>, <label for="r51" class="ident">label</label>)</code></span>
+<span class="codeline" id="line-246"><code>}</code></span>
+<span class="codeline" id="line-247"><code></code></span>
+<span class="codeline" id="line-248"><code><span class="keyword">func</span> <label for="r52" class="ident"><a href="../../../pkg/crypto/rsa.html#name-decryptOAEP" class="ident">decryptOAEP</a></label>(<label for="r53" class="ident">hash</label>, <label for="r54" class="ident">mgfHash</label> <a href="../../../pkg/hash.html" class="ident i6">hash</a>.<a href="../../hash/hash.go.html#line-26" class="ident">Hash</a>, <label for="r55" class="ident">priv</label> *<a href="rsa.go.html#line-107" class="ident">PrivateKey</a>, <label for="r56" class="ident">ciphertext</label> []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r57" class="ident">label</label> []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) ([]<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-249"><code>	<span class="keyword">if</span> <label for="r58" class="ident">err</label> := <a href="rsa.go.html#line-261" class="ident">checkPublicKeySize</a>(&amp;<label for="r55" class="ident">priv</label>.<a href="rsa.go.html#line-108" class="ident">PublicKey</a>); <label for="r58" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-250"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r58" class="ident">err</label></code></span>
+<span class="codeline" id="line-251"><code>	}</code></span>
+<span class="codeline" id="line-252"><code></code></span>
+<span class="codeline" id="line-253"><code>	<span class="keyword">if</span> <a href="../../../pkg/crypto/internal/boring.html" class="ident i1">boring</a>.<a href="../internal/boring/doc.go.html#line-14" class="ident">Enabled</a> {</code></span>
+<span class="codeline" id="line-254"><code>		<label for="r59" class="ident">k</label> := <label for="r55" class="ident">priv</label>.<a href="rsa.go.html#line-78" class="ident">Size</a>()</code></span>
+<span class="codeline" id="line-255"><code>		<span class="keyword">if</span> <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r56" class="ident">ciphertext</label>) &gt; <label for="r59" class="ident">k</label> ||</code></span>
+<span class="codeline" id="line-256"><code>			<label for="r59" class="ident">k</label> &lt; <label for="r53" class="ident">hash</label>.<a href="../../hash/hash.go.html#line-39" class="ident">Size</a>()*<span class="lit-number">2</span>+<span class="lit-number">2</span> {</code></span>
+<span class="codeline" id="line-257"><code>			<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="rsa.go.html#line-499" class="ident">ErrDecryption</a></code></span>
+<span class="codeline" id="line-258"><code>		}</code></span>
+<span class="codeline" id="line-259"><code>		<label for="r60" class="ident">bkey</label>, <label for="r61" class="ident">err</label> := <a href="notboring.go.html#line-14" class="ident">boringPrivateKey</a>(<label for="r55" class="ident">priv</label>)</code></span>
+<span class="codeline" id="line-260"><code>		<span class="keyword">if</span> <label for="r61" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-261"><code>			<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r61" class="ident">err</label></code></span>
+<span class="codeline" id="line-262"><code>		}</code></span>
+<span class="codeline" id="line-263"><code>		<label for="r62" class="ident">out</label>, <label for="r61" class="ident">err</label> := <a href="../../../pkg/crypto/internal/boring.html" class="ident i1">boring</a>.<a href="../internal/boring/notboring.go.html#line-77" class="ident">DecryptRSAOAEP</a>(<label for="r53" class="ident">hash</label>, <label for="r54" class="ident">mgfHash</label>, <label for="r60" class="ident">bkey</label>, <label for="r56" class="ident">ciphertext</label>, <label for="r57" class="ident">label</label>)</code></span>
+<span class="codeline" id="line-264"><code>		<span class="keyword">if</span> <label for="r61" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-265"><code>			<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="rsa.go.html#line-499" class="ident">ErrDecryption</a></code></span>
+<span class="codeline" id="line-266"><code>		}</code></span>
+<span class="codeline" id="line-267"><code>		<span class="keyword">return</span> <label for="r62" class="ident">out</label>, <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-268"><code>	}</code></span>
+<span class="codeline" id="line-269"><code></code></span>
+<span class="codeline" id="line-270"><code>	<label for="r53" class="ident">hash</label> = <a href="../../../pkg/crypto/internal/fips140hash.html" class="ident i3">fips140hash</a>.<a href="../internal/fips140hash/hash.go.html#line-23" class="ident">Unwrap</a>(<label for="r53" class="ident">hash</label>)</code></span>
+<span class="codeline" id="line-271"><code>	<label for="r54" class="ident">mgfHash</label> = <a href="../../../pkg/crypto/internal/fips140hash.html" class="ident i3">fips140hash</a>.<a href="../internal/fips140hash/hash.go.html#line-23" class="ident">Unwrap</a>(<label for="r54" class="ident">mgfHash</label>)</code></span>
+<span class="codeline" id="line-272"><code></code></span>
+<span class="codeline" id="line-273"><code>	<span class="keyword">if</span> <label for="r63" class="ident">err</label> := <a href="#line-421" class="ident">checkFIPS140OnlyPrivateKey</a>(<label for="r55" class="ident">priv</label>); <label for="r63" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-274"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r63" class="ident">err</label></code></span>
+<span class="codeline" id="line-275"><code>	}</code></span>
+<span class="codeline" id="line-276"><code>	<span class="keyword">if</span> <a href="../../../pkg/crypto/internal/fips140only.html" class="ident i4">fips140only</a>.<a href="../internal/fips140only/fips140only.go.html#line-19" class="ident">Enabled</a> {</code></span>
+<span class="codeline" id="line-277"><code>		<span class="keyword">if</span> !<a href="../../../pkg/crypto/internal/fips140only.html" class="ident i4">fips140only</a>.<a href="../internal/fips140only/fips140only.go.html#line-21" class="ident">ApprovedHash</a>(<label for="r53" class="ident">hash</label>) || !<a href="../../../pkg/crypto/internal/fips140only.html" class="ident i4">fips140only</a>.<a href="../internal/fips140only/fips140only.go.html#line-21" class="ident">ApprovedHash</a>(<label for="r54" class="ident">mgfHash</label>) {</code></span>
+<span class="codeline" id="line-278"><code>			<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../pkg/errors.html" class="ident i5">errors</a>.<a href="../../errors/errors.go.html#line-64" class="ident">New</a>(<span class="lit-string">"crypto/rsa: use of hash functions other than SHA-2 or SHA-3 is not allowed in FIPS 140-only mode"</span>)</code></span>
+<span class="codeline" id="line-279"><code>		}</code></span>
+<span class="codeline" id="line-280"><code>	}</code></span>
+<span class="codeline" id="line-281"><code></code></span>
+<span class="codeline" id="line-282"><code>	<label for="r64" class="ident">k</label>, <label for="r65" class="ident">err</label> := <a href="rsa.go.html#line-632" class="ident">fipsPrivateKey</a>(<label for="r55" class="ident">priv</label>)</code></span>
+<span class="codeline" id="line-283"><code>	<span class="keyword">if</span> <label for="r65" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-284"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r65" class="ident">err</label></code></span>
+<span class="codeline" id="line-285"><code>	}</code></span>
+<span class="codeline" id="line-286"><code></code></span>
+<span class="codeline" id="line-287"><code>	<span class="keyword">return</span> <a href="#line-395" class="ident">fipsError2</a>(<a href="../../../pkg/crypto/internal/fips140/rsa.html" class="ident i2">rsa</a>.<a href="../internal/fips140/rsa/pkcs1v22.go.html#line-414" class="ident">DecryptOAEP</a>(<label for="r53" class="ident">hash</label>, <label for="r54" class="ident">mgfHash</label>, <label for="r64" class="ident">k</label>, <label for="r56" class="ident">ciphertext</label>, <label for="r57" class="ident">label</label>))</code></span>
+<span class="codeline" id="line-288"><code>}</code></span>
+<span class="codeline" id="line-289"><code></code></span>
+<span class="codeline" id="line-290"><code><span class="comment">// SignPKCS1v15 calculates the signature of hashed using</span></code></span>
+<span class="codeline" id="line-291"><code><span class="comment">// RSASSA-PKCS1-V1_5-SIGN from RSA PKCS #1 v1.5.  Note that hashed must</span></code></span>
+<span class="codeline" id="line-292"><code><span class="comment">// be the result of hashing the input message using the given hash</span></code></span>
+<span class="codeline" id="line-293"><code><span class="comment">// function. If hash is zero, hashed is signed directly. This isn't</span></code></span>
+<span class="codeline" id="line-294"><code><span class="comment">// advisable except for interoperability.</span></code></span>
+<span class="codeline" id="line-295"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-296"><code><span class="comment">// The random parameter is legacy and ignored, and it can be nil.</span></code></span>
+<span class="codeline" id="line-297"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-298"><code><span class="comment">// This function is deterministic. Thus, if the set of possible</span></code></span>
+<span class="codeline" id="line-299"><code><span class="comment">// messages is small, an attacker may be able to build a map from</span></code></span>
+<span class="codeline" id="line-300"><code><span class="comment">// messages to signatures and identify the signed messages. As ever,</span></code></span>
+<span class="codeline" id="line-301"><code><span class="comment">// signatures provide authenticity, not confidentiality.</span></code></span>
+<span class="codeline" id="line-302"><code><span class="keyword">func</span> <label for="r66" class="ident"><a href="../../../pkg/crypto/rsa.html#name-SignPKCS1v15" class="ident">SignPKCS1v15</a></label>(<label for="r67" class="ident">random</label> <a href="../../../pkg/io.html" class="ident i7">io</a>.<a href="../../io/io.go.html#line-86" class="ident">Reader</a>, <label for="r68" class="ident">priv</label> *<a href="rsa.go.html#line-107" class="ident">PrivateKey</a>, <label for="r69" class="ident">hash</label> <a href="../../../pkg/crypto.html" class="ident i0">crypto</a>.<a href="../crypto.go.html#line-16" class="ident">Hash</a>, <label for="r70" class="ident">hashed</label> []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) ([]<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-303"><code>	<span class="keyword">var</span> <label for="r71" class="ident">hashName</label> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-304"><code>	<span class="keyword">if</span> <label for="r69" class="ident">hash</label> != <a href="../../../pkg/crypto.html" class="ident i0">crypto</a>.<a href="../crypto.go.html#line-16" class="ident">Hash</a>(<span class="lit-number">0</span>) {</code></span>
+<span class="codeline" id="line-305"><code>		<span class="keyword">if</span> <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r70" class="ident">hashed</label>) != <label for="r69" class="ident">hash</label>.<a href="../crypto.go.html#line-116" class="ident">Size</a>() {</code></span>
+<span class="codeline" id="line-306"><code>			<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../pkg/errors.html" class="ident i5">errors</a>.<a href="../../errors/errors.go.html#line-64" class="ident">New</a>(<span class="lit-string">"crypto/rsa: input must be hashed message"</span>)</code></span>
+<span class="codeline" id="line-307"><code>		}</code></span>
+<span class="codeline" id="line-308"><code>		<label for="r71" class="ident">hashName</label> = <label for="r69" class="ident">hash</label>.<a href="../crypto.go.html#line-23" class="ident">String</a>()</code></span>
+<span class="codeline" id="line-309"><code>	}</code></span>
+<span class="codeline" id="line-310"><code></code></span>
+<span class="codeline" id="line-311"><code>	<span class="keyword">if</span> <label for="r72" class="ident">err</label> := <a href="rsa.go.html#line-261" class="ident">checkPublicKeySize</a>(&amp;<label for="r68" class="ident">priv</label>.<a href="rsa.go.html#line-108" class="ident">PublicKey</a>); <label for="r72" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-312"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r72" class="ident">err</label></code></span>
+<span class="codeline" id="line-313"><code>	}</code></span>
+<span class="codeline" id="line-314"><code></code></span>
+<span class="codeline" id="line-315"><code>	<span class="keyword">if</span> <a href="../../../pkg/crypto/internal/boring.html" class="ident i1">boring</a>.<a href="../internal/boring/doc.go.html#line-14" class="ident">Enabled</a> {</code></span>
+<span class="codeline" id="line-316"><code>		<label for="r73" class="ident">bkey</label>, <label for="r74" class="ident">err</label> := <a href="notboring.go.html#line-14" class="ident">boringPrivateKey</a>(<label for="r68" class="ident">priv</label>)</code></span>
+<span class="codeline" id="line-317"><code>		<span class="keyword">if</span> <label for="r74" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-318"><code>			<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r74" class="ident">err</label></code></span>
+<span class="codeline" id="line-319"><code>		}</code></span>
+<span class="codeline" id="line-320"><code>		<span class="keyword">return</span> <a href="../../../pkg/crypto/internal/boring.html" class="ident i1">boring</a>.<a href="../internal/boring/notboring.go.html#line-102" class="ident">SignRSAPKCS1v15</a>(<label for="r73" class="ident">bkey</label>, <label for="r69" class="ident">hash</label>, <label for="r70" class="ident">hashed</label>)</code></span>
+<span class="codeline" id="line-321"><code>	}</code></span>
+<span class="codeline" id="line-322"><code></code></span>
+<span class="codeline" id="line-323"><code>	<span class="keyword">if</span> <label for="r75" class="ident">err</label> := <a href="#line-421" class="ident">checkFIPS140OnlyPrivateKey</a>(<label for="r68" class="ident">priv</label>); <label for="r75" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-324"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r75" class="ident">err</label></code></span>
+<span class="codeline" id="line-325"><code>	}</code></span>
+<span class="codeline" id="line-326"><code>	<span class="keyword">if</span> <a href="../../../pkg/crypto/internal/fips140only.html" class="ident i4">fips140only</a>.<a href="../internal/fips140only/fips140only.go.html#line-19" class="ident">Enabled</a> &amp;&amp; !<a href="../../../pkg/crypto/internal/fips140only.html" class="ident i4">fips140only</a>.<a href="../internal/fips140only/fips140only.go.html#line-21" class="ident">ApprovedHash</a>(<a href="../../../pkg/crypto/internal/fips140hash.html" class="ident i3">fips140hash</a>.<a href="../internal/fips140hash/hash.go.html#line-23" class="ident">Unwrap</a>(<label for="r69" class="ident">hash</label>.<a href="../crypto.go.html#line-127" class="ident">New</a>())) {</code></span>
+<span class="codeline" id="line-327"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../pkg/errors.html" class="ident i5">errors</a>.<a href="../../errors/errors.go.html#line-64" class="ident">New</a>(<span class="lit-string">"crypto/rsa: use of hash functions other than SHA-2 or SHA-3 is not allowed in FIPS 140-only mode"</span>)</code></span>
+<span class="codeline" id="line-328"><code>	}</code></span>
+<span class="codeline" id="line-329"><code></code></span>
+<span class="codeline" id="line-330"><code>	<label for="r76" class="ident">k</label>, <label for="r77" class="ident">err</label> := <a href="rsa.go.html#line-632" class="ident">fipsPrivateKey</a>(<label for="r68" class="ident">priv</label>)</code></span>
+<span class="codeline" id="line-331"><code>	<span class="keyword">if</span> <label for="r77" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-332"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r77" class="ident">err</label></code></span>
+<span class="codeline" id="line-333"><code>	}</code></span>
+<span class="codeline" id="line-334"><code>	<span class="keyword">return</span> <a href="#line-395" class="ident">fipsError2</a>(<a href="../../../pkg/crypto/internal/fips140/rsa.html" class="ident i2">rsa</a>.<a href="../internal/fips140/rsa/pkcs1v15.go.html#line-46" class="ident">SignPKCS1v15</a>(<label for="r76" class="ident">k</label>, <label for="r71" class="ident">hashName</label>, <label for="r70" class="ident">hashed</label>))</code></span>
+<span class="codeline" id="line-335"><code>}</code></span>
+<span class="codeline" id="line-336"><code></code></span>
+<span class="codeline" id="line-337"><code><span class="comment">// VerifyPKCS1v15 verifies an RSA PKCS #1 v1.5 signature.</span></code></span>
+<span class="codeline" id="line-338"><code><span class="comment">// hashed is the result of hashing the input message using the given hash</span></code></span>
+<span class="codeline" id="line-339"><code><span class="comment">// function and sig is the signature. A valid signature is indicated by</span></code></span>
+<span class="codeline" id="line-340"><code><span class="comment">// returning a nil error. If hash is zero then hashed is used directly. This</span></code></span>
+<span class="codeline" id="line-341"><code><span class="comment">// isn't advisable except for interoperability.</span></code></span>
+<span class="codeline" id="line-342"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-343"><code><span class="comment">// The inputs are not considered confidential, and may leak through timing side</span></code></span>
+<span class="codeline" id="line-344"><code><span class="comment">// channels, or if an attacker has control of part of the inputs.</span></code></span>
+<span class="codeline" id="line-345"><code><span class="keyword">func</span> <label for="r78" class="ident"><a href="../../../pkg/crypto/rsa.html#name-VerifyPKCS1v15" class="ident">VerifyPKCS1v15</a></label>(<label for="r79" class="ident">pub</label> *<a href="rsa.go.html#line-68" class="ident">PublicKey</a>, <label for="r80" class="ident">hash</label> <a href="../../../pkg/crypto.html" class="ident i0">crypto</a>.<a href="../crypto.go.html#line-16" class="ident">Hash</a>, <label for="r81" class="ident">hashed</label> []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r82" class="ident">sig</label> []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-346"><code>	<span class="keyword">var</span> <label for="r83" class="ident">hashName</label> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-347"><code>	<span class="keyword">if</span> <label for="r80" class="ident">hash</label> != <a href="../../../pkg/crypto.html" class="ident i0">crypto</a>.<a href="../crypto.go.html#line-16" class="ident">Hash</a>(<span class="lit-number">0</span>) {</code></span>
+<span class="codeline" id="line-348"><code>		<span class="keyword">if</span> <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r81" class="ident">hashed</label>) != <label for="r80" class="ident">hash</label>.<a href="../crypto.go.html#line-116" class="ident">Size</a>() {</code></span>
+<span class="codeline" id="line-349"><code>			<span class="keyword">return</span> <a href="../../../pkg/errors.html" class="ident i5">errors</a>.<a href="../../errors/errors.go.html#line-64" class="ident">New</a>(<span class="lit-string">"crypto/rsa: input must be hashed message"</span>)</code></span>
+<span class="codeline" id="line-350"><code>		}</code></span>
+<span class="codeline" id="line-351"><code>		<label for="r83" class="ident">hashName</label> = <label for="r80" class="ident">hash</label>.<a href="../crypto.go.html#line-23" class="ident">String</a>()</code></span>
+<span class="codeline" id="line-352"><code>	}</code></span>
+<span class="codeline" id="line-353"><code></code></span>
+<span class="codeline" id="line-354"><code>	<span class="keyword">if</span> <label for="r84" class="ident">err</label> := <a href="rsa.go.html#line-261" class="ident">checkPublicKeySize</a>(<label for="r79" class="ident">pub</label>); <label for="r84" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-355"><code>		<span class="keyword">return</span> <label for="r84" class="ident">err</label></code></span>
+<span class="codeline" id="line-356"><code>	}</code></span>
+<span class="codeline" id="line-357"><code></code></span>
+<span class="codeline" id="line-358"><code>	<span class="keyword">if</span> <a href="../../../pkg/crypto/internal/boring.html" class="ident i1">boring</a>.<a href="../internal/boring/doc.go.html#line-14" class="ident">Enabled</a> {</code></span>
+<span class="codeline" id="line-359"><code>		<label for="r85" class="ident">bkey</label>, <label for="r86" class="ident">err</label> := <a href="notboring.go.html#line-11" class="ident">boringPublicKey</a>(<label for="r79" class="ident">pub</label>)</code></span>
+<span class="codeline" id="line-360"><code>		<span class="keyword">if</span> <label for="r86" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-361"><code>			<span class="keyword">return</span> <label for="r86" class="ident">err</label></code></span>
+<span class="codeline" id="line-362"><code>		}</code></span>
+<span class="codeline" id="line-363"><code>		<span class="keyword">if</span> <label for="r87" class="ident">err</label> := <a href="../../../pkg/crypto/internal/boring.html" class="ident i1">boring</a>.<a href="../internal/boring/notboring.go.html#line-108" class="ident">VerifyRSAPKCS1v15</a>(<label for="r85" class="ident">bkey</label>, <label for="r80" class="ident">hash</label>, <label for="r81" class="ident">hashed</label>, <label for="r82" class="ident">sig</label>); <label for="r87" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-364"><code>			<span class="keyword">return</span> <a href="rsa.go.html#line-503" class="ident">ErrVerification</a></code></span>
+<span class="codeline" id="line-365"><code>		}</code></span>
+<span class="codeline" id="line-366"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-367"><code>	}</code></span>
+<span class="codeline" id="line-368"><code></code></span>
+<span class="codeline" id="line-369"><code>	<span class="keyword">if</span> <label for="r88" class="ident">err</label> := <a href="#line-399" class="ident">checkFIPS140OnlyPublicKey</a>(<label for="r79" class="ident">pub</label>); <label for="r88" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-370"><code>		<span class="keyword">return</span> <label for="r88" class="ident">err</label></code></span>
+<span class="codeline" id="line-371"><code>	}</code></span>
+<span class="codeline" id="line-372"><code>	<span class="keyword">if</span> <a href="../../../pkg/crypto/internal/fips140only.html" class="ident i4">fips140only</a>.<a href="../internal/fips140only/fips140only.go.html#line-19" class="ident">Enabled</a> &amp;&amp; !<a href="../../../pkg/crypto/internal/fips140only.html" class="ident i4">fips140only</a>.<a href="../internal/fips140only/fips140only.go.html#line-21" class="ident">ApprovedHash</a>(<a href="../../../pkg/crypto/internal/fips140hash.html" class="ident i3">fips140hash</a>.<a href="../internal/fips140hash/hash.go.html#line-23" class="ident">Unwrap</a>(<label for="r80" class="ident">hash</label>.<a href="../crypto.go.html#line-127" class="ident">New</a>())) {</code></span>
+<span class="codeline" id="line-373"><code>		<span class="keyword">return</span> <a href="../../../pkg/errors.html" class="ident i5">errors</a>.<a href="../../errors/errors.go.html#line-64" class="ident">New</a>(<span class="lit-string">"crypto/rsa: use of hash functions other than SHA-2 or SHA-3 is not allowed in FIPS 140-only mode"</span>)</code></span>
+<span class="codeline" id="line-374"><code>	}</code></span>
+<span class="codeline" id="line-375"><code></code></span>
+<span class="codeline" id="line-376"><code>	<label for="r89" class="ident">k</label>, <label for="r90" class="ident">err</label> := <a href="rsa.go.html#line-624" class="ident">fipsPublicKey</a>(<label for="r79" class="ident">pub</label>)</code></span>
+<span class="codeline" id="line-377"><code>	<span class="keyword">if</span> <label for="r90" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-378"><code>		<span class="keyword">return</span> <label for="r90" class="ident">err</label></code></span>
+<span class="codeline" id="line-379"><code>	}</code></span>
+<span class="codeline" id="line-380"><code>	<span class="keyword">return</span> <a href="#line-383" class="ident">fipsError</a>(<a href="../../../pkg/crypto/internal/fips140/rsa.html" class="ident i2">rsa</a>.<a href="../internal/fips140/rsa/pkcs1v15.go.html#line-93" class="ident">VerifyPKCS1v15</a>(<label for="r89" class="ident">k</label>, <label for="r83" class="ident">hashName</label>, <label for="r81" class="ident">hashed</label>, <label for="r82" class="ident">sig</label>))</code></span>
+<span class="codeline" id="line-381"><code>}</code></span>
+<span class="codeline" id="line-382"><code></code></span>
+<span class="codeline" id="line-383"><code><span class="keyword">func</span> <label for="r91" class="ident"><a href="../../../pkg/crypto/rsa.html#name-fipsError" class="ident">fipsError</a></label>(<label for="r92" class="ident">err</label> <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) <a href="../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-384"><code>	<span class="keyword">switch</span> <label for="r92" class="ident">err</label> {</code></span>
+<span class="codeline" id="line-385"><code>	<span class="keyword">case</span> <a href="../../../pkg/crypto/internal/fips140/rsa.html" class="ident i2">rsa</a>.<a href="../internal/fips140/rsa/rsa.go.html#line-394" class="ident">ErrDecryption</a>:</code></span>
+<span class="codeline" id="line-386"><code>		<span class="keyword">return</span> <a href="rsa.go.html#line-499" class="ident">ErrDecryption</a></code></span>
+<span class="codeline" id="line-387"><code>	<span class="keyword">case</span> <a href="../../../pkg/crypto/internal/fips140/rsa.html" class="ident i2">rsa</a>.<a href="../internal/fips140/rsa/rsa.go.html#line-395" class="ident">ErrVerification</a>:</code></span>
+<span class="codeline" id="line-388"><code>		<span class="keyword">return</span> <a href="rsa.go.html#line-503" class="ident">ErrVerification</a></code></span>
+<span class="codeline" id="line-389"><code>	<span class="keyword">case</span> <a href="../../../pkg/crypto/internal/fips140/rsa.html" class="ident i2">rsa</a>.<a href="../internal/fips140/rsa/rsa.go.html#line-393" class="ident">ErrMessageTooLong</a>:</code></span>
+<span class="codeline" id="line-390"><code>		<span class="keyword">return</span> <a href="rsa.go.html#line-495" class="ident">ErrMessageTooLong</a></code></span>
+<span class="codeline" id="line-391"><code>	}</code></span>
+<span class="codeline" id="line-392"><code>	<span class="keyword">return</span> <label for="r92" class="ident">err</label></code></span>
+<span class="codeline" id="line-393"><code>}</code></span>
+<span class="codeline" id="line-394"><code></code></span>
+<span class="codeline" id="line-395"><code><span class="keyword">func</span> <label for="r93" class="ident"><a href="../../../pkg/crypto/rsa.html#name-fipsError2" class="ident">fipsError2</a></label>[<label for="r94" class="ident">T</label> <a href="../../../pkg/builtin.html#name-any" class="ident">any</a>](<label for="r95" class="ident">x</label> <label for="r94" class="ident">T</label>, <label for="r96" class="ident">err</label> <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) (<label for="r94" class="ident">T</label>, <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-396"><code>	<span class="keyword">return</span> <label for="r95" class="ident">x</label>, <a href="#line-383" class="ident">fipsError</a>(<label for="r96" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-397"><code>}</code></span>
+<span class="codeline" id="line-398"><code></code></span>
+<span class="codeline" id="line-399"><code><span class="keyword">func</span> <label for="r97" class="ident"><a href="../../../pkg/crypto/rsa.html#name-checkFIPS140OnlyPublicKey" class="ident">checkFIPS140OnlyPublicKey</a></label>(<label for="r98" class="ident">pub</label> *<a href="rsa.go.html#line-68" class="ident">PublicKey</a>) <a href="../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-400"><code>	<span class="keyword">if</span> !<a href="../../../pkg/crypto/internal/fips140only.html" class="ident i4">fips140only</a>.<a href="../internal/fips140only/fips140only.go.html#line-19" class="ident">Enabled</a> {</code></span>
+<span class="codeline" id="line-401"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-402"><code>	}</code></span>
+<span class="codeline" id="line-403"><code>	<span class="keyword">if</span> <label for="r98" class="ident">pub</label>.<a href="rsa.go.html#line-69" class="ident">N</a> == <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-404"><code>		<span class="keyword">return</span> <a href="../../../pkg/errors.html" class="ident i5">errors</a>.<a href="../../errors/errors.go.html#line-64" class="ident">New</a>(<span class="lit-string">"crypto/rsa: public key missing N"</span>)</code></span>
+<span class="codeline" id="line-405"><code>	}</code></span>
+<span class="codeline" id="line-406"><code>	<span class="keyword">if</span> <label for="r98" class="ident">pub</label>.<a href="rsa.go.html#line-69" class="ident">N</a>.<a href="../../math/big/int.go.html#line-541" class="ident">BitLen</a>() &lt; <span class="lit-number">2048</span> {</code></span>
+<span class="codeline" id="line-407"><code>		<span class="keyword">return</span> <a href="../../../pkg/errors.html" class="ident i5">errors</a>.<a href="../../errors/errors.go.html#line-64" class="ident">New</a>(<span class="lit-string">"crypto/rsa: use of keys smaller than 2048 bits is not allowed in FIPS 140-only mode"</span>)</code></span>
+<span class="codeline" id="line-408"><code>	}</code></span>
+<span class="codeline" id="line-409"><code>	<span class="keyword">if</span> <label for="r98" class="ident">pub</label>.<a href="rsa.go.html#line-69" class="ident">N</a>.<a href="../../math/big/int.go.html#line-541" class="ident">BitLen</a>()%<span class="lit-number">2</span> == <span class="lit-number">1</span> {</code></span>
+<span class="codeline" id="line-410"><code>		<span class="keyword">return</span> <a href="../../../pkg/errors.html" class="ident i5">errors</a>.<a href="../../errors/errors.go.html#line-64" class="ident">New</a>(<span class="lit-string">"crypto/rsa: use of keys with odd size is not allowed in FIPS 140-only mode"</span>)</code></span>
+<span class="codeline" id="line-411"><code>	}</code></span>
+<span class="codeline" id="line-412"><code>	<span class="keyword">if</span> <label for="r98" class="ident">pub</label>.<a href="rsa.go.html#line-70" class="ident">E</a> &lt;= <span class="lit-number">1</span>&lt;&lt;<span class="lit-number">16</span> {</code></span>
+<span class="codeline" id="line-413"><code>		<span class="keyword">return</span> <a href="../../../pkg/errors.html" class="ident i5">errors</a>.<a href="../../errors/errors.go.html#line-64" class="ident">New</a>(<span class="lit-string">"crypto/rsa: use of public exponent &lt;= 2¹⁶ is not allowed in FIPS 140-only mode"</span>)</code></span>
+<span class="codeline" id="line-414"><code>	}</code></span>
+<span class="codeline" id="line-415"><code>	<span class="keyword">if</span> <label for="r98" class="ident">pub</label>.<a href="rsa.go.html#line-70" class="ident">E</a>&amp;<span class="lit-number">1</span> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-416"><code>		<span class="keyword">return</span> <a href="../../../pkg/errors.html" class="ident i5">errors</a>.<a href="../../errors/errors.go.html#line-64" class="ident">New</a>(<span class="lit-string">"crypto/rsa: use of even public exponent is not allowed in FIPS 140-only mode"</span>)</code></span>
+<span class="codeline" id="line-417"><code>	}</code></span>
+<span class="codeline" id="line-418"><code>	<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-419"><code>}</code></span>
+<span class="codeline" id="line-420"><code></code></span>
+<span class="codeline" id="line-421"><code><span class="keyword">func</span> <label for="r99" class="ident"><a href="../../../pkg/crypto/rsa.html#name-checkFIPS140OnlyPrivateKey" class="ident">checkFIPS140OnlyPrivateKey</a></label>(<label for="r100" class="ident">priv</label> *<a href="rsa.go.html#line-107" class="ident">PrivateKey</a>) <a href="../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-422"><code>	<span class="keyword">if</span> !<a href="../../../pkg/crypto/internal/fips140only.html" class="ident i4">fips140only</a>.<a href="../internal/fips140only/fips140only.go.html#line-19" class="ident">Enabled</a> {</code></span>
+<span class="codeline" id="line-423"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-424"><code>	}</code></span>
+<span class="codeline" id="line-425"><code>	<span class="keyword">if</span> <label for="r101" class="ident">err</label> := <a href="#line-399" class="ident">checkFIPS140OnlyPublicKey</a>(&amp;<label for="r100" class="ident">priv</label>.<a href="rsa.go.html#line-108" class="ident">PublicKey</a>); <label for="r101" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-426"><code>		<span class="keyword">return</span> <label for="r101" class="ident">err</label></code></span>
+<span class="codeline" id="line-427"><code>	}</code></span>
+<span class="codeline" id="line-428"><code>	<span class="keyword">if</span> <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r100" class="ident">priv</label>.<a href="rsa.go.html#line-110" class="ident">Primes</a>) != <span class="lit-number">2</span> {</code></span>
+<span class="codeline" id="line-429"><code>		<span class="keyword">return</span> <a href="../../../pkg/errors.html" class="ident i5">errors</a>.<a href="../../errors/errors.go.html#line-64" class="ident">New</a>(<span class="lit-string">"crypto/rsa: use of multi-prime keys is not allowed in FIPS 140-only mode"</span>)</code></span>
+<span class="codeline" id="line-430"><code>	}</code></span>
+<span class="codeline" id="line-431"><code>	<span class="keyword">if</span> <label for="r100" class="ident">priv</label>.<a href="rsa.go.html#line-110" class="ident">Primes</a>[<span class="lit-number">0</span>] == <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> || <label for="r100" class="ident">priv</label>.<a href="rsa.go.html#line-110" class="ident">Primes</a>[<span class="lit-number">1</span>] == <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> || <label for="r100" class="ident">priv</label>.<a href="rsa.go.html#line-110" class="ident">Primes</a>[<span class="lit-number">0</span>].<a href="../../math/big/int.go.html#line-541" class="ident">BitLen</a>() != <label for="r100" class="ident">priv</label>.<a href="rsa.go.html#line-110" class="ident">Primes</a>[<span class="lit-number">1</span>].<a href="../../math/big/int.go.html#line-541" class="ident">BitLen</a>() {</code></span>
+<span class="codeline" id="line-432"><code>		<span class="keyword">return</span> <a href="../../../pkg/errors.html" class="ident i5">errors</a>.<a href="../../errors/errors.go.html#line-64" class="ident">New</a>(<span class="lit-string">"crypto/rsa: use of primes of different sizes is not allowed in FIPS 140-only mode"</span>)</code></span>
+<span class="codeline" id="line-433"><code>	}</code></span>
+<span class="codeline" id="line-434"><code>	<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-435"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>
