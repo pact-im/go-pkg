@@ -2,6 +2,7 @@ package phcformat
 
 import (
 	"go.pact.im/x/option"
+
 	"go.pact.im/x/phcformat/encode"
 )
 
@@ -9,17 +10,17 @@ import (
 // the resulting slice.
 //
 // The caller is responsible for ensuring that:
-//  • name is a sequence of characters in “a-z0-9-”.
-//  • version is a sequence of characters in “0-9”.
-//  • params is a sequence of comma-separated name and value pairs (separated by
-//    equals sign) where name is a sequence of characters in “a-z0-9-” and value
-//    is a sequence of characters in “a-zA-Z0-9/+.-”. If version is not set and
-//    only a single parameter named “v” is given, to avoid ambiguity, its value
-//    must not be a sequence of characters in “0-9” (as in version).
-//  • salt is a sequence of characters in “a-zA-Z0-9/+.-”.
-//  • output is a sequence of characters in “A-Za-z0-9+/” (base64 character set)
-//    and salt is set. That is, it must be a base64-encoded string and implies
-//    that salt is set.
+//   - name is a sequence of characters in “a-z0-9-”.
+//   - version is a sequence of characters in “0-9”.
+//   - params is a sequence of comma-separated name and value pairs (separated by
+//     equals sign) where name is a sequence of characters in “a-z0-9-” and value
+//     is a sequence of characters in “a-zA-Z0-9/+.-”. If version is not set and
+//     only a single parameter named “v” is given, to avoid ambiguity, its value
+//     must not be a sequence of characters in “0-9” (as in version).
+//   - salt is a sequence of characters in “a-zA-Z0-9/+.-”.
+//   - output is a sequence of characters in “A-Za-z0-9+/” (base64 character set)
+//     and salt is set. That is, it must be a base64-encoded string and implies
+//     that salt is set.
 func Append[NameAppender, VersionAppender, ParamsAppender, SaltAppender, OutputAppender encode.Appender](
 	dst []byte,
 	name NameAppender,

@@ -29,7 +29,7 @@ func testChain(t *testing.T, count int) {
 	}
 
 	seq := Chain(deps...)
-	err := seq.Run(context.Background(), func(ctx context.Context) error {
+	err := seq.Run(context.Background(), func(_ context.Context) error {
 		return nil
 	})
 	if err != nil {

@@ -16,53 +16,52 @@ import (
 //
 // Example (HTTP):
 //
-//  var lis net.Listener
-//  var srv *http.Server
+//	var lis net.Listener
+//	var srv *http.Server
 //
-//  process.Leaf(
-//    func(_ context.Context) error {
-//      err := srv.Serve(lis)
-//      if errors.Is(err, http.ErrServerClosed) {
-//        return nil
-//      }
-//      return err
-//    },
-//    func(ctx context.Context) error {
-//      err := srv.Shutdown(ctx)
-//      if err != nil {
-//        return srv.Close()
-//      }
-//      return nil
-//    },
-//  )
+//	process.Leaf(
+//	  func(_ context.Context) error {
+//	    err := srv.Serve(lis)
+//	    if errors.Is(err, http.ErrServerClosed) {
+//	      return nil
+//	    }
+//	    return err
+//	  },
+//	  func(ctx context.Context) error {
+//	    err := srv.Shutdown(ctx)
+//	    if err != nil {
+//	      return srv.Close()
+//	    }
+//	    return nil
+//	  },
+//	)
 //
 // Example (gRPC):
 //
-//  var lis net.Listener
-//  var srv *grpc.Server
+//	var lis net.Listener
+//	var srv *grpc.Server
 //
-//  process.Leaf(
-//    func(_ context.Context) error {
-//      return srv.Serve(lis)
-//    },
-//    func(ctx context.Context) error {
-//      done := make(chan struct{})
-//      go func() {
-//        srv.GracefulStop()
-//        close(done)
-//      }()
-//      select {
-//      case <-ctx.Done():
-//        srv.Stop()
-//        <-done
-//      case <-done:
-//      }
-//      return nil
-//    },
-//  )
+//	process.Leaf(
+//	  func(_ context.Context) error {
+//	    return srv.Serve(lis)
+//	  },
+//	  func(ctx context.Context) error {
+//	    done := make(chan struct{})
+//	    go func() {
+//	      srv.GracefulStop()
+//	      close(done)
+//	    }()
+//	    select {
+//	    case <-ctx.Done():
+//	      srv.Stop()
+//	      <-done
+//	    case <-done:
+//	    }
+//	    return nil
+//	  },
+//	)
 //
 // Alternatively, use [go.pact.im/x/grpcprocess] package for gRPC.
-//
 func Leaf(runInForeground, gracefulStop func(ctx context.Context) error) Runnable {
 	return &leafRunnable{runInForeground, gracefulStop}
 }

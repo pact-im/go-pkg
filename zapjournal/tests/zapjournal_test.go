@@ -13,9 +13,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/valyala/fastjson"
-	"go.uber.org/zap"
 	"golang.org/x/sys/unix"
+
+	"go.uber.org/zap"
+
+	"github.com/valyala/fastjson"
 
 	"go.pact.im/x/zapjournal"
 )

@@ -1,38 +1,48 @@
-run:
-  timeout: 5m
-
-linters-settings:
-  gofumpt:
-    extra-rules: true
-  goimports:
-    local-prefixes: go.pact.im
-  depguard:
-    list-type: blacklist
-    include-go-root: true
-    packages:
-      - log
-    packages-with-error-message:
-      - log: "use go.uber.org/zap instead"
-
-linters:
+version: "2"
+formatters:
   enable:
+    - gci
     - gofumpt
-    - goimports
-    - depguard
+  settings:
+    gofumpt:
+      extra-rules: true
+    gci:
+      custom-order: true
+      sections:
+        - standard
+        - prefix(golang.org/,google.golang.org/)
+        - default # third-party with custom import path
+        - prefix(github.com/,gitlab.com/)
+        - prefix(go.pact.im/x/)
+        - localmodule
+linters:
+  default: none
+  enable:
+    - errcheck
     - gocritic
+    - gomoddirectives
+    - govet
+    - ineffassign
     - misspell
+    - nolintlint
     - revive
+    - staticcheck
     - unparam
-  disable:
-    # False positives for embedded structs.
-    # See https://github.com/golangci/golangci-lint/issues/1841
-    # and https://gitlab.com/opennota/check/-/issues/11
-    - structcheck
-
-issues:
-  exclude-use-default: false
-  exclude-rules:
-    # Workaround for https://github.com/mgechev/revive/issues/669
-    - text: '^receiver-naming: receiver name \w+ should be consistent with previous receiver name \w+ for invalid-type$'
-      linters:
-        - revive
+    - unused
+    - usestdlibvars
+  settings:
+    staticcheck:
+      checks:
+        - all
+    revive:
+      confidence: 0
+    nolintlint:
+      # Forbid nolint directives without explanation comment and specific linter.
+      require-explanation: true
+      require-specific: true
+    misspell:
+      locale: US
+    gomoddirectives:
+      go-version-pattern: "1\\.24\\.0"
+      toolchain-forbidden: true
+      replace-local: true # for tests

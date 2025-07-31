@@ -132,7 +132,7 @@ func (e *jsonEncoder) complete() {
 //
 
 func (e *jsonEncoder) AddBinary(k string, v []byte) {
-	e.appendSep()
+	e.appendKey(k)
 	e.encodeBinary(v)
 }
 

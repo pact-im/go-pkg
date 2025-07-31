@@ -40,6 +40,6 @@ func NewNoopNamer() Namer {
 }
 
 // Name implements the Namer interface.
-func (*noopNamer) Name(ctx context.Context) (string, error) {
+func (*noopNamer) Name(_ context.Context) (string, error) {
 	return "", nil
 }

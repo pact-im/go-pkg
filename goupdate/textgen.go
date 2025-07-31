@@ -4,9 +4,10 @@ import (
 	"io"
 	"strings"
 
-	"github.com/kr/text"
 	"golang.org/x/exp/apidiff"
 	"golang.org/x/tools/go/packages"
+
+	"github.com/kr/text"
 )
 
 type textGenerator struct {

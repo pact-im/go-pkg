@@ -28,7 +28,7 @@ func (m *Supervisor[K, P]) Stop(ctx context.Context, pk K) error {
 // Get returns a running process or either a ErrProcessNotFound error if the
 // process does not exist or ErrProcessNotRunning is the process exists but is
 // not running.
-func (m *Supervisor[K, P]) Get(ctx context.Context, pk K) (P, error) {
+func (m *Supervisor[K, P]) Get(_ context.Context, pk K) (P, error) {
 	p, ok := m.processes.Load(pk)
 	if !ok || p == nil {
 		var zero P

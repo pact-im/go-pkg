@@ -106,8 +106,9 @@ func (c *Clock) Set(t time.Time) {
 // clock time. It is possible to add a negative duration.
 //
 // It is safe for concurrent use and is a shorthand for
-//  now := c.Now().Add(d)
-//  c.Set(now)
+//
+//	now := c.Now().Add(d)
+//	c.Set(now)
 func (c *Clock) Add(d time.Duration) time.Time {
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -122,8 +123,9 @@ func (c *Clock) Add(d time.Duration) time.Time {
 // It is possible to add negative values.
 //
 // It is safe for concurrent use and is a shorthand for
-//  now := c.Now().AddDate(years, months, days)
-//  c.Set(now)
+//
+//	now := c.Now().AddDate(years, months, days)
+//	c.Set(now)
 func (c *Clock) AddDate(years, months, days int) time.Time {
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -210,21 +212,21 @@ func (c *Clock) next(now time.Time) time.Time {
 	if len(c.sched) == 0 {
 		return now
 	}
-	var min time.Time
+	var next time.Time
 	for _, t := range c.sched {
-		min = t
+		next = t
 		break
 	}
 	for _, t := range c.sched {
 		if !t.After(now) {
 			return now
 		}
-		if t.After(min) {
+		if t.After(next) {
 			continue
 		}
-		min = t
+		next = t
 	}
-	return min
+	return next
 }
 
 // advance runs the scheduled events for the current clock time.

@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"golang.org/x/sync/errgroup"
+
 	"gotest.tools/v3/assert"
 
 	"go.pact.im/x/clock"

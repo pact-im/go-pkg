@@ -1,5 +1,4 @@
 // Package flaky implements mechanisms for executing flaky operations.
-//
 package flaky
 
 import (

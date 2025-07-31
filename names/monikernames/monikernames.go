@@ -46,7 +46,7 @@ func NewNamer(n moniker.Namer) *Namer {
 }
 
 // Name implements the names.Namer interface.
-func (n *Namer) Name(ctx context.Context) (string, error) {
+func (n *Namer) Name(_ context.Context) (string, error) {
 	n.mu.Lock()
 	defer n.mu.Unlock()
 	return n.n.Name(), nil

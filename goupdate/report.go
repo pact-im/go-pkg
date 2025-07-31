@@ -38,8 +38,8 @@ func generateReport(f *flags, r *report) error {
 		if len(out) == 0 {
 			return nil
 		}
-		fmt.Fprintln(os.Stdout, string(out))
-		return nil
+		_, err := fmt.Fprintln(os.Stdout, string(out))
+		return err
 	}
 	return os.WriteFile(f.outPath, out, 0o640)
 }

@@ -39,7 +39,7 @@ func Limit(limit uint, backoff Backoff) Backoff {
 func Constant(xs ...time.Duration) Backoff {
 	return func(n uint) (time.Duration, bool) {
 		k := uint(len(xs))
-		if 0 == k {
+		if k == 0 {
 			return 0, false
 		}
 		if n >= k {

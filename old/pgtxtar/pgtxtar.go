@@ -12,8 +12,9 @@ import (
 
 	"golang.org/x/tools/txtar"
 
-	"github.com/go-pg/migrations/v8"
 	"go.uber.org/multierr"
+
+	"github.com/go-pg/migrations/v8"
 )
 
 // LoadFS loads migrations from SQL script archives in filesystem.
