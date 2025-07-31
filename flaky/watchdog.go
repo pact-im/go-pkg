@@ -27,7 +27,6 @@ type WatchdogExecutor struct {
 //
 // Unlike a simple loop that executes the given executor and waits a certain
 // amount of time, watchdog enforces the use of a configurable schedule.
-//
 func Watchdog(e Executor, s Schedule) *WatchdogExecutor {
 	return &WatchdogExecutor{
 		exec: WithSchedule(e, s),

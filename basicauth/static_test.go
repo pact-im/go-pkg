@@ -14,7 +14,7 @@ func TestStatic(t *testing.T) {
 	user := "user"
 	pass := "pass"
 
-	handler := Static(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	handler := Static(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		n, err := io.WriteString(w, sentinel)
 		assert.NilError(t, err)
 		assert.Equal(t, len(sentinel), n)

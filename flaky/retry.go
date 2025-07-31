@@ -23,7 +23,6 @@ type RetryExecutor struct {
 // error encountered.
 //
 // It requests a new backoff function from provider for each Execute invocation.
-//
 func Retry(b BackoffProvider) *RetryExecutor {
 	return &RetryExecutor{
 		clock:   clock.System(),

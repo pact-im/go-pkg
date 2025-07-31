@@ -31,7 +31,7 @@ func New() http.Handler {
 	mux.HandleFunc("/debug/events", trace.Events)
 	mux.HandleFunc("/debug/requests", trace.Traces)
 
-	mux.HandleFunc("/debug/buildinfo", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/debug/buildinfo", func(w http.ResponseWriter, _ *http.Request) {
 		info, ok := debug.ReadBuildInfo()
 		if !ok {
 			w.WriteHeader(http.StatusNotImplemented)
@@ -47,7 +47,7 @@ func New() http.Handler {
 		_, _ = io.WriteString(w, modinfo)
 	})
 
-	mux.HandleFunc("/debug/", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/debug/", func(w http.ResponseWriter, _ *http.Request) {
 		h := w.Header()
 		h.Set("Content-Type", "text/html; charset=utf-8")
 		h.Set("Content-Length", strconv.Itoa(len(debugPage)))

@@ -11,15 +11,16 @@
 // Argon2 implementation supports Argon2i and Argon2id variants, and requires
 // explicit memory, iterations and parallelism parameters.
 //
-//  $argon2<variant>[$v=<version>]$m=<memory>,t=<iterations>,p=<parallelism>[$<salt>[$<hash>]]
+//	$argon2<variant>[$v=<version>]$m=<memory>,t=<iterations>,p=<parallelism>[$<salt>[$<hash>]]
 package crypt
 
 import (
 	"encoding/base64"
 	"fmt"
 
-	"go.pact.im/x/crypt/crypterrors"
 	"go.pact.im/x/phcformat"
+
+	"go.pact.im/x/crypt/crypterrors"
 )
 
 // b64 is a strict unpadded base64 encoding.

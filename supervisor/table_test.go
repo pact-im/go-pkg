@@ -21,7 +21,7 @@ type mapTable[K comparable, V any] struct {
 }
 
 // Get implements the Table interface.
-func (m *mapTable[K, V]) Get(ctx context.Context, key K) (V, error) {
+func (m *mapTable[K, V]) Get(_ context.Context, key K) (V, error) {
 	v, ok := m.m.Load(key)
 	if !ok {
 		return v, errNotFound
@@ -30,7 +30,7 @@ func (m *mapTable[K, V]) Get(ctx context.Context, key K) (V, error) {
 }
 
 // Iter implements the Table interface.
-func (m *mapTable[K, V]) Iter(ctx context.Context) (Iterator[K, V], error) {
+func (m *mapTable[K, V]) Iter(_ context.Context) (Iterator[K, V], error) {
 	it := &mapIterator[K, V]{
 		stop: make(chan struct{}),
 		next: make(chan pair[K, V]),
@@ -67,7 +67,7 @@ func (it *mapIterator[K, V]) Next() bool {
 }
 
 // Get implements the Iterator interface.
-func (it *mapIterator[K, V]) Get(ctx context.Context) (K, V, error) {
+func (it *mapIterator[K, V]) Get(_ context.Context) (K, V, error) {
 	k := it.current.key
 	v := it.current.val
 	if !it.exists {

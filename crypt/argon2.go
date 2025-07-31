@@ -8,10 +8,11 @@ import (
 
 	"golang.org/x/crypto/argon2"
 
-	"go.pact.im/x/crypt/crypterrors"
 	"go.pact.im/x/option"
 	"go.pact.im/x/phcformat"
 	"go.pact.im/x/phcformat/encode"
+
+	"go.pact.im/x/crypt/crypterrors"
 )
 
 // crypterArgon2 is the parsedCrypter implementation for Argon2 functions.

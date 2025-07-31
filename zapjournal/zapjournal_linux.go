@@ -8,8 +8,9 @@ import (
 	"net"
 	"os"
 
-	"go.uber.org/zap/zapcore"
 	"golang.org/x/sys/unix"
+
+	"go.uber.org/zap/zapcore"
 )
 
 // memfdName is a name used for memfd file descriptor.

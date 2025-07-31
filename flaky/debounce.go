@@ -22,7 +22,6 @@ var ErrDebounced = errors.New("flaky: debounced")
 // when the operation is expensive to execute or under high event rate or load.
 // As a side effect, DebounceExecutor guarantees that at most one operation is
 // executing at a time.
-//
 type DebounceExecutor struct {
 	once sync.Once
 	debounceState

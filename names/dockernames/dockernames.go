@@ -31,7 +31,7 @@ func (n *Namer) Build() names.Namer {
 }
 
 // Name implements the names.Namer interface.
-func (n *Namer) Name(ctx context.Context) (string, error) {
+func (n *Namer) Name(_ context.Context) (string, error) {
 	name := namesgenerator.GetRandomName(0)
 	return strings.Replace(name, "-", " ", 1), nil
 }

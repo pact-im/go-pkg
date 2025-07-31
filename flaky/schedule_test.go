@@ -6,8 +6,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/robfig/cron/v3"
 	"gotest.tools/v3/assert"
+
+	"github.com/robfig/cron/v3"
 
 	"go.pact.im/x/clock"
 	"go.pact.im/x/clock/fakeclock"
@@ -32,7 +33,7 @@ func TestScheduleExecutorCancel(t *testing.T) {
 
 	executor := WithSchedule(Once(), sched).WithClock(clock.NewClock(observeClock))
 
-	err = executor.Execute(ctx, func(ctx context.Context) error {
+	err = executor.Execute(ctx, func(_ context.Context) error {
 		panic("canceled operation should not be executed")
 	})
 	assert.Equal(t, ctx.Err(), err)
@@ -67,7 +68,7 @@ func TestScheduleExecutorRetry(t *testing.T) {
 	executor := WithSchedule(inner, sched).WithClock(c)
 
 	var init bool
-	err = executor.Execute(ctx, func(ctx context.Context) error {
+	err = executor.Execute(ctx, func(_ context.Context) error {
 		var err error
 		if !init {
 			init = true

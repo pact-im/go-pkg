@@ -388,7 +388,7 @@ func (g *htmlGenerator) htmlAnchor(href string, body func() error) error {
 }
 
 func (g *htmlGenerator) htmlHorizontalRule() error {
-	return g.html("hr", nil, nil, nil, true)
+	return g.html("hr", nil, nil, nil, false)
 }
 
 func (g *htmlGenerator) html(tag string, attrNames []string, attrValues map[string]string, body func() error, closeTag bool) error {

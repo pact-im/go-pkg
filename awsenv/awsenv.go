@@ -12,13 +12,12 @@ import (
 //
 // Environment variables:
 //
-//   AWS_S3_USE_PATH_STYLE, AWS_S3_FORCE_PATH_STYLE
-//     Sets s3.Options.UsePathStyle to true.
+//	AWS_S3_USE_PATH_STYLE, AWS_S3_FORCE_PATH_STYLE
+//	  Sets s3.Options.UsePathStyle to true.
 //
-//   AWS_S3_ENDPOINT
-//     Overrides AWS S3 endpoint (e.g. http://localhost:9000 for integration
-//     tests with MinIO).
-//
+//	AWS_S3_ENDPOINT
+//	  Overrides AWS S3 endpoint (e.g. http://localhost:9000 for integration
+//	  tests with MinIO).
 func S3() []func(o *s3.Options) {
 	return []func(o *s3.Options){
 		func(o *s3.Options) {
@@ -40,9 +39,8 @@ func S3() []func(o *s3.Options) {
 //
 // Environment variables:
 //
-//  AWS_S3_BUCKET
-//    S3 bucket name to use.
-//
+//	AWS_S3_BUCKET
+//	  S3 bucket name to use.
 func S3Bucket() string {
 	return os.Getenv("AWS_S3_BUCKET")
 }

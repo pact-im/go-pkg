@@ -3,7 +3,6 @@
 //
 // The package is intended as an alternative to mockclock for simple cases when
 // observing an event creation is enough to reach the desired state.
-//
 package observeclock
 
 import (

@@ -7,28 +7,49 @@ on:
 jobs:
   golangci-lint:
     runs-on: ubuntu-latest
+    needs: detect-modules
+    strategy:
+      fail-fast: false
+      matrix:
+        module: ${{ fromJSON(needs.detect-modules.outputs.modules) }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3.3.0
+        uses: actions/checkout@v4.2.2
       - name: Set up Go
         uses: ./.github/actions/setup-go-with-cache
-      - name: Set up golangci-lint
-        uses: ./.github/actions/setup-golangci-lint
-      - name: Run golangci-lint
+      - name: Run golangci-lint for ${{ matrix.module }}
+        uses: golangci/golangci-lint-action@v8.0.0
+        with:
+          version: v2.3.0
+          working-directory: ${{ matrix.module }}
+
+  detect-modules:
+    runs-on: ubuntu-latest
+    outputs:
+      modules: ${{ steps.list-modules.outputs.modules }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.2
+      - name: Set up Go
+        uses: ./.github/actions/setup-go-with-cache
+      - name: List modules in Go workspace
+        id: list-modules
         run: |-
-          golangci-lint run --out-format=github-actions -- \
-            $(go work edit -json | jq -c -r '[.Use[].DiskPath] | map_values(. + "/...")[]')
+          modules=$(go work edit -json | jq -c -r '[.Use[].DiskPath]')
+          cat >>"$GITHUB_OUTPUT" <<EOF
+          modules=$modules
+          EOF
 
   commitlint:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3.3.0
+        uses: actions/checkout@v4.2.2
         with:
           fetch-depth: 0
       - name: Create config
         run: |-
-          cat >commitlint.config.js <<EOF
+          cat >commitlint.config.cjs <<EOF
           module.exports = {
             extends: ['@commitlint/config-conventional'],
             rules: {
@@ -37,4 +58,4 @@ jobs:
           }
           EOF
       - name: Run commitlint
-        uses: wagoid/commitlint-github-action@v5.3.1
+        uses: wagoid/commitlint-github-action@v6.2.1

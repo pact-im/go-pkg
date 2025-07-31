@@ -1,6 +1,6 @@
 module go.pact.im/x/awsenv
 
-go 1.18
+go 1.24.0
 
 require github.com/aws/aws-sdk-go-v2/service/s3 v1.30.4
 
@@ -15,5 +15,5 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.23 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.13.23 // indirect
 	github.com/aws/smithy-go v1.13.5 // indirect
-	github.com/google/go-cmp v0.5.9 // indirect
+	github.com/google/go-cmp v0.6.0 // indirect
 )

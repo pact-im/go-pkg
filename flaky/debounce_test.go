@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang/mock/gomock"
+	"go.uber.org/mock/gomock"
 	"gotest.tools/v3/assert"
 
 	"go.pact.im/x/clock"
@@ -114,7 +114,7 @@ func TestDebounceExecutorConcurrentCancel(t *testing.T) {
 
 	debouncer := Debounce(wait).WithClock(clock.NewClock(mockClock))
 
-	mockClock.EXPECT().Timer(wait).Times(1).DoAndReturn(func(d time.Duration) *mockclock.MockTimer {
+	mockClock.EXPECT().Timer(wait).Times(1).DoAndReturn(func(_ time.Duration) *mockclock.MockTimer {
 		// We want to deterministically test the cancellation for
 		// acquiring or stealing a lock.
 		//

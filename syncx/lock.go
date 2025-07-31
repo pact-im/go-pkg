@@ -4,7 +4,7 @@ import (
 	"context"
 )
 
-// Lock is a mutually exclusive lock that supports cancelling acquire operation.
+// Lock is a mutually exclusive lock that supports canceling acquire operation.
 type Lock chan struct{}
 
 // NewLock returns a new Lock that allows at most one goroutine to acquire it.

@@ -10,7 +10,7 @@ import (
 
 func TestNamed(t *testing.T) {
 	oops := errors.New("oops")
-	task := Named("test", func(ctx context.Context) error {
+	task := Named("test", func(_ context.Context) error {
 		return oops
 	})
 	err := task.Run(context.Background())
@@ -20,7 +20,7 @@ func TestNamed(t *testing.T) {
 func TestParallelCancelOnError(t *testing.T) {
 	oops := errors.New("oops")
 	g := Parallel(CancelOnError(),
-		func(ctx context.Context) error {
+		func(_ context.Context) error {
 			return oops
 		},
 		func(ctx context.Context) error {
@@ -34,7 +34,7 @@ func TestParallelCancelOnError(t *testing.T) {
 
 func TestParallelCancelOnReturn(t *testing.T) {
 	g := Parallel(CancelOnReturn(),
-		func(ctx context.Context) error {
+		func(_ context.Context) error {
 			return nil
 		},
 		func(ctx context.Context) error {

@@ -29,7 +29,7 @@ func testParallel(t *testing.T, count int) {
 	}
 
 	par := Parallel(deps...)
-	err := par.Run(context.Background(), func(ctx context.Context) error {
+	err := par.Run(context.Background(), func(_ context.Context) error {
 		return nil
 	})
 	if err != nil {

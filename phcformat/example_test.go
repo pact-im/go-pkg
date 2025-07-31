@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"go.pact.im/x/option"
+
 	"go.pact.im/x/phcformat"
 	"go.pact.im/x/phcformat/encode"
 )

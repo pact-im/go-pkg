@@ -1,5 +1,5 @@
 module go.pact.im/x/clock
 
-go 1.18
+go 1.24.0
 
-require github.com/golang/mock v1.6.0
+require go.uber.org/mock v0.5.2

@@ -19,7 +19,7 @@ func CancelOnReturn() CancelCondition {
 	return cancelOnReturn
 }
 
-func cancelOnReturn(err error) (cancel bool) {
+func cancelOnReturn(_ error) (cancel bool) {
 	return true
 }
 
@@ -29,6 +29,6 @@ func NeverCancel() CancelCondition {
 	return neverCancel
 }
 
-func neverCancel(err error) (cancel bool) {
+func neverCancel(_ error) (cancel bool) {
 	return false
 }

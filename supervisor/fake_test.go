@@ -59,7 +59,7 @@ func (r *observeRunnable) Run(ctx context.Context, callback process.Callback) er
 	return r.proc.Run(ctx, callback)
 }
 
-func TestObserveRunnable(t *testing.T) {
+func TestObserveRunnable(_ *testing.T) {
 	r := newObserveRunnable(newFakeRunnable())
 	observer := r.Observe()
 
@@ -67,7 +67,7 @@ func TestObserveRunnable(t *testing.T) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		_ = r.Run(context.Background(), func(ctx context.Context) error {
+		_ = r.Run(context.Background(), func(_ context.Context) error {
 			return nil
 		})
 	}()

@@ -9,17 +9,21 @@ runs:
   using: composite
   steps:
     - name: Install Go
-      uses: actions/setup-go@v3.5.0
+      uses: actions/setup-go@v5.5.0
       with:
         go-version-file: .go-version
     - name: Get Go cache paths
       id: go-cache
       shell: bash
       run: |-
-        echo "::set-output name=cache::$(go env GOCACHE)"
-        echo "::set-output name=modcache::$(go env GOMODCACHE)"
+        gocache=$(go env GOCACHE)
+        gomodcache=$(go env GOMODCACHE)
+        cat >>"$GITHUB_OUTPUT" <<EOF
+        cache=$gocache
+        modcache=$gomodcache
+        EOF
     - name: Set up Go cache
-      uses: actions/cache@v3.2.6
+      uses: actions/cache@v4.2.3
       with:
         key: |-
           ${{ inputs.cache-key-prefix }}-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}

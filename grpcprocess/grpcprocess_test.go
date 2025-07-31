@@ -6,9 +6,10 @@ import (
 	"sync"
 	"testing"
 
-	"go.uber.org/goleak"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+
+	"go.uber.org/goleak"
 
 	"go.pact.im/x/process"
 )

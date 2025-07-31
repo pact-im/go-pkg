@@ -32,7 +32,7 @@ func newTestClock() (*clock.Clock, *fakeclock.Clock) {
 	return c, s
 }
 
-func TestClockSchedule(t *testing.T) {
+func TestClockSchedule(_ *testing.T) {
 	const after = time.Second
 
 	c, s := newTestClock()

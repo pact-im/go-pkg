@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-func TestClockTimer(t *testing.T) {
+func TestClockTimer(_ *testing.T) {
 	const after = time.Second
 
 	c, s := newTestClock()

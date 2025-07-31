@@ -58,7 +58,6 @@ type midnightSchedule struct {
 // given in location. If the location is nil, it defaults to UTC.
 //
 // Passing a non-positive duration is equivalent to not using a schedule.
-//
 func Midnight(d time.Duration, loc *time.Location) Schedule {
 	if loc == nil {
 		loc = time.UTC
@@ -94,7 +93,6 @@ type sleepSchedule struct {
 // Sleep returns a Schedule that delays execution for a fixed interval d.
 //
 // Passing a non-positive duration is equivalent to not using a schedule.
-//
 func Sleep(d time.Duration) Schedule {
 	return sleepSchedule{d}
 }

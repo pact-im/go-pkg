@@ -123,15 +123,14 @@ func swap(dst, src []byte) int {
 //
 // Examples:
 //
-//   rotate([]byte("lohel"), 2)
-//       => []byte("hello")
+//	rotate([]byte("lohel"), 2)
+//	    => []byte("hello")
 //
-//   rotate([]byte("45123"), 2)
-//       => []byte("12345")
+//	rotate([]byte("45123"), 2)
+//	    => []byte("12345")
 //
-//   rotate([]byte("34512"), -2)
-//       => []byte("12345")
-//
+//	rotate([]byte("34512"), -2)
+//	    => []byte("12345")
 func rotate(s []byte, n int) {
 	k := len(s)
 	if k == 0 || k == 1 {
@@ -157,12 +156,4 @@ func reverse(s []byte) {
 	for i, j := 0, len(s)-1; i < j; i, j = i+1, j-1 {
 		s[i], s[j] = s[j], s[i]
 	}
-}
-
-// min returns the minimum of the two integers.
-func min(a, b int) int {
-	if b < a {
-		return b
-	}
-	return a
 }

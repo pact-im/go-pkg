@@ -2,7 +2,7 @@
 // workspaces and is an alternative to running go get -t -u that attempts to
 // be less conservative and produces apidiff reports.
 //
-// Warning
+// # Warning
 //
 // Note that goupdate loops until there are no updates available in the build
 // graph. This may be inefficient but should be good enough in practice.
@@ -11,7 +11,7 @@
 // state on failure. Use with extreme caution if there are unsaved changes. It
 // is recommended to run goupdate as part of the scheduled CI pipeline instead.
 //
-// CI
+// # CI
 //
 // Integrating goupdate with GitHub Actions or other CI solutions that support
 // scheduled pipelines should be straightforward and only requires Go toolchain
@@ -21,7 +21,7 @@
 // intended to be reviewed by humans and so do not cause goupdate to exit with
 // non-zero status code.
 //
-// Motivation
+// # Motivation
 //
 // Goupdate was written after fighting with dependabot storming repositories
 // with pull requests per dependency update per module in workspace. In addition

@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang/mock/gomock"
+	"go.uber.org/mock/gomock"
 	"gotest.tools/v3/assert"
 
 	"go.pact.im/x/clock"
@@ -56,7 +56,7 @@ func TestRetry(t *testing.T) {
 		}())
 
 		var n int
-		err := executor.Execute(ctx, func(ctx context.Context) error {
+		err := executor.Execute(ctx, func(_ context.Context) error {
 			n++
 			return opError
 		})
@@ -93,7 +93,7 @@ func TestRetry(t *testing.T) {
 		}())
 
 		var n int
-		err := executor.Execute(ctx, func(ctx context.Context) error {
+		err := executor.Execute(ctx, func(_ context.Context) error {
 			n++
 			return opError
 		})
