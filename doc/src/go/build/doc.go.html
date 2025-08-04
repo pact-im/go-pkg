@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: doc.go in package go/build</title>
+<link href="../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	doc.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../pkg/go/build.html">go/build</a>
+</code></pre>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2011 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<div class="anchor" id="doc"><span class="codeline" id="line-5"><code><span class="comment">// Package build gathers information about Go packages.</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment">// # Go Path</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment">// The Go path is a list of directory trees containing Go source code.</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment">// It is consulted to resolve imports that cannot be found in the standard</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment">// Go tree. The default path is the value of the GOPATH environment</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment">// variable, interpreted as a path list appropriate to the operating system</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">// (on Unix, the variable is a colon-separated string;</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">// on Windows, a semicolon-separated string;</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">// on Plan 9, a list).</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">// Each directory listed in the Go path must have a prescribed structure:</span></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">// The src/ directory holds source code. The path below 'src' determines</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">// the import path or executable name.</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">// The pkg/ directory holds installed package objects.</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">// As in the Go tree, each target operating system and</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">// architecture pair has its own subdirectory of pkg</span></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">// (pkg/GOOS_GOARCH).</span></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">// If DIR is a directory listed in the Go path, a package with</span></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">// source in DIR/src/foo/bar can be imported as "foo/bar" and</span></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">// has its compiled form installed to "DIR/pkg/GOOS_GOARCH/foo/bar.a"</span></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">// (or, for gccgo, "DIR/pkg/gccgo/foo/libbar.a").</span></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-32"><code><span class="comment">// The bin/ directory holds compiled commands.</span></code></span>
+<span class="codeline" id="line-33"><code><span class="comment">// Each command is named for its source directory, but only</span></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">// using the final element, not the entire path. That is, the</span></code></span>
+<span class="codeline" id="line-35"><code><span class="comment">// command with source in DIR/src/foo/quux is installed into</span></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">// DIR/bin/quux, not DIR/bin/foo/quux. The foo/ is stripped</span></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">// so that you can add DIR/bin to your PATH to get at the</span></code></span>
+<span class="codeline" id="line-38"><code><span class="comment">// installed commands.</span></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-40"><code><span class="comment">// Here's an example directory layout:</span></code></span>
+<span class="codeline" id="line-41"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">//	GOPATH=/home/user/gocode</span></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">//	/home/user/gocode/</span></code></span>
+<span class="codeline" id="line-45"><code><span class="comment">//	    src/</span></code></span>
+<span class="codeline" id="line-46"><code><span class="comment">//	        foo/</span></code></span>
+<span class="codeline" id="line-47"><code><span class="comment">//	            bar/               (go code in package bar)</span></code></span>
+<span class="codeline" id="line-48"><code><span class="comment">//	                x.go</span></code></span>
+<span class="codeline" id="line-49"><code><span class="comment">//	            quux/              (go code in package main)</span></code></span>
+<span class="codeline" id="line-50"><code><span class="comment">//	                y.go</span></code></span>
+<span class="codeline" id="line-51"><code><span class="comment">//	    bin/</span></code></span>
+<span class="codeline" id="line-52"><code><span class="comment">//	        quux                   (installed command)</span></code></span>
+<span class="codeline" id="line-53"><code><span class="comment">//	    pkg/</span></code></span>
+<span class="codeline" id="line-54"><code><span class="comment">//	        linux_amd64/</span></code></span>
+<span class="codeline" id="line-55"><code><span class="comment">//	            foo/</span></code></span>
+<span class="codeline" id="line-56"><code><span class="comment">//	                bar.a          (installed package object)</span></code></span>
+<span class="codeline" id="line-57"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-58"><code><span class="comment">// # Build Constraints</span></code></span>
+<span class="codeline" id="line-59"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-60"><code><span class="comment">// A build constraint, also known as a build tag, is a condition under which a</span></code></span>
+<span class="codeline" id="line-61"><code><span class="comment">// file should be included in the package. Build constraints are given by a</span></code></span>
+<span class="codeline" id="line-62"><code><span class="comment">// line comment that begins</span></code></span>
+<span class="codeline" id="line-63"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-64"><code><span class="comment">//	//go:build</span></code></span>
+<span class="codeline" id="line-65"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-66"><code><span class="comment">// Build constraints may also be part of a file's name</span></code></span>
+<span class="codeline" id="line-67"><code><span class="comment">// (for example, source_windows.go will only be included if the target</span></code></span>
+<span class="codeline" id="line-68"><code><span class="comment">// operating system is windows).</span></code></span>
+<span class="codeline" id="line-69"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-70"><code><span class="comment">// See 'go help buildconstraint'</span></code></span>
+<span class="codeline" id="line-71"><code><span class="comment">// (https://golang.org/cmd/go/#hdr-Build_constraints) for details.</span></code></span>
+<span class="codeline" id="line-72"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-73"><code><span class="comment">// # Binary-Only Packages</span></code></span>
+<span class="codeline" id="line-74"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-75"><code><span class="comment">// In Go 1.12 and earlier, it was possible to distribute packages in binary</span></code></span>
+<span class="codeline" id="line-76"><code><span class="comment">// form without including the source code used for compiling the package.</span></code></span>
+<span class="codeline" id="line-77"><code><span class="comment">// The package was distributed with a source file not excluded by build</span></code></span>
+<span class="codeline" id="line-78"><code><span class="comment">// constraints and containing a "//go:binary-only-package" comment. Like a</span></code></span>
+<span class="codeline" id="line-79"><code><span class="comment">// build constraint, this comment appeared at the top of a file, preceded</span></code></span>
+<span class="codeline" id="line-80"><code><span class="comment">// only by blank lines and other line comments and with a blank line</span></code></span>
+<span class="codeline" id="line-81"><code><span class="comment">// following the comment, to separate it from the package documentation.</span></code></span>
+<span class="codeline" id="line-82"><code><span class="comment">// Unlike build constraints, this comment is only recognized in non-test</span></code></span>
+<span class="codeline" id="line-83"><code><span class="comment">// Go source files.</span></code></span>
+<span class="codeline" id="line-84"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-85"><code><span class="comment">// The minimal source code for a binary-only package was therefore:</span></code></span>
+<span class="codeline" id="line-86"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-87"><code><span class="comment">//	//go:binary-only-package</span></code></span>
+<span class="codeline" id="line-88"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-89"><code><span class="comment">//	package mypkg</span></code></span>
+<span class="codeline" id="line-90"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-91"><code><span class="comment">// The source code could include additional Go code. That code was never</span></code></span>
+<span class="codeline" id="line-92"><code><span class="comment">// compiled but would be processed by tools like godoc and might be useful</span></code></span>
+<span class="codeline" id="line-93"><code><span class="comment">// as end-user documentation.</span></code></span>
+<span class="codeline" id="line-94"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-95"><code><span class="comment">// "go build" and other commands no longer support binary-only-packages.</span></code></span>
+<span class="codeline" id="line-96"><code><span class="comment">// [Import] and [ImportDir] will still set the BinaryOnly flag in packages</span></code></span>
+<span class="codeline" id="line-97"><code><span class="comment">// containing these comments for use in tools and error messages.</span></code></span></div><span class="codeline" id="line-98"><code><span class="keyword">package</span> build</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

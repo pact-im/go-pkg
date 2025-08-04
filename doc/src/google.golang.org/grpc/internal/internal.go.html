@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: internal.go in package google.golang.org/grpc/internal</title>
+<link href="../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	internal.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../pkg/google.golang.org/grpc/internal.html">google.golang.org/grpc/internal</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3
+{background: brown; color: #eed;}
+</style><input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">/*</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment"> * Copyright 2016 gRPC authors.</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-4"><code><span class="comment"> * Licensed under the Apache License, Version 2.0 (the "License");</span></code></span>
+<span class="codeline" id="line-5"><code><span class="comment"> * you may not use this file except in compliance with the License.</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment"> * You may obtain a copy of the License at</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment"> *     http://www.apache.org/licenses/LICENSE-2.0</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment"> * Unless required by applicable law or agreed to in writing, software</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment"> * distributed under the License is distributed on an "AS IS" BASIS,</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment"> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment"> * See the License for the specific language governing permissions and</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment"> * limitations under the License.</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment"> */</span></code></span>
+<span class="codeline" id="line-17"><code></code></span>
+<div class="anchor" id="doc"><span class="codeline" id="line-18"><code><span class="comment">// Package internal contains gRPC-internal code, to avoid polluting</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">// the godoc of the top-level grpc package.  It must not import any grpc</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">// symbols to avoid circular dependencies.</span></code></span></div><span class="codeline" id="line-21"><code><span class="keyword">package</span> internal</code></span>
+<span class="codeline" id="line-22"><code></code></span>
+<span class="codeline" id="line-23"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-24"><code>	<label for="i0"><span class="lit-string i0">"context"</span></label></code></span>
+<span class="codeline" id="line-25"><code>	<label for="i1"><span class="lit-string i1">"time"</span></label></code></span>
+<span class="codeline" id="line-26"><code></code></span>
+<span class="codeline" id="line-27"><code>	<label for="i2"><span class="lit-string i2">"google.golang.org/grpc/connectivity"</span></label></code></span>
+<span class="codeline" id="line-28"><code>	<label for="i3"><span class="lit-string i3">"google.golang.org/grpc/serviceconfig"</span></label></code></span>
+<span class="codeline" id="line-29"><code>)</code></span>
+<span class="codeline" id="line-30"><code></code></span>
+<span class="codeline" id="line-31"><code><span class="keyword">var</span> (</code></span>
+<span class="codeline" id="line-32"><code>	<span class="comment">// WithHealthCheckFunc is set by dialoptions.go</span></code></span>
+<span class="codeline" id="line-33"><code>	<a href="../../../../pkg/google.golang.org/grpc/internal.html#name-WithHealthCheckFunc" class="ident">WithHealthCheckFunc</a> <span class="keyword">interface</span>{} <span class="comment">// func (HealthChecker) DialOption</span></code></span>
+<span class="codeline" id="line-34"><code>	<span class="comment">// HealthCheckFunc is used to provide client-side LB channel health checking</span></code></span>
+<span class="codeline" id="line-35"><code>	<a href="../../../../pkg/google.golang.org/grpc/internal.html#name-HealthCheckFunc" class="ident">HealthCheckFunc</a> <a href="#line-143" class="ident">HealthChecker</a></code></span>
+<span class="codeline" id="line-36"><code>	<span class="comment">// BalancerUnregister is exported by package balancer to unregister a balancer.</span></code></span>
+<span class="codeline" id="line-37"><code>	<a href="../../../../pkg/google.golang.org/grpc/internal.html#name-BalancerUnregister" class="ident">BalancerUnregister</a> <span class="keyword">func</span>(name <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>)</code></span>
+<span class="codeline" id="line-38"><code>	<span class="comment">// KeepaliveMinPingTime is the minimum ping interval.  This must be 10s by</span></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">	// default, but tests may wish to set it lower for convenience.</span></code></span>
+<span class="codeline" id="line-40"><code>	<a href="../../../../pkg/google.golang.org/grpc/internal.html#name-KeepaliveMinPingTime" class="ident">KeepaliveMinPingTime</a> = <span class="lit-number">10</span> * <a href="../../../../pkg/time.html" class="ident i1">time</a>.<a href="../../../time/time.go.html#line-934" class="ident">Second</a></code></span>
+<span class="codeline" id="line-41"><code>	<span class="comment">// ParseServiceConfig parses a JSON representation of the service config.</span></code></span>
+<span class="codeline" id="line-42"><code>	<a href="../../../../pkg/google.golang.org/grpc/internal.html#name-ParseServiceConfig" class="ident">ParseServiceConfig</a> <span class="keyword">interface</span>{} <span class="comment">// func(string) *serviceconfig.ParseResult</span></code></span>
+<span class="codeline" id="line-43"><code>	<span class="comment">// EqualServiceConfigForTesting is for testing service config generation and</span></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">	// parsing. Both a and b should be returned by ParseServiceConfig.</span></code></span>
+<span class="codeline" id="line-45"><code><span class="comment">	// This function compares the config without rawJSON stripped, in case the</span></code></span>
+<span class="codeline" id="line-46"><code><span class="comment">	// there's difference in white space.</span></code></span>
+<span class="codeline" id="line-47"><code>	<a href="../../../../pkg/google.golang.org/grpc/internal.html#name-EqualServiceConfigForTesting" class="ident">EqualServiceConfigForTesting</a> <span class="keyword">func</span>(a, b <a href="../../../../pkg/google.golang.org/grpc/serviceconfig.html" class="ident i3">serviceconfig</a>.<a href="../serviceconfig/serviceconfig.go.html#line-29" class="ident">Config</a>) <a href="../../../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-48"><code>	<span class="comment">// GetCertificateProviderBuilder returns the registered builder for the</span></code></span>
+<span class="codeline" id="line-49"><code><span class="comment">	// given name. This is set by package certprovider for use from xDS</span></code></span>
+<span class="codeline" id="line-50"><code><span class="comment">	// bootstrap code while parsing certificate provider configs in the</span></code></span>
+<span class="codeline" id="line-51"><code><span class="comment">	// bootstrap file.</span></code></span>
+<span class="codeline" id="line-52"><code>	<a href="../../../../pkg/google.golang.org/grpc/internal.html#name-GetCertificateProviderBuilder" class="ident">GetCertificateProviderBuilder</a> <span class="keyword">interface</span>{} <span class="comment">// func(string) certprovider.Builder</span></code></span>
+<span class="codeline" id="line-53"><code>	<span class="comment">// GetXDSHandshakeInfoForTesting returns a pointer to the xds.HandshakeInfo</span></code></span>
+<span class="codeline" id="line-54"><code><span class="comment">	// stored in the passed in attributes. This is set by</span></code></span>
+<span class="codeline" id="line-55"><code><span class="comment">	// credentials/xds/xds.go.</span></code></span>
+<span class="codeline" id="line-56"><code>	<a href="../../../../pkg/google.golang.org/grpc/internal.html#name-GetXDSHandshakeInfoForTesting" class="ident">GetXDSHandshakeInfoForTesting</a> <span class="keyword">interface</span>{} <span class="comment">// func (*attributes.Attributes) *xds.HandshakeInfo</span></code></span>
+<span class="codeline" id="line-57"><code>	<span class="comment">// GetServerCredentials returns the transport credentials configured on a</span></code></span>
+<span class="codeline" id="line-58"><code><span class="comment">	// gRPC server. An xDS-enabled server needs to know what type of credentials</span></code></span>
+<span class="codeline" id="line-59"><code><span class="comment">	// is configured on the underlying gRPC server. This is set by server.go.</span></code></span>
+<span class="codeline" id="line-60"><code>	<a href="../../../../pkg/google.golang.org/grpc/internal.html#name-GetServerCredentials" class="ident">GetServerCredentials</a> <span class="keyword">interface</span>{} <span class="comment">// func (*grpc.Server) credentials.TransportCredentials</span></code></span>
+<span class="codeline" id="line-61"><code>	<span class="comment">// DrainServerTransports initiates a graceful close of existing connections</span></code></span>
+<span class="codeline" id="line-62"><code><span class="comment">	// on a gRPC server accepted on the provided listener address. An</span></code></span>
+<span class="codeline" id="line-63"><code><span class="comment">	// xDS-enabled server invokes this method on a grpc.Server when a particular</span></code></span>
+<span class="codeline" id="line-64"><code><span class="comment">	// listener moves to "not-serving" mode.</span></code></span>
+<span class="codeline" id="line-65"><code>	<a href="../../../../pkg/google.golang.org/grpc/internal.html#name-DrainServerTransports" class="ident">DrainServerTransports</a> <span class="keyword">interface</span>{} <span class="comment">// func(*grpc.Server, string)</span></code></span>
+<span class="codeline" id="line-66"><code>	<span class="comment">// AddGlobalServerOptions adds an array of ServerOption that will be</span></code></span>
+<span class="codeline" id="line-67"><code><span class="comment">	// effective globally for newly created servers. The priority will be: 1.</span></code></span>
+<span class="codeline" id="line-68"><code><span class="comment">	// user-provided; 2. this method; 3. default values.</span></code></span>
+<span class="codeline" id="line-69"><code>	<a href="../../../../pkg/google.golang.org/grpc/internal.html#name-AddGlobalServerOptions" class="ident">AddGlobalServerOptions</a> <span class="keyword">interface</span>{} <span class="comment">// func(opt ...ServerOption)</span></code></span>
+<span class="codeline" id="line-70"><code>	<span class="comment">// ClearGlobalServerOptions clears the array of extra ServerOption. This</span></code></span>
+<span class="codeline" id="line-71"><code><span class="comment">	// method is useful in testing and benchmarking.</span></code></span>
+<span class="codeline" id="line-72"><code>	<a href="../../../../pkg/google.golang.org/grpc/internal.html#name-ClearGlobalServerOptions" class="ident">ClearGlobalServerOptions</a> <span class="keyword">func</span>()</code></span>
+<span class="codeline" id="line-73"><code>	<span class="comment">// AddGlobalDialOptions adds an array of DialOption that will be effective</span></code></span>
+<span class="codeline" id="line-74"><code><span class="comment">	// globally for newly created client channels. The priority will be: 1.</span></code></span>
+<span class="codeline" id="line-75"><code><span class="comment">	// user-provided; 2. this method; 3. default values.</span></code></span>
+<span class="codeline" id="line-76"><code>	<a href="../../../../pkg/google.golang.org/grpc/internal.html#name-AddGlobalDialOptions" class="ident">AddGlobalDialOptions</a> <span class="keyword">interface</span>{} <span class="comment">// func(opt ...DialOption)</span></code></span>
+<span class="codeline" id="line-77"><code>	<span class="comment">// ClearGlobalDialOptions clears the array of extra DialOption. This</span></code></span>
+<span class="codeline" id="line-78"><code><span class="comment">	// method is useful in testing and benchmarking.</span></code></span>
+<span class="codeline" id="line-79"><code>	<a href="../../../../pkg/google.golang.org/grpc/internal.html#name-ClearGlobalDialOptions" class="ident">ClearGlobalDialOptions</a> <span class="keyword">func</span>()</code></span>
+<span class="codeline" id="line-80"><code>	<span class="comment">// JoinDialOptions combines the dial options passed as arguments into a</span></code></span>
+<span class="codeline" id="line-81"><code><span class="comment">	// single dial option.</span></code></span>
+<span class="codeline" id="line-82"><code>	<a href="../../../../pkg/google.golang.org/grpc/internal.html#name-JoinDialOptions" class="ident">JoinDialOptions</a> <span class="keyword">interface</span>{} <span class="comment">// func(...grpc.DialOption) grpc.DialOption</span></code></span>
+<span class="codeline" id="line-83"><code>	<span class="comment">// JoinServerOptions combines the server options passed as arguments into a</span></code></span>
+<span class="codeline" id="line-84"><code><span class="comment">	// single server option.</span></code></span>
+<span class="codeline" id="line-85"><code>	<a href="../../../../pkg/google.golang.org/grpc/internal.html#name-JoinServerOptions" class="ident">JoinServerOptions</a> <span class="keyword">interface</span>{} <span class="comment">// func(...grpc.ServerOption) grpc.ServerOption</span></code></span>
+<span class="codeline" id="line-86"><code></code></span>
+<span class="codeline" id="line-87"><code>	<span class="comment">// WithBinaryLogger returns a DialOption that specifies the binary logger</span></code></span>
+<span class="codeline" id="line-88"><code><span class="comment">	// for a ClientConn.</span></code></span>
+<span class="codeline" id="line-89"><code>	<a href="../../../../pkg/google.golang.org/grpc/internal.html#name-WithBinaryLogger" class="ident">WithBinaryLogger</a> <span class="keyword">interface</span>{} <span class="comment">// func(binarylog.Logger) grpc.DialOption</span></code></span>
+<span class="codeline" id="line-90"><code>	<span class="comment">// BinaryLogger returns a ServerOption that can set the binary logger for a</span></code></span>
+<span class="codeline" id="line-91"><code><span class="comment">	// server.</span></code></span>
+<span class="codeline" id="line-92"><code>	<a href="../../../../pkg/google.golang.org/grpc/internal.html#name-BinaryLogger" class="ident">BinaryLogger</a> <span class="keyword">interface</span>{} <span class="comment">// func(binarylog.Logger) grpc.ServerOption</span></code></span>
+<span class="codeline" id="line-93"><code></code></span>
+<span class="codeline" id="line-94"><code>	<span class="comment">// NewXDSResolverWithConfigForTesting creates a new xds resolver builder using</span></code></span>
+<span class="codeline" id="line-95"><code><span class="comment">	// the provided xds bootstrap config instead of the global configuration from</span></code></span>
+<span class="codeline" id="line-96"><code><span class="comment">	// the supported environment variables.  The resolver.Builder is meant to be</span></code></span>
+<span class="codeline" id="line-97"><code><span class="comment">	// used in conjunction with the grpc.WithResolvers DialOption.</span></code></span>
+<span class="codeline" id="line-98"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-99"><code><span class="comment">	// Testing Only</span></code></span>
+<span class="codeline" id="line-100"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-101"><code><span class="comment">	// This function should ONLY be used for testing and may not work with some</span></code></span>
+<span class="codeline" id="line-102"><code><span class="comment">	// other features, including the CSDS service.</span></code></span>
+<span class="codeline" id="line-103"><code>	<a href="../../../../pkg/google.golang.org/grpc/internal.html#name-NewXDSResolverWithConfigForTesting" class="ident">NewXDSResolverWithConfigForTesting</a> <span class="keyword">interface</span>{} <span class="comment">// func([]byte) (resolver.Builder, error)</span></code></span>
+<span class="codeline" id="line-104"><code></code></span>
+<span class="codeline" id="line-105"><code>	<span class="comment">// RegisterRLSClusterSpecifierPluginForTesting registers the RLS Cluster</span></code></span>
+<span class="codeline" id="line-106"><code><span class="comment">	// Specifier Plugin for testing purposes, regardless of the XDSRLS environment</span></code></span>
+<span class="codeline" id="line-107"><code><span class="comment">	// variable.</span></code></span>
+<span class="codeline" id="line-108"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-109"><code><span class="comment">	// TODO: Remove this function once the RLS env var is removed.</span></code></span>
+<span class="codeline" id="line-110"><code>	<a href="../../../../pkg/google.golang.org/grpc/internal.html#name-RegisterRLSClusterSpecifierPluginForTesting" class="ident">RegisterRLSClusterSpecifierPluginForTesting</a> <span class="keyword">func</span>()</code></span>
+<span class="codeline" id="line-111"><code></code></span>
+<span class="codeline" id="line-112"><code>	<span class="comment">// UnregisterRLSClusterSpecifierPluginForTesting unregisters the RLS Cluster</span></code></span>
+<span class="codeline" id="line-113"><code><span class="comment">	// Specifier Plugin for testing purposes. This is needed because there is no way</span></code></span>
+<span class="codeline" id="line-114"><code><span class="comment">	// to unregister the RLS Cluster Specifier Plugin after registering it solely</span></code></span>
+<span class="codeline" id="line-115"><code><span class="comment">	// for testing purposes using RegisterRLSClusterSpecifierPluginForTesting().</span></code></span>
+<span class="codeline" id="line-116"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-117"><code><span class="comment">	// TODO: Remove this function once the RLS env var is removed.</span></code></span>
+<span class="codeline" id="line-118"><code>	<a href="../../../../pkg/google.golang.org/grpc/internal.html#name-UnregisterRLSClusterSpecifierPluginForTesting" class="ident">UnregisterRLSClusterSpecifierPluginForTesting</a> <span class="keyword">func</span>()</code></span>
+<span class="codeline" id="line-119"><code></code></span>
+<span class="codeline" id="line-120"><code>	<span class="comment">// RegisterRBACHTTPFilterForTesting registers the RBAC HTTP Filter for testing</span></code></span>
+<span class="codeline" id="line-121"><code><span class="comment">	// purposes, regardless of the RBAC environment variable.</span></code></span>
+<span class="codeline" id="line-122"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-123"><code><span class="comment">	// TODO: Remove this function once the RBAC env var is removed.</span></code></span>
+<span class="codeline" id="line-124"><code>	<a href="../../../../pkg/google.golang.org/grpc/internal.html#name-RegisterRBACHTTPFilterForTesting" class="ident">RegisterRBACHTTPFilterForTesting</a> <span class="keyword">func</span>()</code></span>
+<span class="codeline" id="line-125"><code></code></span>
+<span class="codeline" id="line-126"><code>	<span class="comment">// UnregisterRBACHTTPFilterForTesting unregisters the RBAC HTTP Filter for</span></code></span>
+<span class="codeline" id="line-127"><code><span class="comment">	// testing purposes. This is needed because there is no way to unregister the</span></code></span>
+<span class="codeline" id="line-128"><code><span class="comment">	// HTTP Filter after registering it solely for testing purposes using</span></code></span>
+<span class="codeline" id="line-129"><code><span class="comment">	// RegisterRBACHTTPFilterForTesting().</span></code></span>
+<span class="codeline" id="line-130"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-131"><code><span class="comment">	// TODO: Remove this function once the RBAC env var is removed.</span></code></span>
+<span class="codeline" id="line-132"><code>	<a href="../../../../pkg/google.golang.org/grpc/internal.html#name-UnregisterRBACHTTPFilterForTesting" class="ident">UnregisterRBACHTTPFilterForTesting</a> <span class="keyword">func</span>()</code></span>
+<span class="codeline" id="line-133"><code>)</code></span>
+<span class="codeline" id="line-134"><code></code></span>
+<span class="codeline" id="line-135"><code><span class="comment">// HealthChecker defines the signature of the client-side LB channel health checking function.</span></code></span>
+<span class="codeline" id="line-136"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-137"><code><span class="comment">// The implementation is expected to create a health checking RPC stream by</span></code></span>
+<span class="codeline" id="line-138"><code><span class="comment">// calling newStream(), watch for the health status of serviceName, and report</span></code></span>
+<span class="codeline" id="line-139"><code><span class="comment">// it's health back by calling setConnectivityState().</span></code></span>
+<span class="codeline" id="line-140"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-141"><code><span class="comment">// The health checking protocol is defined at:</span></code></span>
+<span class="codeline" id="line-142"><code><span class="comment">// https://github.com/grpc/grpc/blob/master/doc/health-checking.md</span></code></span>
+<span class="codeline" id="line-143"><code><span class="keyword">type</span> <a href="../../../../pkg/google.golang.org/grpc/internal.html#name-HealthChecker" class="ident">HealthChecker</a> <span class="keyword">func</span>(ctx <a href="../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../context/context.go.html#line-71" class="ident">Context</a>, newStream <span class="keyword">func</span>(<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>) (<span class="keyword">interface</span>{}, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>), setConnectivityState <span class="keyword">func</span>(<a href="../../../../pkg/google.golang.org/grpc/connectivity.html" class="ident i2">connectivity</a>.<a href="../connectivity/connectivity.go.html#line-31" class="ident">State</a>, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>), serviceName <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-144"><code></code></span>
+<span class="codeline" id="line-145"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-146"><code>	<span class="comment">// CredsBundleModeFallback switches GoogleDefaultCreds to fallback mode.</span></code></span>
+<span class="codeline" id="line-147"><code>	<a href="../../../../pkg/google.golang.org/grpc/internal.html#name-CredsBundleModeFallback" class="ident">CredsBundleModeFallback</a> = <span class="lit-string">"fallback"</span></code></span>
+<span class="codeline" id="line-148"><code>	<span class="comment">// CredsBundleModeBalancer switches GoogleDefaultCreds to grpclb balancer</span></code></span>
+<span class="codeline" id="line-149"><code><span class="comment">	// mode.</span></code></span>
+<span class="codeline" id="line-150"><code>	<a href="../../../../pkg/google.golang.org/grpc/internal.html#name-CredsBundleModeBalancer" class="ident">CredsBundleModeBalancer</a> = <span class="lit-string">"balancer"</span></code></span>
+<span class="codeline" id="line-151"><code>	<span class="comment">// CredsBundleModeBackendFromBalancer switches GoogleDefaultCreds to mode</span></code></span>
+<span class="codeline" id="line-152"><code><span class="comment">	// that supports backend returned by grpclb balancer.</span></code></span>
+<span class="codeline" id="line-153"><code>	<a href="../../../../pkg/google.golang.org/grpc/internal.html#name-CredsBundleModeBackendFromBalancer" class="ident">CredsBundleModeBackendFromBalancer</a> = <span class="lit-string">"backend-from-balancer"</span></code></span>
+<span class="codeline" id="line-154"><code>)</code></span>
+<span class="codeline" id="line-155"><code></code></span>
+<span class="codeline" id="line-156"><code><span class="comment">// RLSLoadBalancingPolicyName is the name of the RLS LB policy.</span></code></span>
+<span class="codeline" id="line-157"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-158"><code><span class="comment">// It currently has an experimental suffix which would be removed once</span></code></span>
+<span class="codeline" id="line-159"><code><span class="comment">// end-to-end testing of the policy is completed.</span></code></span>
+<span class="codeline" id="line-160"><code><span class="keyword">const</span> <a href="../../../../pkg/google.golang.org/grpc/internal.html#name-RLSLoadBalancingPolicyName" class="ident">RLSLoadBalancingPolicyName</a> = <span class="lit-string">"rls_experimental"</span></code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

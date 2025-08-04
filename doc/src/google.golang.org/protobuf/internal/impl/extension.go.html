@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: extension.go in package google.golang.org/protobuf/internal/impl</title>
+<link href="../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	extension.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../pkg/google.golang.org/protobuf/internal/impl.html">google.golang.org/protobuf/internal/impl</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3,
+input[id=i4]:checked ~pre .i4
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+<input id="i4" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2019 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> impl</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-8"><code>	<label for="i0"><span class="lit-string i0">"reflect"</span></label></code></span>
+<span class="codeline" id="line-9"><code>	<label for="i1"><span class="lit-string i1">"sync"</span></label></code></span>
+<span class="codeline" id="line-10"><code>	<label for="i2"><span class="lit-string i2">"sync/atomic"</span></label></code></span>
+<span class="codeline" id="line-11"><code></code></span>
+<span class="codeline" id="line-12"><code>	<label for="i3"><span class="lit-string i3">"google.golang.org/protobuf/reflect/protoreflect"</span></label></code></span>
+<span class="codeline" id="line-13"><code>	<label for="i4"><span class="lit-string i4">"google.golang.org/protobuf/runtime/protoiface"</span></label></code></span>
+<span class="codeline" id="line-14"><code>)</code></span>
+<span class="codeline" id="line-15"><code></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">// ExtensionInfo implements ExtensionType.</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">// This type contains a number of exported fields for legacy compatibility.</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">// The only non-deprecated use of this type is through the methods of the</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">// ExtensionType interface.</span></code></span>
+<span class="codeline" id="line-21"><code><span class="keyword">type</span> <a href="../../../../../pkg/google.golang.org/protobuf/internal/impl.html#name-ExtensionInfo" class="ident">ExtensionInfo</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-22"><code>	<span class="comment">// An ExtensionInfo may exist in several stages of initialization.</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">	// extensionInfoUninitialized: Some or all of the legacy exported</span></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">	// fields may be set, but none of the unexported fields have been</span></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">	// initialized. This is the starting state for an ExtensionInfo</span></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">	// in legacy generated code.</span></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">	// extensionInfoDescInit: The desc field is set, but other unexported fields</span></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">	// may not be initialized. Legacy exported fields may or may not be set.</span></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">	// This is the starting state for an ExtensionInfo in newly generated code.</span></code></span>
+<span class="codeline" id="line-32"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-33"><code><span class="comment">	// extensionInfoFullInit: The ExtensionInfo is fully initialized.</span></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">	// This state is only entered after lazy initialization is complete.</span></code></span>
+<span class="codeline" id="line-35"><code>	<a href="../../../../../use/google.golang.org/protobuf/internal/impl..ExtensionInfo.init^bb540.html" class="ident">init</a> <a href="../../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a></code></span>
+<span class="codeline" id="line-36"><code>	<a href="../../../../../use/google.golang.org/protobuf/internal/impl..ExtensionInfo.mu^19503.html" class="ident">mu</a>   <a href="../../../../../pkg/sync.html" class="ident i1">sync</a>.<a href="../../../../sync/mutex.go.html#line-30" class="ident">Mutex</a></code></span>
+<span class="codeline" id="line-37"><code></code></span>
+<span class="codeline" id="line-38"><code>	<a href="../../../../../use/google.golang.org/protobuf/internal/impl..ExtensionInfo.goType^b2aee.html" class="ident">goType</a> <a href="../../../../../pkg/reflect.html" class="ident i0">reflect</a>.<a href="../../../../reflect/type.go.html#line-40" class="ident">Type</a></code></span>
+<span class="codeline" id="line-39"><code>	<a href="../../../../../use/google.golang.org/protobuf/internal/impl..ExtensionInfo.desc^97864.html" class="ident">desc</a>   <a href="#line-146" class="ident">extensionTypeDescriptor</a></code></span>
+<span class="codeline" id="line-40"><code>	<a href="../../../../../use/google.golang.org/protobuf/internal/impl..ExtensionInfo.conv^2ec3e.html" class="ident">conv</a>   <a href="convert.go.html#line-21" class="ident">Converter</a></code></span>
+<span class="codeline" id="line-41"><code>	<a href="../../../../../use/google.golang.org/protobuf/internal/impl..ExtensionInfo.info^06271.html" class="ident">info</a>   *<a href="codec_extension.go.html#line-16" class="ident">extensionFieldInfo</a> <span class="comment">// for fast-path method implementations</span></code></span>
+<span class="codeline" id="line-42"><code></code></span>
+<span class="codeline" id="line-43"><code>	<span class="comment">// ExtendedType is a typed nil-pointer to the parent message type that</span></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">	// is being extended. It is possible for this to be unpopulated in v2</span></code></span>
+<span class="codeline" id="line-45"><code><span class="comment">	// since the message may no longer implement the MessageV1 interface.</span></code></span>
+<span class="codeline" id="line-46"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-47"><code><span class="comment">	// Deprecated: Use the ExtendedType method instead.</span></code></span>
+<span class="codeline" id="line-48"><code>	<a href="../../../../../use/google.golang.org/protobuf/internal/impl..ExtensionInfo.ExtendedType.html" class="ident">ExtendedType</a> <a href="../../../../../pkg/google.golang.org/protobuf/runtime/protoiface.html" class="ident i4">protoiface</a>.<a href="../../runtime/protoiface/legacy.go.html#line-7" class="ident">MessageV1</a></code></span>
+<span class="codeline" id="line-49"><code></code></span>
+<span class="codeline" id="line-50"><code>	<span class="comment">// ExtensionType is the zero value of the extension type.</span></code></span>
+<span class="codeline" id="line-51"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-52"><code><span class="comment">	// For historical reasons, reflect.TypeOf(ExtensionType) and the</span></code></span>
+<span class="codeline" id="line-53"><code><span class="comment">	// type returned by InterfaceOf may not be identical.</span></code></span>
+<span class="codeline" id="line-54"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-55"><code><span class="comment">	// Deprecated: Use InterfaceOf(xt.Zero()) instead.</span></code></span>
+<span class="codeline" id="line-56"><code>	<a href="../../../../../use/google.golang.org/protobuf/internal/impl..ExtensionInfo.ExtensionType.html" class="ident">ExtensionType</a> <span class="keyword">interface</span>{}</code></span>
+<span class="codeline" id="line-57"><code></code></span>
+<span class="codeline" id="line-58"><code>	<span class="comment">// Field is the field number of the extension.</span></code></span>
+<span class="codeline" id="line-59"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-60"><code><span class="comment">	// Deprecated: Use the Descriptor().Number method instead.</span></code></span>
+<span class="codeline" id="line-61"><code>	<a href="../../../../../use/google.golang.org/protobuf/internal/impl..ExtensionInfo.Field.html" class="ident">Field</a> <a href="../../../../../pkg/builtin.html#name-int32" class="ident">int32</a></code></span>
+<span class="codeline" id="line-62"><code></code></span>
+<span class="codeline" id="line-63"><code>	<span class="comment">// Name is the fully qualified name of extension.</span></code></span>
+<span class="codeline" id="line-64"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-65"><code><span class="comment">	// Deprecated: Use the Descriptor().FullName method instead.</span></code></span>
+<span class="codeline" id="line-66"><code>	<a href="../../../../../use/google.golang.org/protobuf/internal/impl..ExtensionInfo.Name.html" class="ident">Name</a> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-67"><code></code></span>
+<span class="codeline" id="line-68"><code>	<span class="comment">// Tag is the protobuf struct tag used in the v1 API.</span></code></span>
+<span class="codeline" id="line-69"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-70"><code><span class="comment">	// Deprecated: Do not use.</span></code></span>
+<span class="codeline" id="line-71"><code>	<a href="../../../../../use/google.golang.org/protobuf/internal/impl..ExtensionInfo.Tag.html" class="ident">Tag</a> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-72"><code></code></span>
+<span class="codeline" id="line-73"><code>	<span class="comment">// Filename is the proto filename in which the extension is defined.</span></code></span>
+<span class="codeline" id="line-74"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-75"><code><span class="comment">	// Deprecated: Use Descriptor().ParentFile().Path() instead.</span></code></span>
+<span class="codeline" id="line-76"><code>	<a href="../../../../../use/google.golang.org/protobuf/internal/impl..ExtensionInfo.Filename.html" class="ident">Filename</a> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-77"><code>}</code></span>
+<span class="codeline" id="line-78"><code></code></span>
+<span class="codeline" id="line-79"><code><span class="comment">// Stages of initialization: See the ExtensionInfo.init field.</span></code></span>
+<span class="codeline" id="line-80"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-81"><code>	<a href="../../../../../pkg/google.golang.org/protobuf/internal/impl.html#name-extensionInfoUninitialized" class="ident">extensionInfoUninitialized</a> = <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-82"><code>	<a href="../../../../../pkg/google.golang.org/protobuf/internal/impl.html#name-extensionInfoDescInit" class="ident">extensionInfoDescInit</a>      = <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-83"><code>	<a href="../../../../../pkg/google.golang.org/protobuf/internal/impl.html#name-extensionInfoFullInit" class="ident">extensionInfoFullInit</a>      = <span class="lit-number">2</span></code></span>
+<span class="codeline" id="line-84"><code>)</code></span>
+<span class="codeline" id="line-85"><code></code></span>
+<span class="codeline" id="line-86"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../../pkg/google.golang.org/protobuf/internal/impl.html#name-InitExtensionInfo" class="ident">InitExtensionInfo</a></label>(<label for="r1" class="ident">xi</label> *<a href="#line-21" class="ident">ExtensionInfo</a>, <label for="r2" class="ident">xd</label> <a href="../../../../../pkg/google.golang.org/protobuf/reflect/protoreflect.html" class="ident i3">protoreflect</a>.<a href="../../reflect/protoreflect/type.go.html#line-446" class="ident">ExtensionDescriptor</a>, <label for="r3" class="ident">goType</label> <a href="../../../../../pkg/reflect.html" class="ident i0">reflect</a>.<a href="../../../../reflect/type.go.html#line-40" class="ident">Type</a>) {</code></span>
+<span class="codeline" id="line-87"><code>	<label for="r1" class="ident">xi</label>.<a href="#line-38" class="ident">goType</a> = <label for="r3" class="ident">goType</label></code></span>
+<span class="codeline" id="line-88"><code>	<label for="r1" class="ident">xi</label>.<a href="#line-39" class="ident">desc</a> = <a href="#line-146" class="ident">extensionTypeDescriptor</a>{<label for="r2" class="ident">xd</label>, <label for="r1" class="ident">xi</label>}</code></span>
+<span class="codeline" id="line-89"><code>	<label for="r1" class="ident">xi</label>.<a href="#line-35" class="ident">init</a> = <a href="#line-82" class="ident">extensionInfoDescInit</a></code></span>
+<span class="codeline" id="line-90"><code>}</code></span>
+<span class="codeline" id="line-91"><code></code></span>
+<span class="codeline" id="line-92"><code><span class="keyword">func</span> (<label for="r4" class="ident">xi</label> *<a href="#line-21" class="ident">ExtensionInfo</a>) <label for="r5" class="ident"><a href="../../../../../use/google.golang.org/protobuf/internal/impl..ExtensionInfo.New.html" class="ident">New</a></label>() <a href="../../../../../pkg/google.golang.org/protobuf/reflect/protoreflect.html" class="ident i3">protoreflect</a>.<a href="../../reflect/protoreflect/value_union.go.html#line-70" class="ident">Value</a> {</code></span>
+<span class="codeline" id="line-93"><code>	<span class="keyword">return</span> <label for="r4" class="ident">xi</label>.<a href="#line-117" class="ident">lazyInit</a>().<a href="convert.go.html#line-37" class="ident">New</a>()</code></span>
+<span class="codeline" id="line-94"><code>}</code></span>
+<span class="codeline" id="line-95"><code><span class="keyword">func</span> (<label for="r6" class="ident">xi</label> *<a href="#line-21" class="ident">ExtensionInfo</a>) <label for="r7" class="ident"><a href="../../../../../use/google.golang.org/protobuf/internal/impl..ExtensionInfo.Zero.html" class="ident">Zero</a></label>() <a href="../../../../../pkg/google.golang.org/protobuf/reflect/protoreflect.html" class="ident i3">protoreflect</a>.<a href="../../reflect/protoreflect/value_union.go.html#line-70" class="ident">Value</a> {</code></span>
+<span class="codeline" id="line-96"><code>	<span class="keyword">return</span> <label for="r6" class="ident">xi</label>.<a href="#line-117" class="ident">lazyInit</a>().<a href="convert.go.html#line-42" class="ident">Zero</a>()</code></span>
+<span class="codeline" id="line-97"><code>}</code></span>
+<span class="codeline" id="line-98"><code><span class="keyword">func</span> (<label for="r8" class="ident">xi</label> *<a href="#line-21" class="ident">ExtensionInfo</a>) <label for="r9" class="ident"><a href="../../../../../use/google.golang.org/protobuf/internal/impl..ExtensionInfo.ValueOf.html" class="ident">ValueOf</a></label>(<label for="r10" class="ident">v</label> <span class="keyword">interface</span>{}) <a href="../../../../../pkg/google.golang.org/protobuf/reflect/protoreflect.html" class="ident i3">protoreflect</a>.<a href="../../reflect/protoreflect/value_union.go.html#line-70" class="ident">Value</a> {</code></span>
+<span class="codeline" id="line-99"><code>	<span class="keyword">return</span> <label for="r8" class="ident">xi</label>.<a href="#line-117" class="ident">lazyInit</a>().<a href="convert.go.html#line-23" class="ident">PBValueOf</a>(<a href="../../../../../pkg/reflect.html" class="ident i0">reflect</a>.<a href="../../../../reflect/value.go.html#line-2976" class="ident">ValueOf</a>(<label for="r10" class="ident">v</label>))</code></span>
+<span class="codeline" id="line-100"><code>}</code></span>
+<span class="codeline" id="line-101"><code><span class="keyword">func</span> (<label for="r11" class="ident">xi</label> *<a href="#line-21" class="ident">ExtensionInfo</a>) <label for="r12" class="ident"><a href="../../../../../use/google.golang.org/protobuf/internal/impl..ExtensionInfo.InterfaceOf.html" class="ident">InterfaceOf</a></label>(<label for="r13" class="ident">v</label> <a href="../../../../../pkg/google.golang.org/protobuf/reflect/protoreflect.html" class="ident i3">protoreflect</a>.<a href="../../reflect/protoreflect/value_union.go.html#line-70" class="ident">Value</a>) <span class="keyword">interface</span>{} {</code></span>
+<span class="codeline" id="line-102"><code>	<span class="keyword">return</span> <label for="r11" class="ident">xi</label>.<a href="#line-117" class="ident">lazyInit</a>().<a href="convert.go.html#line-26" class="ident">GoValueOf</a>(<label for="r13" class="ident">v</label>).<a href="../../../../reflect/value.go.html#line-1483" class="ident">Interface</a>()</code></span>
+<span class="codeline" id="line-103"><code>}</code></span>
+<span class="codeline" id="line-104"><code><span class="keyword">func</span> (<label for="r14" class="ident">xi</label> *<a href="#line-21" class="ident">ExtensionInfo</a>) <label for="r15" class="ident"><a href="../../../../../use/google.golang.org/protobuf/internal/impl..ExtensionInfo.IsValidValue.html" class="ident">IsValidValue</a></label>(<label for="r16" class="ident">v</label> <a href="../../../../../pkg/google.golang.org/protobuf/reflect/protoreflect.html" class="ident i3">protoreflect</a>.<a href="../../reflect/protoreflect/value_union.go.html#line-70" class="ident">Value</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-105"><code>	<span class="keyword">return</span> <label for="r14" class="ident">xi</label>.<a href="#line-117" class="ident">lazyInit</a>().<a href="convert.go.html#line-29" class="ident">IsValidPB</a>(<label for="r16" class="ident">v</label>)</code></span>
+<span class="codeline" id="line-106"><code>}</code></span>
+<span class="codeline" id="line-107"><code><span class="keyword">func</span> (<label for="r17" class="ident">xi</label> *<a href="#line-21" class="ident">ExtensionInfo</a>) <label for="r18" class="ident"><a href="../../../../../use/google.golang.org/protobuf/internal/impl..ExtensionInfo.IsValidInterface.html" class="ident">IsValidInterface</a></label>(<label for="r19" class="ident">v</label> <span class="keyword">interface</span>{}) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-108"><code>	<span class="keyword">return</span> <label for="r17" class="ident">xi</label>.<a href="#line-117" class="ident">lazyInit</a>().<a href="convert.go.html#line-32" class="ident">IsValidGo</a>(<a href="../../../../../pkg/reflect.html" class="ident i0">reflect</a>.<a href="../../../../reflect/value.go.html#line-2976" class="ident">ValueOf</a>(<label for="r19" class="ident">v</label>))</code></span>
+<span class="codeline" id="line-109"><code>}</code></span>
+<span class="codeline" id="line-110"><code><span class="keyword">func</span> (<label for="r20" class="ident">xi</label> *<a href="#line-21" class="ident">ExtensionInfo</a>) <label for="r21" class="ident"><a href="../../../../../use/google.golang.org/protobuf/internal/impl..ExtensionInfo.TypeDescriptor.html" class="ident">TypeDescriptor</a></label>() <a href="../../../../../pkg/google.golang.org/protobuf/reflect/protoreflect.html" class="ident i3">protoreflect</a>.<a href="../../reflect/protoreflect/type.go.html#line-449" class="ident">ExtensionTypeDescriptor</a> {</code></span>
+<span class="codeline" id="line-111"><code>	<span class="keyword">if</span> <a href="../../../../../pkg/sync/atomic.html" class="ident i2">atomic</a>.<a href="../../../../sync/atomic/doc.go.html#line-183" class="ident">LoadUint32</a>(&amp;<label for="r20" class="ident">xi</label>.<a href="#line-35" class="ident">init</a>) &lt; <a href="#line-82" class="ident">extensionInfoDescInit</a> {</code></span>
+<span class="codeline" id="line-112"><code>		<label for="r20" class="ident">xi</label>.<a href="#line-124" class="ident">lazyInitSlow</a>()</code></span>
+<span class="codeline" id="line-113"><code>	}</code></span>
+<span class="codeline" id="line-114"><code>	<span class="keyword">return</span> &amp;<label for="r20" class="ident">xi</label>.<a href="#line-39" class="ident">desc</a></code></span>
+<span class="codeline" id="line-115"><code>}</code></span>
+<span class="codeline" id="line-116"><code></code></span>
+<span class="codeline" id="line-117"><code><span class="keyword">func</span> (<label for="r22" class="ident">xi</label> *<a href="#line-21" class="ident">ExtensionInfo</a>) <label for="r23" class="ident"><a href="../../../../../use/google.golang.org/protobuf/internal/impl..ExtensionInfo.lazyInit^7e45b.html" class="ident">lazyInit</a></label>() <a href="convert.go.html#line-21" class="ident">Converter</a> {</code></span>
+<span class="codeline" id="line-118"><code>	<span class="keyword">if</span> <a href="../../../../../pkg/sync/atomic.html" class="ident i2">atomic</a>.<a href="../../../../sync/atomic/doc.go.html#line-183" class="ident">LoadUint32</a>(&amp;<label for="r22" class="ident">xi</label>.<a href="#line-35" class="ident">init</a>) &lt; <a href="#line-83" class="ident">extensionInfoFullInit</a> {</code></span>
+<span class="codeline" id="line-119"><code>		<label for="r22" class="ident">xi</label>.<a href="#line-124" class="ident">lazyInitSlow</a>()</code></span>
+<span class="codeline" id="line-120"><code>	}</code></span>
+<span class="codeline" id="line-121"><code>	<span class="keyword">return</span> <label for="r22" class="ident">xi</label>.<a href="#line-40" class="ident">conv</a></code></span>
+<span class="codeline" id="line-122"><code>}</code></span>
+<span class="codeline" id="line-123"><code></code></span>
+<span class="codeline" id="line-124"><code><span class="keyword">func</span> (<label for="r24" class="ident">xi</label> *<a href="#line-21" class="ident">ExtensionInfo</a>) <label for="r25" class="ident"><a href="../../../../../use/google.golang.org/protobuf/internal/impl..ExtensionInfo.lazyInitSlow^a4aff.html" class="ident">lazyInitSlow</a></label>() {</code></span>
+<span class="codeline" id="line-125"><code>	<label for="r24" class="ident">xi</label>.<a href="#line-36" class="ident">mu</a>.<a href="../../../../sync/mutex.go.html#line-45" class="ident">Lock</a>()</code></span>
+<span class="codeline" id="line-126"><code>	<span class="keyword">defer</span> <label for="r24" class="ident">xi</label>.<a href="#line-36" class="ident">mu</a>.<a href="../../../../sync/mutex.go.html#line-64" class="ident">Unlock</a>()</code></span>
+<span class="codeline" id="line-127"><code></code></span>
+<span class="codeline" id="line-128"><code>	<span class="keyword">if</span> <label for="r24" class="ident">xi</label>.<a href="#line-35" class="ident">init</a> == <a href="#line-83" class="ident">extensionInfoFullInit</a> {</code></span>
+<span class="codeline" id="line-129"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-130"><code>	}</code></span>
+<span class="codeline" id="line-131"><code>	<span class="keyword">defer</span> <a href="../../../../../pkg/sync/atomic.html" class="ident i2">atomic</a>.<a href="../../../../sync/atomic/doc.go.html#line-205" class="ident">StoreUint32</a>(&amp;<label for="r24" class="ident">xi</label>.<a href="#line-35" class="ident">init</a>, <a href="#line-83" class="ident">extensionInfoFullInit</a>)</code></span>
+<span class="codeline" id="line-132"><code></code></span>
+<span class="codeline" id="line-133"><code>	<span class="keyword">if</span> <label for="r24" class="ident">xi</label>.<a href="#line-39" class="ident">desc</a>.<a href="#line-147" class="ident">ExtensionDescriptor</a> == <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-134"><code>		<label for="r24" class="ident">xi</label>.<a href="legacy_extension.go.html#line-75" class="ident">initFromLegacy</a>()</code></span>
+<span class="codeline" id="line-135"><code>	}</code></span>
+<span class="codeline" id="line-136"><code>	<span class="keyword">if</span> !<label for="r24" class="ident">xi</label>.<a href="#line-39" class="ident">desc</a>.<a href="#line-147" class="ident">ExtensionDescriptor</a>.<a href="../../reflect/protoreflect/type.go.html#line-87" class="ident">IsPlaceholder</a>() {</code></span>
+<span class="codeline" id="line-137"><code>		<span class="keyword">if</span> <label for="r24" class="ident">xi</label>.<a href="#line-56" class="ident">ExtensionType</a> == <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-138"><code>			<label for="r24" class="ident">xi</label>.<a href="legacy_extension.go.html#line-20" class="ident">initToLegacy</a>()</code></span>
+<span class="codeline" id="line-139"><code>		}</code></span>
+<span class="codeline" id="line-140"><code>		<label for="r24" class="ident">xi</label>.<a href="#line-40" class="ident">conv</a> = <a href="convert.go.html#line-53" class="ident">NewConverter</a>(<label for="r24" class="ident">xi</label>.<a href="#line-38" class="ident">goType</a>, <label for="r24" class="ident">xi</label>.<a href="#line-39" class="ident">desc</a>.<a href="#line-147" class="ident">ExtensionDescriptor</a>)</code></span>
+<span class="codeline" id="line-141"><code>		<label for="r24" class="ident">xi</label>.<a href="#line-41" class="ident">info</a> = <a href="codec_extension.go.html#line-46" class="ident">makeExtensionFieldInfo</a>(<label for="r24" class="ident">xi</label>.<a href="#line-39" class="ident">desc</a>.<a href="#line-147" class="ident">ExtensionDescriptor</a>)</code></span>
+<span class="codeline" id="line-142"><code>		<label for="r24" class="ident">xi</label>.<a href="#line-41" class="ident">info</a>.<a href="codec_extension.go.html#line-21" class="ident">validation</a> = <a href="validate.go.html#line-145" class="ident">newValidationInfo</a>(<label for="r24" class="ident">xi</label>.<a href="#line-39" class="ident">desc</a>.<a href="#line-147" class="ident">ExtensionDescriptor</a>, <label for="r24" class="ident">xi</label>.<a href="#line-38" class="ident">goType</a>)</code></span>
+<span class="codeline" id="line-143"><code>	}</code></span>
+<span class="codeline" id="line-144"><code>}</code></span>
+<span class="codeline" id="line-145"><code></code></span>
+<span class="codeline" id="line-146"><code><span class="keyword">type</span> <a href="../../../../../pkg/google.golang.org/protobuf/internal/impl.html#name-extensionTypeDescriptor" class="ident">extensionTypeDescriptor</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-147"><code>	<a href="../../../../../pkg/google.golang.org/protobuf/reflect/protoreflect.html" class="ident i3">protoreflect</a>.<a href="../../reflect/protoreflect/type.go.html#line-446" class="ident">ExtensionDescriptor</a></code></span>
+<span class="codeline" id="line-148"><code>	<a href="../../../../../use/google.golang.org/protobuf/internal/impl..extensionTypeDescriptor^8565f.xi^17057.html" class="ident">xi</a> *<a href="#line-21" class="ident">ExtensionInfo</a></code></span>
+<span class="codeline" id="line-149"><code>}</code></span>
+<span class="codeline" id="line-150"><code></code></span>
+<span class="codeline" id="line-151"><code><span class="keyword">func</span> (<label for="r26" class="ident">xtd</label> *<a href="#line-146" class="ident">extensionTypeDescriptor</a>) <label for="r27" class="ident"><a href="../../../../../use/google.golang.org/protobuf/internal/impl..extensionTypeDescriptor^8565f.Type.html" class="ident">Type</a></label>() <a href="../../../../../pkg/google.golang.org/protobuf/reflect/protoreflect.html" class="ident i3">protoreflect</a>.<a href="../../reflect/protoreflect/type.go.html#line-495" class="ident">ExtensionType</a> {</code></span>
+<span class="codeline" id="line-152"><code>	<span class="keyword">return</span> <label for="r26" class="ident">xtd</label>.<a href="#line-148" class="ident">xi</a></code></span>
+<span class="codeline" id="line-153"><code>}</code></span>
+<span class="codeline" id="line-154"><code><span class="keyword">func</span> (<label for="r28" class="ident">xtd</label> *<a href="#line-146" class="ident">extensionTypeDescriptor</a>) <label for="r29" class="ident"><a href="../../../../../use/google.golang.org/protobuf/internal/impl..extensionTypeDescriptor^8565f.Descriptor.html" class="ident">Descriptor</a></label>() <a href="../../../../../pkg/google.golang.org/protobuf/reflect/protoreflect.html" class="ident i3">protoreflect</a>.<a href="../../reflect/protoreflect/type.go.html#line-446" class="ident">ExtensionDescriptor</a> {</code></span>
+<span class="codeline" id="line-155"><code>	<span class="keyword">return</span> <label for="r28" class="ident">xtd</label>.<a href="#line-147" class="ident">ExtensionDescriptor</a></code></span>
+<span class="codeline" id="line-156"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

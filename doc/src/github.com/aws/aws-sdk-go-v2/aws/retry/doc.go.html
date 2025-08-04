@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: doc.go in package github.com/aws/aws-sdk-go-v2/aws/retry</title>
+<link href="../../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	doc.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws/retry.html">github.com/aws/aws-sdk-go-v2/aws/retry</a>
+</code></pre>
+
+<pre class="line-numbers">
+<div class="anchor" id="doc"><span class="codeline" id="line-1"><code><span class="comment">// Package retry provides interfaces and implementations for SDK request retry behavior.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// # Retryer Interface and Implementations</span></code></span>
+<span class="codeline" id="line-4"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-5"><code><span class="comment">// This package defines Retryer interface that is used to either implement custom retry behavior</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment">// or to extend the existing retry implementations provided by the SDK. This package provides a single</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment">// retry implementation: Standard.</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment">// # Standard</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment">// Standard is the default retryer implementation used by service clients. The standard retryer is a rate limited</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment">// retryer that has a configurable max attempts to limit the number of retry attempts when a retryable error occurs.</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">// In addition, the retryer uses a configurable token bucket to rate limit the retry attempts across the client,</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">// and uses an additional delay policy to limit the time between a requests subsequent attempts.</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">// By default the standard retryer uses the DefaultRetryables slice of IsErrorRetryable types to determine whether</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">// a given error is retryable. By default this list of retryables includes the following:</span></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">//   - Retrying errors that implement the RetryableError method, and return true.</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">//   - Connection Errors</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">//   - Errors that implement a ConnectionError, Temporary, or Timeout method that return true.</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">//   - Connection Reset Errors.</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">//   - net.OpErr types that are dialing errors or are temporary.</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">//   - HTTP Status Codes: 500, 502, 503, and 504.</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">//   - API Error Codes</span></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">//   - RequestTimeout, RequestTimeoutException</span></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">//   - Throttling, ThrottlingException, ThrottledException, RequestThrottledException, TooManyRequestsException,</span></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">//     RequestThrottled, SlowDown, EC2ThrottledException</span></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">//   - ProvisionedThroughputExceededException, RequestLimitExceeded, BandwidthLimitExceeded, LimitExceededException</span></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">//   - TransactionInProgressException, PriorRequestNotComplete</span></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">// The standard retryer will not retry a request in the event if the context associated with the request</span></code></span>
+<span class="codeline" id="line-32"><code><span class="comment">// has been cancelled. Applications must handle this case explicitly if they wish to retry with a different context</span></code></span>
+<span class="codeline" id="line-33"><code><span class="comment">// value.</span></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-35"><code><span class="comment">// You can configure the standard retryer implementation to fit your applications by constructing a standard retryer</span></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">// using the NewStandard function, and providing one more functional argument that mutate the StandardOptions</span></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">// structure. StandardOptions provides the ability to modify the token bucket rate limiter, retryable error conditions,</span></code></span>
+<span class="codeline" id="line-38"><code><span class="comment">// and the retry delay policy.</span></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-40"><code><span class="comment">// For example to modify the default retry attempts for the standard retryer:</span></code></span>
+<span class="codeline" id="line-41"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">//	// configure the custom retryer</span></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">//	customRetry := retry.NewStandard(func(o *retry.StandardOptions) {</span></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">//	    o.MaxAttempts = 5</span></code></span>
+<span class="codeline" id="line-45"><code><span class="comment">//	})</span></code></span>
+<span class="codeline" id="line-46"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-47"><code><span class="comment">//	// create a service client with the retryer</span></code></span>
+<span class="codeline" id="line-48"><code><span class="comment">//	s3.NewFromConfig(cfg, func(o *s3.Options) {</span></code></span>
+<span class="codeline" id="line-49"><code><span class="comment">//	    o.Retryer = customRetry</span></code></span>
+<span class="codeline" id="line-50"><code><span class="comment">//	})</span></code></span>
+<span class="codeline" id="line-51"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-52"><code><span class="comment">// # Utilities</span></code></span>
+<span class="codeline" id="line-53"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-54"><code><span class="comment">// A number of package functions have been provided to easily wrap retryer implementations in an implementation agnostic</span></code></span>
+<span class="codeline" id="line-55"><code><span class="comment">// way. These are:</span></code></span>
+<span class="codeline" id="line-56"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-57"><code><span class="comment">//	AddWithErrorCodes      - Provides the ability to add additional API error codes that should be considered retryable</span></code></span>
+<span class="codeline" id="line-58"><code><span class="comment">//	                        in addition to those considered retryable by the provided retryer.</span></code></span>
+<span class="codeline" id="line-59"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-60"><code><span class="comment">//	AddWithMaxAttempts     - Provides the ability to set the max number of attempts for retrying a request by wrapping</span></code></span>
+<span class="codeline" id="line-61"><code><span class="comment">//	                         a retryer implementation.</span></code></span>
+<span class="codeline" id="line-62"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-63"><code><span class="comment">//	AddWithMaxBackoffDelay - Provides the ability to set the max back off delay that can occur before retrying a</span></code></span>
+<span class="codeline" id="line-64"><code><span class="comment">//	                         request by wrapping a retryer implementation.</span></code></span>
+<span class="codeline" id="line-65"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-66"><code><span class="comment">// The following package functions have been provided to easily satisfy different retry interfaces to further customize</span></code></span>
+<span class="codeline" id="line-67"><code><span class="comment">// a given retryer's behavior:</span></code></span>
+<span class="codeline" id="line-68"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-69"><code><span class="comment">//	BackoffDelayerFunc   - Can be used to wrap a function to satisfy the BackoffDelayer interface. For example,</span></code></span>
+<span class="codeline" id="line-70"><code><span class="comment">//	                       you can use this method to easily create custom back off policies to be used with the</span></code></span>
+<span class="codeline" id="line-71"><code><span class="comment">//	                       standard retryer.</span></code></span>
+<span class="codeline" id="line-72"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-73"><code><span class="comment">//	IsErrorRetryableFunc - Can be used to wrap a function to satisfy the IsErrorRetryable interface. For example,</span></code></span>
+<span class="codeline" id="line-74"><code><span class="comment">//	                       this can be used to extend the standard retryer to add additional logic to determine if an</span></code></span>
+<span class="codeline" id="line-75"><code><span class="comment">//	                       error should be retried.</span></code></span>
+<span class="codeline" id="line-76"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-77"><code><span class="comment">//	IsErrorTimeoutFunc   - Can be used to wrap a function to satisfy IsErrorTimeout interface. For example,</span></code></span>
+<span class="codeline" id="line-78"><code><span class="comment">//	                       this can be used to extend the standard retryer to add additional logic to determine if an</span></code></span>
+<span class="codeline" id="line-79"><code><span class="comment">//	                        error should be considered a timeout.</span></code></span></div><span class="codeline" id="line-80"><code><span class="keyword">package</span> retry</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

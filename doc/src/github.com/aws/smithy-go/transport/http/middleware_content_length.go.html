@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: middleware_content_length.go in package github.com/aws/smithy-go/transport/http</title>
+<link href="../../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	middleware_content_length.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../../pkg/github.com/aws/smithy-go/transport/http.html">github.com/aws/smithy-go/transport/http</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="keyword">package</span> http</code></span>
+<span class="codeline" id="line-2"><code></code></span>
+<span class="codeline" id="line-3"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-4"><code>	<label for="i0"><span class="lit-string i0">"context"</span></label></code></span>
+<span class="codeline" id="line-5"><code>	<label for="i1"><span class="lit-string i1">"fmt"</span></label></code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code>	<label for="i2"><span class="lit-string i2">"github.com/aws/smithy-go/middleware"</span></label></code></span>
+<span class="codeline" id="line-8"><code>)</code></span>
+<span class="codeline" id="line-9"><code></code></span>
+<span class="codeline" id="line-10"><code><span class="comment">// ComputeContentLength provides a middleware to set the content-length</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment">// header for the length of a serialize request body.</span></code></span>
+<span class="codeline" id="line-12"><code><span class="keyword">type</span> <a href="../../../../../../pkg/github.com/aws/smithy-go/transport/http.html#name-ComputeContentLength" class="ident">ComputeContentLength</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-13"><code>}</code></span>
+<span class="codeline" id="line-14"><code></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">// AddComputeContentLengthMiddleware adds ComputeContentLength to the middleware</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">// stack's Build step.</span></code></span>
+<span class="codeline" id="line-17"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../../../pkg/github.com/aws/smithy-go/transport/http.html#name-AddComputeContentLengthMiddleware" class="ident">AddComputeContentLengthMiddleware</a></label>(<label for="r1" class="ident">stack</label> *<a href="../../../../../../pkg/github.com/aws/smithy-go/middleware.html" class="ident i2">middleware</a>.<a href="../../middleware/stack.go.html#line-25" class="ident">Stack</a>) <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-18"><code>	<span class="keyword">return</span> <label for="r1" class="ident">stack</label>.<a href="../../middleware/stack.go.html#line-49" class="ident">Build</a>.<a href="../../middleware/step_build.go.html#line-129" class="ident">Add</a>(&amp;<a href="#line-12" class="ident">ComputeContentLength</a>{}, <a href="../../../../../../pkg/github.com/aws/smithy-go/middleware.html" class="ident i2">middleware</a>.<a href="../../middleware/ordered_group.go.html#line-11" class="ident">After</a>)</code></span>
+<span class="codeline" id="line-19"><code>}</code></span>
+<span class="codeline" id="line-20"><code></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">// ID returns the identifier for the ComputeContentLength.</span></code></span>
+<span class="codeline" id="line-22"><code><span class="keyword">func</span> (<label for="r2" class="ident">m</label> *<a href="#line-12" class="ident">ComputeContentLength</a>) <label for="r3" class="ident"><a href="../../../../../../use/github.com/aws/smithy-go/transport/http..ComputeContentLength.ID^38439.html" class="ident">ID</a></label>() <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a> { <span class="keyword">return</span> <span class="lit-string">"ComputeContentLength"</span> }</code></span>
+<span class="codeline" id="line-23"><code></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">// HandleBuild adds the length of the serialized request to the HTTP header</span></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">// if the length can be determined.</span></code></span>
+<span class="codeline" id="line-26"><code><span class="keyword">func</span> (<label for="r4" class="ident">m</label> *<a href="#line-12" class="ident">ComputeContentLength</a>) <label for="r5" class="ident"><a href="../../../../../../use/github.com/aws/smithy-go/transport/http..ComputeContentLength.HandleBuild.html" class="ident">HandleBuild</a></label>(</code></span>
+<span class="codeline" id="line-27"><code>	<label for="r6" class="ident">ctx</label> <a href="../../../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../../../context/context.go.html#line-71" class="ident">Context</a>, <label for="r7" class="ident">in</label> <a href="../../../../../../pkg/github.com/aws/smithy-go/middleware.html" class="ident i2">middleware</a>.<a href="../../middleware/step_build.go.html#line-10" class="ident">BuildInput</a>, <label for="r8" class="ident">next</label> <a href="../../../../../../pkg/github.com/aws/smithy-go/middleware.html" class="ident i2">middleware</a>.<a href="../../middleware/step_build.go.html#line-21" class="ident">BuildHandler</a>,</code></span>
+<span class="codeline" id="line-28"><code>) (</code></span>
+<span class="codeline" id="line-29"><code>	<label for="r9" class="ident">out</label> <a href="../../../../../../pkg/github.com/aws/smithy-go/middleware.html" class="ident i2">middleware</a>.<a href="../../middleware/step_build.go.html#line-15" class="ident">BuildOutput</a>, <label for="r10" class="ident">metadata</label> <a href="../../../../../../pkg/github.com/aws/smithy-go/middleware.html" class="ident i2">middleware</a>.<a href="../../middleware/metadata.go.html#line-16" class="ident">Metadata</a>, <label for="r11" class="ident">err</label> <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>,</code></span>
+<span class="codeline" id="line-30"><code>) {</code></span>
+<span class="codeline" id="line-31"><code>	<label for="r12" class="ident">req</label>, <label for="r13" class="ident">ok</label> := <label for="r7" class="ident">in</label>.<a href="../../middleware/step_build.go.html#line-11" class="ident">Request</a>.(*<a href="request.go.html#line-17" class="ident">Request</a>)</code></span>
+<span class="codeline" id="line-32"><code>	<span class="keyword">if</span> !<label for="r13" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-33"><code>		<span class="keyword">return</span> <label for="r9" class="ident">out</label>, <label for="r10" class="ident">metadata</label>, <a href="../../../../../../pkg/fmt.html" class="ident i1">fmt</a>.<a href="../../../../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"unknown request type %T"</span>, <label for="r12" class="ident">req</label>)</code></span>
+<span class="codeline" id="line-34"><code>	}</code></span>
+<span class="codeline" id="line-35"><code></code></span>
+<span class="codeline" id="line-36"><code>	<span class="comment">// do nothing if request content-length was set to 0 or above.</span></code></span>
+<span class="codeline" id="line-37"><code>	<span class="keyword">if</span> <label for="r12" class="ident">req</label>.<a href="../../../../../net/http/request.go.html#line-205" class="ident">ContentLength</a> &gt;= <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-38"><code>		<span class="keyword">return</span> <label for="r8" class="ident">next</label>.<a href="../../middleware/step_build.go.html#line-22" class="ident">HandleBuild</a>(<label for="r6" class="ident">ctx</label>, <label for="r7" class="ident">in</label>)</code></span>
+<span class="codeline" id="line-39"><code>	}</code></span>
+<span class="codeline" id="line-40"><code></code></span>
+<span class="codeline" id="line-41"><code>	<span class="comment">// attempt to compute stream length</span></code></span>
+<span class="codeline" id="line-42"><code>	<span class="keyword">if</span> <label for="r14" class="ident">n</label>, <label for="r15" class="ident">ok</label>, <label for="r16" class="ident">err</label> := <label for="r12" class="ident">req</label>.<a href="request.go.html#line-56" class="ident">StreamLength</a>(); <label for="r16" class="ident">err</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-43"><code>		<span class="keyword">return</span> <label for="r9" class="ident">out</label>, <label for="r10" class="ident">metadata</label>, <a href="../../../../../../pkg/fmt.html" class="ident i1">fmt</a>.<a href="../../../../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(</code></span>
+<span class="codeline" id="line-44"><code>			<span class="lit-string">"failed getting length of request stream, %w"</span>, <label for="r16" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-45"><code>	} <span class="keyword">else</span> <span class="keyword">if</span> <label for="r15" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-46"><code>		<label for="r12" class="ident">req</label>.<a href="../../../../../net/http/request.go.html#line-205" class="ident">ContentLength</a> = <label for="r14" class="ident">n</label></code></span>
+<span class="codeline" id="line-47"><code>	}</code></span>
+<span class="codeline" id="line-48"><code></code></span>
+<span class="codeline" id="line-49"><code>	<span class="keyword">return</span> <label for="r8" class="ident">next</label>.<a href="../../middleware/step_build.go.html#line-22" class="ident">HandleBuild</a>(<label for="r6" class="ident">ctx</label>, <label for="r7" class="ident">in</label>)</code></span>
+<span class="codeline" id="line-50"><code>}</code></span>
+<span class="codeline" id="line-51"><code></code></span>
+<span class="codeline" id="line-52"><code><span class="comment">// validateContentLength provides a middleware to validate the content-length</span></code></span>
+<span class="codeline" id="line-53"><code><span class="comment">// is valid (greater than zero), for the serialized request payload.</span></code></span>
+<span class="codeline" id="line-54"><code><span class="keyword">type</span> <a href="../../../../../../pkg/github.com/aws/smithy-go/transport/http.html#name-validateContentLength" class="ident">validateContentLength</a> <span class="keyword">struct</span>{}</code></span>
+<span class="codeline" id="line-55"><code></code></span>
+<span class="codeline" id="line-56"><code><span class="comment">// ValidateContentLengthHeader adds middleware that validates request content-length</span></code></span>
+<span class="codeline" id="line-57"><code><span class="comment">// is set to value greater than zero.</span></code></span>
+<span class="codeline" id="line-58"><code><span class="keyword">func</span> <label for="r17" class="ident"><a href="../../../../../../pkg/github.com/aws/smithy-go/transport/http.html#name-ValidateContentLengthHeader" class="ident">ValidateContentLengthHeader</a></label>(<label for="r18" class="ident">stack</label> *<a href="../../../../../../pkg/github.com/aws/smithy-go/middleware.html" class="ident i2">middleware</a>.<a href="../../middleware/stack.go.html#line-25" class="ident">Stack</a>) <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-59"><code>	<span class="keyword">return</span> <label for="r18" class="ident">stack</label>.<a href="../../middleware/stack.go.html#line-49" class="ident">Build</a>.<a href="../../middleware/step_build.go.html#line-129" class="ident">Add</a>(&amp;<a href="#line-54" class="ident">validateContentLength</a>{}, <a href="../../../../../../pkg/github.com/aws/smithy-go/middleware.html" class="ident i2">middleware</a>.<a href="../../middleware/ordered_group.go.html#line-11" class="ident">After</a>)</code></span>
+<span class="codeline" id="line-60"><code>}</code></span>
+<span class="codeline" id="line-61"><code></code></span>
+<span class="codeline" id="line-62"><code><span class="comment">// ID returns the identifier for the ComputeContentLength.</span></code></span>
+<span class="codeline" id="line-63"><code><span class="keyword">func</span> (<label for="r19" class="ident">m</label> *<a href="#line-54" class="ident">validateContentLength</a>) <label for="r20" class="ident"><a href="../../../../../../use/github.com/aws/smithy-go/transport/http..validateContentLength^9a25b.ID^38439.html" class="ident">ID</a></label>() <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a> { <span class="keyword">return</span> <span class="lit-string">"ValidateContentLength"</span> }</code></span>
+<span class="codeline" id="line-64"><code></code></span>
+<span class="codeline" id="line-65"><code><span class="comment">// HandleBuild adds the length of the serialized request to the HTTP header</span></code></span>
+<span class="codeline" id="line-66"><code><span class="comment">// if the length can be determined.</span></code></span>
+<span class="codeline" id="line-67"><code><span class="keyword">func</span> (<label for="r21" class="ident">m</label> *<a href="#line-54" class="ident">validateContentLength</a>) <label for="r22" class="ident"><a href="../../../../../../use/github.com/aws/smithy-go/transport/http..validateContentLength^9a25b.HandleBuild.html" class="ident">HandleBuild</a></label>(</code></span>
+<span class="codeline" id="line-68"><code>	<label for="r23" class="ident">ctx</label> <a href="../../../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../../../context/context.go.html#line-71" class="ident">Context</a>, <label for="r24" class="ident">in</label> <a href="../../../../../../pkg/github.com/aws/smithy-go/middleware.html" class="ident i2">middleware</a>.<a href="../../middleware/step_build.go.html#line-10" class="ident">BuildInput</a>, <label for="r25" class="ident">next</label> <a href="../../../../../../pkg/github.com/aws/smithy-go/middleware.html" class="ident i2">middleware</a>.<a href="../../middleware/step_build.go.html#line-21" class="ident">BuildHandler</a>,</code></span>
+<span class="codeline" id="line-69"><code>) (</code></span>
+<span class="codeline" id="line-70"><code>	<label for="r26" class="ident">out</label> <a href="../../../../../../pkg/github.com/aws/smithy-go/middleware.html" class="ident i2">middleware</a>.<a href="../../middleware/step_build.go.html#line-15" class="ident">BuildOutput</a>, <label for="r27" class="ident">metadata</label> <a href="../../../../../../pkg/github.com/aws/smithy-go/middleware.html" class="ident i2">middleware</a>.<a href="../../middleware/metadata.go.html#line-16" class="ident">Metadata</a>, <label for="r28" class="ident">err</label> <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>,</code></span>
+<span class="codeline" id="line-71"><code>) {</code></span>
+<span class="codeline" id="line-72"><code>	<label for="r29" class="ident">req</label>, <label for="r30" class="ident">ok</label> := <label for="r24" class="ident">in</label>.<a href="../../middleware/step_build.go.html#line-11" class="ident">Request</a>.(*<a href="request.go.html#line-17" class="ident">Request</a>)</code></span>
+<span class="codeline" id="line-73"><code>	<span class="keyword">if</span> !<label for="r30" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-74"><code>		<span class="keyword">return</span> <label for="r26" class="ident">out</label>, <label for="r27" class="ident">metadata</label>, <a href="../../../../../../pkg/fmt.html" class="ident i1">fmt</a>.<a href="../../../../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"unknown request type %T"</span>, <label for="r29" class="ident">req</label>)</code></span>
+<span class="codeline" id="line-75"><code>	}</code></span>
+<span class="codeline" id="line-76"><code></code></span>
+<span class="codeline" id="line-77"><code>	<span class="comment">// if request content-length was set to less than 0, return an error</span></code></span>
+<span class="codeline" id="line-78"><code>	<span class="keyword">if</span> <label for="r29" class="ident">req</label>.<a href="../../../../../net/http/request.go.html#line-205" class="ident">ContentLength</a> &lt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-79"><code>		<span class="keyword">return</span> <label for="r26" class="ident">out</label>, <label for="r27" class="ident">metadata</label>, <a href="../../../../../../pkg/fmt.html" class="ident i1">fmt</a>.<a href="../../../../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(</code></span>
+<span class="codeline" id="line-80"><code>			<span class="lit-string">"content length for payload is required and must be at least 0"</span>)</code></span>
+<span class="codeline" id="line-81"><code>	}</code></span>
+<span class="codeline" id="line-82"><code></code></span>
+<span class="codeline" id="line-83"><code>	<span class="keyword">return</span> <label for="r25" class="ident">next</label>.<a href="../../middleware/step_build.go.html#line-22" class="ident">HandleBuild</a>(<label for="r23" class="ident">ctx</label>, <label for="r24" class="ident">in</label>)</code></span>
+<span class="codeline" id="line-84"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

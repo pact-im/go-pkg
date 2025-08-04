@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: retry.go in package github.com/aws/aws-sdk-go-v2/aws/retry</title>
+<link href="../../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	retry.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws/retry.html">github.com/aws/aws-sdk-go-v2/aws/retry</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="keyword">package</span> retry</code></span>
+<span class="codeline" id="line-2"><code></code></span>
+<span class="codeline" id="line-3"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-4"><code>	<label for="i0"><span class="lit-string i0">"context"</span></label></code></span>
+<span class="codeline" id="line-5"><code>	<label for="i1"><span class="lit-string i1">"time"</span></label></code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code>	<label for="i2"><span class="lit-string i2">"github.com/aws/aws-sdk-go-v2/aws"</span></label></code></span>
+<span class="codeline" id="line-8"><code>)</code></span>
+<span class="codeline" id="line-9"><code></code></span>
+<span class="codeline" id="line-10"><code><span class="comment">// AddWithErrorCodes returns a Retryer with additional error codes considered</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment">// for determining if the error should be retried.</span></code></span>
+<span class="codeline" id="line-12"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws/retry.html#name-AddWithErrorCodes" class="ident">AddWithErrorCodes</a></label>(<label for="r1" class="ident">r</label> <a href="../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws.html" class="ident i2">aws</a>.<a href="../retryer.go.html#line-45" class="ident">Retryer</a>, <label for="r2" class="ident">codes</label> ...<a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws.html" class="ident i2">aws</a>.<a href="../retryer.go.html#line-45" class="ident">Retryer</a> {</code></span>
+<span class="codeline" id="line-13"><code>	<label for="r3" class="ident">retryable</label> := &amp;<a href="retryable_error.go.html#line-167" class="ident">RetryableErrorCode</a>{</code></span>
+<span class="codeline" id="line-14"><code>		<a href="retryable_error.go.html#line-168" class="ident">Codes</a>: <span class="keyword">map</span>[<a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>]<span class="keyword">struct</span>{}{},</code></span>
+<span class="codeline" id="line-15"><code>	}</code></span>
+<span class="codeline" id="line-16"><code>	<span class="keyword">for</span> <label for="r4" class="ident">_</label>, <label for="r5" class="ident">c</label> := <span class="keyword">range</span> <label for="r2" class="ident">codes</label> {</code></span>
+<span class="codeline" id="line-17"><code>		<label for="r3" class="ident">retryable</label>.<a href="retryable_error.go.html#line-168" class="ident">Codes</a>[<label for="r5" class="ident">c</label>] = <span class="keyword">struct</span>{}{}</code></span>
+<span class="codeline" id="line-18"><code>	}</code></span>
+<span class="codeline" id="line-19"><code></code></span>
+<span class="codeline" id="line-20"><code>	<span class="keyword">return</span> &amp;<a href="#line-26" class="ident">withIsErrorRetryable</a>{</code></span>
+<span class="codeline" id="line-21"><code>		<a href="#line-27" class="ident">RetryerV2</a>: <a href="#line-79" class="ident">wrapAsRetryerV2</a>(<label for="r1" class="ident">r</label>),</code></span>
+<span class="codeline" id="line-22"><code>		<a href="#line-28" class="ident">Retryable</a>: <label for="r3" class="ident">retryable</label>,</code></span>
+<span class="codeline" id="line-23"><code>	}</code></span>
+<span class="codeline" id="line-24"><code>}</code></span>
+<span class="codeline" id="line-25"><code></code></span>
+<span class="codeline" id="line-26"><code><span class="keyword">type</span> <a href="../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws/retry.html#name-withIsErrorRetryable" class="ident">withIsErrorRetryable</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-27"><code>	<a href="../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws.html" class="ident i2">aws</a>.<a href="../retryer.go.html#line-80" class="ident">RetryerV2</a></code></span>
+<span class="codeline" id="line-28"><code>	<a href="../../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..withIsErrorRetryable^6fc7d.Retryable.html" class="ident">Retryable</a> <a href="retryable_error.go.html#line-14" class="ident">IsErrorRetryable</a></code></span>
+<span class="codeline" id="line-29"><code>}</code></span>
+<span class="codeline" id="line-30"><code></code></span>
+<span class="codeline" id="line-31"><code><span class="keyword">func</span> (<label for="r6" class="ident">r</label> *<a href="#line-26" class="ident">withIsErrorRetryable</a>) <label for="r7" class="ident"><a href="../../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..withIsErrorRetryable^6fc7d.IsErrorRetryable.html" class="ident">IsErrorRetryable</a></label>(<label for="r8" class="ident">err</label> <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>) <a href="../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-32"><code>	<span class="keyword">if</span> <label for="r9" class="ident">v</label> := <label for="r6" class="ident">r</label>.<a href="#line-28" class="ident">Retryable</a>.<a href="retryable_error.go.html#line-15" class="ident">IsErrorRetryable</a>(<label for="r8" class="ident">err</label>); <label for="r9" class="ident">v</label> != <a href="../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws.html" class="ident i2">aws</a>.<a href="../types.go.html#line-31" class="ident">UnknownTernary</a> {</code></span>
+<span class="codeline" id="line-33"><code>		<span class="keyword">return</span> <label for="r9" class="ident">v</label>.<a href="../types.go.html#line-25" class="ident">Bool</a>()</code></span>
+<span class="codeline" id="line-34"><code>	}</code></span>
+<span class="codeline" id="line-35"><code>	<span class="keyword">return</span> <label for="r6" class="ident">r</label>.<a href="#line-27" class="ident">RetryerV2</a>.<a href="../retryer.go.html#line-49" class="ident">IsErrorRetryable</a>(<label for="r8" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-36"><code>}</code></span>
+<span class="codeline" id="line-37"><code></code></span>
+<span class="codeline" id="line-38"><code><span class="comment">// AddWithMaxAttempts returns a Retryer with MaxAttempts set to the value</span></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">// specified.</span></code></span>
+<span class="codeline" id="line-40"><code><span class="keyword">func</span> <label for="r10" class="ident"><a href="../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws/retry.html#name-AddWithMaxAttempts" class="ident">AddWithMaxAttempts</a></label>(<label for="r11" class="ident">r</label> <a href="../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws.html" class="ident i2">aws</a>.<a href="../retryer.go.html#line-45" class="ident">Retryer</a>, <label for="r12" class="ident">max</label> <a href="../../../../../../pkg/builtin.html#name-int" class="ident">int</a>) <a href="../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws.html" class="ident i2">aws</a>.<a href="../retryer.go.html#line-45" class="ident">Retryer</a> {</code></span>
+<span class="codeline" id="line-41"><code>	<span class="keyword">return</span> &amp;<a href="#line-47" class="ident">withMaxAttempts</a>{</code></span>
+<span class="codeline" id="line-42"><code>		<a href="#line-48" class="ident">RetryerV2</a>: <a href="#line-79" class="ident">wrapAsRetryerV2</a>(<label for="r11" class="ident">r</label>),</code></span>
+<span class="codeline" id="line-43"><code>		<a href="#line-49" class="ident">Max</a>:       <label for="r12" class="ident">max</label>,</code></span>
+<span class="codeline" id="line-44"><code>	}</code></span>
+<span class="codeline" id="line-45"><code>}</code></span>
+<span class="codeline" id="line-46"><code></code></span>
+<span class="codeline" id="line-47"><code><span class="keyword">type</span> <a href="../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws/retry.html#name-withMaxAttempts" class="ident">withMaxAttempts</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-48"><code>	<a href="../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws.html" class="ident i2">aws</a>.<a href="../retryer.go.html#line-80" class="ident">RetryerV2</a></code></span>
+<span class="codeline" id="line-49"><code>	<a href="../../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..withMaxAttempts^f9932.Max.html" class="ident">Max</a> <a href="../../../../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-50"><code>}</code></span>
+<span class="codeline" id="line-51"><code></code></span>
+<span class="codeline" id="line-52"><code><span class="keyword">func</span> (<label for="r13" class="ident">w</label> *<a href="#line-47" class="ident">withMaxAttempts</a>) <label for="r14" class="ident"><a href="../../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..withMaxAttempts^f9932.MaxAttempts.html" class="ident">MaxAttempts</a></label>() <a href="../../../../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-53"><code>	<span class="keyword">return</span> <label for="r13" class="ident">w</label>.<a href="#line-49" class="ident">Max</a></code></span>
+<span class="codeline" id="line-54"><code>}</code></span>
+<span class="codeline" id="line-55"><code></code></span>
+<span class="codeline" id="line-56"><code><span class="comment">// AddWithMaxBackoffDelay returns a retryer wrapping the passed in retryer</span></code></span>
+<span class="codeline" id="line-57"><code><span class="comment">// overriding the RetryDelay behavior for a alternate minimum initial backoff</span></code></span>
+<span class="codeline" id="line-58"><code><span class="comment">// delay.</span></code></span>
+<span class="codeline" id="line-59"><code><span class="keyword">func</span> <label for="r15" class="ident"><a href="../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws/retry.html#name-AddWithMaxBackoffDelay" class="ident">AddWithMaxBackoffDelay</a></label>(<label for="r16" class="ident">r</label> <a href="../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws.html" class="ident i2">aws</a>.<a href="../retryer.go.html#line-45" class="ident">Retryer</a>, <label for="r17" class="ident">delay</label> <a href="../../../../../../pkg/time.html" class="ident i1">time</a>.<a href="../../../../../time/time.go.html#line-911" class="ident">Duration</a>) <a href="../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws.html" class="ident i2">aws</a>.<a href="../retryer.go.html#line-45" class="ident">Retryer</a> {</code></span>
+<span class="codeline" id="line-60"><code>	<span class="keyword">return</span> &amp;<a href="#line-66" class="ident">withMaxBackoffDelay</a>{</code></span>
+<span class="codeline" id="line-61"><code>		<a href="#line-67" class="ident">RetryerV2</a>: <a href="#line-79" class="ident">wrapAsRetryerV2</a>(<label for="r16" class="ident">r</label>),</code></span>
+<span class="codeline" id="line-62"><code>		<a href="#line-68" class="ident">backoff</a>:   <a href="jitter_backoff.go.html#line-23" class="ident">NewExponentialJitterBackoff</a>(<label for="r17" class="ident">delay</label>),</code></span>
+<span class="codeline" id="line-63"><code>	}</code></span>
+<span class="codeline" id="line-64"><code>}</code></span>
+<span class="codeline" id="line-65"><code></code></span>
+<span class="codeline" id="line-66"><code><span class="keyword">type</span> <a href="../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws/retry.html#name-withMaxBackoffDelay" class="ident">withMaxBackoffDelay</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-67"><code>	<a href="../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws.html" class="ident i2">aws</a>.<a href="../retryer.go.html#line-80" class="ident">RetryerV2</a></code></span>
+<span class="codeline" id="line-68"><code>	<a href="../../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..withMaxBackoffDelay^313c0.backoff^42b6c.html" class="ident">backoff</a> *<a href="jitter_backoff.go.html#line-13" class="ident">ExponentialJitterBackoff</a></code></span>
+<span class="codeline" id="line-69"><code>}</code></span>
+<span class="codeline" id="line-70"><code></code></span>
+<span class="codeline" id="line-71"><code><span class="keyword">func</span> (<label for="r18" class="ident">r</label> *<a href="#line-66" class="ident">withMaxBackoffDelay</a>) <label for="r19" class="ident"><a href="../../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..withMaxBackoffDelay^313c0.RetryDelay.html" class="ident">RetryDelay</a></label>(<label for="r20" class="ident">attempt</label> <a href="../../../../../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r21" class="ident">err</label> <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>) (<a href="../../../../../../pkg/time.html" class="ident i1">time</a>.<a href="../../../../../time/time.go.html#line-911" class="ident">Duration</a>, <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-72"><code>	<span class="keyword">return</span> <label for="r18" class="ident">r</label>.<a href="#line-68" class="ident">backoff</a>.<a href="jitter_backoff.go.html#line-34" class="ident">BackoffDelay</a>(<label for="r20" class="ident">attempt</label>, <label for="r21" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-73"><code>}</code></span>
+<span class="codeline" id="line-74"><code></code></span>
+<span class="codeline" id="line-75"><code><span class="keyword">type</span> <a href="../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws/retry.html#name-wrappedAsRetryerV2" class="ident">wrappedAsRetryerV2</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-76"><code>	<a href="../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws.html" class="ident i2">aws</a>.<a href="../retryer.go.html#line-45" class="ident">Retryer</a></code></span>
+<span class="codeline" id="line-77"><code>}</code></span>
+<span class="codeline" id="line-78"><code></code></span>
+<span class="codeline" id="line-79"><code><span class="keyword">func</span> <label for="r22" class="ident"><a href="../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws/retry.html#name-wrapAsRetryerV2" class="ident">wrapAsRetryerV2</a></label>(<label for="r23" class="ident">r</label> <a href="../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws.html" class="ident i2">aws</a>.<a href="../retryer.go.html#line-45" class="ident">Retryer</a>) <a href="../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws.html" class="ident i2">aws</a>.<a href="../retryer.go.html#line-80" class="ident">RetryerV2</a> {</code></span>
+<span class="codeline" id="line-80"><code>	<label for="r24" class="ident">v</label>, <label for="r25" class="ident">ok</label> := <label for="r23" class="ident">r</label>.(<a href="../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws.html" class="ident i2">aws</a>.<a href="../retryer.go.html#line-80" class="ident">RetryerV2</a>)</code></span>
+<span class="codeline" id="line-81"><code>	<span class="keyword">if</span> !<label for="r25" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-82"><code>		<label for="r24" class="ident">v</label> = <a href="#line-75" class="ident">wrappedAsRetryerV2</a>{<a href="#line-76" class="ident">Retryer</a>: <label for="r23" class="ident">r</label>}</code></span>
+<span class="codeline" id="line-83"><code>	}</code></span>
+<span class="codeline" id="line-84"><code></code></span>
+<span class="codeline" id="line-85"><code>	<span class="keyword">return</span> <label for="r24" class="ident">v</label></code></span>
+<span class="codeline" id="line-86"><code>}</code></span>
+<span class="codeline" id="line-87"><code></code></span>
+<span class="codeline" id="line-88"><code><span class="keyword">func</span> (<label for="r26" class="ident">w</label> <a href="#line-75" class="ident">wrappedAsRetryerV2</a>) <label for="r27" class="ident"><a href="../../../../../../use/github.com/aws/aws-sdk-go-v2/aws/retry..wrappedAsRetryerV2^908cb.GetAttemptToken.html" class="ident">GetAttemptToken</a></label>(<a href="../../../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../../../context/context.go.html#line-71" class="ident">Context</a>) (<span class="keyword">func</span>(<a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>) <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>, <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-89"><code>	<span class="keyword">return</span> <label for="r26" class="ident">w</label>.<a href="#line-76" class="ident">Retryer</a>.<a href="../retryer.go.html#line-66" class="ident">GetInitialToken</a>(), <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-90"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

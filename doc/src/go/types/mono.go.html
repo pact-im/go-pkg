@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: mono.go in package go/types</title>
+<link href="../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	mono.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../pkg/go/types.html">go/types</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30],
+input[id=r31]:checked ~pre label[for=r31],
+input[id=r32]:checked ~pre label[for=r32],
+input[id=r33]:checked ~pre label[for=r33],
+input[id=r34]:checked ~pre label[for=r34],
+input[id=r35]:checked ~pre label[for=r35],
+input[id=r36]:checked ~pre label[for=r36],
+input[id=r37]:checked ~pre label[for=r37],
+input[id=r38]:checked ~pre label[for=r38],
+input[id=r39]:checked ~pre label[for=r39],
+input[id=r40]:checked ~pre label[for=r40],
+input[id=r41]:checked ~pre label[for=r41],
+input[id=r42]:checked ~pre label[for=r42],
+input[id=r43]:checked ~pre label[for=r43],
+input[id=r44]:checked ~pre label[for=r44],
+input[id=r45]:checked ~pre label[for=r45],
+input[id=r46]:checked ~pre label[for=r46],
+input[id=r47]:checked ~pre label[for=r47],
+input[id=r48]:checked ~pre label[for=r48],
+input[id=r49]:checked ~pre label[for=r49],
+input[id=r50]:checked ~pre label[for=r50],
+input[id=r51]:checked ~pre label[for=r51],
+input[id=r52]:checked ~pre label[for=r52],
+input[id=r53]:checked ~pre label[for=r53],
+input[id=r54]:checked ~pre label[for=r54],
+input[id=r55]:checked ~pre label[for=r55],
+input[id=r56]:checked ~pre label[for=r56],
+input[id=r57]:checked ~pre label[for=r57],
+input[id=r58]:checked ~pre label[for=r58],
+input[id=r59]:checked ~pre label[for=r59],
+input[id=r60]:checked ~pre label[for=r60],
+input[id=r61]:checked ~pre label[for=r61],
+input[id=r62]:checked ~pre label[for=r62],
+input[id=r63]:checked ~pre label[for=r63],
+input[id=r64]:checked ~pre label[for=r64],
+input[id=r65]:checked ~pre label[for=r65],
+input[id=r66]:checked ~pre label[for=r66],
+input[id=r67]:checked ~pre label[for=r67],
+input[id=r68]:checked ~pre label[for=r68],
+input[id=r69]:checked ~pre label[for=r69],
+input[id=r70]:checked ~pre label[for=r70],
+input[id=r71]:checked ~pre label[for=r71],
+input[id=r72]:checked ~pre label[for=r72],
+input[id=r73]:checked ~pre label[for=r73],
+input[id=r74]:checked ~pre label[for=r74],
+input[id=r75]:checked ~pre label[for=r75],
+input[id=r76]:checked ~pre label[for=r76],
+input[id=r77]:checked ~pre label[for=r77],
+input[id=r78]:checked ~pre label[for=r78],
+input[id=r79]:checked ~pre label[for=r79],
+input[id=r80]:checked ~pre label[for=r80],
+input[id=r81]:checked ~pre label[for=r81],
+input[id=r82]:checked ~pre label[for=r82],
+input[id=r83]:checked ~pre label[for=r83],
+input[id=r84]:checked ~pre label[for=r84],
+input[id=r85]:checked ~pre label[for=r85],
+input[id=r86]:checked ~pre label[for=r86],
+input[id=r87]:checked ~pre label[for=r87],
+input[id=r88]:checked ~pre label[for=r88],
+input[id=r89]:checked ~pre label[for=r89],
+input[id=r90]:checked ~pre label[for=r90],
+input[id=r91]:checked ~pre label[for=r91],
+input[id=r92]:checked ~pre label[for=r92],
+input[id=r93]:checked ~pre label[for=r93],
+input[id=r94]:checked ~pre label[for=r94],
+input[id=r95]:checked ~pre label[for=r95],
+input[id=r96]:checked ~pre label[for=r96]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="r31" type="radio" name="g"/>
+<input id="r32" type="radio" name="g"/>
+<input id="r33" type="radio" name="g"/>
+<input id="r34" type="radio" name="g"/>
+<input id="r35" type="radio" name="g"/>
+<input id="r36" type="radio" name="g"/>
+<input id="r37" type="radio" name="g"/>
+<input id="r38" type="radio" name="g"/>
+<input id="r39" type="radio" name="g"/>
+<input id="r40" type="radio" name="g"/>
+<input id="r41" type="radio" name="g"/>
+<input id="r42" type="radio" name="g"/>
+<input id="r43" type="radio" name="g"/>
+<input id="r44" type="radio" name="g"/>
+<input id="r45" type="radio" name="g"/>
+<input id="r46" type="radio" name="g"/>
+<input id="r47" type="radio" name="g"/>
+<input id="r48" type="radio" name="g"/>
+<input id="r49" type="radio" name="g"/>
+<input id="r50" type="radio" name="g"/>
+<input id="r51" type="radio" name="g"/>
+<input id="r52" type="radio" name="g"/>
+<input id="r53" type="radio" name="g"/>
+<input id="r54" type="radio" name="g"/>
+<input id="r55" type="radio" name="g"/>
+<input id="r56" type="radio" name="g"/>
+<input id="r57" type="radio" name="g"/>
+<input id="r58" type="radio" name="g"/>
+<input id="r59" type="radio" name="g"/>
+<input id="r60" type="radio" name="g"/>
+<input id="r61" type="radio" name="g"/>
+<input id="r62" type="radio" name="g"/>
+<input id="r63" type="radio" name="g"/>
+<input id="r64" type="radio" name="g"/>
+<input id="r65" type="radio" name="g"/>
+<input id="r66" type="radio" name="g"/>
+<input id="r67" type="radio" name="g"/>
+<input id="r68" type="radio" name="g"/>
+<input id="r69" type="radio" name="g"/>
+<input id="r70" type="radio" name="g"/>
+<input id="r71" type="radio" name="g"/>
+<input id="r72" type="radio" name="g"/>
+<input id="r73" type="radio" name="g"/>
+<input id="r74" type="radio" name="g"/>
+<input id="r75" type="radio" name="g"/>
+<input id="r76" type="radio" name="g"/>
+<input id="r77" type="radio" name="g"/>
+<input id="r78" type="radio" name="g"/>
+<input id="r79" type="radio" name="g"/>
+<input id="r80" type="radio" name="g"/>
+<input id="r81" type="radio" name="g"/>
+<input id="r82" type="radio" name="g"/>
+<input id="r83" type="radio" name="g"/>
+<input id="r84" type="radio" name="g"/>
+<input id="r85" type="radio" name="g"/>
+<input id="r86" type="radio" name="g"/>
+<input id="r87" type="radio" name="g"/>
+<input id="r88" type="radio" name="g"/>
+<input id="r89" type="radio" name="g"/>
+<input id="r90" type="radio" name="g"/>
+<input id="r91" type="radio" name="g"/>
+<input id="r92" type="radio" name="g"/>
+<input id="r93" type="radio" name="g"/>
+<input id="r94" type="radio" name="g"/>
+<input id="r95" type="radio" name="g"/>
+<input id="r96" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Code generated by "go test -run=Generate -write=all"; DO NOT EDIT.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Source: ../../cmd/compile/internal/types2/mono.go</span></code></span>
+<span class="codeline" id="line-3"><code></code></span>
+<span class="codeline" id="line-4"><code><span class="comment">// Copyright 2021 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-5"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-7"><code></code></span>
+<span class="codeline" id="line-8"><code><span class="keyword">package</span> types</code></span>
+<span class="codeline" id="line-9"><code></code></span>
+<span class="codeline" id="line-10"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-11"><code>	<label for="i0"><span class="lit-string i0">"go/ast"</span></label></code></span>
+<span class="codeline" id="line-12"><code>	<label for="i1"><span class="lit-string i1">"go/token"</span></label></code></span>
+<span class="codeline" id="line-13"><code>	<a href="../../../pkg/internal/types/errors.html" class="ident i2">.</a> <label for="i2"><span class="lit-string i2">"internal/types/errors"</span></label></code></span>
+<span class="codeline" id="line-14"><code>)</code></span>
+<span class="codeline" id="line-15"><code></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">// This file implements a check to validate that a Go package doesn't</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">// have unbounded recursive instantiation, which is not compatible</span></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">// with compilers using static instantiation (such as</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">// monomorphization).</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">// It implements a sort of "type flow" analysis by detecting which</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">// type parameters are instantiated with other type parameters (or</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">// types derived thereof). A package cannot be statically instantiated</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">// if the graph has any cycles involving at least one derived type.</span></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">// Concretely, we construct a directed, weighted graph. Vertices are</span></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">// used to represent type parameters as well as some defined</span></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">// types. Edges are used to represent how types depend on each other:</span></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">// * Everywhere a type-parameterized function or type is instantiated,</span></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">//   we add edges to each type parameter from the vertices (if any)</span></code></span>
+<span class="codeline" id="line-32"><code><span class="comment">//   representing each type parameter or defined type referenced by</span></code></span>
+<span class="codeline" id="line-33"><code><span class="comment">//   the type argument. If the type argument is just the referenced</span></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">//   type itself, then the edge has weight 0, otherwise 1.</span></code></span>
+<span class="codeline" id="line-35"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">// * For every defined type declared within a type-parameterized</span></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">//   function or method, we add an edge of weight 1 to the defined</span></code></span>
+<span class="codeline" id="line-38"><code><span class="comment">//   type from each ambient type parameter.</span></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-40"><code><span class="comment">// For example, given:</span></code></span>
+<span class="codeline" id="line-41"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">//	func f[A, B any]() {</span></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">//		type T int</span></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">//		f[T, map[A]B]()</span></code></span>
+<span class="codeline" id="line-45"><code><span class="comment">//	}</span></code></span>
+<span class="codeline" id="line-46"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-47"><code><span class="comment">// we construct vertices representing types A, B, and T. Because of</span></code></span>
+<span class="codeline" id="line-48"><code><span class="comment">// declaration "type T int", we construct edges T&lt;-A and T&lt;-B with</span></code></span>
+<span class="codeline" id="line-49"><code><span class="comment">// weight 1; and because of instantiation "f[T, map[A]B]" we construct</span></code></span>
+<span class="codeline" id="line-50"><code><span class="comment">// edges A&lt;-T with weight 0, and B&lt;-A and B&lt;-B with weight 1.</span></code></span>
+<span class="codeline" id="line-51"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-52"><code><span class="comment">// Finally, we look for any positive-weight cycles. Zero-weight cycles</span></code></span>
+<span class="codeline" id="line-53"><code><span class="comment">// are allowed because static instantiation will reach a fixed point.</span></code></span>
+<span class="codeline" id="line-54"><code></code></span>
+<span class="codeline" id="line-55"><code><span class="keyword">type</span> <a href="../../../pkg/go/types.html#name-monoGraph" class="ident">monoGraph</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-56"><code>	<a href="../../../use/go/types..monoGraph^33981.vertices^da9d8.html" class="ident">vertices</a> []<a href="#line-68" class="ident">monoVertex</a></code></span>
+<span class="codeline" id="line-57"><code>	<a href="../../../use/go/types..monoGraph^33981.edges^f394a.html" class="ident">edges</a>    []<a href="#line-78" class="ident">monoEdge</a></code></span>
+<span class="codeline" id="line-58"><code></code></span>
+<span class="codeline" id="line-59"><code>	<span class="comment">// canon maps method receiver type parameters to their respective</span></code></span>
+<span class="codeline" id="line-60"><code><span class="comment">	// receiver type's type parameters.</span></code></span>
+<span class="codeline" id="line-61"><code>	<a href="../../../use/go/types..monoGraph^33981.canon^7a535.html" class="ident">canon</a> <span class="keyword">map</span>[*<a href="typeparam.go.html#line-25" class="ident">TypeParam</a>]*<a href="typeparam.go.html#line-25" class="ident">TypeParam</a></code></span>
+<span class="codeline" id="line-62"><code></code></span>
+<span class="codeline" id="line-63"><code>	<span class="comment">// nameIdx maps a defined type or (canonical) type parameter to its</span></code></span>
+<span class="codeline" id="line-64"><code><span class="comment">	// vertex index.</span></code></span>
+<span class="codeline" id="line-65"><code>	<a href="../../../use/go/types..monoGraph^33981.nameIdx^132f4.html" class="ident">nameIdx</a> <span class="keyword">map</span>[*<a href="object.go.html#line-282" class="ident">TypeName</a>]<a href="../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-66"><code>}</code></span>
+<span class="codeline" id="line-67"><code></code></span>
+<span class="codeline" id="line-68"><code><span class="keyword">type</span> <a href="../../../pkg/go/types.html#name-monoVertex" class="ident">monoVertex</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-69"><code>	<a href="../../../use/go/types..monoVertex^b0986.weight^0844d.html" class="ident">weight</a> <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> <span class="comment">// weight of heaviest known path to this vertex</span></code></span>
+<span class="codeline" id="line-70"><code>	<a href="../../../use/go/types..monoVertex^b0986.pre^69525.html" class="ident">pre</a>    <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> <span class="comment">// previous edge (if any) in the above path</span></code></span>
+<span class="codeline" id="line-71"><code>	<a href="../../../use/go/types..monoVertex^b0986.len^71fa9.html" class="ident">len</a>    <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> <span class="comment">// length of the above path</span></code></span>
+<span class="codeline" id="line-72"><code></code></span>
+<span class="codeline" id="line-73"><code>	<span class="comment">// obj is the defined type or type parameter represented by this</span></code></span>
+<span class="codeline" id="line-74"><code><span class="comment">	// vertex.</span></code></span>
+<span class="codeline" id="line-75"><code>	<a href="../../../use/go/types..monoVertex^b0986.obj^772a5.html" class="ident">obj</a> *<a href="object.go.html#line-282" class="ident">TypeName</a></code></span>
+<span class="codeline" id="line-76"><code>}</code></span>
+<span class="codeline" id="line-77"><code></code></span>
+<span class="codeline" id="line-78"><code><span class="keyword">type</span> <a href="../../../pkg/go/types.html#name-monoEdge" class="ident">monoEdge</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-79"><code>	<a href="../../../use/go/types..monoEdge^93b72.dst^06180.html" class="ident">dst</a>, <a href="../../../use/go/types..monoEdge^93b72.src^25a66.html" class="ident">src</a> <a href="../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-80"><code>	<a href="../../../use/go/types..monoEdge^93b72.weight^0844d.html" class="ident">weight</a>   <a href="../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-81"><code></code></span>
+<span class="codeline" id="line-82"><code>	<a href="../../../use/go/types..monoEdge^93b72.pos^7160f.html" class="ident">pos</a> <a href="../../../pkg/go/token.html" class="ident i1">token</a>.<a href="../token/position.go.html#line-83" class="ident">Pos</a></code></span>
+<span class="codeline" id="line-83"><code>	<a href="../../../use/go/types..monoEdge^93b72.typ^5a553.html" class="ident">typ</a> <a href="type.go.html#line-9" class="ident">Type</a></code></span>
+<span class="codeline" id="line-84"><code>}</code></span>
+<span class="codeline" id="line-85"><code></code></span>
+<span class="codeline" id="line-86"><code><span class="keyword">func</span> (<label for="r0" class="ident">check</label> *<a href="check.go.html#line-152" class="ident">Checker</a>) <label for="r1" class="ident"><a href="../../../use/go/types..Checker.monomorph^b9bf1.html" class="ident">monomorph</a></label>() {</code></span>
+<span class="codeline" id="line-87"><code>	<span class="comment">// We detect unbounded instantiation cycles using a variant of</span></code></span>
+<span class="codeline" id="line-88"><code><span class="comment">	// Bellman-Ford's algorithm. Namely, instead of always running |V|</span></code></span>
+<span class="codeline" id="line-89"><code><span class="comment">	// iterations, we run until we either reach a fixed point or we've</span></code></span>
+<span class="codeline" id="line-90"><code><span class="comment">	// found a path of length |V|. This allows us to terminate earlier</span></code></span>
+<span class="codeline" id="line-91"><code><span class="comment">	// when there are no cycles, which should be the common case.</span></code></span>
+<span class="codeline" id="line-92"><code></code></span>
+<span class="codeline" id="line-93"><code>	<label for="r2" class="ident">again</label> := <a href="../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-94"><code>	<span class="keyword">for</span> <label for="r2" class="ident">again</label> {</code></span>
+<span class="codeline" id="line-95"><code>		<label for="r2" class="ident">again</label> = <a href="../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-96"><code></code></span>
+<span class="codeline" id="line-97"><code>		<span class="keyword">for</span> <label for="r3" class="ident">i</label>, <label for="r4" class="ident">edge</label> := <span class="keyword">range</span> <label for="r0" class="ident">check</label>.<a href="check.go.html#line-187" class="ident">mono</a>.<a href="#line-57" class="ident">edges</a> {</code></span>
+<span class="codeline" id="line-98"><code>			<label for="r5" class="ident">src</label> := &amp;<label for="r0" class="ident">check</label>.<a href="check.go.html#line-187" class="ident">mono</a>.<a href="#line-56" class="ident">vertices</a>[<label for="r4" class="ident">edge</label>.<a href="#line-79" class="ident">src</a>]</code></span>
+<span class="codeline" id="line-99"><code>			<label for="r6" class="ident">dst</label> := &amp;<label for="r0" class="ident">check</label>.<a href="check.go.html#line-187" class="ident">mono</a>.<a href="#line-56" class="ident">vertices</a>[<label for="r4" class="ident">edge</label>.<a href="#line-79" class="ident">dst</a>]</code></span>
+<span class="codeline" id="line-100"><code></code></span>
+<span class="codeline" id="line-101"><code>			<span class="comment">// N.B., we're looking for the greatest weight paths, unlike</span></code></span>
+<span class="codeline" id="line-102"><code><span class="comment">			// typical Bellman-Ford.</span></code></span>
+<span class="codeline" id="line-103"><code>			<label for="r7" class="ident">w</label> := <label for="r5" class="ident">src</label>.<a href="#line-69" class="ident">weight</a> + <label for="r4" class="ident">edge</label>.<a href="#line-80" class="ident">weight</a></code></span>
+<span class="codeline" id="line-104"><code>			<span class="keyword">if</span> <label for="r7" class="ident">w</label> &lt;= <label for="r6" class="ident">dst</label>.<a href="#line-69" class="ident">weight</a> {</code></span>
+<span class="codeline" id="line-105"><code>				<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-106"><code>			}</code></span>
+<span class="codeline" id="line-107"><code></code></span>
+<span class="codeline" id="line-108"><code>			<label for="r6" class="ident">dst</label>.<a href="#line-70" class="ident">pre</a> = <label for="r3" class="ident">i</label></code></span>
+<span class="codeline" id="line-109"><code>			<label for="r6" class="ident">dst</label>.<a href="#line-71" class="ident">len</a> = <label for="r5" class="ident">src</label>.<a href="#line-71" class="ident">len</a> + <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-110"><code>			<span class="keyword">if</span> <label for="r6" class="ident">dst</label>.<a href="#line-71" class="ident">len</a> == <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r0" class="ident">check</label>.<a href="check.go.html#line-187" class="ident">mono</a>.<a href="#line-56" class="ident">vertices</a>) {</code></span>
+<span class="codeline" id="line-111"><code>				<label for="r0" class="ident">check</label>.<a href="#line-121" class="ident">reportInstanceLoop</a>(<label for="r4" class="ident">edge</label>.<a href="#line-79" class="ident">dst</a>)</code></span>
+<span class="codeline" id="line-112"><code>				<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-113"><code>			}</code></span>
+<span class="codeline" id="line-114"><code></code></span>
+<span class="codeline" id="line-115"><code>			<label for="r6" class="ident">dst</label>.<a href="#line-69" class="ident">weight</a> = <label for="r7" class="ident">w</label></code></span>
+<span class="codeline" id="line-116"><code>			<label for="r2" class="ident">again</label> = <a href="../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-117"><code>		}</code></span>
+<span class="codeline" id="line-118"><code>	}</code></span>
+<span class="codeline" id="line-119"><code>}</code></span>
+<span class="codeline" id="line-120"><code></code></span>
+<span class="codeline" id="line-121"><code><span class="keyword">func</span> (<label for="r8" class="ident">check</label> *<a href="check.go.html#line-152" class="ident">Checker</a>) <label for="r9" class="ident"><a href="../../../use/go/types..Checker.reportInstanceLoop^f0172.html" class="ident">reportInstanceLoop</a></label>(<label for="r10" class="ident">v</label> <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>) {</code></span>
+<span class="codeline" id="line-122"><code>	<span class="keyword">var</span> <label for="r11" class="ident">stack</label> []<a href="../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-123"><code>	<label for="r12" class="ident">seen</label> := <a href="../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a>, <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r8" class="ident">check</label>.<a href="check.go.html#line-187" class="ident">mono</a>.<a href="#line-56" class="ident">vertices</a>))</code></span>
+<span class="codeline" id="line-124"><code></code></span>
+<span class="codeline" id="line-125"><code>	<span class="comment">// We have a path that contains a cycle and ends at v, but v may</span></code></span>
+<span class="codeline" id="line-126"><code><span class="comment">	// only be reachable from the cycle, not on the cycle itself. We</span></code></span>
+<span class="codeline" id="line-127"><code><span class="comment">	// start by walking backwards along the path until we find a vertex</span></code></span>
+<span class="codeline" id="line-128"><code><span class="comment">	// that appears twice.</span></code></span>
+<span class="codeline" id="line-129"><code>	<span class="keyword">for</span> !<label for="r12" class="ident">seen</label>[<label for="r10" class="ident">v</label>] {</code></span>
+<span class="codeline" id="line-130"><code>		<label for="r11" class="ident">stack</label> = <a href="../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r11" class="ident">stack</label>, <label for="r10" class="ident">v</label>)</code></span>
+<span class="codeline" id="line-131"><code>		<label for="r12" class="ident">seen</label>[<label for="r10" class="ident">v</label>] = <a href="../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-132"><code>		<label for="r10" class="ident">v</label> = <label for="r8" class="ident">check</label>.<a href="check.go.html#line-187" class="ident">mono</a>.<a href="#line-57" class="ident">edges</a>[<label for="r8" class="ident">check</label>.<a href="check.go.html#line-187" class="ident">mono</a>.<a href="#line-56" class="ident">vertices</a>[<label for="r10" class="ident">v</label>].<a href="#line-70" class="ident">pre</a>].<a href="#line-79" class="ident">src</a></code></span>
+<span class="codeline" id="line-133"><code>	}</code></span>
+<span class="codeline" id="line-134"><code></code></span>
+<span class="codeline" id="line-135"><code>	<span class="comment">// Trim any vertices we visited before visiting v the first</span></code></span>
+<span class="codeline" id="line-136"><code><span class="comment">	// time. Since v is the first vertex we found within the cycle, any</span></code></span>
+<span class="codeline" id="line-137"><code><span class="comment">	// vertices we visited earlier cannot be part of the cycle.</span></code></span>
+<span class="codeline" id="line-138"><code>	<span class="keyword">for</span> <label for="r11" class="ident">stack</label>[<span class="lit-number">0</span>] != <label for="r10" class="ident">v</label> {</code></span>
+<span class="codeline" id="line-139"><code>		<label for="r11" class="ident">stack</label> = <label for="r11" class="ident">stack</label>[<span class="lit-number">1</span>:]</code></span>
+<span class="codeline" id="line-140"><code>	}</code></span>
+<span class="codeline" id="line-141"><code></code></span>
+<span class="codeline" id="line-142"><code>	<span class="comment">// TODO(mdempsky): Pivot stack so we report the cycle from the top?</span></code></span>
+<span class="codeline" id="line-143"><code></code></span>
+<span class="codeline" id="line-144"><code>	<label for="r13" class="ident">err</label> := <label for="r8" class="ident">check</label>.<a href="errors.go.html#line-47" class="ident">newError</a>(<a href="../../internal/types/errors/codes.go.html#line-1374" class="ident">InvalidInstanceCycle</a>)</code></span>
+<span class="codeline" id="line-145"><code>	<label for="r14" class="ident">obj0</label> := <label for="r8" class="ident">check</label>.<a href="check.go.html#line-187" class="ident">mono</a>.<a href="#line-56" class="ident">vertices</a>[<label for="r10" class="ident">v</label>].<a href="#line-75" class="ident">obj</a></code></span>
+<span class="codeline" id="line-146"><code>	<label for="r13" class="ident">err</label>.<a href="errors.go.html#line-60" class="ident">addf</a>(<label for="r14" class="ident">obj0</label>, <span class="lit-string">"instantiation cycle:"</span>)</code></span>
+<span class="codeline" id="line-147"><code></code></span>
+<span class="codeline" id="line-148"><code>	<label for="r15" class="ident">qf</label> := <a href="typestring.go.html#line-35" class="ident">RelativeTo</a>(<label for="r8" class="ident">check</label>.<a href="check.go.html#line-158" class="ident">pkg</a>)</code></span>
+<span class="codeline" id="line-149"><code>	<span class="keyword">for</span> <label for="r16" class="ident">_</label>, <label for="r17" class="ident">v</label> := <span class="keyword">range</span> <label for="r11" class="ident">stack</label> {</code></span>
+<span class="codeline" id="line-150"><code>		<label for="r18" class="ident">edge</label> := <label for="r8" class="ident">check</label>.<a href="check.go.html#line-187" class="ident">mono</a>.<a href="#line-57" class="ident">edges</a>[<label for="r8" class="ident">check</label>.<a href="check.go.html#line-187" class="ident">mono</a>.<a href="#line-56" class="ident">vertices</a>[<label for="r17" class="ident">v</label>].<a href="#line-70" class="ident">pre</a>]</code></span>
+<span class="codeline" id="line-151"><code>		<label for="r19" class="ident">obj</label> := <label for="r8" class="ident">check</label>.<a href="check.go.html#line-187" class="ident">mono</a>.<a href="#line-56" class="ident">vertices</a>[<label for="r18" class="ident">edge</label>.<a href="#line-79" class="ident">dst</a>].<a href="#line-75" class="ident">obj</a></code></span>
+<span class="codeline" id="line-152"><code></code></span>
+<span class="codeline" id="line-153"><code>		<span class="keyword">switch</span> <label for="r19" class="ident">obj</label>.<a href="object.go.html#line-158" class="ident">Type</a>().(<span class="keyword">type</span>) {</code></span>
+<span class="codeline" id="line-154"><code>		<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-155"><code>			<a href="../../../pkg/builtin.html#name-panic" class="ident">panic</a>(<span class="lit-string">"unexpected type"</span>)</code></span>
+<span class="codeline" id="line-156"><code>		<span class="keyword">case</span> *<a href="named.go.html#line-109" class="ident">Named</a>:</code></span>
+<span class="codeline" id="line-157"><code>			<label for="r13" class="ident">err</label>.<a href="errors.go.html#line-60" class="ident">addf</a>(<a href="errors.go.html#line-261" class="ident">atPos</a>(<label for="r18" class="ident">edge</label>.<a href="#line-82" class="ident">pos</a>), <span class="lit-string">"%s implicitly parameterized by %s"</span>, <label for="r19" class="ident">obj</label>.<a href="object.go.html#line-155" class="ident">Name</a>(), <a href="typestring.go.html#line-50" class="ident">TypeString</a>(<label for="r18" class="ident">edge</label>.<a href="#line-83" class="ident">typ</a>, <label for="r15" class="ident">qf</label>)) <span class="comment">// secondary error, \t indented</span></code></span>
+<span class="codeline" id="line-158"><code>		<span class="keyword">case</span> *<a href="typeparam.go.html#line-25" class="ident">TypeParam</a>:</code></span>
+<span class="codeline" id="line-159"><code>			<label for="r13" class="ident">err</label>.<a href="errors.go.html#line-60" class="ident">addf</a>(<a href="errors.go.html#line-261" class="ident">atPos</a>(<label for="r18" class="ident">edge</label>.<a href="#line-82" class="ident">pos</a>), <span class="lit-string">"%s instantiated as %s"</span>, <label for="r19" class="ident">obj</label>.<a href="object.go.html#line-155" class="ident">Name</a>(), <a href="typestring.go.html#line-50" class="ident">TypeString</a>(<label for="r18" class="ident">edge</label>.<a href="#line-83" class="ident">typ</a>, <label for="r15" class="ident">qf</label>)) <span class="comment">// secondary error, \t indented</span></code></span>
+<span class="codeline" id="line-160"><code>		}</code></span>
+<span class="codeline" id="line-161"><code>	}</code></span>
+<span class="codeline" id="line-162"><code>	<label for="r13" class="ident">err</label>.<a href="errors.go.html#line-106" class="ident">report</a>()</code></span>
+<span class="codeline" id="line-163"><code>}</code></span>
+<span class="codeline" id="line-164"><code></code></span>
+<span class="codeline" id="line-165"><code><span class="comment">// recordCanon records that tpar is the canonical type parameter</span></code></span>
+<span class="codeline" id="line-166"><code><span class="comment">// corresponding to method type parameter mpar.</span></code></span>
+<span class="codeline" id="line-167"><code><span class="keyword">func</span> (<label for="r20" class="ident">w</label> *<a href="#line-55" class="ident">monoGraph</a>) <label for="r21" class="ident"><a href="../../../use/go/types..monoGraph^33981.recordCanon^ad05d.html" class="ident">recordCanon</a></label>(<label for="r22" class="ident">mpar</label>, <label for="r23" class="ident">tpar</label> *<a href="typeparam.go.html#line-25" class="ident">TypeParam</a>) {</code></span>
+<span class="codeline" id="line-168"><code>	<span class="keyword">if</span> <label for="r20" class="ident">w</label>.<a href="#line-61" class="ident">canon</a> == <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-169"><code>		<label for="r20" class="ident">w</label>.<a href="#line-61" class="ident">canon</a> = <a href="../../../pkg/builtin.html#name-make" class="ident">make</a>(<span class="keyword">map</span>[*<a href="typeparam.go.html#line-25" class="ident">TypeParam</a>]*<a href="typeparam.go.html#line-25" class="ident">TypeParam</a>)</code></span>
+<span class="codeline" id="line-170"><code>	}</code></span>
+<span class="codeline" id="line-171"><code>	<label for="r20" class="ident">w</label>.<a href="#line-61" class="ident">canon</a>[<label for="r22" class="ident">mpar</label>] = <label for="r23" class="ident">tpar</label></code></span>
+<span class="codeline" id="line-172"><code>}</code></span>
+<span class="codeline" id="line-173"><code></code></span>
+<span class="codeline" id="line-174"><code><span class="comment">// recordInstance records that the given type parameters were</span></code></span>
+<span class="codeline" id="line-175"><code><span class="comment">// instantiated with the corresponding type arguments.</span></code></span>
+<span class="codeline" id="line-176"><code><span class="keyword">func</span> (<label for="r24" class="ident">w</label> *<a href="#line-55" class="ident">monoGraph</a>) <label for="r25" class="ident"><a href="../../../use/go/types..monoGraph^33981.recordInstance^17767.html" class="ident">recordInstance</a></label>(<label for="r26" class="ident">pkg</label> *<a href="package.go.html#line-15" class="ident">Package</a>, <label for="r27" class="ident">pos</label> <a href="../../../pkg/go/token.html" class="ident i1">token</a>.<a href="../token/position.go.html#line-83" class="ident">Pos</a>, <label for="r28" class="ident">tparams</label> []*<a href="typeparam.go.html#line-25" class="ident">TypeParam</a>, <label for="r29" class="ident">targs</label> []<a href="type.go.html#line-9" class="ident">Type</a>, <label for="r30" class="ident">xlist</label> []<a href="../../../pkg/go/ast.html" class="ident i0">ast</a>.<a href="../ast/ast.go.html#line-38" class="ident">Expr</a>) {</code></span>
+<span class="codeline" id="line-177"><code>	<span class="keyword">for</span> <label for="r31" class="ident">i</label>, <label for="r32" class="ident">tpar</label> := <span class="keyword">range</span> <label for="r28" class="ident">tparams</label> {</code></span>
+<span class="codeline" id="line-178"><code>		<label for="r33" class="ident">pos</label> := <label for="r27" class="ident">pos</label></code></span>
+<span class="codeline" id="line-179"><code>		<span class="keyword">if</span> <label for="r31" class="ident">i</label> &lt; <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r30" class="ident">xlist</label>) {</code></span>
+<span class="codeline" id="line-180"><code>			<label for="r33" class="ident">pos</label> = <a href="util.go.html#line-50" class="ident">startPos</a>(<label for="r30" class="ident">xlist</label>[<label for="r31" class="ident">i</label>])</code></span>
+<span class="codeline" id="line-181"><code>		}</code></span>
+<span class="codeline" id="line-182"><code>		<label for="r24" class="ident">w</label>.<a href="#line-187" class="ident">assign</a>(<label for="r26" class="ident">pkg</label>, <label for="r33" class="ident">pos</label>, <label for="r32" class="ident">tpar</label>, <label for="r29" class="ident">targs</label>[<label for="r31" class="ident">i</label>])</code></span>
+<span class="codeline" id="line-183"><code>	}</code></span>
+<span class="codeline" id="line-184"><code>}</code></span>
+<span class="codeline" id="line-185"><code></code></span>
+<span class="codeline" id="line-186"><code><span class="comment">// assign records that tpar was instantiated as targ at pos.</span></code></span>
+<span class="codeline" id="line-187"><code><span class="keyword">func</span> (<label for="r34" class="ident">w</label> *<a href="#line-55" class="ident">monoGraph</a>) <label for="r35" class="ident"><a href="../../../use/go/types..monoGraph^33981.assign^9300b.html" class="ident">assign</a></label>(<label for="r36" class="ident">pkg</label> *<a href="package.go.html#line-15" class="ident">Package</a>, <label for="r37" class="ident">pos</label> <a href="../../../pkg/go/token.html" class="ident i1">token</a>.<a href="../token/position.go.html#line-83" class="ident">Pos</a>, <label for="r38" class="ident">tpar</label> *<a href="typeparam.go.html#line-25" class="ident">TypeParam</a>, <label for="r39" class="ident">targ</label> <a href="type.go.html#line-9" class="ident">Type</a>) {</code></span>
+<span class="codeline" id="line-188"><code>	<span class="comment">// Go generics do not have an analog to C++`s template-templates,</span></code></span>
+<span class="codeline" id="line-189"><code><span class="comment">	// where a template parameter can itself be an instantiable</span></code></span>
+<span class="codeline" id="line-190"><code><span class="comment">	// template. So any instantiation cycles must occur within a single</span></code></span>
+<span class="codeline" id="line-191"><code><span class="comment">	// package. Accordingly, we can ignore instantiations of imported</span></code></span>
+<span class="codeline" id="line-192"><code><span class="comment">	// type parameters.</span></code></span>
+<span class="codeline" id="line-193"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-194"><code><span class="comment">	// TODO(mdempsky): Push this check up into recordInstance? All type</span></code></span>
+<span class="codeline" id="line-195"><code><span class="comment">	// parameters in a list will appear in the same package.</span></code></span>
+<span class="codeline" id="line-196"><code>	<span class="keyword">if</span> <label for="r38" class="ident">tpar</label>.<a href="typeparam.go.html#line-66" class="ident">Obj</a>().<a href="object.go.html#line-152" class="ident">Pkg</a>() != <label for="r36" class="ident">pkg</label> {</code></span>
+<span class="codeline" id="line-197"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-198"><code>	}</code></span>
+<span class="codeline" id="line-199"><code></code></span>
+<span class="codeline" id="line-200"><code>	<span class="comment">// flow adds an edge from vertex src representing that typ flows to tpar.</span></code></span>
+<span class="codeline" id="line-201"><code>	<label for="r40" class="ident">flow</label> := <span class="keyword">func</span>(<label for="r41" class="ident">src</label> <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r42" class="ident">typ</label> <a href="type.go.html#line-9" class="ident">Type</a>) {</code></span>
+<span class="codeline" id="line-202"><code>		<label for="r43" class="ident">weight</label> := <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-203"><code>		<span class="keyword">if</span> <label for="r42" class="ident">typ</label> == <label for="r39" class="ident">targ</label> {</code></span>
+<span class="codeline" id="line-204"><code>			<label for="r43" class="ident">weight</label> = <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-205"><code>		}</code></span>
+<span class="codeline" id="line-206"><code></code></span>
+<span class="codeline" id="line-207"><code>		<label for="r34" class="ident">w</label>.<a href="#line-332" class="ident">addEdge</a>(<label for="r34" class="ident">w</label>.<a href="#line-311" class="ident">typeParamVertex</a>(<label for="r38" class="ident">tpar</label>), <label for="r41" class="ident">src</label>, <label for="r43" class="ident">weight</label>, <label for="r37" class="ident">pos</label>, <label for="r39" class="ident">targ</label>)</code></span>
+<span class="codeline" id="line-208"><code>	}</code></span>
+<span class="codeline" id="line-209"><code></code></span>
+<span class="codeline" id="line-210"><code>	<span class="comment">// Recursively walk the type argument to find any defined types or</span></code></span>
+<span class="codeline" id="line-211"><code><span class="comment">	// type parameters.</span></code></span>
+<span class="codeline" id="line-212"><code>	<span class="keyword">var</span> <label for="r44" class="ident">do</label> <span class="keyword">func</span>(<label for="r45" class="ident">typ</label> <a href="type.go.html#line-9" class="ident">Type</a>)</code></span>
+<span class="codeline" id="line-213"><code>	<label for="r44" class="ident">do</label> = <span class="keyword">func</span>(<label for="r46" class="ident">typ</label> <a href="type.go.html#line-9" class="ident">Type</a>) {</code></span>
+<span class="codeline" id="line-214"><code>		<span class="keyword">switch</span> typ := <a href="alias.go.html#line-104" class="ident">Unalias</a>(<label for="r46" class="ident">typ</label>).(<span class="keyword">type</span>) {</code></span>
+<span class="codeline" id="line-215"><code>		<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-216"><code>			<a href="../../../pkg/builtin.html#name-panic" class="ident">panic</a>(<span class="lit-string">"unexpected type"</span>)</code></span>
+<span class="codeline" id="line-217"><code></code></span>
+<span class="codeline" id="line-218"><code>		<span class="keyword">case</span> *<a href="typeparam.go.html#line-25" class="ident">TypeParam</a>:</code></span>
+<span class="codeline" id="line-219"><code>			<a href="errors.go.html#line-18" class="ident">assert</a>(<label for="r47" class="ident">typ</label>.<a href="typeparam.go.html#line-66" class="ident">Obj</a>().<a href="object.go.html#line-152" class="ident">Pkg</a>() == <label for="r36" class="ident">pkg</label>)</code></span>
+<span class="codeline" id="line-220"><code>			<label for="r40" class="ident">flow</label>(<label for="r34" class="ident">w</label>.<a href="#line-311" class="ident">typeParamVertex</a>(<label for="r47" class="ident">typ</label>), <label for="r47" class="ident">typ</label>)</code></span>
+<span class="codeline" id="line-221"><code></code></span>
+<span class="codeline" id="line-222"><code>		<span class="keyword">case</span> *<a href="named.go.html#line-109" class="ident">Named</a>:</code></span>
+<span class="codeline" id="line-223"><code>			<span class="keyword">if</span> <label for="r48" class="ident">src</label> := <label for="r34" class="ident">w</label>.<a href="#line-269" class="ident">localNamedVertex</a>(<label for="r36" class="ident">pkg</label>, <label for="r49" class="ident">typ</label>.<a href="named.go.html#line-316" class="ident">Origin</a>()); <label for="r48" class="ident">src</label> &gt;= <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-224"><code>				<label for="r40" class="ident">flow</label>(<label for="r48" class="ident">src</label>, <label for="r49" class="ident">typ</label>)</code></span>
+<span class="codeline" id="line-225"><code>			}</code></span>
+<span class="codeline" id="line-226"><code></code></span>
+<span class="codeline" id="line-227"><code>			<label for="r50" class="ident">targs</label> := <label for="r49" class="ident">typ</label>.<a href="named.go.html#line-335" class="ident">TypeArgs</a>()</code></span>
+<span class="codeline" id="line-228"><code>			<span class="keyword">for</span> <label for="r51" class="ident">i</label> := <span class="lit-number">0</span>; <label for="r51" class="ident">i</label> &lt; <label for="r50" class="ident">targs</label>.<a href="typelists.go.html#line-43" class="ident">Len</a>(); <label for="r51" class="ident">i</label>++ {</code></span>
+<span class="codeline" id="line-229"><code>				<label for="r44" class="ident">do</label>(<label for="r50" class="ident">targs</label>.<a href="typelists.go.html#line-46" class="ident">At</a>(<label for="r51" class="ident">i</label>))</code></span>
+<span class="codeline" id="line-230"><code>			}</code></span>
+<span class="codeline" id="line-231"><code></code></span>
+<span class="codeline" id="line-232"><code>		<span class="keyword">case</span> *<a href="array.go.html#line-11" class="ident">Array</a>:</code></span>
+<span class="codeline" id="line-233"><code>			<label for="r44" class="ident">do</label>(<label for="r52" class="ident">typ</label>.<a href="array.go.html#line-25" class="ident">Elem</a>())</code></span>
+<span class="codeline" id="line-234"><code>		<span class="keyword">case</span> *<a href="basic.go.html#line-69" class="ident">Basic</a>:</code></span>
+<span class="codeline" id="line-235"><code>			<span class="comment">// ok</span></code></span>
+<span class="codeline" id="line-236"><code>		<span class="keyword">case</span> *<a href="chan.go.html#line-11" class="ident">Chan</a>:</code></span>
+<span class="codeline" id="line-237"><code>			<label for="r44" class="ident">do</label>(<label for="r53" class="ident">typ</label>.<a href="chan.go.html#line-35" class="ident">Elem</a>())</code></span>
+<span class="codeline" id="line-238"><code>		<span class="keyword">case</span> *<a href="map.go.html#line-11" class="ident">Map</a>:</code></span>
+<span class="codeline" id="line-239"><code>			<label for="r44" class="ident">do</label>(<label for="r54" class="ident">typ</label>.<a href="map.go.html#line-21" class="ident">Key</a>())</code></span>
+<span class="codeline" id="line-240"><code>			<label for="r44" class="ident">do</label>(<label for="r54" class="ident">typ</label>.<a href="map.go.html#line-24" class="ident">Elem</a>())</code></span>
+<span class="codeline" id="line-241"><code>		<span class="keyword">case</span> *<a href="pointer.go.html#line-11" class="ident">Pointer</a>:</code></span>
+<span class="codeline" id="line-242"><code>			<label for="r44" class="ident">do</label>(<label for="r55" class="ident">typ</label>.<a href="pointer.go.html#line-19" class="ident">Elem</a>())</code></span>
+<span class="codeline" id="line-243"><code>		<span class="keyword">case</span> *<a href="slice.go.html#line-11" class="ident">Slice</a>:</code></span>
+<span class="codeline" id="line-244"><code>			<label for="r44" class="ident">do</label>(<label for="r56" class="ident">typ</label>.<a href="slice.go.html#line-19" class="ident">Elem</a>())</code></span>
+<span class="codeline" id="line-245"><code></code></span>
+<span class="codeline" id="line-246"><code>		<span class="keyword">case</span> *<a href="interface.go.html#line-17" class="ident">Interface</a>:</code></span>
+<span class="codeline" id="line-247"><code>			<span class="keyword">for</span> <label for="r57" class="ident">i</label> := <span class="lit-number">0</span>; <label for="r57" class="ident">i</label> &lt; <label for="r58" class="ident">typ</label>.<a href="interface.go.html#line-113" class="ident">NumMethods</a>(); <label for="r57" class="ident">i</label>++ {</code></span>
+<span class="codeline" id="line-248"><code>				<label for="r44" class="ident">do</label>(<label for="r58" class="ident">typ</label>.<a href="interface.go.html#line-117" class="ident">Method</a>(<label for="r57" class="ident">i</label>).<a href="object.go.html#line-158" class="ident">Type</a>())</code></span>
+<span class="codeline" id="line-249"><code>			}</code></span>
+<span class="codeline" id="line-250"><code>		<span class="keyword">case</span> *<a href="signature.go.html#line-21" class="ident">Signature</a>:</code></span>
+<span class="codeline" id="line-251"><code>			<label for="r59" class="ident">tuple</label> := <span class="keyword">func</span>(<label for="r60" class="ident">tup</label> *<a href="tuple.go.html#line-13" class="ident">Tuple</a>) {</code></span>
+<span class="codeline" id="line-252"><code>				<span class="keyword">for</span> <label for="r61" class="ident">i</label> := <span class="lit-number">0</span>; <label for="r61" class="ident">i</label> &lt; <label for="r60" class="ident">tup</label>.<a href="tuple.go.html#line-26" class="ident">Len</a>(); <label for="r61" class="ident">i</label>++ {</code></span>
+<span class="codeline" id="line-253"><code>					<label for="r44" class="ident">do</label>(<label for="r60" class="ident">tup</label>.<a href="tuple.go.html#line-34" class="ident">At</a>(<label for="r61" class="ident">i</label>).<a href="object.go.html#line-158" class="ident">Type</a>())</code></span>
+<span class="codeline" id="line-254"><code>				}</code></span>
+<span class="codeline" id="line-255"><code>			}</code></span>
+<span class="codeline" id="line-256"><code>			<label for="r59" class="ident">tuple</label>(<label for="r62" class="ident">typ</label>.<a href="signature.go.html#line-93" class="ident">Params</a>())</code></span>
+<span class="codeline" id="line-257"><code>			<label for="r59" class="ident">tuple</label>(<label for="r62" class="ident">typ</label>.<a href="signature.go.html#line-96" class="ident">Results</a>())</code></span>
+<span class="codeline" id="line-258"><code>		<span class="keyword">case</span> *<a href="struct.go.html#line-18" class="ident">Struct</a>:</code></span>
+<span class="codeline" id="line-259"><code>			<span class="keyword">for</span> <label for="r63" class="ident">i</label> := <span class="lit-number">0</span>; <label for="r63" class="ident">i</label> &lt; <label for="r64" class="ident">typ</label>.<a href="struct.go.html#line-43" class="ident">NumFields</a>(); <label for="r63" class="ident">i</label>++ {</code></span>
+<span class="codeline" id="line-260"><code>				<label for="r44" class="ident">do</label>(<label for="r64" class="ident">typ</label>.<a href="struct.go.html#line-46" class="ident">Field</a>(<label for="r63" class="ident">i</label>).<a href="object.go.html#line-158" class="ident">Type</a>())</code></span>
+<span class="codeline" id="line-261"><code>			}</code></span>
+<span class="codeline" id="line-262"><code>		}</code></span>
+<span class="codeline" id="line-263"><code>	}</code></span>
+<span class="codeline" id="line-264"><code>	<label for="r44" class="ident">do</label>(<label for="r39" class="ident">targ</label>)</code></span>
+<span class="codeline" id="line-265"><code>}</code></span>
+<span class="codeline" id="line-266"><code></code></span>
+<span class="codeline" id="line-267"><code><span class="comment">// localNamedVertex returns the index of the vertex representing</span></code></span>
+<span class="codeline" id="line-268"><code><span class="comment">// named, or -1 if named doesn't need representation.</span></code></span>
+<span class="codeline" id="line-269"><code><span class="keyword">func</span> (<label for="r65" class="ident">w</label> *<a href="#line-55" class="ident">monoGraph</a>) <label for="r66" class="ident"><a href="../../../use/go/types..monoGraph^33981.localNamedVertex^b71a2.html" class="ident">localNamedVertex</a></label>(<label for="r67" class="ident">pkg</label> *<a href="package.go.html#line-15" class="ident">Package</a>, <label for="r68" class="ident">named</label> *<a href="named.go.html#line-109" class="ident">Named</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-270"><code>	<label for="r69" class="ident">obj</label> := <label for="r68" class="ident">named</label>.<a href="named.go.html#line-307" class="ident">Obj</a>()</code></span>
+<span class="codeline" id="line-271"><code>	<span class="keyword">if</span> <label for="r69" class="ident">obj</label>.<a href="object.go.html#line-152" class="ident">Pkg</a>() != <label for="r67" class="ident">pkg</label> {</code></span>
+<span class="codeline" id="line-272"><code>		<span class="keyword">return</span> -<span class="lit-number">1</span> <span class="comment">// imported type</span></code></span>
+<span class="codeline" id="line-273"><code>	}</code></span>
+<span class="codeline" id="line-274"><code></code></span>
+<span class="codeline" id="line-275"><code>	<label for="r70" class="ident">root</label> := <label for="r67" class="ident">pkg</label>.<a href="package.go.html#line-52" class="ident">Scope</a>()</code></span>
+<span class="codeline" id="line-276"><code>	<span class="keyword">if</span> <label for="r69" class="ident">obj</label>.<a href="object.go.html#line-145" class="ident">Parent</a>() == <label for="r70" class="ident">root</label> {</code></span>
+<span class="codeline" id="line-277"><code>		<span class="keyword">return</span> -<span class="lit-number">1</span> <span class="comment">// package scope, no ambient type parameters</span></code></span>
+<span class="codeline" id="line-278"><code>	}</code></span>
+<span class="codeline" id="line-279"><code></code></span>
+<span class="codeline" id="line-280"><code>	<span class="keyword">if</span> <label for="r71" class="ident">idx</label>, <label for="r72" class="ident">ok</label> := <label for="r65" class="ident">w</label>.<a href="#line-65" class="ident">nameIdx</a>[<label for="r69" class="ident">obj</label>]; <label for="r72" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-281"><code>		<span class="keyword">return</span> <label for="r71" class="ident">idx</label></code></span>
+<span class="codeline" id="line-282"><code>	}</code></span>
+<span class="codeline" id="line-283"><code></code></span>
+<span class="codeline" id="line-284"><code>	<label for="r73" class="ident">idx</label> := -<span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-285"><code></code></span>
+<span class="codeline" id="line-286"><code>	<span class="comment">// Walk the type definition's scope to find any ambient type</span></code></span>
+<span class="codeline" id="line-287"><code><span class="comment">	// parameters that it's implicitly parameterized by.</span></code></span>
+<span class="codeline" id="line-288"><code>	<span class="keyword">for</span> <label for="r74" class="ident">scope</label> := <label for="r69" class="ident">obj</label>.<a href="object.go.html#line-145" class="ident">Parent</a>(); <label for="r74" class="ident">scope</label> != <label for="r70" class="ident">root</label>; <label for="r74" class="ident">scope</label> = <label for="r74" class="ident">scope</label>.<a href="scope.go.html#line-48" class="ident">Parent</a>() {</code></span>
+<span class="codeline" id="line-289"><code>		<span class="keyword">for</span> <label for="r75" class="ident">_</label>, <label for="r76" class="ident">elem</label> := <span class="keyword">range</span> <label for="r74" class="ident">scope</label>.<a href="scope.go.html#line-29" class="ident">elems</a> {</code></span>
+<span class="codeline" id="line-290"><code>			<span class="keyword">if</span> <label for="r77" class="ident">elem</label>, <label for="r78" class="ident">ok</label> := <label for="r76" class="ident">elem</label>.(*<a href="object.go.html#line-282" class="ident">TypeName</a>); <label for="r78" class="ident">ok</label> &amp;&amp; !<label for="r77" class="ident">elem</label>.<a href="object.go.html#line-306" class="ident">IsAlias</a>() &amp;&amp; <a href="util.go.html#line-28" class="ident">cmpPos</a>(<label for="r77" class="ident">elem</label>.<a href="object.go.html#line-148" class="ident">Pos</a>(), <label for="r69" class="ident">obj</label>.<a href="object.go.html#line-148" class="ident">Pos</a>()) &lt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-291"><code>				<span class="keyword">if</span> <label for="r79" class="ident">tpar</label>, <label for="r80" class="ident">ok</label> := <label for="r77" class="ident">elem</label>.<a href="object.go.html#line-158" class="ident">Type</a>().(*<a href="typeparam.go.html#line-25" class="ident">TypeParam</a>); <label for="r80" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-292"><code>					<span class="keyword">if</span> <label for="r73" class="ident">idx</label> &lt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-293"><code>						<label for="r73" class="ident">idx</label> = <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r65" class="ident">w</label>.<a href="#line-56" class="ident">vertices</a>)</code></span>
+<span class="codeline" id="line-294"><code>						<label for="r65" class="ident">w</label>.<a href="#line-56" class="ident">vertices</a> = <a href="../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r65" class="ident">w</label>.<a href="#line-56" class="ident">vertices</a>, <a href="#line-68" class="ident">monoVertex</a>{<a href="#line-75" class="ident">obj</a>: <label for="r69" class="ident">obj</label>})</code></span>
+<span class="codeline" id="line-295"><code>					}</code></span>
+<span class="codeline" id="line-296"><code></code></span>
+<span class="codeline" id="line-297"><code>					<label for="r65" class="ident">w</label>.<a href="#line-332" class="ident">addEdge</a>(<label for="r73" class="ident">idx</label>, <label for="r65" class="ident">w</label>.<a href="#line-311" class="ident">typeParamVertex</a>(<label for="r79" class="ident">tpar</label>), <span class="lit-number">1</span>, <label for="r69" class="ident">obj</label>.<a href="object.go.html#line-148" class="ident">Pos</a>(), <label for="r79" class="ident">tpar</label>)</code></span>
+<span class="codeline" id="line-298"><code>				}</code></span>
+<span class="codeline" id="line-299"><code>			}</code></span>
+<span class="codeline" id="line-300"><code>		}</code></span>
+<span class="codeline" id="line-301"><code>	}</code></span>
+<span class="codeline" id="line-302"><code></code></span>
+<span class="codeline" id="line-303"><code>	<span class="keyword">if</span> <label for="r65" class="ident">w</label>.<a href="#line-65" class="ident">nameIdx</a> == <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-304"><code>		<label for="r65" class="ident">w</label>.<a href="#line-65" class="ident">nameIdx</a> = <a href="../../../pkg/builtin.html#name-make" class="ident">make</a>(<span class="keyword">map</span>[*<a href="object.go.html#line-282" class="ident">TypeName</a>]<a href="../../../pkg/builtin.html#name-int" class="ident">int</a>)</code></span>
+<span class="codeline" id="line-305"><code>	}</code></span>
+<span class="codeline" id="line-306"><code>	<label for="r65" class="ident">w</label>.<a href="#line-65" class="ident">nameIdx</a>[<label for="r69" class="ident">obj</label>] = <label for="r73" class="ident">idx</label></code></span>
+<span class="codeline" id="line-307"><code>	<span class="keyword">return</span> <label for="r73" class="ident">idx</label></code></span>
+<span class="codeline" id="line-308"><code>}</code></span>
+<span class="codeline" id="line-309"><code></code></span>
+<span class="codeline" id="line-310"><code><span class="comment">// typeParamVertex returns the index of the vertex representing tpar.</span></code></span>
+<span class="codeline" id="line-311"><code><span class="keyword">func</span> (<label for="r81" class="ident">w</label> *<a href="#line-55" class="ident">monoGraph</a>) <label for="r82" class="ident"><a href="../../../use/go/types..monoGraph^33981.typeParamVertex^ca6c1.html" class="ident">typeParamVertex</a></label>(<label for="r83" class="ident">tpar</label> *<a href="typeparam.go.html#line-25" class="ident">TypeParam</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-312"><code>	<span class="keyword">if</span> <label for="r84" class="ident">x</label>, <label for="r85" class="ident">ok</label> := <label for="r81" class="ident">w</label>.<a href="#line-61" class="ident">canon</a>[<label for="r83" class="ident">tpar</label>]; <label for="r85" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-313"><code>		<label for="r83" class="ident">tpar</label> = <label for="r84" class="ident">x</label></code></span>
+<span class="codeline" id="line-314"><code>	}</code></span>
+<span class="codeline" id="line-315"><code></code></span>
+<span class="codeline" id="line-316"><code>	<label for="r86" class="ident">obj</label> := <label for="r83" class="ident">tpar</label>.<a href="typeparam.go.html#line-66" class="ident">Obj</a>()</code></span>
+<span class="codeline" id="line-317"><code></code></span>
+<span class="codeline" id="line-318"><code>	<span class="keyword">if</span> <label for="r87" class="ident">idx</label>, <label for="r88" class="ident">ok</label> := <label for="r81" class="ident">w</label>.<a href="#line-65" class="ident">nameIdx</a>[<label for="r86" class="ident">obj</label>]; <label for="r88" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-319"><code>		<span class="keyword">return</span> <label for="r87" class="ident">idx</label></code></span>
+<span class="codeline" id="line-320"><code>	}</code></span>
+<span class="codeline" id="line-321"><code></code></span>
+<span class="codeline" id="line-322"><code>	<span class="keyword">if</span> <label for="r81" class="ident">w</label>.<a href="#line-65" class="ident">nameIdx</a> == <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-323"><code>		<label for="r81" class="ident">w</label>.<a href="#line-65" class="ident">nameIdx</a> = <a href="../../../pkg/builtin.html#name-make" class="ident">make</a>(<span class="keyword">map</span>[*<a href="object.go.html#line-282" class="ident">TypeName</a>]<a href="../../../pkg/builtin.html#name-int" class="ident">int</a>)</code></span>
+<span class="codeline" id="line-324"><code>	}</code></span>
+<span class="codeline" id="line-325"><code></code></span>
+<span class="codeline" id="line-326"><code>	<label for="r89" class="ident">idx</label> := <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r81" class="ident">w</label>.<a href="#line-56" class="ident">vertices</a>)</code></span>
+<span class="codeline" id="line-327"><code>	<label for="r81" class="ident">w</label>.<a href="#line-56" class="ident">vertices</a> = <a href="../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r81" class="ident">w</label>.<a href="#line-56" class="ident">vertices</a>, <a href="#line-68" class="ident">monoVertex</a>{<a href="#line-75" class="ident">obj</a>: <label for="r86" class="ident">obj</label>})</code></span>
+<span class="codeline" id="line-328"><code>	<label for="r81" class="ident">w</label>.<a href="#line-65" class="ident">nameIdx</a>[<label for="r86" class="ident">obj</label>] = <label for="r89" class="ident">idx</label></code></span>
+<span class="codeline" id="line-329"><code>	<span class="keyword">return</span> <label for="r89" class="ident">idx</label></code></span>
+<span class="codeline" id="line-330"><code>}</code></span>
+<span class="codeline" id="line-331"><code></code></span>
+<span class="codeline" id="line-332"><code><span class="keyword">func</span> (<label for="r90" class="ident">w</label> *<a href="#line-55" class="ident">monoGraph</a>) <label for="r91" class="ident"><a href="../../../use/go/types..monoGraph^33981.addEdge^641c6.html" class="ident">addEdge</a></label>(<label for="r92" class="ident">dst</label>, <label for="r93" class="ident">src</label>, <label for="r94" class="ident">weight</label> <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r95" class="ident">pos</label> <a href="../../../pkg/go/token.html" class="ident i1">token</a>.<a href="../token/position.go.html#line-83" class="ident">Pos</a>, <label for="r96" class="ident">typ</label> <a href="type.go.html#line-9" class="ident">Type</a>) {</code></span>
+<span class="codeline" id="line-333"><code>	<span class="comment">// TODO(mdempsky): Deduplicate redundant edges?</span></code></span>
+<span class="codeline" id="line-334"><code>	<label for="r90" class="ident">w</label>.<a href="#line-57" class="ident">edges</a> = <a href="../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r90" class="ident">w</label>.<a href="#line-57" class="ident">edges</a>, <a href="#line-78" class="ident">monoEdge</a>{</code></span>
+<span class="codeline" id="line-335"><code>		<a href="#line-79" class="ident">dst</a>:    <label for="r92" class="ident">dst</label>,</code></span>
+<span class="codeline" id="line-336"><code>		<a href="#line-79" class="ident">src</a>:    <label for="r93" class="ident">src</label>,</code></span>
+<span class="codeline" id="line-337"><code>		<a href="#line-80" class="ident">weight</a>: <label for="r94" class="ident">weight</label>,</code></span>
+<span class="codeline" id="line-338"><code></code></span>
+<span class="codeline" id="line-339"><code>		<a href="#line-82" class="ident">pos</a>: <label for="r95" class="ident">pos</label>,</code></span>
+<span class="codeline" id="line-340"><code>		<a href="#line-83" class="ident">typ</a>: <label for="r96" class="ident">typ</label>,</code></span>
+<span class="codeline" id="line-341"><code>	})</code></span>
+<span class="codeline" id="line-342"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

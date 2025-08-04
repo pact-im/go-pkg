@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: middleware_setup_context.go in package github.com/aws/aws-sdk-go-v2/service/internal/checksum</title>
+<link href="../../../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	middleware_setup_context.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/internal/checksum.html">github.com/aws/aws-sdk-go-v2/service/internal/checksum</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30],
+input[id=r31]:checked ~pre label[for=r31],
+input[id=r32]:checked ~pre label[for=r32],
+input[id=r33]:checked ~pre label[for=r33],
+input[id=r34]:checked ~pre label[for=r34],
+input[id=r35]:checked ~pre label[for=r35]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="r31" type="radio" name="g"/>
+<input id="r32" type="radio" name="g"/>
+<input id="r33" type="radio" name="g"/>
+<input id="r34" type="radio" name="g"/>
+<input id="r35" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="keyword">package</span> checksum</code></span>
+<span class="codeline" id="line-2"><code></code></span>
+<span class="codeline" id="line-3"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-4"><code>	<label for="i0"><span class="lit-string i0">"context"</span></label></code></span>
+<span class="codeline" id="line-5"><code></code></span>
+<span class="codeline" id="line-6"><code>	<label for="i1"><span class="lit-string i1">"github.com/aws/smithy-go/middleware"</span></label></code></span>
+<span class="codeline" id="line-7"><code>)</code></span>
+<span class="codeline" id="line-8"><code></code></span>
+<span class="codeline" id="line-9"><code><span class="comment">// setupChecksumContext is the initial middleware that looks up the input</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment">// used to configure checksum behavior. This middleware must be executed before</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment">// input validation step or any other checksum middleware.</span></code></span>
+<span class="codeline" id="line-12"><code><span class="keyword">type</span> <a href="../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/internal/checksum.html#name-setupInputContext" class="ident">setupInputContext</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-13"><code>	<span class="comment">// GetAlgorithm is a function to get the checksum algorithm of the</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">	// input payload from the input parameters.</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">	// Given the input parameter value, the function must return the algorithm</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">	// and true, or false if no algorithm is specified.</span></code></span>
+<span class="codeline" id="line-18"><code>	<a href="../../../../../../../use/github.com/aws/aws-sdk-go-v2/service/internal/checksum..setupInputContext^4d4fa.GetAlgorithm.html" class="ident">GetAlgorithm</a> <span class="keyword">func</span>(<span class="keyword">interface</span>{}) (<a href="../../../../../../../pkg/builtin.html#name-string" class="ident">string</a>, <a href="../../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a>)</code></span>
+<span class="codeline" id="line-19"><code>}</code></span>
+<span class="codeline" id="line-20"><code></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">// ID for the middleware</span></code></span>
+<span class="codeline" id="line-22"><code><span class="keyword">func</span> (<label for="r0" class="ident">m</label> *<a href="#line-12" class="ident">setupInputContext</a>) <label for="r1" class="ident"><a href="../../../../../../../use/github.com/aws/aws-sdk-go-v2/service/internal/checksum..setupInputContext^4d4fa.ID^38439.html" class="ident">ID</a></label>() <a href="../../../../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-23"><code>	<span class="keyword">return</span> <span class="lit-string">"AWSChecksum:SetupInputContext"</span></code></span>
+<span class="codeline" id="line-24"><code>}</code></span>
+<span class="codeline" id="line-25"><code></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">// HandleInitialize initialization middleware that setups up the checksum</span></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">// context based on the input parameters provided in the stack.</span></code></span>
+<span class="codeline" id="line-28"><code><span class="keyword">func</span> (<label for="r2" class="ident">m</label> *<a href="#line-12" class="ident">setupInputContext</a>) <label for="r3" class="ident"><a href="../../../../../../../use/github.com/aws/aws-sdk-go-v2/service/internal/checksum..setupInputContext^4d4fa.HandleInitialize.html" class="ident">HandleInitialize</a></label>(</code></span>
+<span class="codeline" id="line-29"><code>	<label for="r4" class="ident">ctx</label> <a href="../../../../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../../../../context/context.go.html#line-71" class="ident">Context</a>, <label for="r5" class="ident">in</label> <a href="../../../../../../../pkg/github.com/aws/smithy-go/middleware.html" class="ident i1">middleware</a>.<a href="../../../../smithy-go/middleware/step_initialize.go.html#line-8" class="ident">InitializeInput</a>, <label for="r6" class="ident">next</label> <a href="../../../../../../../pkg/github.com/aws/smithy-go/middleware.html" class="ident i1">middleware</a>.<a href="../../../../smithy-go/middleware/step_initialize.go.html#line-19" class="ident">InitializeHandler</a>,</code></span>
+<span class="codeline" id="line-30"><code>) (</code></span>
+<span class="codeline" id="line-31"><code>	<label for="r7" class="ident">out</label> <a href="../../../../../../../pkg/github.com/aws/smithy-go/middleware.html" class="ident i1">middleware</a>.<a href="../../../../smithy-go/middleware/step_initialize.go.html#line-13" class="ident">InitializeOutput</a>, <label for="r8" class="ident">metadata</label> <a href="../../../../../../../pkg/github.com/aws/smithy-go/middleware.html" class="ident i1">middleware</a>.<a href="../../../../smithy-go/middleware/metadata.go.html#line-16" class="ident">Metadata</a>, <label for="r9" class="ident">err</label> <a href="../../../../../../../pkg/builtin.html#name-error" class="ident">error</a>,</code></span>
+<span class="codeline" id="line-32"><code>) {</code></span>
+<span class="codeline" id="line-33"><code>	<span class="comment">// Check if validation algorithm is specified.</span></code></span>
+<span class="codeline" id="line-34"><code>	<span class="keyword">if</span> <label for="r2" class="ident">m</label>.<a href="#line-18" class="ident">GetAlgorithm</a> != <a href="../../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-35"><code>		<span class="comment">// check is input resource has a checksum algorithm</span></code></span>
+<span class="codeline" id="line-36"><code>		<label for="r10" class="ident">algorithm</label>, <label for="r11" class="ident">ok</label> := <label for="r2" class="ident">m</label>.<a href="#line-18" class="ident">GetAlgorithm</a>(<label for="r5" class="ident">in</label>.<a href="../../../../smithy-go/middleware/step_initialize.go.html#line-9" class="ident">Parameters</a>)</code></span>
+<span class="codeline" id="line-37"><code>		<span class="keyword">if</span> <label for="r11" class="ident">ok</label> &amp;&amp; <a href="../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r10" class="ident">algorithm</label>) != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-38"><code>			<label for="r4" class="ident">ctx</label> = <a href="#line-52" class="ident">setContextInputAlgorithm</a>(<label for="r4" class="ident">ctx</label>, <label for="r10" class="ident">algorithm</label>)</code></span>
+<span class="codeline" id="line-39"><code>		}</code></span>
+<span class="codeline" id="line-40"><code>	}</code></span>
+<span class="codeline" id="line-41"><code></code></span>
+<span class="codeline" id="line-42"><code>	<span class="keyword">return</span> <label for="r6" class="ident">next</label>.<a href="../../../../smithy-go/middleware/step_initialize.go.html#line-20" class="ident">HandleInitialize</a>(<label for="r4" class="ident">ctx</label>, <label for="r5" class="ident">in</label>)</code></span>
+<span class="codeline" id="line-43"><code>}</code></span>
+<span class="codeline" id="line-44"><code></code></span>
+<span class="codeline" id="line-45"><code><span class="comment">// inputAlgorithmKey is the key set on context used to identify, retrieves the</span></code></span>
+<span class="codeline" id="line-46"><code><span class="comment">// request checksum algorithm if present on the context.</span></code></span>
+<span class="codeline" id="line-47"><code><span class="keyword">type</span> <a href="../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/internal/checksum.html#name-inputAlgorithmKey" class="ident">inputAlgorithmKey</a> <span class="keyword">struct</span>{}</code></span>
+<span class="codeline" id="line-48"><code></code></span>
+<span class="codeline" id="line-49"><code><span class="comment">// setContextInputAlgorithm sets the request checksum algorithm on the context.</span></code></span>
+<span class="codeline" id="line-50"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-51"><code><span class="comment">// Scoped to stack values.</span></code></span>
+<span class="codeline" id="line-52"><code><span class="keyword">func</span> <label for="r12" class="ident"><a href="../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/internal/checksum.html#name-setContextInputAlgorithm" class="ident">setContextInputAlgorithm</a></label>(<label for="r13" class="ident">ctx</label> <a href="../../../../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../../../../context/context.go.html#line-71" class="ident">Context</a>, <label for="r14" class="ident">value</label> <a href="../../../../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../../../../context/context.go.html#line-71" class="ident">Context</a> {</code></span>
+<span class="codeline" id="line-53"><code>	<span class="keyword">return</span> <a href="../../../../../../../pkg/github.com/aws/smithy-go/middleware.html" class="ident i1">middleware</a>.<a href="../../../../smithy-go/middleware/stack_values.go.html#line-12" class="ident">WithStackValue</a>(<label for="r13" class="ident">ctx</label>, <a href="#line-47" class="ident">inputAlgorithmKey</a>{}, <label for="r14" class="ident">value</label>)</code></span>
+<span class="codeline" id="line-54"><code>}</code></span>
+<span class="codeline" id="line-55"><code></code></span>
+<span class="codeline" id="line-56"><code><span class="comment">// getContextInputAlgorithm returns the checksum algorithm from the context if</span></code></span>
+<span class="codeline" id="line-57"><code><span class="comment">// one was specified. Empty string is returned if one is not specified.</span></code></span>
+<span class="codeline" id="line-58"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-59"><code><span class="comment">// Scoped to stack values.</span></code></span>
+<span class="codeline" id="line-60"><code><span class="keyword">func</span> <label for="r15" class="ident"><a href="../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/internal/checksum.html#name-getContextInputAlgorithm" class="ident">getContextInputAlgorithm</a></label>(<label for="r16" class="ident">ctx</label> <a href="../../../../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../../../../context/context.go.html#line-71" class="ident">Context</a>) (<label for="r17" class="ident">v</label> <a href="../../../../../../../pkg/builtin.html#name-string" class="ident">string</a>) {</code></span>
+<span class="codeline" id="line-61"><code>	<label for="r17" class="ident">v</label>, _ = <a href="../../../../../../../pkg/github.com/aws/smithy-go/middleware.html" class="ident i1">middleware</a>.<a href="../../../../smithy-go/middleware/stack_values.go.html#line-26" class="ident">GetStackValue</a>(<label for="r16" class="ident">ctx</label>, <a href="#line-47" class="ident">inputAlgorithmKey</a>{}).(<a href="../../../../../../../pkg/builtin.html#name-string" class="ident">string</a>)</code></span>
+<span class="codeline" id="line-62"><code>	<span class="keyword">return</span> <label for="r17" class="ident">v</label></code></span>
+<span class="codeline" id="line-63"><code>}</code></span>
+<span class="codeline" id="line-64"><code></code></span>
+<span class="codeline" id="line-65"><code><span class="keyword">type</span> <a href="../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/internal/checksum.html#name-setupOutputContext" class="ident">setupOutputContext</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-66"><code>	<span class="comment">// GetValidationMode is a function to get the checksum validation</span></code></span>
+<span class="codeline" id="line-67"><code><span class="comment">	// mode of the output payload from the input parameters.</span></code></span>
+<span class="codeline" id="line-68"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-69"><code><span class="comment">	// Given the input parameter value, the function must return the validation</span></code></span>
+<span class="codeline" id="line-70"><code><span class="comment">	// mode and true, or false if no mode is specified.</span></code></span>
+<span class="codeline" id="line-71"><code>	<a href="../../../../../../../use/github.com/aws/aws-sdk-go-v2/service/internal/checksum..setupOutputContext^96355.GetValidationMode.html" class="ident">GetValidationMode</a> <span class="keyword">func</span>(<span class="keyword">interface</span>{}) (<a href="../../../../../../../pkg/builtin.html#name-string" class="ident">string</a>, <a href="../../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a>)</code></span>
+<span class="codeline" id="line-72"><code>}</code></span>
+<span class="codeline" id="line-73"><code></code></span>
+<span class="codeline" id="line-74"><code><span class="comment">// ID for the middleware</span></code></span>
+<span class="codeline" id="line-75"><code><span class="keyword">func</span> (<label for="r18" class="ident">m</label> *<a href="#line-65" class="ident">setupOutputContext</a>) <label for="r19" class="ident"><a href="../../../../../../../use/github.com/aws/aws-sdk-go-v2/service/internal/checksum..setupOutputContext^96355.ID^38439.html" class="ident">ID</a></label>() <a href="../../../../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-76"><code>	<span class="keyword">return</span> <span class="lit-string">"AWSChecksum:SetupOutputContext"</span></code></span>
+<span class="codeline" id="line-77"><code>}</code></span>
+<span class="codeline" id="line-78"><code></code></span>
+<span class="codeline" id="line-79"><code><span class="comment">// HandleInitialize initialization middleware that setups up the checksum</span></code></span>
+<span class="codeline" id="line-80"><code><span class="comment">// context based on the input parameters provided in the stack.</span></code></span>
+<span class="codeline" id="line-81"><code><span class="keyword">func</span> (<label for="r20" class="ident">m</label> *<a href="#line-65" class="ident">setupOutputContext</a>) <label for="r21" class="ident"><a href="../../../../../../../use/github.com/aws/aws-sdk-go-v2/service/internal/checksum..setupOutputContext^96355.HandleInitialize.html" class="ident">HandleInitialize</a></label>(</code></span>
+<span class="codeline" id="line-82"><code>	<label for="r22" class="ident">ctx</label> <a href="../../../../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../../../../context/context.go.html#line-71" class="ident">Context</a>, <label for="r23" class="ident">in</label> <a href="../../../../../../../pkg/github.com/aws/smithy-go/middleware.html" class="ident i1">middleware</a>.<a href="../../../../smithy-go/middleware/step_initialize.go.html#line-8" class="ident">InitializeInput</a>, <label for="r24" class="ident">next</label> <a href="../../../../../../../pkg/github.com/aws/smithy-go/middleware.html" class="ident i1">middleware</a>.<a href="../../../../smithy-go/middleware/step_initialize.go.html#line-19" class="ident">InitializeHandler</a>,</code></span>
+<span class="codeline" id="line-83"><code>) (</code></span>
+<span class="codeline" id="line-84"><code>	<label for="r25" class="ident">out</label> <a href="../../../../../../../pkg/github.com/aws/smithy-go/middleware.html" class="ident i1">middleware</a>.<a href="../../../../smithy-go/middleware/step_initialize.go.html#line-13" class="ident">InitializeOutput</a>, <label for="r26" class="ident">metadata</label> <a href="../../../../../../../pkg/github.com/aws/smithy-go/middleware.html" class="ident i1">middleware</a>.<a href="../../../../smithy-go/middleware/metadata.go.html#line-16" class="ident">Metadata</a>, <label for="r27" class="ident">err</label> <a href="../../../../../../../pkg/builtin.html#name-error" class="ident">error</a>,</code></span>
+<span class="codeline" id="line-85"><code>) {</code></span>
+<span class="codeline" id="line-86"><code>	<span class="comment">// Check if validation mode is specified.</span></code></span>
+<span class="codeline" id="line-87"><code>	<span class="keyword">if</span> <label for="r20" class="ident">m</label>.<a href="#line-71" class="ident">GetValidationMode</a> != <a href="../../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-88"><code>		<span class="comment">// check is input resource has a checksum algorithm</span></code></span>
+<span class="codeline" id="line-89"><code>		<label for="r28" class="ident">mode</label>, <label for="r29" class="ident">ok</label> := <label for="r20" class="ident">m</label>.<a href="#line-71" class="ident">GetValidationMode</a>(<label for="r23" class="ident">in</label>.<a href="../../../../smithy-go/middleware/step_initialize.go.html#line-9" class="ident">Parameters</a>)</code></span>
+<span class="codeline" id="line-90"><code>		<span class="keyword">if</span> <label for="r29" class="ident">ok</label> &amp;&amp; <a href="../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r28" class="ident">mode</label>) != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-91"><code>			<label for="r22" class="ident">ctx</label> = <a href="#line-106" class="ident">setContextOutputValidationMode</a>(<label for="r22" class="ident">ctx</label>, <label for="r28" class="ident">mode</label>)</code></span>
+<span class="codeline" id="line-92"><code>		}</code></span>
+<span class="codeline" id="line-93"><code>	}</code></span>
+<span class="codeline" id="line-94"><code></code></span>
+<span class="codeline" id="line-95"><code>	<span class="keyword">return</span> <label for="r24" class="ident">next</label>.<a href="../../../../smithy-go/middleware/step_initialize.go.html#line-20" class="ident">HandleInitialize</a>(<label for="r22" class="ident">ctx</label>, <label for="r23" class="ident">in</label>)</code></span>
+<span class="codeline" id="line-96"><code>}</code></span>
+<span class="codeline" id="line-97"><code></code></span>
+<span class="codeline" id="line-98"><code><span class="comment">// outputValidationModeKey is the key set on context used to identify if</span></code></span>
+<span class="codeline" id="line-99"><code><span class="comment">// output checksum validation is enabled.</span></code></span>
+<span class="codeline" id="line-100"><code><span class="keyword">type</span> <a href="../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/internal/checksum.html#name-outputValidationModeKey" class="ident">outputValidationModeKey</a> <span class="keyword">struct</span>{}</code></span>
+<span class="codeline" id="line-101"><code></code></span>
+<span class="codeline" id="line-102"><code><span class="comment">// setContextOutputValidationMode sets the request checksum</span></code></span>
+<span class="codeline" id="line-103"><code><span class="comment">// algorithm on the context.</span></code></span>
+<span class="codeline" id="line-104"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-105"><code><span class="comment">// Scoped to stack values.</span></code></span>
+<span class="codeline" id="line-106"><code><span class="keyword">func</span> <label for="r30" class="ident"><a href="../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/internal/checksum.html#name-setContextOutputValidationMode" class="ident">setContextOutputValidationMode</a></label>(<label for="r31" class="ident">ctx</label> <a href="../../../../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../../../../context/context.go.html#line-71" class="ident">Context</a>, <label for="r32" class="ident">value</label> <a href="../../../../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../../../../context/context.go.html#line-71" class="ident">Context</a> {</code></span>
+<span class="codeline" id="line-107"><code>	<span class="keyword">return</span> <a href="../../../../../../../pkg/github.com/aws/smithy-go/middleware.html" class="ident i1">middleware</a>.<a href="../../../../smithy-go/middleware/stack_values.go.html#line-12" class="ident">WithStackValue</a>(<label for="r31" class="ident">ctx</label>, <a href="#line-100" class="ident">outputValidationModeKey</a>{}, <label for="r32" class="ident">value</label>)</code></span>
+<span class="codeline" id="line-108"><code>}</code></span>
+<span class="codeline" id="line-109"><code></code></span>
+<span class="codeline" id="line-110"><code><span class="comment">// getContextOutputValidationMode returns response checksum validation state,</span></code></span>
+<span class="codeline" id="line-111"><code><span class="comment">// if one was specified. Empty string is returned if one is not specified.</span></code></span>
+<span class="codeline" id="line-112"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-113"><code><span class="comment">// Scoped to stack values.</span></code></span>
+<span class="codeline" id="line-114"><code><span class="keyword">func</span> <label for="r33" class="ident"><a href="../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/internal/checksum.html#name-getContextOutputValidationMode" class="ident">getContextOutputValidationMode</a></label>(<label for="r34" class="ident">ctx</label> <a href="../../../../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../../../../context/context.go.html#line-71" class="ident">Context</a>) (<label for="r35" class="ident">v</label> <a href="../../../../../../../pkg/builtin.html#name-string" class="ident">string</a>) {</code></span>
+<span class="codeline" id="line-115"><code>	<label for="r35" class="ident">v</label>, _ = <a href="../../../../../../../pkg/github.com/aws/smithy-go/middleware.html" class="ident i1">middleware</a>.<a href="../../../../smithy-go/middleware/stack_values.go.html#line-26" class="ident">GetStackValue</a>(<label for="r34" class="ident">ctx</label>, <a href="#line-100" class="ident">outputValidationModeKey</a>{}).(<a href="../../../../../../../pkg/builtin.html#name-string" class="ident">string</a>)</code></span>
+<span class="codeline" id="line-116"><code>	<span class="keyword">return</span> <label for="r35" class="ident">v</label></code></span>
+<span class="codeline" id="line-117"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

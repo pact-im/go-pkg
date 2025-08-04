@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Package: go.pact.im/x/flaky</title>
+<link href="../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="package-details"><code><span style="font-size:xx-large;">package <b>flaky</b></span>
+
+<span class="title">Import Path</span>
+	<a href="../../../index.html#pkg-go.pact.im/x/flaky">go.pact.im/x/flaky</a><i> (on <a href="https://pkg.go.dev/go.pact.im/x/flaky" target="_blank">go.dev</a>)</i>
+
+<span class="title">Dependency Relation</span>
+	imports <a href="../../../dep/go.pact.im/x/flaky.html">7 packages</a>, and imported by 0 packages
+
+<div id="files"><span class="title">Involved Source Files</span>
+
+	<span class="nodocs">    <a href="../../../src/go.pact.im/x/flaky/backoff.go.html">backoff.go</a></span>
+	<span class="nodocs">    <a href="../../../src/go.pact.im/x/flaky/deadline.go.html">deadline.go</a></span>
+	<span class="nodocs">    <a href="../../../src/go.pact.im/x/flaky/debounce.go.html">debounce.go</a></span>
+	<input type='checkbox' checked class="fold" id="file-3-fold-content"><label for="file-3-fold-content">  <a href="../../../src/go.pact.im/x/flaky/flaky.go.html#doc">d</a> <a href="../../../src/go.pact.im/x/flaky/flaky.go.html">flaky.go</a></label><span id='file-3-fold-content-items' class="fold-items">
+<span class="md-text">		Package flaky implements mechanisms for executing flaky operations.</span>
+</span>
+	<span class="nodocs">    <a href="../../../src/go.pact.im/x/flaky/jitter.go.html">jitter.go</a></span>
+	<span class="nodocs">    <a href="../../../src/go.pact.im/x/flaky/once.go.html">once.go</a></span>
+	<span class="nodocs">    <a href="../../../src/go.pact.im/x/flaky/permanent.go.html">permanent.go</a></span>
+	<span class="nodocs">    <a href="../../../src/go.pact.im/x/flaky/retry.go.html">retry.go</a></span>
+	<span class="nodocs">    <a href="../../../src/go.pact.im/x/flaky/schedule.go.html">schedule.go</a></span>
+	<span class="nodocs">    <a href="../../../src/go.pact.im/x/flaky/watchdog.go.html">watchdog.go</a></span></div>
+<div id="examples"><span class="title">Code Examples</span>
+
+	<input type='checkbox' class="fold" id="example-0-fold-content"><label for="example-0-fold-content">Retry</label><span id='example-0-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"context"
+			"fmt"
+			"net/http"
+			"net/http/httputil"
+			"time"
+		
+			"go.pact.im/x/flaky"
+		)
+		
+		func main() {
+			ctx := context.Background()
+		
+			executor := flaky.Retry(flaky.Limit(5, flaky.Exp2(time.Second)))
+		
+			req, _ := http.NewRequest(http.MethodGet, "https://example.com", nil)
+			client := http.DefaultClient
+		
+			var dump []byte
+			var err error
+			err = executor.Execute(ctx, func(ctx context.Context) error {
+				ctx, cancel := context.WithTimeout(ctx, time.Second)
+				defer cancel()
+		
+				var resp *http.Response
+				resp, err = client.Do(req.WithContext(ctx))
+				if err != nil {
+					return err
+				}
+		
+				dump, err = httputil.DumpResponse(resp, false)
+				return err
+			})
+			if err != nil {
+				panic(err)
+			}
+		
+			fmt.Println(string(dump))
+		}
+</span>
+</div>
+<div id="exported-types"><span class="title">Package-Level Type Names<span class="title-stat"><i> (total 20, in which 13 are exported)</i></span></span>
+
+<div id="exported-types-buttons" class="js-on">	/* sort exporteds by: <label id="sort-types-by-alphabet" class="button">alphabet</label> | <label id="sort-types-by-popularity" class="button">popularity</label> */</div><div class="anchor type-res" id="name-Backoff" data-popularity="620">	<input type='checkbox' class="fold" id="Backoff-fold-content"><label for="Backoff-fold-content"> <a href="../../../use/go.pact.im/x/flaky..Backoff.html">type</a> <a href="../../../src/go.pact.im/x/flaky/backoff.go.html#line-17">Backoff</a> <i>(func)</i></label><span id='Backoff-fold-content-docs' class="fold-docs">
+<span class="md-text">		Backoff is a function that, given the current count of retries, returns
+		backoff delay before the next attempt, or false if an executor should stop
+		with the last error.</span>
+
+		<input type='checkbox' class="fold" id="Backoff-fold-methods"><label for="Backoff-fold-methods">Methods (<i>only one, which is exported</i>)</label><span id='Backoff-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="Backoff-fold-method-Backoff"><label for="Backoff-fold-method-Backoff">( Backoff) <a href="../../../src/go.pact.im/x/flaky/backoff.go.html#line-20">Backoff</a>() <b>Backoff</b></label><span id='Backoff-fold-method-Backoff-docs' class="fold-docs">
+<span class="md-text">				Backoff implements the BackoffProvider interface.</span>
+</span></span></span>
+		<input type='checkbox' class="fold" id="Backoff-fold-impls"><label for="Backoff-fold-impls">Implements (<i>at least one exported</i>)</label><span id='Backoff-fold-impls-items' class="fold-items"><span>
+			 Backoff : <a href="#name-BackoffProvider">BackoffProvider</a></span></span>
+		<input type='checkbox' class="fold" id="Backoff-fold-results"><label for="Backoff-fold-results">As Outputs Of (<i>at least 6, all are exported</i>)</label><span id='Backoff-fold-results-items' class="fold-items"><span>
+			func <a href="#name-Constant">Constant</a>(xs ...<a href="../../time.html">time</a>.<a href="../../time.html#name-Duration">Duration</a>) <b>Backoff</b></span><span>
+			func <a href="#name-Exp2">Exp2</a>(unit <a href="../../time.html">time</a>.<a href="../../time.html#name-Duration">Duration</a>) <b>Backoff</b></span><span>
+			func <a href="#name-Limit">Limit</a>(limit <a href="../../builtin.html#name-uint">uint</a>, backoff <b>Backoff</b>) <b>Backoff</b></span><span>
+			func Backoff.<a href="../../../src/go.pact.im/x/flaky/backoff.go.html#line-20">Backoff</a>() <b>Backoff</b></span><span>
+			func <a href="#name-BackoffProvider">BackoffProvider</a>.<a href="../../../src/go.pact.im/x/flaky/backoff.go.html#line-11">Backoff</a>() <b>Backoff</b></span><span>
+			func <a href="#name-Jitter">Jitter</a>.<a href="../../../src/go.pact.im/x/flaky/jitter.go.html#line-101">Backoff</a>(b <b>Backoff</b>, v <a href="#name-JitterInterval">JitterInterval</a>) <b>Backoff</b></span></span>
+		<input type='checkbox' class="fold" id="Backoff-fold-params"><label for="Backoff-fold-params">As Inputs Of (<i>at least 2, both are exported</i>)</label><span id='Backoff-fold-params-items' class="fold-items"><span>
+			func <a href="#name-Limit">Limit</a>(limit <a href="../../builtin.html#name-uint">uint</a>, backoff <b>Backoff</b>) <b>Backoff</b></span><span>
+			func <a href="#name-Jitter">Jitter</a>.<a href="../../../src/go.pact.im/x/flaky/jitter.go.html#line-101">Backoff</a>(b <b>Backoff</b>, v <a href="#name-JitterInterval">JitterInterval</a>) <b>Backoff</b></span></span>
+
+</span></div><div class="anchor type-res" id="name-BackoffProvider" data-popularity="235">	<input type='checkbox' class="fold" id="BackoffProvider-fold-content"><label for="BackoffProvider-fold-content"> <a href="../../../use/go.pact.im/x/flaky..BackoffProvider.html">type</a> <a href="../../../src/go.pact.im/x/flaky/backoff.go.html#line-10">BackoffProvider</a> <b><i>(interface)</i></b></label><span id='BackoffProvider-fold-content-docs' class="fold-docs">
+<span class="md-text">		BackoffProvider provides a potentially stateful backoff function for
+		executing an operation.</span>
+
+		<input type='checkbox' class="fold" id="BackoffProvider-fold-methods"><label for="BackoffProvider-fold-methods">Methods (<i>only one, which is exported</i>)</label><span id='BackoffProvider-fold-methods-items' class="fold-items"><span>
+			<span class="nodocs">( BackoffProvider) <a href="../../../src/go.pact.im/x/flaky/backoff.go.html#line-11">Backoff</a>() <a href="#name-Backoff">Backoff</a></span></span></span>
+		<input type='checkbox' class="fold" id="BackoffProvider-fold-impledby"><label for="BackoffProvider-fold-impledby">Implemented By (<i>at least one exported</i>)</label><span id='BackoffProvider-fold-impledby-items' class="fold-items"><span>
+			 <a href="#name-Backoff">Backoff</a></span></span>
+		<input type='checkbox' class="fold" id="BackoffProvider-fold-params"><label for="BackoffProvider-fold-params">As Inputs Of (<i>at least one exported</i>)</label><span id='BackoffProvider-fold-params-items' class="fold-items"><span>
+			func <a href="#name-Retry">Retry</a>(b <b>BackoffProvider</b>) *<a href="#name-RetryExecutor">RetryExecutor</a></span></span>
+
+</span></div><div class="anchor type-res" id="name-DebounceExecutor" data-popularity="600">	<input type='checkbox' class="fold" id="DebounceExecutor-fold-content"><label for="DebounceExecutor-fold-content"> <a href="../../../use/go.pact.im/x/flaky..DebounceExecutor.html">type</a> <a href="../../../src/go.pact.im/x/flaky/debounce.go.html#line-25">DebounceExecutor</a> <i>(struct)</i></label><span id='DebounceExecutor-fold-content-docs' class="fold-docs">
+<span class="md-text">		DebounceExecutor is an executor that debounces an operation. That is, it
+		performs an operation once it stops being called for the specified debounce
+		duration.
+		
+		Keep in mind that using DebounceExecutor introduces latency to the operation
+		for at least the specified debounce duration. In most cases it should be used
+		when the operation is expensive to execute or under high event rate or load.
+		As a side effect, DebounceExecutor guarantees that at most one operation is
+		executing at a time.</span>
+
+		<input type='checkbox' class="fold" id="DebounceExecutor-fold-fields"><label for="DebounceExecutor-fold-fields">Fields (<i>total 9, none are exported</i>)</label><span id='DebounceExecutor-fold-fields-items' class="fold-items">
+			<input type='checkbox' class="showhide" id="DebounceExecutor-showhide-fields"><i><label for="DebounceExecutor-showhide-fields" class="show-inline">/* 9 unexporteds ... */</label><label for="DebounceExecutor-showhide-fields" class="hide-inline">/* 9 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../src/go.pact.im/x/flaky/debounce.go.html#line-29">c</a> <i>*<a href="clock.html">clock</a>.<a href="clock.html#name-Clock">Clock</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../src/go.pact.im/x/flaky/debounce.go.html#line-27">debounceState</a> <i><a href="#name-debounceState">debounceState</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../src/go.pact.im/x/flaky/debounce.go.html#line-27" class="path-duplicate">debounceState</a>.<a href="../../../src/go.pact.im/x/flaky/debounce.go.html#line-38">exec</a> <i>chan struct{}</i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../src/go.pact.im/x/flaky/debounce.go.html#line-27" class="path-duplicate">debounceState</a>.<a href="../../../src/go.pact.im/x/flaky/debounce.go.html#line-37">lock</a> <i>chan struct{}</i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../src/go.pact.im/x/flaky/debounce.go.html#line-27" class="path-duplicate">debounceState</a>.<a href="../../../src/go.pact.im/x/flaky/debounce.go.html#line-40">next</a> <i>chan struct{}</i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../src/go.pact.im/x/flaky/debounce.go.html#line-27" class="path-duplicate">debounceState</a>.<a href="../../../src/go.pact.im/x/flaky/debounce.go.html#line-39">steal</a> <i>chan struct{}</i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../src/go.pact.im/x/flaky/debounce.go.html#line-26">once</a> <i><a href="../../sync.html">sync</a>.<a href="../../sync.html#name-Once">Once</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../src/go.pact.im/x/flaky/debounce.go.html#line-32">timer</a> <i><a href="clock.html">clock</a>.<a href="clock.html#name-Timer">Timer</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../src/go.pact.im/x/flaky/debounce.go.html#line-30">w</a> <i><a href="../../time.html">time</a>.<a href="../../time.html#name-Duration">Duration</a></i></span></i></span></span>
+		<input type='checkbox' class="fold" id="DebounceExecutor-fold-methods"><label for="DebounceExecutor-fold-methods">Methods (<i>total 5, in which 3 are exported</i>)</label><span id='DebounceExecutor-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="DebounceExecutor-fold-method-Execute"><label for="DebounceExecutor-fold-method-Execute">(*DebounceExecutor) <a href="../../../src/go.pact.im/x/flaky/debounce.go.html#line-93">Execute</a>(ctx <a href="../../context.html">context</a>.<a href="../../context.html#name-Context">Context</a>, f <a href="#name-Op">Op</a>) <a href="../../builtin.html#name-error">error</a></label><span id='DebounceExecutor-fold-method-Execute-docs' class="fold-docs">
+<span class="md-text">				Execute calls the function f if and only if Execute is not called again
+				during the debounce interval. Context expiration cancels an operation. It
+				returns ErrDebounced error if the given operation f was superseded by another
+				Execute call. If Execute is called concurrently, the last invocation wins.
+				When another operation is already executing, it returns ErrDebounced.
+				
+				Callers should handle ErrDebounced error to avoid breaking assumptions when
+				running under another DebounceExecutor.
+				
+				As a side effect, it guarantees that at most one f is executing at a time.
+				That is, it is safe to avoid locking if the state is mutated exclusively
+				under the DebounceExecutor.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="DebounceExecutor-fold-method-WithClock"><label for="DebounceExecutor-fold-method-WithClock">(*DebounceExecutor) <a href="../../../src/go.pact.im/x/flaky/debounce.go.html#line-62">WithClock</a>(c *<a href="clock.html">clock</a>.<a href="clock.html#name-Clock">Clock</a>) *<b>DebounceExecutor</b></label><span id='DebounceExecutor-fold-method-WithClock-docs' class="fold-docs">
+<span class="md-text">				WithClock returns a copy of the executor that uses the given clock.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="DebounceExecutor-fold-method-WithWait"><label for="DebounceExecutor-fold-method-WithWait">(*DebounceExecutor) <a href="../../../src/go.pact.im/x/flaky/debounce.go.html#line-74">WithWait</a>(t <a href="../../time.html">time</a>.<a href="../../time.html#name-Duration">Duration</a>) *<b>DebounceExecutor</b></label><span id='DebounceExecutor-fold-method-WithWait-docs' class="fold-docs">
+<span class="md-text">				WithWait returns a copy of the executor that uses the given wait duration.
+				
+				It shares the underlying state and can be used to debounce operation with
+				non-default wait duration.</span>
+</span></span>
+			<input type='checkbox' class="showhide" id="DebounceExecutor-showhide-methods"><i><label for="DebounceExecutor-showhide-methods" class="show-inline">/* 2 unexporteds ... */</label><label for="DebounceExecutor-showhide-methods" class="hide-inline">/* 2 unexporteds: */</label></i><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="DebounceExecutor-fold-method-clone"><label for="DebounceExecutor-fold-method-clone">(*DebounceExecutor) <a href="../../../src/go.pact.im/x/flaky/debounce.go.html#line-51">clone</a>() *<b>DebounceExecutor</b></label><span id='DebounceExecutor-fold-method-clone-docs' class="fold-docs">
+<span class="md-text">				clone returns a copy of the executor.</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="DebounceExecutor-fold-method-init"><label for="DebounceExecutor-fold-method-init">(*DebounceExecutor) <a href="../../../src/go.pact.im/x/flaky/debounce.go.html#line-144">init</a>()</label><span id='DebounceExecutor-fold-method-init-docs' class="fold-docs">
+<span class="md-text">				init initializes the internal debouncer state.</span>
+</span></i></span></span>
+		<input type='checkbox' class="fold" id="DebounceExecutor-fold-impls"><label for="DebounceExecutor-fold-impls">Implements (<i>at least one exported</i>)</label><span id='DebounceExecutor-fold-impls-items' class="fold-items"><span>
+			*DebounceExecutor : <a href="#name-Executor">Executor</a></span></span>
+		<input type='checkbox' class="fold" id="DebounceExecutor-fold-results"><label for="DebounceExecutor-fold-results">As Outputs Of (<i>at least 4, in which 3 are exported</i>)</label><span id='DebounceExecutor-fold-results-items' class="fold-items"><span>
+			func <a href="#name-Debounce">Debounce</a>(t <a href="../../time.html">time</a>.<a href="../../time.html#name-Duration">Duration</a>) *<b>DebounceExecutor</b></span><span>
+			func (*DebounceExecutor).<a href="../../../src/go.pact.im/x/flaky/debounce.go.html#line-62">WithClock</a>(c *<a href="clock.html">clock</a>.<a href="clock.html#name-Clock">Clock</a>) *<b>DebounceExecutor</b></span><span>
+			func (*DebounceExecutor).<a href="../../../src/go.pact.im/x/flaky/debounce.go.html#line-74">WithWait</a>(t <a href="../../time.html">time</a>.<a href="../../time.html#name-Duration">Duration</a>) *<b>DebounceExecutor</b></span>
+			<input type='checkbox' class="showhide" id="DebounceExecutor-showhide-inputofs"><i><label for="DebounceExecutor-showhide-inputofs" class="show-inline">/* at least one unexported ... */</label><label for="DebounceExecutor-showhide-inputofs" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			func (*DebounceExecutor).<a href="../../../src/go.pact.im/x/flaky/debounce.go.html#line-51">clone</a>() *<b>DebounceExecutor</b></i></span></span>
+
+</span></div><div class="anchor type-res" id="name-Executor" data-popularity="1170">	<input type='checkbox' class="fold" id="Executor-fold-content"><label for="Executor-fold-content"> <a href="../../../use/go.pact.im/x/flaky..Executor.html">type</a> <a href="../../../src/go.pact.im/x/flaky/flaky.go.html#line-12">Executor</a> <b><i>(interface)</i></b></label><span id='Executor-fold-content-docs' class="fold-docs">
+<span class="md-text">		Executor is an executor for flaky operations.</span>
+
+		<input type='checkbox' class="fold" id="Executor-fold-methods"><label for="Executor-fold-methods">Methods (<i>only one, which is exported</i>)</label><span id='Executor-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="Executor-fold-method-Execute"><label for="Executor-fold-method-Execute">( Executor) <a href="../../../src/go.pact.im/x/flaky/flaky.go.html#line-14">Execute</a>(ctx <a href="../../context.html">context</a>.<a href="../../context.html#name-Context">Context</a>, f <a href="#name-Op">Op</a>) <a href="../../builtin.html#name-error">error</a></label><span id='Executor-fold-method-Execute-docs' class="fold-docs">
+<span class="md-text">				Execute executes a flaky operation f using the execution policy.</span>
+</span></span></span>
+		<input type='checkbox' class="fold" id="Executor-fold-impledby"><label for="Executor-fold-impledby">Implemented By (<i>at least 6, in which 4 are exported</i>)</label><span id='Executor-fold-impledby-items' class="fold-items"><span>
+			*<a href="#name-DebounceExecutor">DebounceExecutor</a></span><span>
+			*<a href="#name-RetryExecutor">RetryExecutor</a></span><span>
+			*<a href="#name-ScheduleExecutor">ScheduleExecutor</a></span><span>
+			*<a href="#name-WatchdogExecutor">WatchdogExecutor</a></span>
+			<input type='checkbox' class="showhide" id="Executor-showhide-impedBys"><i><label for="Executor-showhide-impedBys" class="show-inline">/* 2+ unexporteds ... */</label><label for="Executor-showhide-impedBys" class="hide-inline">/* 2+ unexporteds: */</label></i><span class="hidden"><i>
+			*<a href="#name-onceExecutor">onceExecutor</a></i></span><span class="hidden"><i>
+			*<a href="#name-untilPermanentExecutor">untilPermanentExecutor</a></i></span></span>
+		<input type='checkbox' class="fold" id="Executor-fold-results"><label for="Executor-fold-results">As Outputs Of (<i>at least 2, both are exported</i>)</label><span id='Executor-fold-results-items' class="fold-items"><span>
+			func <a href="#name-Once">Once</a>() <b>Executor</b></span><span>
+			func <a href="#name-UntilPermanent">UntilPermanent</a>() <b>Executor</b></span></span>
+		<input type='checkbox' class="fold" id="Executor-fold-params"><label for="Executor-fold-params">As Inputs Of (<i>at least 2, both are exported</i>)</label><span id='Executor-fold-params-items' class="fold-items"><span>
+			func <a href="#name-Watchdog">Watchdog</a>(e <b>Executor</b>, s <a href="#name-Schedule">Schedule</a>) *<a href="#name-WatchdogExecutor">WatchdogExecutor</a></span><span>
+			func <a href="#name-WithSchedule">WithSchedule</a>(e <b>Executor</b>, s <a href="#name-Schedule">Schedule</a>) *<a href="#name-ScheduleExecutor">ScheduleExecutor</a></span></span>
+
+</span></div><div class="anchor type-res" id="name-Jitter" data-popularity="425">	<input type='checkbox' class="fold" id="Jitter-fold-content"><label for="Jitter-fold-content"> <a href="../../../use/go.pact.im/x/flaky..Jitter.html">type</a> <a href="../../../src/go.pact.im/x/flaky/jitter.go.html#line-15">Jitter</a> <i>(func)</i></label><span id='Jitter-fold-content-docs' class="fold-docs">
+<span class="md-text">		Jitter is a function that, given a closed interval v, returns a random
+		value on that interval.</span>
+
+		<input type='checkbox' class="fold" id="Jitter-fold-methods"><label for="Jitter-fold-methods">Methods (<i>total 3, all are exported</i>)</label><span id='Jitter-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="Jitter-fold-method-Backoff"><label for="Jitter-fold-method-Backoff">( Jitter) <a href="../../../src/go.pact.im/x/flaky/jitter.go.html#line-101">Backoff</a>(b <a href="#name-Backoff">Backoff</a>, v <a href="#name-JitterInterval">JitterInterval</a>) <a href="#name-Backoff">Backoff</a></label><span id='Jitter-fold-method-Backoff-docs' class="fold-docs">
+<span class="md-text">				Backoff returns a new Backoff with jitter for the given interval.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Jitter-fold-method-Jitter"><label for="Jitter-fold-method-Jitter">( Jitter) <a href="../../../src/go.pact.im/x/flaky/jitter.go.html#line-64">Jitter</a>() <b>Jitter</b></label><span id='Jitter-fold-method-Jitter-docs' class="fold-docs">
+<span class="md-text">				Jitter implements the JitterProvider interface.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Jitter-fold-method-Schedule"><label for="Jitter-fold-method-Schedule">( Jitter) <a href="../../../src/go.pact.im/x/flaky/jitter.go.html#line-76">Schedule</a>(s <a href="#name-Schedule">Schedule</a>, v <a href="#name-JitterInterval">JitterInterval</a>) <a href="#name-Schedule">Schedule</a></label><span id='Jitter-fold-method-Schedule-docs' class="fold-docs">
+<span class="md-text">				Schedule returns a new Schedule with jitter for the given interval.</span>
+</span></span></span>
+		<input type='checkbox' class="fold" id="Jitter-fold-impls"><label for="Jitter-fold-impls">Implements (<i>at least one exported</i>)</label><span id='Jitter-fold-impls-items' class="fold-items"><span>
+			 Jitter : <a href="#name-JitterProvider">JitterProvider</a></span></span>
+		<input type='checkbox' class="fold" id="Jitter-fold-results"><label for="Jitter-fold-results">As Outputs Of (<i>at least 3, all are exported</i>)</label><span id='Jitter-fold-results-items' class="fold-items"><span>
+			func <a href="#name-RandomJitter">RandomJitter</a>(f func(n <a href="../../builtin.html#name-int64">int64</a>) <a href="../../builtin.html#name-int64">int64</a>) <b>Jitter</b></span><span>
+			func Jitter.<a href="../../../src/go.pact.im/x/flaky/jitter.go.html#line-64">Jitter</a>() <b>Jitter</b></span><span>
+			func <a href="#name-JitterProvider">JitterProvider</a>.<a href="../../../src/go.pact.im/x/flaky/jitter.go.html#line-10">Jitter</a>() <b>Jitter</b></span></span>
+
+</span></div><div class="anchor type-res" id="name-JitterInterval" data-popularity="105">	<input type='checkbox' class="fold" id="JitterInterval-fold-content"><label for="JitterInterval-fold-content"> <a href="../../../use/go.pact.im/x/flaky..JitterInterval.html">type</a> <a href="../../../src/go.pact.im/x/flaky/jitter.go.html#line-54">JitterInterval</a> <i>(struct)</i></label><span id='JitterInterval-fold-content-docs' class="fold-docs">
+<span class="md-text">		JitterInterval describes a closed jitter interval. The final jitter value
+		for random number N is computed as N - L/Q where N ∈ (0; L] for L &gt; 0 and
+		N ∈ [L; 0) for L &lt; 0. If L = 0 then the final jitter value is always zero.</span>
+
+		<input type='checkbox' class="fold" id="JitterInterval-fold-fields"><label for="JitterInterval-fold-fields">Fields (<i>total 2, both are exported</i>)</label><span id='JitterInterval-fold-fields-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="JitterInterval-fold-field-L"><label for="JitterInterval-fold-field-L"><a href="../../../src/go.pact.im/x/flaky/jitter.go.html#line-56">L</a> <i><a href="../../time.html">time</a>.<a href="../../time.html#name-Duration">Duration</a></i></label><span id='JitterInterval-fold-field-L-docs' class="fold-docs">
+<span class="md-text">				L is the length of the jitter interval.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="JitterInterval-fold-field-Q"><label for="JitterInterval-fold-field-Q"><a href="../../../src/go.pact.im/x/flaky/jitter.go.html#line-60">Q</a> <i><a href="../../builtin.html#name-int64">int64</a></i></label><span id='JitterInterval-fold-field-Q-docs' class="fold-docs">
+<span class="md-text">				Q specifies 1/q quotient of the interval length to subtract from the
+				random number.</span>
+</span></span></span>
+		<input type='checkbox' class="fold" id="JitterInterval-fold-params"><label for="JitterInterval-fold-params">As Inputs Of (<i>at least 3, in which 2 are exported</i>)</label><span id='JitterInterval-fold-params-items' class="fold-items"><span>
+			func <a href="#name-Jitter">Jitter</a>.<a href="../../../src/go.pact.im/x/flaky/jitter.go.html#line-101">Backoff</a>(b <a href="#name-Backoff">Backoff</a>, v <b>JitterInterval</b>) <a href="#name-Backoff">Backoff</a></span><span>
+			func <a href="#name-Jitter">Jitter</a>.<a href="../../../src/go.pact.im/x/flaky/jitter.go.html#line-76">Schedule</a>(s <a href="#name-Schedule">Schedule</a>, v <b>JitterInterval</b>) <a href="#name-Schedule">Schedule</a></span>
+			<input type='checkbox' class="showhide" id="JitterInterval-showhide-outputofs"><i><label for="JitterInterval-showhide-outputofs" class="show-inline">/* at least one unexported ... */</label><label for="JitterInterval-showhide-outputofs" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			func <a href="#name-randomJitter">randomJitter</a>(v <b>JitterInterval</b>, f func(n <a href="../../builtin.html#name-int64">int64</a>) <a href="../../builtin.html#name-int64">int64</a>) <a href="../../time.html">time</a>.<a href="../../time.html#name-Duration">Duration</a></i></span></span>
+
+</span></div><div class="anchor type-res" id="name-JitterProvider" data-popularity="200">	<input type='checkbox' class="fold" id="JitterProvider-fold-content"><label for="JitterProvider-fold-content"> <a href="../../../use/go.pact.im/x/flaky..JitterProvider.html">type</a> <a href="../../../src/go.pact.im/x/flaky/jitter.go.html#line-9">JitterProvider</a> <b><i>(interface)</i></b></label><span id='JitterProvider-fold-content-docs' class="fold-docs">
+<span class="md-text">		JitterProvider provides a jitter for executing operations.</span>
+
+		<input type='checkbox' class="fold" id="JitterProvider-fold-methods"><label for="JitterProvider-fold-methods">Methods (<i>only one, which is exported</i>)</label><span id='JitterProvider-fold-methods-items' class="fold-items"><span>
+			<span class="nodocs">( JitterProvider) <a href="../../../src/go.pact.im/x/flaky/jitter.go.html#line-10">Jitter</a>() <a href="#name-Jitter">Jitter</a></span></span></span>
+		<input type='checkbox' class="fold" id="JitterProvider-fold-impledby"><label for="JitterProvider-fold-impledby">Implemented By (<i>at least one exported</i>)</label><span id='JitterProvider-fold-impledby-items' class="fold-items"><span>
+			 <a href="#name-Jitter">Jitter</a></span></span>
+
+</span></div><div class="anchor type-res" id="name-Op" data-popularity="175">	<input type='checkbox' class="fold" id="Op-fold-content"><label for="Op-fold-content"> <a href="../../../use/go.pact.im/x/flaky..Op.html">type</a> <a href="../../../src/go.pact.im/x/flaky/flaky.go.html#line-9">Op</a> <i>(func)</i></label><span id='Op-fold-content-docs' class="fold-docs">
+<span class="md-text">		Op is an operation that is likely to fail.</span>
+
+		<input type='checkbox' class="fold" id="Op-fold-params"><label for="Op-fold-params">As Inputs Of (<i>at least 5, all are exported</i>)</label><span id='Op-fold-params-items' class="fold-items"><span>
+			func (*<a href="#name-DebounceExecutor">DebounceExecutor</a>).<a href="../../../src/go.pact.im/x/flaky/debounce.go.html#line-93">Execute</a>(ctx <a href="../../context.html">context</a>.<a href="../../context.html#name-Context">Context</a>, f <b>Op</b>) <a href="../../builtin.html#name-error">error</a></span><span>
+			func <a href="#name-Executor">Executor</a>.<a href="../../../src/go.pact.im/x/flaky/flaky.go.html#line-14">Execute</a>(ctx <a href="../../context.html">context</a>.<a href="../../context.html#name-Context">Context</a>, f <b>Op</b>) <a href="../../builtin.html#name-error">error</a></span><span>
+			func (*<a href="#name-RetryExecutor">RetryExecutor</a>).<a href="../../../src/go.pact.im/x/flaky/retry.go.html#line-45">Execute</a>(ctx <a href="../../context.html">context</a>.<a href="../../context.html#name-Context">Context</a>, f <b>Op</b>) <a href="../../builtin.html#name-error">error</a></span><span>
+			func (*<a href="#name-ScheduleExecutor">ScheduleExecutor</a>).<a href="../../../src/go.pact.im/x/flaky/schedule.go.html#line-140">Execute</a>(ctx <a href="../../context.html">context</a>.<a href="../../context.html#name-Context">Context</a>, f <b>Op</b>) <a href="../../builtin.html#name-error">error</a></span><span>
+			func (*<a href="#name-WatchdogExecutor">WatchdogExecutor</a>).<a href="../../../src/go.pact.im/x/flaky/watchdog.go.html#line-44">Execute</a>(ctx <a href="../../context.html">context</a>.<a href="../../context.html#name-Context">Context</a>, f <b>Op</b>) <a href="../../builtin.html#name-error">error</a></span></span>
+
+</span></div><div class="anchor type-res" id="name-PermanentError" data-popularity="425">	<input type='checkbox' class="fold" id="PermanentError-fold-content"><label for="PermanentError-fold-content"> <a href="../../../use/go.pact.im/x/flaky..PermanentError.html">type</a> <a href="../../../src/go.pact.im/x/flaky/permanent.go.html#line-10">PermanentError</a> <i>(struct)</i></label><span id='PermanentError-fold-content-docs' class="fold-docs">
+<span class="md-text">		PermanentError indicates that a permanent error has been encountered during a
+		retry attempt.</span>
+
+		<input type='checkbox' class="fold" id="PermanentError-fold-fields"><label for="PermanentError-fold-fields">Fields (<i>total 2, neither is exported</i>)</label><span id='PermanentError-fold-fields-items' class="fold-items">
+			<input type='checkbox' class="showhide" id="PermanentError-showhide-fields"><i><label for="PermanentError-showhide-fields" class="show-inline">/* 2 unexporteds ... */</label><label for="PermanentError-showhide-fields" class="hide-inline">/* 2 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../src/go.pact.im/x/flaky/permanent.go.html#line-11">err</a> <i><a href="../../builtin.html#name-error">error</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../src/go.pact.im/x/flaky/permanent.go.html#line-12">unwrap</a> <i><a href="../../builtin.html#name-bool">bool</a></i></span></i></span></span>
+		<input type='checkbox' class="fold" id="PermanentError-fold-methods"><label for="PermanentError-fold-methods">Methods (<i>total 3, all are exported</i>)</label><span id='PermanentError-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="PermanentError-fold-method-Error"><label for="PermanentError-fold-method-Error">(*PermanentError) <a href="../../../src/go.pact.im/x/flaky/permanent.go.html#line-41">Error</a>() <a href="../../builtin.html#name-string">string</a></label><span id='PermanentError-fold-method-Error-docs' class="fold-docs">
+<span class="md-text">				Error implements the error interface.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="PermanentError-fold-method-Internal"><label for="PermanentError-fold-method-Internal">(*PermanentError) <a href="../../../src/go.pact.im/x/flaky/permanent.go.html#line-52">Internal</a>() <a href="../../builtin.html#name-bool">bool</a></label><span id='PermanentError-fold-method-Internal-docs' class="fold-docs">
+<span class="md-text">				Internal returns whether the permanent error is internal. It is guaranteed
+				that Executor’s Execute method does not return internal errors.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="PermanentError-fold-method-Unwrap"><label for="PermanentError-fold-method-Unwrap">(*PermanentError) <a href="../../../src/go.pact.im/x/flaky/permanent.go.html#line-46">Unwrap</a>() <a href="../../builtin.html#name-error">error</a></label><span id='PermanentError-fold-method-Unwrap-docs' class="fold-docs">
+<span class="md-text">				Unwrap unwraps the underlying error.</span>
+</span></span></span>
+		<input type='checkbox' class="fold" id="PermanentError-fold-impls"><label for="PermanentError-fold-impls">Implements (<i>at least one exported</i>)</label><span id='PermanentError-fold-impls-items' class="fold-items"><span>
+			*PermanentError : <a href="../../builtin.html#name-error">error</a></span></span>
+		<input type='checkbox' class="fold" id="PermanentError-fold-results"><label for="PermanentError-fold-results">As Outputs Of (<i>at least 3, all are exported</i>)</label><span id='PermanentError-fold-results-items' class="fold-items"><span>
+			func <a href="#name-AsPermanentError">AsPermanentError</a>(err <a href="../../builtin.html#name-error">error</a>) (*<b>PermanentError</b>, <a href="../../builtin.html#name-bool">bool</a>)</span><span>
+			func <a href="#name-Internal">Internal</a>(err <a href="../../builtin.html#name-error">error</a>) *<b>PermanentError</b></span><span>
+			func <a href="#name-Permanent">Permanent</a>(err <a href="../../builtin.html#name-error">error</a>) *<b>PermanentError</b></span></span>
+
+</span></div><div class="anchor type-res" id="name-RetryExecutor" data-popularity="300">	<input type='checkbox' class="fold" id="RetryExecutor-fold-content"><label for="RetryExecutor-fold-content"> <a href="../../../use/go.pact.im/x/flaky..RetryExecutor.html">type</a> <a href="../../../src/go.pact.im/x/flaky/retry.go.html#line-13">RetryExecutor</a> <i>(struct)</i></label><span id='RetryExecutor-fold-content-docs' class="fold-docs">
+<span class="md-text">		RetryExecutor is an executor that retries executing an operation using the
+		provided backoff. It allows executing operations that may succeed after a few
+		attempts.</span>
+
+		<input type='checkbox' class="fold" id="RetryExecutor-fold-fields"><label for="RetryExecutor-fold-fields">Fields (<i>total 2, neither is exported</i>)</label><span id='RetryExecutor-fold-fields-items' class="fold-items">
+			<input type='checkbox' class="showhide" id="RetryExecutor-showhide-fields"><i><label for="RetryExecutor-showhide-fields" class="show-inline">/* 2 unexporteds ... */</label><label for="RetryExecutor-showhide-fields" class="hide-inline">/* 2 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../src/go.pact.im/x/flaky/retry.go.html#line-15">backoff</a> <i><a href="#name-BackoffProvider">BackoffProvider</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../src/go.pact.im/x/flaky/retry.go.html#line-14">clock</a> <i>*<a href="clock.html">clock</a>.<a href="clock.html#name-Clock">Clock</a></i></span></i></span></span>
+		<input type='checkbox' class="fold" id="RetryExecutor-fold-methods"><label for="RetryExecutor-fold-methods">Methods (<i>total 2, both are exported</i>)</label><span id='RetryExecutor-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="RetryExecutor-fold-method-Execute"><label for="RetryExecutor-fold-method-Execute">(*RetryExecutor) <a href="../../../src/go.pact.im/x/flaky/retry.go.html#line-45">Execute</a>(ctx <a href="../../context.html">context</a>.<a href="../../context.html#name-Context">Context</a>, f <a href="#name-Op">Op</a>) <a href="../../builtin.html#name-error">error</a></label><span id='RetryExecutor-fold-method-Execute-docs' class="fold-docs">
+<span class="md-text">				Execute implements the Executor interface.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="RetryExecutor-fold-method-WithClock"><label for="RetryExecutor-fold-method-WithClock">(*RetryExecutor) <a href="../../../src/go.pact.im/x/flaky/retry.go.html#line-34">WithClock</a>(c *<a href="clock.html">clock</a>.<a href="clock.html#name-Clock">Clock</a>) *<b>RetryExecutor</b></label><span id='RetryExecutor-fold-method-WithClock-docs' class="fold-docs">
+<span class="md-text">				WithClock returns a copy of the executor that uses the given clock.</span>
+</span></span></span>
+		<input type='checkbox' class="fold" id="RetryExecutor-fold-impls"><label for="RetryExecutor-fold-impls">Implements (<i>at least one exported</i>)</label><span id='RetryExecutor-fold-impls-items' class="fold-items"><span>
+			*RetryExecutor : <a href="#name-Executor">Executor</a></span></span>
+		<input type='checkbox' class="fold" id="RetryExecutor-fold-results"><label for="RetryExecutor-fold-results">As Outputs Of (<i>at least 2, both are exported</i>)</label><span id='RetryExecutor-fold-results-items' class="fold-items"><span>
+			func <a href="#name-Retry">Retry</a>(b <a href="#name-BackoffProvider">BackoffProvider</a>) *<b>RetryExecutor</b></span><span>
+			func (*RetryExecutor).<a href="../../../src/go.pact.im/x/flaky/retry.go.html#line-34">WithClock</a>(c *<a href="clock.html">clock</a>.<a href="clock.html#name-Clock">Clock</a>) *<b>RetryExecutor</b></span></span>
+
+</span></div><div class="anchor type-res" id="name-Schedule" data-popularity="1590">	<input type='checkbox' class="fold" id="Schedule-fold-content"><label for="Schedule-fold-content"> <a href="../../../use/go.pact.im/x/flaky..Schedule.html">type</a> <a href="../../../src/go.pact.im/x/flaky/schedule.go.html#line-22">Schedule</a> <b><i>(interface)</i></b></label><span id='Schedule-fold-content-docs' class="fold-docs">
+<span class="md-text">		Schedule defines the schedule to use for WithSchedule.</span>
+
+		<input type='checkbox' class="fold" id="Schedule-fold-methods"><label for="Schedule-fold-methods">Methods (<i>only one, which is exported</i>)</label><span id='Schedule-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="Schedule-fold-method-Next"><label for="Schedule-fold-method-Next">( Schedule) <a href="../../../src/go.pact.im/x/flaky/schedule.go.html#line-26">Next</a>(now <a href="../../time.html">time</a>.<a href="../../time.html#name-Time">Time</a>) <a href="../../time.html">time</a>.<a href="../../time.html#name-Time">Time</a></label><span id='Schedule-fold-method-Next-docs' class="fold-docs">
+<span class="md-text">				Next returns the next schedule time relative to now. If there is no
+				schedule past the given time, it returns zero time or a value before
+				now.</span>
+</span></span></span>
+		<input type='checkbox' class="fold" id="Schedule-fold-impledby"><label for="Schedule-fold-impledby">Implemented By (<i>at least 7, in which 3 are exported</i>)</label><span id='Schedule-fold-impledby-items' class="fold-items"><span>
+			 github.com/robfig/cron/v3.<a href="../../github.com/robfig/cron/v3.html#name-ConstantDelaySchedule">ConstantDelaySchedule</a></span><span>
+			 github.com/robfig/cron/v3.<a href="../../github.com/robfig/cron/v3.html#name-Schedule">Schedule</a> <i>(interface)</i></span><span>
+			*github.com/robfig/cron/v3.<a href="../../github.com/robfig/cron/v3.html#name-SpecSchedule">SpecSchedule</a></span>
+			<input type='checkbox' class="showhide" id="Schedule-showhide-impedBys"><i><label for="Schedule-showhide-impedBys" class="show-inline">/* 4+ unexporteds ... */</label><label for="Schedule-showhide-impedBys" class="hide-inline">/* 4+ unexporteds: */</label></i><span class="hidden"><i>
+			*<a href="#name-jitterSchedule">jitterSchedule</a></i></span><span class="hidden"><i>
+			*<a href="#name-midnightSchedule">midnightSchedule</a></i></span><span class="hidden"><i>
+			 <a href="#name-sleepSchedule">sleepSchedule</a></i></span><span class="hidden"><i>
+			*<a href="#name-untilSchedule">untilSchedule</a></i></span></span>
+		<input type='checkbox' class="fold" id="Schedule-fold-impls"><label for="Schedule-fold-impls">Implements (<i>at least one exported</i>)</label><span id='Schedule-fold-impls-items' class="fold-items"><span>
+			 Schedule : github.com/robfig/cron/v3.<a href="../../github.com/robfig/cron/v3.html#name-Schedule">Schedule</a></span></span>
+		<input type='checkbox' class="fold" id="Schedule-fold-results"><label for="Schedule-fold-results">As Outputs Of (<i>at least 4, all are exported</i>)</label><span id='Schedule-fold-results-items' class="fold-items"><span>
+			func <a href="#name-Midnight">Midnight</a>(d <a href="../../time.html">time</a>.<a href="../../time.html#name-Duration">Duration</a>, loc *<a href="../../time.html">time</a>.<a href="../../time.html#name-Location">Location</a>) <b>Schedule</b></span><span>
+			func <a href="#name-Sleep">Sleep</a>(d <a href="../../time.html">time</a>.<a href="../../time.html#name-Duration">Duration</a>) <b>Schedule</b></span><span>
+			func <a href="#name-Until">Until</a>(s <b>Schedule</b>, t <a href="../../time.html">time</a>.<a href="../../time.html#name-Time">Time</a>) <b>Schedule</b></span><span>
+			func <a href="#name-Jitter">Jitter</a>.<a href="../../../src/go.pact.im/x/flaky/jitter.go.html#line-76">Schedule</a>(s <b>Schedule</b>, v <a href="#name-JitterInterval">JitterInterval</a>) <b>Schedule</b></span></span>
+		<input type='checkbox' class="fold" id="Schedule-fold-params"><label for="Schedule-fold-params">As Inputs Of (<i>at least 4, all are exported</i>)</label><span id='Schedule-fold-params-items' class="fold-items"><span>
+			func <a href="#name-Until">Until</a>(s <b>Schedule</b>, t <a href="../../time.html">time</a>.<a href="../../time.html#name-Time">Time</a>) <b>Schedule</b></span><span>
+			func <a href="#name-Watchdog">Watchdog</a>(e <a href="#name-Executor">Executor</a>, s <b>Schedule</b>) *<a href="#name-WatchdogExecutor">WatchdogExecutor</a></span><span>
+			func <a href="#name-WithSchedule">WithSchedule</a>(e <a href="#name-Executor">Executor</a>, s <b>Schedule</b>) *<a href="#name-ScheduleExecutor">ScheduleExecutor</a></span><span>
+			func <a href="#name-Jitter">Jitter</a>.<a href="../../../src/go.pact.im/x/flaky/jitter.go.html#line-76">Schedule</a>(s <b>Schedule</b>, v <a href="#name-JitterInterval">JitterInterval</a>) <b>Schedule</b></span></span>
+
+</span></div><div class="anchor type-res" id="name-ScheduleExecutor" data-popularity="300">	<input type='checkbox' class="fold" id="ScheduleExecutor-fold-content"><label for="ScheduleExecutor-fold-content"> <a href="../../../use/go.pact.im/x/flaky..ScheduleExecutor.html">type</a> <a href="../../../src/go.pact.im/x/flaky/schedule.go.html#line-111">ScheduleExecutor</a> <i>(struct)</i></label><span id='ScheduleExecutor-fold-content-docs' class="fold-docs">
+<span class="md-text">		ScheduleExecutor is an executor that restricts operation execution to the
+		specified schedule. It allows executing operations that may only succeed
+		at the given time.</span>
+
+		<input type='checkbox' class="fold" id="ScheduleExecutor-fold-fields"><label for="ScheduleExecutor-fold-fields">Fields (<i>total 3, none are exported</i>)</label><span id='ScheduleExecutor-fold-fields-items' class="fold-items">
+			<input type='checkbox' class="showhide" id="ScheduleExecutor-showhide-fields"><i><label for="ScheduleExecutor-showhide-fields" class="show-inline">/* 3 unexporteds ... */</label><label for="ScheduleExecutor-showhide-fields" class="hide-inline">/* 3 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../src/go.pact.im/x/flaky/schedule.go.html#line-112">clock</a> <i>*<a href="clock.html">clock</a>.<a href="clock.html#name-Clock">Clock</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../src/go.pact.im/x/flaky/schedule.go.html#line-114">exec</a> <i><a href="#name-Executor">Executor</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../src/go.pact.im/x/flaky/schedule.go.html#line-113">sched</a> <i><a href="#name-Schedule">Schedule</a></i></span></i></span></span>
+		<input type='checkbox' class="fold" id="ScheduleExecutor-fold-methods"><label for="ScheduleExecutor-fold-methods">Methods (<i>total 2, both are exported</i>)</label><span id='ScheduleExecutor-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="ScheduleExecutor-fold-method-Execute"><label for="ScheduleExecutor-fold-method-Execute">(*ScheduleExecutor) <a href="../../../src/go.pact.im/x/flaky/schedule.go.html#line-140">Execute</a>(ctx <a href="../../context.html">context</a>.<a href="../../context.html#name-Context">Context</a>, f <a href="#name-Op">Op</a>) <a href="../../builtin.html#name-error">error</a></label><span id='ScheduleExecutor-fold-method-Execute-docs' class="fold-docs">
+<span class="md-text">				Execute implements the Executor interface.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="ScheduleExecutor-fold-method-WithClock"><label for="ScheduleExecutor-fold-method-WithClock">(*ScheduleExecutor) <a href="../../../src/go.pact.im/x/flaky/schedule.go.html#line-128">WithClock</a>(c *<a href="clock.html">clock</a>.<a href="clock.html#name-Clock">Clock</a>) *<b>ScheduleExecutor</b></label><span id='ScheduleExecutor-fold-method-WithClock-docs' class="fold-docs">
+<span class="md-text">				WithClock returns a copy of the executor that uses the given clock.</span>
+</span></span></span>
+		<input type='checkbox' class="fold" id="ScheduleExecutor-fold-impls"><label for="ScheduleExecutor-fold-impls">Implements (<i>at least one exported</i>)</label><span id='ScheduleExecutor-fold-impls-items' class="fold-items"><span>
+			*ScheduleExecutor : <a href="#name-Executor">Executor</a></span></span>
+		<input type='checkbox' class="fold" id="ScheduleExecutor-fold-results"><label for="ScheduleExecutor-fold-results">As Outputs Of (<i>at least 2, both are exported</i>)</label><span id='ScheduleExecutor-fold-results-items' class="fold-items"><span>
+			func <a href="#name-WithSchedule">WithSchedule</a>(e <a href="#name-Executor">Executor</a>, s <a href="#name-Schedule">Schedule</a>) *<b>ScheduleExecutor</b></span><span>
+			func (*ScheduleExecutor).<a href="../../../src/go.pact.im/x/flaky/schedule.go.html#line-128">WithClock</a>(c *<a href="clock.html">clock</a>.<a href="clock.html#name-Clock">Clock</a>) *<b>ScheduleExecutor</b></span></span>
+
+</span></div><div class="anchor type-res" id="name-WatchdogExecutor" data-popularity="300">	<input type='checkbox' class="fold" id="WatchdogExecutor-fold-content"><label for="WatchdogExecutor-fold-content"> <a href="../../../use/go.pact.im/x/flaky..WatchdogExecutor.html">type</a> <a href="../../../src/go.pact.im/x/flaky/watchdog.go.html#line-12">WatchdogExecutor</a> <i>(struct)</i></label><span id='WatchdogExecutor-fold-content-docs' class="fold-docs">
+<span class="md-text">		WatchdogExecutor is an executor that keeps executing an operation on schedule
+		using the underlying executor until an error is returned or context expires.
+		It allow monitoring a resource that should not fail.</span>
+
+		<input type='checkbox' class="fold" id="WatchdogExecutor-fold-fields"><label for="WatchdogExecutor-fold-fields">Fields (<i>only one, which is unexported</i>)</label><span id='WatchdogExecutor-fold-fields-items' class="fold-items">
+			<input type='checkbox' class="showhide" id="WatchdogExecutor-showhide-fields"><i><label for="WatchdogExecutor-showhide-fields" class="show-inline">/* one unexported ... */</label><label for="WatchdogExecutor-showhide-fields" class="hide-inline">/* one unexported: */</label></i><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../src/go.pact.im/x/flaky/watchdog.go.html#line-13">exec</a> <i>*<a href="#name-ScheduleExecutor">ScheduleExecutor</a></i></span></i></span></span>
+		<input type='checkbox' class="fold" id="WatchdogExecutor-fold-methods"><label for="WatchdogExecutor-fold-methods">Methods (<i>total 2, both are exported</i>)</label><span id='WatchdogExecutor-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="WatchdogExecutor-fold-method-Execute"><label for="WatchdogExecutor-fold-method-Execute">(*WatchdogExecutor) <a href="../../../src/go.pact.im/x/flaky/watchdog.go.html#line-44">Execute</a>(ctx <a href="../../context.html">context</a>.<a href="../../context.html#name-Context">Context</a>, f <a href="#name-Op">Op</a>) <a href="../../builtin.html#name-error">error</a></label><span id='WatchdogExecutor-fold-method-Execute-docs' class="fold-docs">
+<span class="md-text">				Execute implements the Executor interface.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="WatchdogExecutor-fold-method-WithClock"><label for="WatchdogExecutor-fold-method-WithClock">(*WatchdogExecutor) <a href="../../../src/go.pact.im/x/flaky/watchdog.go.html#line-37">WithClock</a>(c *<a href="clock.html">clock</a>.<a href="clock.html#name-Clock">Clock</a>) *<b>WatchdogExecutor</b></label><span id='WatchdogExecutor-fold-method-WithClock-docs' class="fold-docs">
+<span class="md-text">				WithClock returns a copy of the executor that uses the given clock.</span>
+</span></span></span>
+		<input type='checkbox' class="fold" id="WatchdogExecutor-fold-impls"><label for="WatchdogExecutor-fold-impls">Implements (<i>at least one exported</i>)</label><span id='WatchdogExecutor-fold-impls-items' class="fold-items"><span>
+			*WatchdogExecutor : <a href="#name-Executor">Executor</a></span></span>
+		<input type='checkbox' class="fold" id="WatchdogExecutor-fold-results"><label for="WatchdogExecutor-fold-results">As Outputs Of (<i>at least 2, both are exported</i>)</label><span id='WatchdogExecutor-fold-results-items' class="fold-items"><span>
+			func <a href="#name-Watchdog">Watchdog</a>(e <a href="#name-Executor">Executor</a>, s <a href="#name-Schedule">Schedule</a>) *<b>WatchdogExecutor</b></span><span>
+			func (*WatchdogExecutor).<a href="../../../src/go.pact.im/x/flaky/watchdog.go.html#line-37">WithClock</a>(c *<a href="clock.html">clock</a>.<a href="clock.html#name-Clock">Clock</a>) *<b>WatchdogExecutor</b></span></span>
+
+</span></div></div><div>	<input type='checkbox' class="showhide" id="unexported-typenames-showhide"><i><label for="unexported-typenames-showhide" class="show-inline">/* 7 unexporteds ... */</label><label for="unexported-typenames-showhide" class="hide-inline">/* 7 unexporteds: */</label></i><div class="anchor type-res hidden" id="name-debounceState" data-popularity="0">	<input type='checkbox' class="fold" id="debounceState-fold-content"><label for="debounceState-fold-content"> <a href="../../../use/go.pact.im/x/flaky..debounceState^55112.html">type</a> <a href="../../../src/go.pact.im/x/flaky/debounce.go.html#line-36">debounceState</a> <i>(struct)</i></label><span id='debounceState-fold-content-docs' class="fold-docs">
+<span class="md-text">		debounceState is the debounce state for DebounceExecutor.</span>
+
+		<input type='checkbox' class="fold" id="debounceState-fold-fields"><label for="debounceState-fold-fields">Fields (<i>total 4, none are exported</i>)</label><span id='debounceState-fold-fields-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="debounceState-showhide-fields"><i><label for="debounceState-showhide-fields" class="show-inline">/* 4 unexporteds ... */</label><label for="debounceState-showhide-fields" class="hide-inline">/* 4 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../src/go.pact.im/x/flaky/debounce.go.html#line-38">exec</a> <i>chan struct{}</i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../src/go.pact.im/x/flaky/debounce.go.html#line-37">lock</a> <i>chan struct{}</i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../src/go.pact.im/x/flaky/debounce.go.html#line-40">next</a> <i>chan struct{}</i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../src/go.pact.im/x/flaky/debounce.go.html#line-39">steal</a> <i>chan struct{}</i></span></i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-jitterSchedule" data-popularity="150">	<input type='checkbox' class="fold" id="jitterSchedule-fold-content"><label for="jitterSchedule-fold-content"> <a href="../../../use/go.pact.im/x/flaky..jitterSchedule^ce69c.html">type</a> <a href="../../../src/go.pact.im/x/flaky/jitter.go.html#line-68">jitterSchedule</a> <i>(struct)</i></label><span id='jitterSchedule-fold-content-docs' class="fold-docs">
+
+		<input type='checkbox' class="fold" id="jitterSchedule-fold-fields"><label for="jitterSchedule-fold-fields">Fields (<i>total 3, none are exported</i>)</label><span id='jitterSchedule-fold-fields-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="jitterSchedule-showhide-fields"><i><label for="jitterSchedule-showhide-fields" class="show-inline">/* 3 unexporteds ... */</label><label for="jitterSchedule-showhide-fields" class="hide-inline">/* 3 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../src/go.pact.im/x/flaky/jitter.go.html#line-70">interval</a> <i><a href="#name-JitterInterval">JitterInterval</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../src/go.pact.im/x/flaky/jitter.go.html#line-69">jitter</a> <i><a href="#name-Jitter">Jitter</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../src/go.pact.im/x/flaky/jitter.go.html#line-72">sched</a> <i><a href="#name-Schedule">Schedule</a></i></span></i></span></span>
+		<input type='checkbox' class="fold" id="jitterSchedule-fold-methods"><label for="jitterSchedule-fold-methods">Methods (<i>only one, which is exported</i>)</label><span id='jitterSchedule-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="jitterSchedule-fold-method-Next"><label for="jitterSchedule-fold-method-Next">(*jitterSchedule) <a href="../../../src/go.pact.im/x/flaky/jitter.go.html#line-85">Next</a>(now <a href="../../time.html">time</a>.<a href="../../time.html#name-Time">Time</a>) <a href="../../time.html">time</a>.<a href="../../time.html#name-Time">Time</a></label><span id='jitterSchedule-fold-method-Next-docs' class="fold-docs">
+<span class="md-text">				Next implements the Schedule interface.</span>
+</span></span></span>
+		<input type='checkbox' class="fold" id="jitterSchedule-fold-impls"><label for="jitterSchedule-fold-impls">Implements (<i>at least 2, both are exported</i>)</label><span id='jitterSchedule-fold-impls-items' class="fold-items"><span>
+			*jitterSchedule : <a href="#name-Schedule">Schedule</a></span><span>
+			*jitterSchedule : github.com/robfig/cron/v3.<a href="../../github.com/robfig/cron/v3.html#name-Schedule">Schedule</a></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-midnightSchedule" data-popularity="150">	<input type='checkbox' class="fold" id="midnightSchedule-fold-content"><label for="midnightSchedule-fold-content"> <a href="../../../use/go.pact.im/x/flaky..midnightSchedule^56a8c.html">type</a> <a href="../../../src/go.pact.im/x/flaky/schedule.go.html#line-52">midnightSchedule</a> <i>(struct)</i></label><span id='midnightSchedule-fold-content-docs' class="fold-docs">
+
+		<input type='checkbox' class="fold" id="midnightSchedule-fold-fields"><label for="midnightSchedule-fold-fields">Fields (<i>total 2, neither is exported</i>)</label><span id='midnightSchedule-fold-fields-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="midnightSchedule-showhide-fields"><i><label for="midnightSchedule-showhide-fields" class="show-inline">/* 2 unexporteds ... */</label><label for="midnightSchedule-showhide-fields" class="hide-inline">/* 2 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../src/go.pact.im/x/flaky/schedule.go.html#line-53">d</a> <i><a href="../../time.html">time</a>.<a href="../../time.html#name-Duration">Duration</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../src/go.pact.im/x/flaky/schedule.go.html#line-54">loc</a> <i>*<a href="../../time.html">time</a>.<a href="../../time.html#name-Location">Location</a></i></span></i></span></span>
+		<input type='checkbox' class="fold" id="midnightSchedule-fold-methods"><label for="midnightSchedule-fold-methods">Methods (<i>only one, which is exported</i>)</label><span id='midnightSchedule-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="midnightSchedule-fold-method-Next"><label for="midnightSchedule-fold-method-Next">(*midnightSchedule) <a href="../../../src/go.pact.im/x/flaky/schedule.go.html#line-69">Next</a>(now <a href="../../time.html">time</a>.<a href="../../time.html#name-Time">Time</a>) <a href="../../time.html">time</a>.<a href="../../time.html#name-Time">Time</a></label><span id='midnightSchedule-fold-method-Next-docs' class="fold-docs">
+<span class="md-text">				Next implements the Schedule interface.</span>
+</span></span></span>
+		<input type='checkbox' class="fold" id="midnightSchedule-fold-impls"><label for="midnightSchedule-fold-impls">Implements (<i>at least 2, both are exported</i>)</label><span id='midnightSchedule-fold-impls-items' class="fold-items"><span>
+			*midnightSchedule : <a href="#name-Schedule">Schedule</a></span><span>
+			*midnightSchedule : github.com/robfig/cron/v3.<a href="../../github.com/robfig/cron/v3.html#name-Schedule">Schedule</a></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-onceExecutor" data-popularity="100">	<input type='checkbox' class="fold" id="onceExecutor-fold-content"><label for="onceExecutor-fold-content"> <a href="../../../use/go.pact.im/x/flaky..onceExecutor^37c6b.html">type</a> <a href="../../../src/go.pact.im/x/flaky/once.go.html#line-7">onceExecutor</a> <i>(struct)</i></label><span id='onceExecutor-fold-content-docs' class="fold-docs">
+
+		<input type='checkbox' class="fold" id="onceExecutor-fold-methods"><label for="onceExecutor-fold-methods">Methods (<i>only one, which is exported</i>)</label><span id='onceExecutor-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="onceExecutor-fold-method-Execute"><label for="onceExecutor-fold-method-Execute">(*onceExecutor) <a href="../../../src/go.pact.im/x/flaky/once.go.html#line-16">Execute</a>(ctx <a href="../../context.html">context</a>.<a href="../../context.html#name-Context">Context</a>, f <a href="#name-Op">Op</a>) <a href="../../builtin.html#name-error">error</a></label><span id='onceExecutor-fold-method-Execute-docs' class="fold-docs">
+<span class="md-text">				Execute implements the Executor interface.</span>
+</span></span></span>
+		<input type='checkbox' class="fold" id="onceExecutor-fold-impls"><label for="onceExecutor-fold-impls">Implements (<i>at least one exported</i>)</label><span id='onceExecutor-fold-impls-items' class="fold-items"><span>
+			*onceExecutor : <a href="#name-Executor">Executor</a></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-sleepSchedule" data-popularity="150">	<input type='checkbox' class="fold" id="sleepSchedule-fold-content"><label for="sleepSchedule-fold-content"> <a href="../../../use/go.pact.im/x/flaky..sleepSchedule^b3c97.html">type</a> <a href="../../../src/go.pact.im/x/flaky/schedule.go.html#line-89">sleepSchedule</a> <i>(struct)</i></label><span id='sleepSchedule-fold-content-docs' class="fold-docs">
+
+		<input type='checkbox' class="fold" id="sleepSchedule-fold-fields"><label for="sleepSchedule-fold-fields">Fields (<i>only one, which is unexported</i>)</label><span id='sleepSchedule-fold-fields-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="sleepSchedule-showhide-fields"><i><label for="sleepSchedule-showhide-fields" class="show-inline">/* one unexported ... */</label><label for="sleepSchedule-showhide-fields" class="hide-inline">/* one unexported: */</label></i><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../src/go.pact.im/x/flaky/schedule.go.html#line-90">d</a> <i><a href="../../time.html">time</a>.<a href="../../time.html#name-Duration">Duration</a></i></span></i></span></span>
+		<input type='checkbox' class="fold" id="sleepSchedule-fold-methods"><label for="sleepSchedule-fold-methods">Methods (<i>only one, which is exported</i>)</label><span id='sleepSchedule-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="sleepSchedule-fold-method-Next"><label for="sleepSchedule-fold-method-Next">( sleepSchedule) <a href="../../../src/go.pact.im/x/flaky/schedule.go.html#line-101">Next</a>(now <a href="../../time.html">time</a>.<a href="../../time.html#name-Time">Time</a>) <a href="../../time.html">time</a>.<a href="../../time.html#name-Time">Time</a></label><span id='sleepSchedule-fold-method-Next-docs' class="fold-docs">
+<span class="md-text">				Next implements the Schedule interface.</span>
+</span></span></span>
+		<input type='checkbox' class="fold" id="sleepSchedule-fold-impls"><label for="sleepSchedule-fold-impls">Implements (<i>at least 2, both are exported</i>)</label><span id='sleepSchedule-fold-impls-items' class="fold-items"><span>
+			 sleepSchedule : <a href="#name-Schedule">Schedule</a></span><span>
+			 sleepSchedule : github.com/robfig/cron/v3.<a href="../../github.com/robfig/cron/v3.html#name-Schedule">Schedule</a></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-untilPermanentExecutor" data-popularity="100">	<input type='checkbox' class="fold" id="untilPermanentExecutor-fold-content"><label for="untilPermanentExecutor-fold-content"> <a href="../../../use/go.pact.im/x/flaky..untilPermanentExecutor^a8553.html">type</a> <a href="../../../src/go.pact.im/x/flaky/permanent.go.html#line-69">untilPermanentExecutor</a> <i>(struct)</i></label><span id='untilPermanentExecutor-fold-content-docs' class="fold-docs">
+
+		<input type='checkbox' class="fold" id="untilPermanentExecutor-fold-methods"><label for="untilPermanentExecutor-fold-methods">Methods (<i>only one, which is exported</i>)</label><span id='untilPermanentExecutor-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="untilPermanentExecutor-fold-method-Execute"><label for="untilPermanentExecutor-fold-method-Execute">(*untilPermanentExecutor) <a href="../../../src/go.pact.im/x/flaky/permanent.go.html#line-78">Execute</a>(ctx <a href="../../context.html">context</a>.<a href="../../context.html#name-Context">Context</a>, f <a href="#name-Op">Op</a>) <a href="../../builtin.html#name-error">error</a></label><span id='untilPermanentExecutor-fold-method-Execute-docs' class="fold-docs">
+<span class="md-text">				Execute implements the Executor interface.</span>
+</span></span></span>
+		<input type='checkbox' class="fold" id="untilPermanentExecutor-fold-impls"><label for="untilPermanentExecutor-fold-impls">Implements (<i>at least one exported</i>)</label><span id='untilPermanentExecutor-fold-impls-items' class="fold-items"><span>
+			*untilPermanentExecutor : <a href="#name-Executor">Executor</a></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-untilSchedule" data-popularity="150">	<input type='checkbox' class="fold" id="untilSchedule-fold-content"><label for="untilSchedule-fold-content"> <a href="../../../use/go.pact.im/x/flaky..untilSchedule^fc51c.html">type</a> <a href="../../../src/go.pact.im/x/flaky/schedule.go.html#line-29">untilSchedule</a> <i>(struct)</i></label><span id='untilSchedule-fold-content-docs' class="fold-docs">
+
+		<input type='checkbox' class="fold" id="untilSchedule-fold-fields"><label for="untilSchedule-fold-fields">Fields (<i>total 2, neither is exported</i>)</label><span id='untilSchedule-fold-fields-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="untilSchedule-showhide-fields"><i><label for="untilSchedule-showhide-fields" class="show-inline">/* 2 unexporteds ... */</label><label for="untilSchedule-showhide-fields" class="hide-inline">/* 2 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../src/go.pact.im/x/flaky/schedule.go.html#line-30">sched</a> <i><a href="#name-Schedule">Schedule</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../src/go.pact.im/x/flaky/schedule.go.html#line-31">until</a> <i><a href="../../time.html">time</a>.<a href="../../time.html#name-Time">Time</a></i></span></i></span></span>
+		<input type='checkbox' class="fold" id="untilSchedule-fold-methods"><label for="untilSchedule-fold-methods">Methods (<i>only one, which is exported</i>)</label><span id='untilSchedule-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="untilSchedule-fold-method-Next"><label for="untilSchedule-fold-method-Next">(*untilSchedule) <a href="../../../src/go.pact.im/x/flaky/schedule.go.html#line-44">Next</a>(now <a href="../../time.html">time</a>.<a href="../../time.html#name-Time">Time</a>) <a href="../../time.html">time</a>.<a href="../../time.html#name-Time">Time</a></label><span id='untilSchedule-fold-method-Next-docs' class="fold-docs">
+<span class="md-text">				Next implements the Schedule interface.</span>
+</span></span></span>
+		<input type='checkbox' class="fold" id="untilSchedule-fold-impls"><label for="untilSchedule-fold-impls">Implements (<i>at least 2, both are exported</i>)</label><span id='untilSchedule-fold-impls-items' class="fold-items"><span>
+			*untilSchedule : <a href="#name-Schedule">Schedule</a></span><span>
+			*untilSchedule : github.com/robfig/cron/v3.<a href="../../github.com/robfig/cron/v3.html#name-Schedule">Schedule</a></span></span>
+
+</span></div></div>
+<div id="exported-functions"><span class="title">Package-Level Functions<span class="title-stat"><i> (total 20, in which 17 are exported)</i></span></span>
+
+<div class="anchor value-res" id="name-AsPermanentError">	<input type='checkbox' class="fold" id="AsPermanentError-fold-content"><label for="AsPermanentError-fold-content"> <a href="../../../use/go.pact.im/x/flaky..AsPermanentError.html">func</a> <a href="../../../src/go.pact.im/x/flaky/permanent.go.html#line-34">AsPermanentError</a>(err <a href="../../builtin.html#name-error">error</a>) (*<a href="#name-PermanentError">PermanentError</a>, <a href="../../builtin.html#name-bool">bool</a>)</label><span id='AsPermanentError-fold-content-docs' class="fold-docs">
+<span class="md-text">		AsPermanentError attempts to extract PermanentError from err’s error chain.</span>
+
+</span></div><div class="anchor value-res" id="name-Constant">	<input type='checkbox' class="fold" id="Constant-fold-content"><label for="Constant-fold-content"> <a href="../../../use/go.pact.im/x/flaky..Constant.html">func</a> <a href="../../../src/go.pact.im/x/flaky/backoff.go.html#line-39">Constant</a>(xs ...<a href="../../time.html">time</a>.<a href="../../time.html#name-Duration">Duration</a>) <a href="#name-Backoff">Backoff</a></label><span id='Constant-fold-content-docs' class="fold-docs">
+<span class="md-text">		Constant returns a constant backoff that uses nth duration for the arguments.
+		It returns the last element if the attempt count is greater than the number
+		of arguments. Passing no arguments is equivalent to no backoff.</span>
+
+</span></div><div class="anchor value-res" id="name-Debounce">	<input type='checkbox' class="fold" id="Debounce-fold-content"><label for="Debounce-fold-content"> <a href="../../../use/go.pact.im/x/flaky..Debounce.html">func</a> <a href="../../../src/go.pact.im/x/flaky/debounce.go.html#line-44">Debounce</a>(t <a href="../../time.html">time</a>.<a href="../../time.html#name-Duration">Duration</a>) *<a href="#name-DebounceExecutor">DebounceExecutor</a></label><span id='Debounce-fold-content-docs' class="fold-docs">
+<span class="md-text">		Debounce returns a new DebounceExecutor instance for the given wait duration.</span>
+
+</span></div><div class="anchor value-res" id="name-Exp2">	<input type='checkbox' class="fold" id="Exp2-fold-content"><label for="Exp2-fold-content"> <a href="../../../use/go.pact.im/x/flaky..Exp2.html">func</a> <a href="../../../src/go.pact.im/x/flaky/backoff.go.html#line-57">Exp2</a>(unit <a href="../../time.html">time</a>.<a href="../../time.html#name-Duration">Duration</a>) <a href="#name-Backoff">Backoff</a></label><span id='Exp2-fold-content-docs' class="fold-docs">
+<span class="md-text">		Exp2 returns an exponential backoff that returns base-2 exponential of
+		failed attempts count times the given duration unit.
+		
+		Note that the backoff stops after wait duration reaches max positive value of
+		time.Duration or once n is equal to math.MaxUint.</span>
+
+</span></div><div class="anchor value-res" id="name-Internal">	<input type='checkbox' class="fold" id="Internal-fold-content"><label for="Internal-fold-content"> <a href="../../../use/go.pact.im/x/flaky..Internal.html">func</a> <a href="../../../src/go.pact.im/x/flaky/permanent.go.html#line-17">Internal</a>(err <a href="../../builtin.html#name-error">error</a>) *<a href="#name-PermanentError">PermanentError</a></label><span id='Internal-fold-content-docs' class="fold-docs">
+<span class="md-text">		Internal marks an error as a permanent internal error. Executors unwrap
+		internal errors prior to returning them.</span>
+
+</span></div><div class="anchor value-res" id="name-IsPermanentError">	<input type='checkbox' class="fold" id="IsPermanentError-fold-content"><label for="IsPermanentError-fold-content"> <a href="../../../use/go.pact.im/x/flaky..IsPermanentError.html">func</a> <a href="../../../src/go.pact.im/x/flaky/permanent.go.html#line-28">IsPermanentError</a>(err <a href="../../builtin.html#name-error">error</a>) <a href="../../builtin.html#name-bool">bool</a></label><span id='IsPermanentError-fold-content-docs' class="fold-docs">
+<span class="md-text">		IsPermanentError returns whether err’s error chain contains PermanentError.</span>
+
+</span></div><div class="anchor value-res" id="name-Limit">	<input type='checkbox' class="fold" id="Limit-fold-content"><label for="Limit-fold-content"> <a href="../../../use/go.pact.im/x/flaky..Limit.html">func</a> <a href="../../../src/go.pact.im/x/flaky/backoff.go.html#line-27">Limit</a>(limit <a href="../../builtin.html#name-uint">uint</a>, backoff <a href="#name-Backoff">Backoff</a>) <a href="#name-Backoff">Backoff</a></label><span id='Limit-fold-content-docs' class="fold-docs">
+<span class="md-text">		Limit limits the number of retries for the given backoff. That is, it stops
+		the backoff once retries counter reaches the given limit. Passing a limit of
+		zero retries is equivalent to no backoff.</span>
+
+</span></div><div class="anchor value-res" id="name-Midnight">	<input type='checkbox' class="fold" id="Midnight-fold-content"><label for="Midnight-fold-content"> <a href="../../../use/go.pact.im/x/flaky..Midnight.html">func</a> <a href="../../../src/go.pact.im/x/flaky/schedule.go.html#line-61">Midnight</a>(d <a href="../../time.html">time</a>.<a href="../../time.html#name-Duration">Duration</a>, loc *<a href="../../time.html">time</a>.<a href="../../time.html#name-Location">Location</a>) <a href="#name-Schedule">Schedule</a></label><span id='Midnight-fold-content-docs' class="fold-docs">
+<span class="md-text">		Midnight returns a repeated Schedule for the duration d since midnight in the
+		given in location. If the location is nil, it defaults to UTC.
+		
+		Passing a non-positive duration is equivalent to not using a schedule.</span>
+
+</span></div><div class="anchor value-res" id="name-Once">	<input type='checkbox' class="fold" id="Once-fold-content"><label for="Once-fold-content"> <a href="../../../use/go.pact.im/x/flaky..Once.html">func</a> <a href="../../../src/go.pact.im/x/flaky/once.go.html#line-11">Once</a>() <a href="#name-Executor">Executor</a></label><span id='Once-fold-content-docs' class="fold-docs">
+<span class="md-text">		Once returns a new executor that does not retry operations. That is,
+		it executes the operation exactly once and returns the result.</span>
+
+</span></div><div class="anchor value-res" id="name-Permanent">	<input type='checkbox' class="fold" id="Permanent-fold-content"><label for="Permanent-fold-content"> <a href="../../../use/go.pact.im/x/flaky..Permanent.html">func</a> <a href="../../../src/go.pact.im/x/flaky/permanent.go.html#line-23">Permanent</a>(err <a href="../../builtin.html#name-error">error</a>) *<a href="#name-PermanentError">PermanentError</a></label><span id='Permanent-fold-content-docs' class="fold-docs">
+<span class="md-text">		Permanent marks an error as permanent. That is, returning permanent error
+		from retry attempt would stop the retry process.</span>
+
+</span></div><div class="anchor value-res" id="name-RandomJitter">	<input type='checkbox' class="fold" id="RandomJitter-fold-content"><label for="RandomJitter-fold-content"> <a href="../../../use/go.pact.im/x/flaky..RandomJitter.html">func</a> <a href="../../../src/go.pact.im/x/flaky/jitter.go.html#line-19">RandomJitter</a>(f func(n <a href="../../builtin.html#name-int64">int64</a>) <a href="../../builtin.html#name-int64">int64</a>) <a href="#name-Jitter">Jitter</a></label><span id='RandomJitter-fold-content-docs' class="fold-docs">
+<span class="md-text">		RandomJitter returns a Jitter function for function f that defaults to
+		math/rand.Int63n if it is nil.</span>
+
+</span></div><div class="anchor value-res" id="name-Retry">	<input type='checkbox' class="fold" id="Retry-fold-content"><label for="Retry-fold-content"> <a href="../../../use/go.pact.im/x/flaky..Retry.html">func</a> <a href="../../../src/go.pact.im/x/flaky/retry.go.html#line-26">Retry</a>(b <a href="#name-BackoffProvider">BackoffProvider</a>) *<a href="#name-RetryExecutor">RetryExecutor</a></label><span id='Retry-fold-content-docs' class="fold-docs">
+<span class="md-text">		Retry returns a new executor that uses the backoff provider to retry
+		operation execution.
+		
+		It attempts to execute f until a backoff function returns false, an attempt
+		returns permanent error or a context expires. On failure it returns the last
+		error encountered.
+		
+		It requests a new backoff function from provider for each Execute invocation.</span>
+
+</span></div><div class="anchor value-res" id="name-Sleep">	<input type='checkbox' class="fold" id="Sleep-fold-content"><label for="Sleep-fold-content"> <a href="../../../use/go.pact.im/x/flaky..Sleep.html">func</a> <a href="../../../src/go.pact.im/x/flaky/schedule.go.html#line-96">Sleep</a>(d <a href="../../time.html">time</a>.<a href="../../time.html#name-Duration">Duration</a>) <a href="#name-Schedule">Schedule</a></label><span id='Sleep-fold-content-docs' class="fold-docs">
+<span class="md-text">		Sleep returns a Schedule that delays execution for a fixed interval d.
+		
+		Passing a non-positive duration is equivalent to not using a schedule.</span>
+
+</span></div><div class="anchor value-res" id="name-Until">	<input type='checkbox' class="fold" id="Until-fold-content"><label for="Until-fold-content"> <a href="../../../use/go.pact.im/x/flaky..Until.html">func</a> <a href="../../../src/go.pact.im/x/flaky/schedule.go.html#line-36">Until</a>(s <a href="#name-Schedule">Schedule</a>, t <a href="../../time.html">time</a>.<a href="../../time.html#name-Time">Time</a>) <a href="#name-Schedule">Schedule</a></label><span id='Until-fold-content-docs' class="fold-docs">
+<span class="md-text">		Until returns a schedule that stops at the given time. It allows defining the
+		schedule for operations that should fail after the given time.</span>
+
+</span></div><div class="anchor value-res" id="name-UntilPermanent">	<input type='checkbox' class="fold" id="UntilPermanent-fold-content"><label for="UntilPermanent-fold-content"> <a href="../../../use/go.pact.im/x/flaky..UntilPermanent.html">func</a> <a href="../../../src/go.pact.im/x/flaky/permanent.go.html#line-73">UntilPermanent</a>() <a href="#name-Executor">Executor</a></label><span id='UntilPermanent-fold-content-docs' class="fold-docs">
+<span class="md-text">		UntilPermanent returns a new executor that retries operations until either a
+		permanent error or context expiration.</span>
+
+</span></div><div class="anchor value-res" id="name-Watchdog">	<input type='checkbox' class="fold" id="Watchdog-fold-content"><label for="Watchdog-fold-content"> <a href="../../../use/go.pact.im/x/flaky..Watchdog.html">func</a> <a href="../../../src/go.pact.im/x/flaky/watchdog.go.html#line-30">Watchdog</a>(e <a href="#name-Executor">Executor</a>, s <a href="#name-Schedule">Schedule</a>) *<a href="#name-WatchdogExecutor">WatchdogExecutor</a></label><span id='Watchdog-fold-content-docs' class="fold-docs">
+<span class="md-text">		Watchdog executes an operation on the given schedule using the executor until
+		an error is returned or the context expires. It allow monitoring a resource
+		that should not fail.
+		
+		Note that it returns a nil error iff context expires. Otherwise an error from
+		the executor indicates an operation failure.
+		
+		This design allows interrupting execution using the context but the tradeoff
+		is that an error is discarded. That is mostly noticeable when the executor
+		retries operations and a context expires after a failure. In that case the
+		error would not be propagated to the watchdog user.
+		
+		Unlike a simple loop that executes the given executor and waits a certain
+		amount of time, watchdog enforces the use of a configurable schedule.</span>
+
+</span></div><div class="anchor value-res" id="name-WithSchedule">	<input type='checkbox' class="fold" id="WithSchedule-fold-content"><label for="WithSchedule-fold-content"> <a href="../../../use/go.pact.im/x/flaky..WithSchedule.html">func</a> <a href="../../../src/go.pact.im/x/flaky/schedule.go.html#line-119">WithSchedule</a>(e <a href="#name-Executor">Executor</a>, s <a href="#name-Schedule">Schedule</a>) *<a href="#name-ScheduleExecutor">ScheduleExecutor</a></label><span id='WithSchedule-fold-content-docs' class="fold-docs">
+<span class="md-text">		WithSchedule restricts the executor to wait for the given scheduled time
+		before executing an operation.</span>
+
+</span></div>	<input type='checkbox' class="showhide" id="unexported-functions-showhide"><i><label for="unexported-functions-showhide" class="show-inline">/* 3 unexporteds ... */</label><label for="unexported-functions-showhide" class="hide-inline">/* 3 unexporteds: */</label></i><div class="anchor value-res hidden" id="name-randomJitter"><i>	<span class="nodocs"> <a href="../../../use/go.pact.im/x/flaky..randomJitter^95090.html">func</a> <a href="../../../src/go.pact.im/x/flaky/jitter.go.html#line-28">randomJitter</a>(v <a href="#name-JitterInterval">JitterInterval</a>, f func(n <a href="../../builtin.html#name-int64">int64</a>) <a href="../../builtin.html#name-int64">int64</a>) <a href="../../time.html">time</a>.<a href="../../time.html#name-Duration">Duration</a></span></i></div><div class="anchor value-res hidden" id="name-unwrapInternal"><i>	<input type='checkbox' class="fold" id="unwrapInternal-fold-content"><label for="unwrapInternal-fold-content"> <a href="../../../use/go.pact.im/x/flaky..unwrapInternal^983f1.html">func</a> <a href="../../../src/go.pact.im/x/flaky/permanent.go.html#line-58">unwrapInternal</a>(err <a href="../../builtin.html#name-error">error</a>) <a href="../../builtin.html#name-error">error</a></label><span id='unwrapInternal-fold-content-docs' class="fold-docs">
+<span class="md-text">		unwrapInternal unwraps the underlying error of an internal PermanentError
+		from err’s error chain.</span>
+
+</span></i></div><div class="anchor value-res hidden" id="name-withinDeadline"><i>	<input type='checkbox' class="fold" id="withinDeadline-fold-content"><label for="withinDeadline-fold-content"> <a href="../../../use/go.pact.im/x/flaky..withinDeadline^0a962.html">func</a> <a href="../../../src/go.pact.im/x/flaky/deadline.go.html#line-9">withinDeadline</a>(ctx <a href="../../context.html">context</a>.<a href="../../context.html#name-Context">Context</a>, d <a href="../../time.html">time</a>.<a href="../../time.html#name-Duration">Duration</a>) <a href="../../builtin.html#name-bool">bool</a></label><span id='withinDeadline-fold-content-docs' class="fold-docs">
+<span class="md-text">		withinDeadline returns whether the duration d is within context’s deadline.</span>
+
+</span></i></div></div>
+<div id="exported-variables"><span class="title">Package-Level Variables<span class="title-stat"><i> (total 3, all are exported)</i></span></span>
+
+<div class="anchor value-res" id="name-ErrDebounced">	<input type='checkbox' class="fold" id="ErrDebounced-fold-content"><label for="ErrDebounced-fold-content">  <a href="../../../use/go.pact.im/x/flaky..ErrDebounced.html">var</a> <a href="../../../src/go.pact.im/x/flaky/debounce.go.html#line-14">ErrDebounced</a> <a href="../../builtin.html#name-error">error</a></label><span id='ErrDebounced-fold-content-docs' class="fold-docs">
+<span class="md-text">		ErrDebounced is an error that DebounceExecutor returns when an Execute call
+		is superseded by another operation.</span>
+
+</span></div><div class="anchor value-res" id="name-ErrNoNextSchedule">	<input type='checkbox' class="fold" id="ErrNoNextSchedule-fold-content"><label for="ErrNoNextSchedule-fold-content">  <a href="../../../use/go.pact.im/x/flaky..ErrNoNextSchedule.html">var</a> <a href="../../../src/go.pact.im/x/flaky/schedule.go.html#line-14">ErrNoNextSchedule</a> <a href="../../builtin.html#name-error">error</a></label><span id='ErrNoNextSchedule-fold-content-docs' class="fold-docs">
+<span class="md-text">		ErrNoNextSchedule is an error that is returned by ScheduleExecutor
+		if there is no next scheduled time or it is before current time.</span>
+
+</span></div><div class="anchor value-res" id="name-ErrScheduleDeadline">	<input type='checkbox' class="fold" id="ErrScheduleDeadline-fold-content"><label for="ErrScheduleDeadline-fold-content">  <a href="../../../use/go.pact.im/x/flaky..ErrScheduleDeadline.html">var</a> <a href="../../../src/go.pact.im/x/flaky/schedule.go.html#line-18">ErrScheduleDeadline</a> <a href="../../builtin.html#name-error">error</a></label><span id='ErrScheduleDeadline-fold-content-docs' class="fold-docs">
+<span class="md-text">		ErrScheduleDeadline is an error that is returned by ScheduleExecutor
+		if scheduled time exceeds the context deadline.</span>
+
+</span></div></div></code></pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

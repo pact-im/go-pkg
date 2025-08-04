@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: siginfo_linux.go in package internal/syscall/unix</title>
+<link href="../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	siginfo_linux.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../pkg/internal/syscall/unix.html">internal/syscall/unix</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2023 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> unix</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-8"><code>	<label for="i0"><span class="lit-string i0">"syscall"</span></label></code></span>
+<span class="codeline" id="line-9"><code>)</code></span>
+<span class="codeline" id="line-10"><code></code></span>
+<span class="codeline" id="line-11"><code><span class="keyword">const</span> <a href="../../../../pkg/internal/syscall/unix.html#name-is64bit" class="ident">is64bit</a> = ^<a href="../../../../pkg/builtin.html#name-uint" class="ident">uint</a>(<span class="lit-number">0</span>) &gt;&gt; <span class="lit-number">63</span> <span class="comment">// 0 for 32-bit hosts, 1 for 64-bit ones.</span></code></span>
+<span class="codeline" id="line-12"><code></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">// SiginfoChild is a struct filled in by Linux waitid syscall.</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">// In C, siginfo_t contains a union with multiple members;</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">// this struct corresponds to one used when Signo is SIGCHLD.</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">// NOTE fields are exported to be used by TestSiginfoChildLayout.</span></code></span>
+<span class="codeline" id="line-18"><code><span class="keyword">type</span> <a href="../../../../pkg/internal/syscall/unix.html#name-SiginfoChild" class="ident">SiginfoChild</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-19"><code>	<a href="../../../../use/internal/syscall/unix..SiginfoChild.Signo.html" class="ident">Signo</a>       <a href="../../../../pkg/builtin.html#name-int32" class="ident">int32</a></code></span>
+<span class="codeline" id="line-20"><code>	<a href="siginfo_linux_other.go.html#line-9" class="ident">siErrnoCode</a>                <span class="comment">// Two int32 fields, swapped on MIPS.</span></code></span>
+<span class="codeline" id="line-21"><code>	_           [<a href="#line-11" class="ident">is64bit</a>]<a href="../../../../pkg/builtin.html#name-int32" class="ident">int32</a> <span class="comment">// Extra padding for 64-bit hosts only.</span></code></span>
+<span class="codeline" id="line-22"><code></code></span>
+<span class="codeline" id="line-23"><code>	<span class="comment">// End of common part. Beginning of signal-specific part.</span></code></span>
+<span class="codeline" id="line-24"><code></code></span>
+<span class="codeline" id="line-25"><code>	<a href="../../../../use/internal/syscall/unix..SiginfoChild.Pid.html" class="ident">Pid</a>    <a href="../../../../pkg/builtin.html#name-int32" class="ident">int32</a></code></span>
+<span class="codeline" id="line-26"><code>	<a href="../../../../use/internal/syscall/unix..SiginfoChild.Uid.html" class="ident">Uid</a>    <a href="../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a></code></span>
+<span class="codeline" id="line-27"><code>	<a href="../../../../use/internal/syscall/unix..SiginfoChild.Status.html" class="ident">Status</a> <a href="../../../../pkg/builtin.html#name-int32" class="ident">int32</a></code></span>
+<span class="codeline" id="line-28"><code></code></span>
+<span class="codeline" id="line-29"><code>	<span class="comment">// Pad to 128 bytes.</span></code></span>
+<span class="codeline" id="line-30"><code>	_ [<span class="lit-number">128</span> - (<span class="lit-number">6</span>+<a href="#line-11" class="ident">is64bit</a>)*<span class="lit-number">4</span>]<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
+<span class="codeline" id="line-31"><code>}</code></span>
+<span class="codeline" id="line-32"><code></code></span>
+<span class="codeline" id="line-33"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-34"><code>	<span class="comment">// Possible values for SiginfoChild.Code field.</span></code></span>
+<span class="codeline" id="line-35"><code>	<a href="../../../../pkg/internal/syscall/unix.html#name-_CLD_EXITED" class="ident">_CLD_EXITED</a>    <a href="../../../../pkg/builtin.html#name-int32" class="ident">int32</a> = <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-36"><code>	<a href="../../../../pkg/internal/syscall/unix.html#name-_CLD_KILLED" class="ident">_CLD_KILLED</a>          = <span class="lit-number">2</span></code></span>
+<span class="codeline" id="line-37"><code>	<a href="../../../../pkg/internal/syscall/unix.html#name-_CLD_DUMPED" class="ident">_CLD_DUMPED</a>          = <span class="lit-number">3</span></code></span>
+<span class="codeline" id="line-38"><code>	<a href="../../../../pkg/internal/syscall/unix.html#name-_CLD_TRAPPED" class="ident">_CLD_TRAPPED</a>         = <span class="lit-number">4</span></code></span>
+<span class="codeline" id="line-39"><code>	<a href="../../../../pkg/internal/syscall/unix.html#name-_CLD_STOPPED" class="ident">_CLD_STOPPED</a>         = <span class="lit-number">5</span></code></span>
+<span class="codeline" id="line-40"><code>	<a href="../../../../pkg/internal/syscall/unix.html#name-_CLD_CONTINUED" class="ident">_CLD_CONTINUED</a>       = <span class="lit-number">6</span></code></span>
+<span class="codeline" id="line-41"><code></code></span>
+<span class="codeline" id="line-42"><code>	<span class="comment">// These are the same as in syscall/syscall_linux.go.</span></code></span>
+<span class="codeline" id="line-43"><code>	<a href="../../../../pkg/internal/syscall/unix.html#name-core" class="ident">core</a>      = <span class="lit-number">0x80</span></code></span>
+<span class="codeline" id="line-44"><code>	<a href="../../../../pkg/internal/syscall/unix.html#name-stopped" class="ident">stopped</a>   = <span class="lit-number">0x7f</span></code></span>
+<span class="codeline" id="line-45"><code>	<a href="../../../../pkg/internal/syscall/unix.html#name-continued" class="ident">continued</a> = <span class="lit-number">0xffff</span></code></span>
+<span class="codeline" id="line-46"><code>)</code></span>
+<span class="codeline" id="line-47"><code></code></span>
+<span class="codeline" id="line-48"><code><span class="comment">// WaitStatus converts SiginfoChild, as filled in by the waitid syscall,</span></code></span>
+<span class="codeline" id="line-49"><code><span class="comment">// to syscall.WaitStatus.</span></code></span>
+<span class="codeline" id="line-50"><code><span class="keyword">func</span> (<label for="r0" class="ident">s</label> *<a href="#line-18" class="ident">SiginfoChild</a>) <label for="r1" class="ident"><a href="../../../../use/internal/syscall/unix..SiginfoChild.WaitStatus.html" class="ident">WaitStatus</a></label>() (<label for="r2" class="ident">ws</label> <a href="../../../../pkg/syscall.html" class="ident i0">syscall</a>.<a href="../../../syscall/syscall_linux.go.html#line-454" class="ident">WaitStatus</a>) {</code></span>
+<span class="codeline" id="line-51"><code>	<span class="keyword">switch</span> <label for="r0" class="ident">s</label>.<a href="siginfo_linux_other.go.html#line-11" class="ident">Code</a> {</code></span>
+<span class="codeline" id="line-52"><code>	<span class="keyword">case</span> <a href="#line-35" class="ident">_CLD_EXITED</a>:</code></span>
+<span class="codeline" id="line-53"><code>		<label for="r2" class="ident">ws</label> = <a href="../../../../pkg/syscall.html" class="ident i0">syscall</a>.<a href="../../../syscall/syscall_linux.go.html#line-454" class="ident">WaitStatus</a>(<label for="r0" class="ident">s</label>.<a href="#line-27" class="ident">Status</a> &lt;&lt; <span class="lit-number">8</span>)</code></span>
+<span class="codeline" id="line-54"><code>	<span class="keyword">case</span> <a href="#line-37" class="ident">_CLD_DUMPED</a>:</code></span>
+<span class="codeline" id="line-55"><code>		<label for="r2" class="ident">ws</label> = <a href="../../../../pkg/syscall.html" class="ident i0">syscall</a>.<a href="../../../syscall/syscall_linux.go.html#line-454" class="ident">WaitStatus</a>(<label for="r0" class="ident">s</label>.<a href="#line-27" class="ident">Status</a>) | <a href="#line-43" class="ident">core</a></code></span>
+<span class="codeline" id="line-56"><code>	<span class="keyword">case</span> <a href="#line-36" class="ident">_CLD_KILLED</a>:</code></span>
+<span class="codeline" id="line-57"><code>		<label for="r2" class="ident">ws</label> = <a href="../../../../pkg/syscall.html" class="ident i0">syscall</a>.<a href="../../../syscall/syscall_linux.go.html#line-454" class="ident">WaitStatus</a>(<label for="r0" class="ident">s</label>.<a href="#line-27" class="ident">Status</a>)</code></span>
+<span class="codeline" id="line-58"><code>	<span class="keyword">case</span> <a href="#line-38" class="ident">_CLD_TRAPPED</a>, <a href="#line-39" class="ident">_CLD_STOPPED</a>:</code></span>
+<span class="codeline" id="line-59"><code>		<label for="r2" class="ident">ws</label> = <a href="../../../../pkg/syscall.html" class="ident i0">syscall</a>.<a href="../../../syscall/syscall_linux.go.html#line-454" class="ident">WaitStatus</a>(<label for="r0" class="ident">s</label>.<a href="#line-27" class="ident">Status</a>&lt;&lt;<span class="lit-number">8</span>) | <a href="#line-44" class="ident">stopped</a></code></span>
+<span class="codeline" id="line-60"><code>	<span class="keyword">case</span> <a href="#line-40" class="ident">_CLD_CONTINUED</a>:</code></span>
+<span class="codeline" id="line-61"><code>		<label for="r2" class="ident">ws</label> = <a href="#line-45" class="ident">continued</a></code></span>
+<span class="codeline" id="line-62"><code>	}</code></span>
+<span class="codeline" id="line-63"><code>	<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-64"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

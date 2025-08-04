@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: download.go in package go.pact.im/x/goupdate</title>
+<link href="../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	download.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../pkg/go.pact.im/x/goupdate.html">go.pact.im/x/goupdate</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3,
+input[id=i4]:checked ~pre .i4
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+<input id="i4" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="keyword">package</span> main</code></span>
+<span class="codeline" id="line-2"><code></code></span>
+<span class="codeline" id="line-3"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-4"><code>	<label for="i0"><span class="lit-string i0">"bytes"</span></label></code></span>
+<span class="codeline" id="line-5"><code>	<label for="i1"><span class="lit-string i1">"encoding/json"</span></label></code></span>
+<span class="codeline" id="line-6"><code>	<label for="i2"><span class="lit-string i2">"io"</span></label></code></span>
+<span class="codeline" id="line-7"><code>	<label for="i3"><span class="lit-string i3">"os"</span></label></code></span>
+<span class="codeline" id="line-8"><code>	<label for="i4"><span class="lit-string i4">"os/exec"</span></label></code></span>
+<span class="codeline" id="line-9"><code>)</code></span>
+<span class="codeline" id="line-10"><code></code></span>
+<span class="codeline" id="line-11"><code><span class="keyword">type</span> <a href="../../../../pkg/go.pact.im/x/goupdate.html#name-downloadedModule" class="ident">downloadedModule</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-12"><code>	<a href="../../../../use/go.pact.im/x/goupdate..downloadedModule^f314d.Path.html" class="ident">Path</a>     <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a> <span class="comment">// module path</span></code></span>
+<span class="codeline" id="line-13"><code>	<a href="../../../../use/go.pact.im/x/goupdate..downloadedModule^f314d.Version.html" class="ident">Version</a>  <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a> <span class="comment">// module version</span></code></span>
+<span class="codeline" id="line-14"><code>	<a href="../../../../use/go.pact.im/x/goupdate..downloadedModule^f314d.Error.html" class="ident">Error</a>    <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a> <span class="comment">// error loading module</span></code></span>
+<span class="codeline" id="line-15"><code>	<a href="../../../../use/go.pact.im/x/goupdate..downloadedModule^f314d.Info.html" class="ident">Info</a>     <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a> <span class="comment">// absolute path to cached .info file</span></code></span>
+<span class="codeline" id="line-16"><code>	<a href="../../../../use/go.pact.im/x/goupdate..downloadedModule^f314d.GoMod.html" class="ident">GoMod</a>    <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a> <span class="comment">// absolute path to cached .mod file</span></code></span>
+<span class="codeline" id="line-17"><code>	<a href="../../../../use/go.pact.im/x/goupdate..downloadedModule^f314d.Zip.html" class="ident">Zip</a>      <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a> <span class="comment">// absolute path to cached .zip file</span></code></span>
+<span class="codeline" id="line-18"><code>	<a href="../../../../use/go.pact.im/x/goupdate..downloadedModule^f314d.Dir.html" class="ident">Dir</a>      <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a> <span class="comment">// absolute path to cached source root directory</span></code></span>
+<span class="codeline" id="line-19"><code>	<a href="../../../../use/go.pact.im/x/goupdate..downloadedModule^f314d.Sum.html" class="ident">Sum</a>      <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a> <span class="comment">// checksum for path, version (as in go.sum)</span></code></span>
+<span class="codeline" id="line-20"><code>	<a href="../../../../use/go.pact.im/x/goupdate..downloadedModule^f314d.GoModSum.html" class="ident">GoModSum</a> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a> <span class="comment">// checksum for go.mod (as in go.sum)</span></code></span>
+<span class="codeline" id="line-21"><code>}</code></span>
+<span class="codeline" id="line-22"><code></code></span>
+<span class="codeline" id="line-23"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../pkg/go.pact.im/x/goupdate.html#name-queryUpgrades" class="ident">queryUpgrades</a></label>(<label for="r1" class="ident">workspaceDir</label> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r2" class="ident">modulePaths</label> []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>) ([]<a href="#line-11" class="ident">downloadedModule</a>, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-24"><code>	<label for="r3" class="ident">upgrades</label> := <a href="../../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>, <a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r2" class="ident">modulePaths</label>))</code></span>
+<span class="codeline" id="line-25"><code>	<span class="keyword">for</span> <label for="r4" class="ident">i</label>, <label for="r5" class="ident">modulePath</label> := <span class="keyword">range</span> <label for="r2" class="ident">modulePaths</label> {</code></span>
+<span class="codeline" id="line-26"><code>		<label for="r3" class="ident">upgrades</label>[<label for="r4" class="ident">i</label>] = <label for="r5" class="ident">modulePath</label> + <span class="lit-string">"@upgrade"</span></code></span>
+<span class="codeline" id="line-27"><code>	}</code></span>
+<span class="codeline" id="line-28"><code></code></span>
+<span class="codeline" id="line-29"><code>	<span class="keyword">var</span> <label for="r6" class="ident">buf</label> <a href="../../../../pkg/bytes.html" class="ident i0">bytes</a>.<a href="../../../bytes/buffer.go.html#line-20" class="ident">Buffer</a></code></span>
+<span class="codeline" id="line-30"><code>	<label for="r7" class="ident">c</label> := <a href="../../../../pkg/os/exec.html" class="ident i4">exec</a>.<a href="../../../os/exec/exec.go.html#line-398" class="ident">Command</a>(<span class="lit-string">"go"</span>, <a href="../../../../pkg/builtin.html#name-append" class="ident">append</a>([]<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"mod"</span>, <span class="lit-string">"download"</span>, <span class="lit-string">"-json"</span>}, <label for="r3" class="ident">upgrades</label>...)...)</code></span>
+<span class="codeline" id="line-31"><code>	<label for="r7" class="ident">c</label>.<a href="../../../os/exec/exec.go.html#line-224" class="ident">Stderr</a> = <a href="../../../../pkg/os.html" class="ident i3">os</a>.<a href="../../../os/file.go.html#line-73" class="ident">Stderr</a></code></span>
+<span class="codeline" id="line-32"><code>	<label for="r7" class="ident">c</label>.<a href="../../../os/exec/exec.go.html#line-223" class="ident">Stdout</a> = &amp;<label for="r6" class="ident">buf</label></code></span>
+<span class="codeline" id="line-33"><code>	<label for="r7" class="ident">c</label>.<a href="../../../os/exec/exec.go.html#line-190" class="ident">Dir</a> = <label for="r1" class="ident">workspaceDir</label></code></span>
+<span class="codeline" id="line-34"><code>	<span class="keyword">if</span> <label for="r8" class="ident">err</label> := <label for="r7" class="ident">c</label>.<a href="../../../os/exec/exec.go.html#line-622" class="ident">Run</a>(); <label for="r8" class="ident">err</label> != <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-35"><code>		<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r8" class="ident">err</label></code></span>
+<span class="codeline" id="line-36"><code>	}</code></span>
+<span class="codeline" id="line-37"><code></code></span>
+<span class="codeline" id="line-38"><code>	<span class="keyword">var</span> <label for="r9" class="ident">out</label> []<a href="#line-11" class="ident">downloadedModule</a></code></span>
+<span class="codeline" id="line-39"><code>	<span class="keyword">for</span> <label for="r10" class="ident">dec</label> := <a href="../../../../pkg/encoding/json.html" class="ident i1">json</a>.<a href="../../../encoding/json/stream.go.html#line-31" class="ident">NewDecoder</a>(&amp;<label for="r6" class="ident">buf</label>); ; {</code></span>
+<span class="codeline" id="line-40"><code>		<span class="keyword">var</span> <label for="r11" class="ident">m</label> <a href="#line-11" class="ident">downloadedModule</a></code></span>
+<span class="codeline" id="line-41"><code>		<label for="r12" class="ident">err</label> := <label for="r10" class="ident">dec</label>.<a href="../../../encoding/json/stream.go.html#line-49" class="ident">Decode</a>(&amp;<label for="r11" class="ident">m</label>)</code></span>
+<span class="codeline" id="line-42"><code>		<span class="keyword">if</span> <label for="r12" class="ident">err</label> == <a href="../../../../pkg/io.html" class="ident i2">io</a>.<a href="../../../io/io.go.html#line-44" class="ident">EOF</a> {</code></span>
+<span class="codeline" id="line-43"><code>			<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-44"><code>		}</code></span>
+<span class="codeline" id="line-45"><code>		<span class="keyword">if</span> <label for="r12" class="ident">err</label> != <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-46"><code>			<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r12" class="ident">err</label></code></span>
+<span class="codeline" id="line-47"><code>		}</code></span>
+<span class="codeline" id="line-48"><code>		<label for="r9" class="ident">out</label> = <a href="../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r9" class="ident">out</label>, <label for="r11" class="ident">m</label>)</code></span>
+<span class="codeline" id="line-49"><code>	}</code></span>
+<span class="codeline" id="line-50"><code>	<span class="keyword">return</span> <label for="r9" class="ident">out</label>, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-51"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

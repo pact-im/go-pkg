@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: s3_object_lambda.go in package github.com/aws/aws-sdk-go-v2/service/s3/internal/customizations</title>
+<link href="../../../../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	s3_object_lambda.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/s3/internal/customizations.html">github.com/aws/aws-sdk-go-v2/service/s3/internal/customizations</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3,
+input[id=i4]:checked ~pre .i4,
+input[id=i5]:checked ~pre .i5,
+input[id=i6]:checked ~pre .i6
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+<input id="i4" type="radio" name="i"/>
+<input id="i5" type="radio" name="i"/>
+<input id="i6" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="keyword">package</span> customizations</code></span>
+<span class="codeline" id="line-2"><code></code></span>
+<span class="codeline" id="line-3"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-4"><code>	<label for="i0"><span class="lit-string i0">"context"</span></label></code></span>
+<span class="codeline" id="line-5"><code>	<label for="i1"><span class="lit-string i1">"fmt"</span></label></code></span>
+<span class="codeline" id="line-6"><code>	<label for="i2"><span class="lit-string i2">"github.com/aws/aws-sdk-go-v2/aws"</span></label></code></span>
+<span class="codeline" id="line-7"><code>	<a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws/middleware.html" class="ident i3">awsmiddleware</a> <label for="i3"><span class="lit-string i3">"github.com/aws/aws-sdk-go-v2/aws/middleware"</span></label></code></span>
+<span class="codeline" id="line-8"><code>	<label for="i4"><span class="lit-string i4">"github.com/aws/smithy-go/middleware"</span></label></code></span>
+<span class="codeline" id="line-9"><code>	<label for="i5"><span class="lit-string i5">"github.com/aws/smithy-go/transport/http"</span></label></code></span>
+<span class="codeline" id="line-10"><code>	<label for="i6"><span class="lit-string i6">"net/url"</span></label></code></span>
+<span class="codeline" id="line-11"><code>)</code></span>
+<span class="codeline" id="line-12"><code></code></span>
+<span class="codeline" id="line-13"><code><span class="keyword">type</span> <a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/service/s3/internal/customizations.html#name-s3ObjectLambdaEndpoint" class="ident">s3ObjectLambdaEndpoint</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-14"><code>	<span class="comment">// whether the operation should use the s3-object-lambda endpoint</span></code></span>
+<span class="codeline" id="line-15"><code>	<a href="../../../../../../../../use/github.com/aws/aws-sdk-go-v2/service/s3/internal/customizations..s3ObjectLambdaEndpoint^044ff.UseEndpoint.html" class="ident">UseEndpoint</a> <a href="../../../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-16"><code></code></span>
+<span class="codeline" id="line-17"><code>	<span class="comment">// use transfer acceleration</span></code></span>
+<span class="codeline" id="line-18"><code>	<a href="../../../../../../../../use/github.com/aws/aws-sdk-go-v2/service/s3/internal/customizations..s3ObjectLambdaEndpoint^044ff.UseAccelerate.html" class="ident">UseAccelerate</a> <a href="../../../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-19"><code></code></span>
+<span class="codeline" id="line-20"><code>	<a href="../../../../../../../../use/github.com/aws/aws-sdk-go-v2/service/s3/internal/customizations..s3ObjectLambdaEndpoint^044ff.EndpointResolver.html" class="ident">EndpointResolver</a>        <a href="update_endpoint.go.html#line-20" class="ident">EndpointResolver</a></code></span>
+<span class="codeline" id="line-21"><code>	<a href="../../../../../../../../use/github.com/aws/aws-sdk-go-v2/service/s3/internal/customizations..s3ObjectLambdaEndpoint^044ff.EndpointResolverOptions.html" class="ident">EndpointResolverOptions</a> <a href="update_endpoint.go.html#line-25" class="ident">EndpointResolverOptions</a></code></span>
+<span class="codeline" id="line-22"><code>}</code></span>
+<span class="codeline" id="line-23"><code></code></span>
+<span class="codeline" id="line-24"><code><span class="keyword">func</span> (<label for="r0" class="ident">t</label> *<a href="#line-13" class="ident">s3ObjectLambdaEndpoint</a>) <label for="r1" class="ident"><a href="../../../../../../../../use/github.com/aws/aws-sdk-go-v2/service/s3/internal/customizations..s3ObjectLambdaEndpoint^044ff.ID^38439.html" class="ident">ID</a></label>() <a href="../../../../../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-25"><code>	<span class="keyword">return</span> <span class="lit-string">"S3:ObjectLambdaEndpoint"</span></code></span>
+<span class="codeline" id="line-26"><code>}</code></span>
+<span class="codeline" id="line-27"><code></code></span>
+<span class="codeline" id="line-28"><code><span class="keyword">func</span> (<label for="r2" class="ident">t</label> *<a href="#line-13" class="ident">s3ObjectLambdaEndpoint</a>) <label for="r3" class="ident"><a href="../../../../../../../../use/github.com/aws/aws-sdk-go-v2/service/s3/internal/customizations..s3ObjectLambdaEndpoint^044ff.HandleSerialize.html" class="ident">HandleSerialize</a></label>(</code></span>
+<span class="codeline" id="line-29"><code>	<label for="r4" class="ident">ctx</label> <a href="../../../../../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../../../../../context/context.go.html#line-71" class="ident">Context</a>, <label for="r5" class="ident">in</label> <a href="../../../../../../../../pkg/github.com/aws/smithy-go/middleware.html" class="ident i4">middleware</a>.<a href="../../../../../smithy-go/middleware/step_serialize.go.html#line-10" class="ident">SerializeInput</a>, <label for="r6" class="ident">next</label> <a href="../../../../../../../../pkg/github.com/aws/smithy-go/middleware.html" class="ident i4">middleware</a>.<a href="../../../../../smithy-go/middleware/step_serialize.go.html#line-22" class="ident">SerializeHandler</a>,</code></span>
+<span class="codeline" id="line-30"><code>) (</code></span>
+<span class="codeline" id="line-31"><code>	<label for="r7" class="ident">out</label> <a href="../../../../../../../../pkg/github.com/aws/smithy-go/middleware.html" class="ident i4">middleware</a>.<a href="../../../../../smithy-go/middleware/step_serialize.go.html#line-16" class="ident">SerializeOutput</a>, <label for="r8" class="ident">metadata</label> <a href="../../../../../../../../pkg/github.com/aws/smithy-go/middleware.html" class="ident i4">middleware</a>.<a href="../../../../../smithy-go/middleware/metadata.go.html#line-16" class="ident">Metadata</a>, <label for="r9" class="ident">err</label> <a href="../../../../../../../../pkg/builtin.html#name-error" class="ident">error</a>,</code></span>
+<span class="codeline" id="line-32"><code>) {</code></span>
+<span class="codeline" id="line-33"><code>	<span class="keyword">if</span> !<label for="r2" class="ident">t</label>.<a href="#line-15" class="ident">UseEndpoint</a> {</code></span>
+<span class="codeline" id="line-34"><code>		<span class="keyword">return</span> <label for="r6" class="ident">next</label>.<a href="../../../../../smithy-go/middleware/step_serialize.go.html#line-23" class="ident">HandleSerialize</a>(<label for="r4" class="ident">ctx</label>, <label for="r5" class="ident">in</label>)</code></span>
+<span class="codeline" id="line-35"><code>	}</code></span>
+<span class="codeline" id="line-36"><code></code></span>
+<span class="codeline" id="line-37"><code>	<label for="r10" class="ident">req</label>, <label for="r11" class="ident">ok</label> := <label for="r5" class="ident">in</label>.<a href="../../../../../smithy-go/middleware/step_serialize.go.html#line-12" class="ident">Request</a>.(*<a href="../../../../../../../../pkg/github.com/aws/smithy-go/transport/http.html" class="ident i5">http</a>.<a href="../../../../../smithy-go/transport/http/request.go.html#line-17" class="ident">Request</a>)</code></span>
+<span class="codeline" id="line-38"><code>	<span class="keyword">if</span> !<label for="r11" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-39"><code>		<span class="keyword">return</span> <label for="r7" class="ident">out</label>, <label for="r8" class="ident">metadata</label>, <a href="../../../../../../../../pkg/fmt.html" class="ident i1">fmt</a>.<a href="../../../../../../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"unknown transport type: %T"</span>, <label for="r5" class="ident">in</label>.<a href="../../../../../smithy-go/middleware/step_serialize.go.html#line-12" class="ident">Request</a>)</code></span>
+<span class="codeline" id="line-40"><code>	}</code></span>
+<span class="codeline" id="line-41"><code></code></span>
+<span class="codeline" id="line-42"><code>	<span class="keyword">if</span> <label for="r2" class="ident">t</label>.<a href="#line-21" class="ident">EndpointResolverOptions</a>.<a href="../endpoints/endpoints.go.html#line-34" class="ident">UseDualStackEndpoint</a> == <a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws.html" class="ident i2">aws</a>.<a href="../../../../aws/endpoints.go.html#line-15" class="ident">DualStackEndpointStateEnabled</a> {</code></span>
+<span class="codeline" id="line-43"><code>		<span class="keyword">return</span> <label for="r7" class="ident">out</label>, <label for="r8" class="ident">metadata</label>, <a href="../../../../../../../../pkg/fmt.html" class="ident i1">fmt</a>.<a href="../../../../../../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"client configured for dualstack but not supported for operation"</span>)</code></span>
+<span class="codeline" id="line-44"><code>	}</code></span>
+<span class="codeline" id="line-45"><code></code></span>
+<span class="codeline" id="line-46"><code>	<span class="keyword">if</span> <label for="r2" class="ident">t</label>.<a href="#line-18" class="ident">UseAccelerate</a> {</code></span>
+<span class="codeline" id="line-47"><code>		<span class="keyword">return</span> <label for="r7" class="ident">out</label>, <label for="r8" class="ident">metadata</label>, <a href="../../../../../../../../pkg/fmt.html" class="ident i1">fmt</a>.<a href="../../../../../../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"client configured for accelerate but not supported for operation"</span>)</code></span>
+<span class="codeline" id="line-48"><code>	}</code></span>
+<span class="codeline" id="line-49"><code></code></span>
+<span class="codeline" id="line-50"><code>	<label for="r12" class="ident">region</label> := <a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws/middleware.html" class="ident i3">awsmiddleware</a>.<a href="../../../../aws/middleware/metadata.go.html#line-84" class="ident">GetRegion</a>(<label for="r4" class="ident">ctx</label>)</code></span>
+<span class="codeline" id="line-51"><code></code></span>
+<span class="codeline" id="line-52"><code>	<label for="r13" class="ident">ero</label> := <label for="r2" class="ident">t</label>.<a href="#line-21" class="ident">EndpointResolverOptions</a></code></span>
+<span class="codeline" id="line-53"><code></code></span>
+<span class="codeline" id="line-54"><code>	<label for="r14" class="ident">endpoint</label>, <label for="r9" class="ident">err</label> := <label for="r2" class="ident">t</label>.<a href="#line-20" class="ident">EndpointResolver</a>.<a href="update_endpoint.go.html#line-21" class="ident">ResolveEndpoint</a>(<label for="r12" class="ident">region</label>, <label for="r13" class="ident">ero</label>)</code></span>
+<span class="codeline" id="line-55"><code>	<span class="keyword">if</span> <label for="r9" class="ident">err</label> != <a href="../../../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-56"><code>		<span class="keyword">return</span> <label for="r7" class="ident">out</label>, <label for="r8" class="ident">metadata</label>, <label for="r9" class="ident">err</label></code></span>
+<span class="codeline" id="line-57"><code>	}</code></span>
+<span class="codeline" id="line-58"><code></code></span>
+<span class="codeline" id="line-59"><code>	<span class="comment">// Set the ServiceID and SigningName</span></code></span>
+<span class="codeline" id="line-60"><code>	<label for="r4" class="ident">ctx</label> = <a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws/middleware.html" class="ident i3">awsmiddleware</a>.<a href="../../../../aws/middleware/metadata.go.html#line-127" class="ident">SetServiceID</a>(<label for="r4" class="ident">ctx</label>, <a href="process_arn_resource.go.html#line-23" class="ident">s3ObjectLambda</a>)</code></span>
+<span class="codeline" id="line-61"><code></code></span>
+<span class="codeline" id="line-62"><code>	<span class="keyword">if</span> <a href="../../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r14" class="ident">endpoint</label>.<a href="../../../../aws/endpoints.go.html#line-109" class="ident">SigningName</a>) &gt; <span class="lit-number">0</span> &amp;&amp; <label for="r14" class="ident">endpoint</label>.<a href="../../../../aws/endpoints.go.html#line-123" class="ident">Source</a> == <a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws.html" class="ident i2">aws</a>.<a href="../../../../aws/endpoints.go.html#line-135" class="ident">EndpointSourceCustom</a> {</code></span>
+<span class="codeline" id="line-63"><code>		<label for="r4" class="ident">ctx</label> = <a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws/middleware.html" class="ident i3">awsmiddleware</a>.<a href="../../../../aws/middleware/metadata.go.html#line-111" class="ident">SetSigningName</a>(<label for="r4" class="ident">ctx</label>, <label for="r14" class="ident">endpoint</label>.<a href="../../../../aws/endpoints.go.html#line-109" class="ident">SigningName</a>)</code></span>
+<span class="codeline" id="line-64"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-65"><code>		<label for="r4" class="ident">ctx</label> = <a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws/middleware.html" class="ident i3">awsmiddleware</a>.<a href="../../../../aws/middleware/metadata.go.html#line-111" class="ident">SetSigningName</a>(<label for="r4" class="ident">ctx</label>, <a href="process_arn_resource.go.html#line-23" class="ident">s3ObjectLambda</a>)</code></span>
+<span class="codeline" id="line-66"><code>	}</code></span>
+<span class="codeline" id="line-67"><code></code></span>
+<span class="codeline" id="line-68"><code>	<label for="r10" class="ident">req</label>.<a href="../../../../../../../net/http/request.go.html#line-130" class="ident">URL</a>, <label for="r9" class="ident">err</label> = <a href="../../../../../../../../pkg/net/url.html" class="ident i6">url</a>.<a href="../../../../../../../net/url/url.go.html#line-475" class="ident">Parse</a>(<label for="r14" class="ident">endpoint</label>.<a href="../../../../aws/endpoints.go.html#line-76" class="ident">URL</a>)</code></span>
+<span class="codeline" id="line-69"><code>	<span class="keyword">if</span> <label for="r9" class="ident">err</label> != <a href="../../../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-70"><code>		<span class="keyword">return</span> <label for="r7" class="ident">out</label>, <label for="r8" class="ident">metadata</label>, <label for="r9" class="ident">err</label></code></span>
+<span class="codeline" id="line-71"><code>	}</code></span>
+<span class="codeline" id="line-72"><code></code></span>
+<span class="codeline" id="line-73"><code>	<span class="keyword">if</span> <a href="../../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r14" class="ident">endpoint</label>.<a href="../../../../aws/endpoints.go.html#line-112" class="ident">SigningRegion</a>) &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-74"><code>		<label for="r4" class="ident">ctx</label> = <a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws/middleware.html" class="ident i3">awsmiddleware</a>.<a href="../../../../aws/middleware/metadata.go.html#line-119" class="ident">SetSigningRegion</a>(<label for="r4" class="ident">ctx</label>, <label for="r14" class="ident">endpoint</label>.<a href="../../../../aws/endpoints.go.html#line-112" class="ident">SigningRegion</a>)</code></span>
+<span class="codeline" id="line-75"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-76"><code>		<label for="r4" class="ident">ctx</label> = <a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws/middleware.html" class="ident i3">awsmiddleware</a>.<a href="../../../../aws/middleware/metadata.go.html#line-119" class="ident">SetSigningRegion</a>(<label for="r4" class="ident">ctx</label>, <label for="r12" class="ident">region</label>)</code></span>
+<span class="codeline" id="line-77"><code>	}</code></span>
+<span class="codeline" id="line-78"><code></code></span>
+<span class="codeline" id="line-79"><code>	<span class="keyword">if</span> <label for="r14" class="ident">endpoint</label>.<a href="../../../../aws/endpoints.go.html#line-123" class="ident">Source</a> == <a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws.html" class="ident i2">aws</a>.<a href="../../../../aws/endpoints.go.html#line-131" class="ident">EndpointSourceServiceMetadata</a> || !<label for="r14" class="ident">endpoint</label>.<a href="../../../../aws/endpoints.go.html#line-102" class="ident">HostnameImmutable</a> {</code></span>
+<span class="codeline" id="line-80"><code>		<a href="host.go.html#line-12" class="ident">updateS3HostForS3ObjectLambda</a>(<label for="r10" class="ident">req</label>)</code></span>
+<span class="codeline" id="line-81"><code>	}</code></span>
+<span class="codeline" id="line-82"><code></code></span>
+<span class="codeline" id="line-83"><code>	<span class="keyword">return</span> <label for="r6" class="ident">next</label>.<a href="../../../../../smithy-go/middleware/step_serialize.go.html#line-23" class="ident">HandleSerialize</a>(<label for="r4" class="ident">ctx</label>, <label for="r5" class="ident">in</label>)</code></span>
+<span class="codeline" id="line-84"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

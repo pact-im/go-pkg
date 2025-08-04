@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: middleware.go in package github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream/eventstreamapi</title>
+<link href="../../../../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	middleware.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream/eventstreamapi.html">github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream/eventstreamapi</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3,
+input[id=i4]:checked ~pre .i4
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+<input id="i4" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="keyword">package</span> eventstreamapi</code></span>
+<span class="codeline" id="line-2"><code></code></span>
+<span class="codeline" id="line-3"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-4"><code>	<label for="i0"><span class="lit-string i0">"context"</span></label></code></span>
+<span class="codeline" id="line-5"><code>	<label for="i1"><span class="lit-string i1">"fmt"</span></label></code></span>
+<span class="codeline" id="line-6"><code>	<label for="i2"><span class="lit-string i2">"github.com/aws/smithy-go/middleware"</span></label></code></span>
+<span class="codeline" id="line-7"><code>	<a href="../../../../../../../../pkg/github.com/aws/smithy-go/transport/http.html" class="ident i3">smithyhttp</a> <label for="i3"><span class="lit-string i3">"github.com/aws/smithy-go/transport/http"</span></label></code></span>
+<span class="codeline" id="line-8"><code>	<label for="i4"><span class="lit-string i4">"io"</span></label></code></span>
+<span class="codeline" id="line-9"><code>)</code></span>
+<span class="codeline" id="line-10"><code></code></span>
+<span class="codeline" id="line-11"><code><span class="keyword">type</span> <a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream/eventstreamapi.html#name-eventStreamWriterKey" class="ident">eventStreamWriterKey</a> <span class="keyword">struct</span>{}</code></span>
+<span class="codeline" id="line-12"><code></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">// GetInputStreamWriter returns EventTypeHeader io.PipeWriter used for the operation's input event stream.</span></code></span>
+<span class="codeline" id="line-14"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream/eventstreamapi.html#name-GetInputStreamWriter" class="ident">GetInputStreamWriter</a></label>(<label for="r1" class="ident">ctx</label> <a href="../../../../../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../../../../../context/context.go.html#line-71" class="ident">Context</a>) <a href="../../../../../../../../pkg/io.html" class="ident i4">io</a>.<a href="../../../../../../../io/io.go.html#line-143" class="ident">WriteCloser</a> {</code></span>
+<span class="codeline" id="line-15"><code>	<label for="r2" class="ident">writeCloser</label>, <label for="r3" class="ident">_</label> := <a href="../../../../../../../../pkg/github.com/aws/smithy-go/middleware.html" class="ident i2">middleware</a>.<a href="../../../../../smithy-go/middleware/stack_values.go.html#line-26" class="ident">GetStackValue</a>(<label for="r1" class="ident">ctx</label>, <a href="#line-11" class="ident">eventStreamWriterKey</a>{}).(<a href="../../../../../../../../pkg/io.html" class="ident i4">io</a>.<a href="../../../../../../../io/io.go.html#line-143" class="ident">WriteCloser</a>)</code></span>
+<span class="codeline" id="line-16"><code>	<span class="keyword">return</span> <label for="r2" class="ident">writeCloser</label></code></span>
+<span class="codeline" id="line-17"><code>}</code></span>
+<span class="codeline" id="line-18"><code></code></span>
+<span class="codeline" id="line-19"><code><span class="keyword">func</span> <label for="r4" class="ident"><a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream/eventstreamapi.html#name-setInputStreamWriter" class="ident">setInputStreamWriter</a></label>(<label for="r5" class="ident">ctx</label> <a href="../../../../../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../../../../../context/context.go.html#line-71" class="ident">Context</a>, <label for="r6" class="ident">writeCloser</label> <a href="../../../../../../../../pkg/io.html" class="ident i4">io</a>.<a href="../../../../../../../io/io.go.html#line-143" class="ident">WriteCloser</a>) <a href="../../../../../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../../../../../context/context.go.html#line-71" class="ident">Context</a> {</code></span>
+<span class="codeline" id="line-20"><code>	<span class="keyword">return</span> <a href="../../../../../../../../pkg/github.com/aws/smithy-go/middleware.html" class="ident i2">middleware</a>.<a href="../../../../../smithy-go/middleware/stack_values.go.html#line-12" class="ident">WithStackValue</a>(<label for="r5" class="ident">ctx</label>, <a href="#line-11" class="ident">eventStreamWriterKey</a>{}, <label for="r6" class="ident">writeCloser</label>)</code></span>
+<span class="codeline" id="line-21"><code>}</code></span>
+<span class="codeline" id="line-22"><code></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">// InitializeStreamWriter is a Finalize middleware initializes an in-memory pipe for sending event stream messages</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">// via the HTTP request body.</span></code></span>
+<span class="codeline" id="line-25"><code><span class="keyword">type</span> <a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream/eventstreamapi.html#name-InitializeStreamWriter" class="ident">InitializeStreamWriter</a> <span class="keyword">struct</span>{}</code></span>
+<span class="codeline" id="line-26"><code></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">// AddInitializeStreamWriter adds the InitializeStreamWriter middleware to the provided stack.</span></code></span>
+<span class="codeline" id="line-28"><code><span class="keyword">func</span> <label for="r7" class="ident"><a href="../../../../../../../../pkg/github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream/eventstreamapi.html#name-AddInitializeStreamWriter" class="ident">AddInitializeStreamWriter</a></label>(<label for="r8" class="ident">stack</label> *<a href="../../../../../../../../pkg/github.com/aws/smithy-go/middleware.html" class="ident i2">middleware</a>.<a href="../../../../../smithy-go/middleware/stack.go.html#line-25" class="ident">Stack</a>) <a href="../../../../../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-29"><code>	<span class="keyword">return</span> <label for="r8" class="ident">stack</label>.<a href="../../../../../smithy-go/middleware/stack.go.html#line-59" class="ident">Finalize</a>.<a href="../../../../../smithy-go/middleware/step_finalize.go.html#line-129" class="ident">Add</a>(&amp;<a href="#line-25" class="ident">InitializeStreamWriter</a>{}, <a href="../../../../../../../../pkg/github.com/aws/smithy-go/middleware.html" class="ident i2">middleware</a>.<a href="../../../../../smithy-go/middleware/ordered_group.go.html#line-11" class="ident">After</a>)</code></span>
+<span class="codeline" id="line-30"><code>}</code></span>
+<span class="codeline" id="line-31"><code></code></span>
+<span class="codeline" id="line-32"><code><span class="comment">// ID returns the identifier for the middleware.</span></code></span>
+<span class="codeline" id="line-33"><code><span class="keyword">func</span> (<label for="r9" class="ident">i</label> *<a href="#line-25" class="ident">InitializeStreamWriter</a>) <label for="r10" class="ident"><a href="../../../../../../../../use/github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream/eventstreamapi..InitializeStreamWriter.ID^38439.html" class="ident">ID</a></label>() <a href="../../../../../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-34"><code>	<span class="keyword">return</span> <span class="lit-string">"InitializeStreamWriter"</span></code></span>
+<span class="codeline" id="line-35"><code>}</code></span>
+<span class="codeline" id="line-36"><code></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">// HandleFinalize is the middleware implementation.</span></code></span>
+<span class="codeline" id="line-38"><code><span class="keyword">func</span> (<label for="r11" class="ident">i</label> *<a href="#line-25" class="ident">InitializeStreamWriter</a>) <label for="r12" class="ident"><a href="../../../../../../../../use/github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream/eventstreamapi..InitializeStreamWriter.HandleFinalize.html" class="ident">HandleFinalize</a></label>(</code></span>
+<span class="codeline" id="line-39"><code>	<label for="r13" class="ident">ctx</label> <a href="../../../../../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../../../../../context/context.go.html#line-71" class="ident">Context</a>, <label for="r14" class="ident">in</label> <a href="../../../../../../../../pkg/github.com/aws/smithy-go/middleware.html" class="ident i2">middleware</a>.<a href="../../../../../smithy-go/middleware/step_finalize.go.html#line-8" class="ident">FinalizeInput</a>, <label for="r15" class="ident">next</label> <a href="../../../../../../../../pkg/github.com/aws/smithy-go/middleware.html" class="ident i2">middleware</a>.<a href="../../../../../smithy-go/middleware/step_finalize.go.html#line-19" class="ident">FinalizeHandler</a>,</code></span>
+<span class="codeline" id="line-40"><code>) (</code></span>
+<span class="codeline" id="line-41"><code>	<label for="r16" class="ident">out</label> <a href="../../../../../../../../pkg/github.com/aws/smithy-go/middleware.html" class="ident i2">middleware</a>.<a href="../../../../../smithy-go/middleware/step_finalize.go.html#line-13" class="ident">FinalizeOutput</a>, <label for="r17" class="ident">metadata</label> <a href="../../../../../../../../pkg/github.com/aws/smithy-go/middleware.html" class="ident i2">middleware</a>.<a href="../../../../../smithy-go/middleware/metadata.go.html#line-16" class="ident">Metadata</a>, <label for="r18" class="ident">err</label> <a href="../../../../../../../../pkg/builtin.html#name-error" class="ident">error</a>,</code></span>
+<span class="codeline" id="line-42"><code>) {</code></span>
+<span class="codeline" id="line-43"><code>	<label for="r19" class="ident">request</label>, <label for="r20" class="ident">ok</label> := <label for="r14" class="ident">in</label>.<a href="../../../../../smithy-go/middleware/step_finalize.go.html#line-9" class="ident">Request</a>.(*<a href="../../../../../../../../pkg/github.com/aws/smithy-go/transport/http.html" class="ident i3">smithyhttp</a>.<a href="../../../../../smithy-go/transport/http/request.go.html#line-17" class="ident">Request</a>)</code></span>
+<span class="codeline" id="line-44"><code>	<span class="keyword">if</span> !<label for="r20" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-45"><code>		<span class="keyword">return</span> <label for="r16" class="ident">out</label>, <label for="r17" class="ident">metadata</label>, <a href="../../../../../../../../pkg/fmt.html" class="ident i1">fmt</a>.<a href="../../../../../../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"unknown transport type: %T"</span>, <label for="r14" class="ident">in</label>.<a href="../../../../../smithy-go/middleware/step_finalize.go.html#line-9" class="ident">Request</a>)</code></span>
+<span class="codeline" id="line-46"><code>	}</code></span>
+<span class="codeline" id="line-47"><code></code></span>
+<span class="codeline" id="line-48"><code>	<label for="r21" class="ident">inputReader</label>, <label for="r22" class="ident">inputWriter</label> := <a href="../../../../../../../../pkg/io.html" class="ident i4">io</a>.<a href="../../../../../../../io/pipe.go.html#line-195" class="ident">Pipe</a>()</code></span>
+<span class="codeline" id="line-49"><code>	<span class="keyword">defer</span> <span class="keyword">func</span>() {</code></span>
+<span class="codeline" id="line-50"><code>		<span class="keyword">if</span> <label for="r18" class="ident">err</label> == <a href="../../../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-51"><code>			<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-52"><code>		}</code></span>
+<span class="codeline" id="line-53"><code>		_ = <label for="r21" class="ident">inputReader</label>.<a href="../../../../../../../io/pipe.go.html#line-139" class="ident">Close</a>()</code></span>
+<span class="codeline" id="line-54"><code>		_ = <label for="r22" class="ident">inputWriter</label>.<a href="../../../../../../../io/pipe.go.html#line-166" class="ident">Close</a>()</code></span>
+<span class="codeline" id="line-55"><code>	}()</code></span>
+<span class="codeline" id="line-56"><code></code></span>
+<span class="codeline" id="line-57"><code>	<label for="r19" class="ident">request</label>, <label for="r18" class="ident">err</label> = <label for="r19" class="ident">request</label>.<a href="../../../../../smithy-go/transport/http/request.go.html#line-122" class="ident">SetStream</a>(<label for="r21" class="ident">inputReader</label>)</code></span>
+<span class="codeline" id="line-58"><code>	<span class="keyword">if</span> <label for="r18" class="ident">err</label> != <a href="../../../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-59"><code>		<span class="keyword">return</span> <label for="r16" class="ident">out</label>, <label for="r17" class="ident">metadata</label>, <label for="r18" class="ident">err</label></code></span>
+<span class="codeline" id="line-60"><code>	}</code></span>
+<span class="codeline" id="line-61"><code>	<label for="r14" class="ident">in</label>.<a href="../../../../../smithy-go/middleware/step_finalize.go.html#line-9" class="ident">Request</a> = <label for="r19" class="ident">request</label></code></span>
+<span class="codeline" id="line-62"><code></code></span>
+<span class="codeline" id="line-63"><code>	<label for="r13" class="ident">ctx</label> = <a href="#line-19" class="ident">setInputStreamWriter</a>(<label for="r13" class="ident">ctx</label>, <label for="r22" class="ident">inputWriter</label>)</code></span>
+<span class="codeline" id="line-64"><code></code></span>
+<span class="codeline" id="line-65"><code>	<label for="r16" class="ident">out</label>, <label for="r17" class="ident">metadata</label>, <label for="r18" class="ident">err</label> = <label for="r15" class="ident">next</label>.<a href="../../../../../smithy-go/middleware/step_finalize.go.html#line-20" class="ident">HandleFinalize</a>(<label for="r13" class="ident">ctx</label>, <label for="r14" class="ident">in</label>)</code></span>
+<span class="codeline" id="line-66"><code>	<span class="keyword">if</span> <label for="r18" class="ident">err</label> != <a href="../../../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-67"><code>		<span class="keyword">return</span> <label for="r16" class="ident">out</label>, <label for="r17" class="ident">metadata</label>, <label for="r18" class="ident">err</label></code></span>
+<span class="codeline" id="line-68"><code>	}</code></span>
+<span class="codeline" id="line-69"><code></code></span>
+<span class="codeline" id="line-70"><code>	<span class="keyword">return</span> <label for="r16" class="ident">out</label>, <label for="r17" class="ident">metadata</label>, <label for="r18" class="ident">err</label></code></span>
+<span class="codeline" id="line-71"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

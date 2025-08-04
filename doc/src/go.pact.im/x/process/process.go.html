@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: process.go in package go.pact.im/x/process</title>
+<link href="../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	process.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../pkg/go.pact.im/x/process.html">go.pact.im/x/process</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3,
+input[id=i4]:checked ~pre .i4
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+<input id="i4" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<div class="anchor" id="doc"><span class="codeline" id="line-1"><code><span class="comment">// Package process provides primitives for managing processes, an abstraction</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// for stateful goroutines.</span></code></span></div><span class="codeline" id="line-3"><code><span class="keyword">package</span> process</code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-6"><code>	<label for="i0"><span class="lit-string i0">"context"</span></label></code></span>
+<span class="codeline" id="line-7"><code>	<label for="i1"><span class="lit-string i1">"errors"</span></label></code></span>
+<span class="codeline" id="line-8"><code>	<label for="i2"><span class="lit-string i2">"fmt"</span></label></code></span>
+<span class="codeline" id="line-9"><code>	<label for="i3"><span class="lit-string i3">"sync"</span></label></code></span>
+<span class="codeline" id="line-10"><code></code></span>
+<span class="codeline" id="line-11"><code>	<label for="i4"><span class="lit-string i4">"go.uber.org/atomic"</span></label></code></span>
+<span class="codeline" id="line-12"><code>)</code></span>
+<span class="codeline" id="line-13"><code></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">// ErrProcessInvalidState is an error that is returned if the process</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">// is not in the valid state for the operation.</span></code></span>
+<span class="codeline" id="line-16"><code><span class="keyword">var</span> <a href="../../../../pkg/go.pact.im/x/process.html#name-ErrProcessInvalidState" class="ident">ErrProcessInvalidState</a> = <a href="../../../../pkg/errors.html" class="ident i1">errors</a>.<a href="../../../errors/errors.go.html#line-64" class="ident">New</a>(<span class="lit-string">"process: invalid process state"</span>)</code></span>
+<span class="codeline" id="line-17"><code></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">// State represents the current state of the process.</span></code></span>
+<span class="codeline" id="line-19"><code><span class="keyword">type</span> <a href="../../../../pkg/go.pact.im/x/process.html#name-State" class="ident">State</a> <a href="../../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-20"><code></code></span>
+<span class="codeline" id="line-21"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-22"><code>	<span class="comment">// StateInitial is the initial state of the process. If Stop is called</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">	// in initial state, it prevents subsequent Start calls from succeeding,</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">	// thus entering StateStopped. Otherwise the transition on Start call</span></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">	// is to the StateStarting.</span></code></span>
+<span class="codeline" id="line-26"><code>	<a href="../../../../pkg/go.pact.im/x/process.html#name-StateInitial" class="ident">StateInitial</a> <a href="#line-19" class="ident">State</a> = <a href="../../../../pkg/builtin.html#name-iota" class="ident">iota</a></code></span>
+<span class="codeline" id="line-27"><code>	<span class="comment">// StateStarting is the starting state that process enters when Start</span></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">	// is called from initial state. It transitions to either StateRunning</span></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">	// on success or StateStopped on failure (or premature shutdown observed</span></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">	// during startup).</span></code></span>
+<span class="codeline" id="line-31"><code>	<a href="../../../../pkg/go.pact.im/x/process.html#name-StateStarting" class="ident">StateStarting</a></code></span>
+<span class="codeline" id="line-32"><code>	<span class="comment">// StateRunning is the state process enters after a successful startup.</span></code></span>
+<span class="codeline" id="line-33"><code><span class="comment">	// The only possible transition is to the StateStopped if either Stop</span></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">	// is called or a process terminates.</span></code></span>
+<span class="codeline" id="line-35"><code>	<a href="../../../../pkg/go.pact.im/x/process.html#name-StateRunning" class="ident">StateRunning</a></code></span>
+<span class="codeline" id="line-36"><code>	<span class="comment">// StateStopped is the final state of the process. There are no</span></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">	// transitions from this state.</span></code></span>
+<span class="codeline" id="line-38"><code>	<a href="../../../../pkg/go.pact.im/x/process.html#name-StateStopped" class="ident">StateStopped</a></code></span>
+<span class="codeline" id="line-39"><code>)</code></span>
+<span class="codeline" id="line-40"><code></code></span>
+<span class="codeline" id="line-41"><code><span class="comment">// Process represents a stateful process that is running in the background.</span></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">// It exposes Start and Stop methods that use an underlying state machine to</span></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">// prevent operations in invalid states. Process is safe for concurrent use.</span></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-45"><code><span class="comment">// Unlike some implementations of the underlying Runnable interface that allow</span></code></span>
+<span class="codeline" id="line-46"><code><span class="comment">// multiple consecutive Run invocations on the same instance, a Process may not</span></code></span>
+<span class="codeline" id="line-47"><code><span class="comment">// be reset and started after being stopped.</span></code></span>
+<span class="codeline" id="line-48"><code><span class="keyword">type</span> <a href="../../../../pkg/go.pact.im/x/process.html#name-Process" class="ident">Process</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-49"><code>	<a href="../../../../use/go.pact.im/x/process..Process.proc^38b5e.html" class="ident">proc</a>   <a href="runnable.go.html#line-20" class="ident">Runnable</a></code></span>
+<span class="codeline" id="line-50"><code>	<a href="../../../../use/go.pact.im/x/process..Process.parent^e4712.html" class="ident">parent</a> <a href="../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../context/context.go.html#line-71" class="ident">Context</a></code></span>
+<span class="codeline" id="line-51"><code></code></span>
+<span class="codeline" id="line-52"><code>	<a href="../../../../use/go.pact.im/x/process..Process.stateMu^b7d0d.html" class="ident">stateMu</a> <a href="../../../../pkg/sync.html" class="ident i3">sync</a>.<a href="../../../sync/mutex.go.html#line-30" class="ident">Mutex</a></code></span>
+<span class="codeline" id="line-53"><code>	<a href="../../../../use/go.pact.im/x/process..Process.state^4ba69.html" class="ident">state</a>   <a href="#line-19" class="ident">State</a></code></span>
+<span class="codeline" id="line-54"><code></code></span>
+<span class="codeline" id="line-55"><code>	<a href="../../../../use/go.pact.im/x/process..Process.cancel^2374d.html" class="ident">cancel</a> <a href="../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../context/context.go.html#line-231" class="ident">CancelFunc</a></code></span>
+<span class="codeline" id="line-56"><code></code></span>
+<span class="codeline" id="line-57"><code>	<a href="../../../../use/go.pact.im/x/process..Process.stop^6c45c.html" class="ident">stop</a> <span class="keyword">chan</span> <span class="keyword">struct</span>{}</code></span>
+<span class="codeline" id="line-58"><code>	<a href="../../../../use/go.pact.im/x/process..Process.done^a4c3e.html" class="ident">done</a> <span class="keyword">chan</span> <span class="keyword">struct</span>{}</code></span>
+<span class="codeline" id="line-59"><code>	<a href="../../../../use/go.pact.im/x/process..Process.err^d9eb2.html" class="ident">err</a>  <a href="../../../../pkg/go.uber.org/atomic.html" class="ident i4">atomic</a>.<a href="../../../go.uber.org/atomic/error.go.html#line-26" class="ident">Error</a></code></span>
+<span class="codeline" id="line-60"><code>}</code></span>
+<span class="codeline" id="line-61"><code></code></span>
+<span class="codeline" id="line-62"><code><span class="comment">// NewProcess returns a new stateful process instance for the given Runnable</span></code></span>
+<span class="codeline" id="line-63"><code><span class="comment">// type parameter that would run with the ctx context.</span></code></span>
+<span class="codeline" id="line-64"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../pkg/go.pact.im/x/process.html#name-NewProcess" class="ident">NewProcess</a></label>(<label for="r1" class="ident">ctx</label> <a href="../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../context/context.go.html#line-71" class="ident">Context</a>, <label for="r2" class="ident">proc</label> <a href="runnable.go.html#line-20" class="ident">Runnable</a>) *<a href="#line-48" class="ident">Process</a> {</code></span>
+<span class="codeline" id="line-65"><code>	<span class="keyword">return</span> &amp;<a href="#line-48" class="ident">Process</a>{</code></span>
+<span class="codeline" id="line-66"><code>		<a href="#line-49" class="ident">proc</a>:   <label for="r2" class="ident">proc</label>,</code></span>
+<span class="codeline" id="line-67"><code>		<a href="#line-50" class="ident">parent</a>: <label for="r1" class="ident">ctx</label>,</code></span>
+<span class="codeline" id="line-68"><code>		<a href="#line-57" class="ident">stop</a>:   <a href="../../../runtime/chan.go.html#line-75">make</a>(<span class="keyword">chan</span> <span class="keyword">struct</span>{}),</code></span>
+<span class="codeline" id="line-69"><code>		<a href="#line-58" class="ident">done</a>:   <a href="../../../runtime/chan.go.html#line-75">make</a>(<span class="keyword">chan</span> <span class="keyword">struct</span>{}),</code></span>
+<span class="codeline" id="line-70"><code>	}</code></span>
+<span class="codeline" id="line-71"><code>}</code></span>
+<span class="codeline" id="line-72"><code></code></span>
+<span class="codeline" id="line-73"><code><span class="comment">// Done returns a channel that is closed when process terminates.</span></code></span>
+<span class="codeline" id="line-74"><code><span class="keyword">func</span> (<label for="r3" class="ident">p</label> *<a href="#line-48" class="ident">Process</a>) <label for="r4" class="ident"><a href="../../../../use/go.pact.im/x/process..Process.Done.html" class="ident">Done</a></label>() &lt;-<span class="keyword">chan</span> <span class="keyword">struct</span>{} {</code></span>
+<span class="codeline" id="line-75"><code>	<span class="keyword">return</span> <label for="r3" class="ident">p</label>.<a href="#line-58" class="ident">done</a></code></span>
+<span class="codeline" id="line-76"><code>}</code></span>
+<span class="codeline" id="line-77"><code></code></span>
+<span class="codeline" id="line-78"><code><span class="comment">// Err returns the error from running the process.</span></code></span>
+<span class="codeline" id="line-79"><code><span class="keyword">func</span> (<label for="r5" class="ident">p</label> *<a href="#line-48" class="ident">Process</a>) <label for="r6" class="ident"><a href="../../../../use/go.pact.im/x/process..Process.Err.html" class="ident">Err</a></label>() <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-80"><code>	<span class="keyword">return</span> <label for="r5" class="ident">p</label>.<a href="#line-59" class="ident">err</a>.<a href="../../../go.uber.org/atomic/error.go.html#line-44" class="ident">Load</a>()</code></span>
+<span class="codeline" id="line-81"><code>}</code></span>
+<span class="codeline" id="line-82"><code></code></span>
+<span class="codeline" id="line-83"><code><span class="comment">// State returns the current process state.</span></code></span>
+<span class="codeline" id="line-84"><code><span class="keyword">func</span> (<label for="r7" class="ident">p</label> *<a href="#line-48" class="ident">Process</a>) <label for="r8" class="ident"><a href="../../../../use/go.pact.im/x/process..Process.State.html" class="ident">State</a></label>() <a href="#line-19" class="ident">State</a> {</code></span>
+<span class="codeline" id="line-85"><code>	<label for="r7" class="ident">p</label>.<a href="#line-52" class="ident">stateMu</a>.<a href="../../../sync/mutex.go.html#line-45" class="ident">Lock</a>()</code></span>
+<span class="codeline" id="line-86"><code>	<span class="keyword">defer</span> <label for="r7" class="ident">p</label>.<a href="#line-52" class="ident">stateMu</a>.<a href="../../../sync/mutex.go.html#line-64" class="ident">Unlock</a>()</code></span>
+<span class="codeline" id="line-87"><code>	<span class="keyword">return</span> <label for="r7" class="ident">p</label>.<a href="#line-53" class="ident">state</a></code></span>
+<span class="codeline" id="line-88"><code>}</code></span>
+<span class="codeline" id="line-89"><code></code></span>
+<span class="codeline" id="line-90"><code><span class="comment">// Start starts the process or cancels the underlying process context on error.</span></code></span>
+<span class="codeline" id="line-91"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-92"><code><span class="comment">// The startup deadline may be set using the given ctx context. Note that the</span></code></span>
+<span class="codeline" id="line-93"><code><span class="comment">// context would not be used by process directly so the associated values are</span></code></span>
+<span class="codeline" id="line-94"><code><span class="comment">// not propagated.</span></code></span>
+<span class="codeline" id="line-95"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-96"><code><span class="comment">// It returns ErrProcessInvalidState if the process is not in the initial state.</span></code></span>
+<span class="codeline" id="line-97"><code><span class="keyword">func</span> (<label for="r9" class="ident">p</label> *<a href="#line-48" class="ident">Process</a>) <label for="r10" class="ident"><a href="../../../../use/go.pact.im/x/process..Process.Start.html" class="ident">Start</a></label>(<label for="r11" class="ident">ctx</label> <a href="../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../context/context.go.html#line-71" class="ident">Context</a>) <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-98"><code>	<span class="keyword">var</span> <label for="r12" class="ident">bgctx</label> <a href="../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../context/context.go.html#line-71" class="ident">Context</a></code></span>
+<span class="codeline" id="line-99"><code>	<span class="keyword">var</span> <label for="r13" class="ident">cancel</label> <a href="../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../context/context.go.html#line-231" class="ident">CancelFunc</a></code></span>
+<span class="codeline" id="line-100"><code>	<span class="keyword">if</span> !<label for="r9" class="ident">p</label>.<a href="#line-194" class="ident">transition</a>(<a href="#line-31" class="ident">StateStarting</a>, <span class="keyword">func</span>() {</code></span>
+<span class="codeline" id="line-101"><code>		<label for="r12" class="ident">bgctx</label>, <label for="r13" class="ident">cancel</label> = <a href="../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../context/context.go.html#line-240" class="ident">WithCancel</a>(<label for="r9" class="ident">p</label>.<a href="#line-50" class="ident">parent</a>)</code></span>
+<span class="codeline" id="line-102"><code>		<label for="r9" class="ident">p</label>.<a href="#line-50" class="ident">parent</a>, <label for="r9" class="ident">p</label>.<a href="#line-55" class="ident">cancel</a> = <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r13" class="ident">cancel</label></code></span>
+<span class="codeline" id="line-103"><code>	}) {</code></span>
+<span class="codeline" id="line-104"><code>		<span class="keyword">return</span> <a href="#line-16" class="ident">ErrProcessInvalidState</a></code></span>
+<span class="codeline" id="line-105"><code>	}</code></span>
+<span class="codeline" id="line-106"><code></code></span>
+<span class="codeline" id="line-107"><code>	<label for="r14" class="ident">init</label> := <a href="../../../runtime/chan.go.html#line-75">make</a>(<span class="keyword">chan</span> <span class="keyword">struct</span>{})</code></span>
+<span class="codeline" id="line-108"><code>	<span class="keyword">go</span> <span class="keyword">func</span>() {</code></span>
+<span class="codeline" id="line-109"><code>		<label for="r15" class="ident">err</label> := <label for="r9" class="ident">p</label>.<a href="#line-49" class="ident">proc</a>.<a href="runnable.go.html#line-31" class="ident">Run</a>(<label for="r12" class="ident">bgctx</label>, <span class="keyword">func</span>(<label for="r16" class="ident">bgctx</label> <a href="../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../context/context.go.html#line-71" class="ident">Context</a>) <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-110"><code>			_ = <label for="r9" class="ident">p</label>.<a href="#line-194" class="ident">transition</a>(<a href="#line-35" class="ident">StateRunning</a>, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a>)</code></span>
+<span class="codeline" id="line-111"><code></code></span>
+<span class="codeline" id="line-112"><code>			<a href="../../../../pkg/builtin.html#name-close" class="ident">close</a>(<label for="r14" class="ident">init</label>)</code></span>
+<span class="codeline" id="line-113"><code></code></span>
+<span class="codeline" id="line-114"><code>			<a href="../../../runtime/select.go.html#line-122"><span class="keyword">select</span></a> {</code></span>
+<span class="codeline" id="line-115"><code>			<span class="keyword">case</span> <a href="../../../runtime/chan.go.html#line-505">&lt;-</a><label for="r16" class="ident">bgctx</label>.<a href="../../../context/context.go.html#line-108" class="ident">Done</a>():</code></span>
+<span class="codeline" id="line-116"><code>			<span class="keyword">case</span> <a href="../../../runtime/chan.go.html#line-505">&lt;-</a><label for="r9" class="ident">p</label>.<a href="#line-57" class="ident">stop</a>:</code></span>
+<span class="codeline" id="line-117"><code>			}</code></span>
+<span class="codeline" id="line-118"><code>			<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-119"><code>		})</code></span>
+<span class="codeline" id="line-120"><code>		_ = <label for="r9" class="ident">p</label>.<a href="#line-194" class="ident">transition</a>(<a href="#line-38" class="ident">StateStopped</a>, <span class="keyword">func</span>() {</code></span>
+<span class="codeline" id="line-121"><code>			<label for="r9" class="ident">p</label>.<a href="#line-55" class="ident">cancel</a> = <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-122"><code>		})</code></span>
+<span class="codeline" id="line-123"><code>		<label for="r13" class="ident">cancel</label>()</code></span>
+<span class="codeline" id="line-124"><code>		<label for="r9" class="ident">p</label>.<a href="#line-59" class="ident">err</a>.<a href="../../../go.uber.org/atomic/error.go.html#line-49" class="ident">Store</a>(<label for="r15" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-125"><code>		<a href="../../../../pkg/builtin.html#name-close" class="ident">close</a>(<label for="r9" class="ident">p</label>.<a href="#line-58" class="ident">done</a>)</code></span>
+<span class="codeline" id="line-126"><code>	}()</code></span>
+<span class="codeline" id="line-127"><code></code></span>
+<span class="codeline" id="line-128"><code>	<a href="../../../runtime/select.go.html#line-122"><span class="keyword">select</span></a> {</code></span>
+<span class="codeline" id="line-129"><code>	<span class="keyword">case</span> <a href="../../../runtime/chan.go.html#line-505">&lt;-</a><label for="r11" class="ident">ctx</label>.<a href="../../../context/context.go.html#line-108" class="ident">Done</a>():</code></span>
+<span class="codeline" id="line-130"><code>		<span class="comment">// Propagate context cancellation to cancel startup.</span></code></span>
+<span class="codeline" id="line-131"><code>		<label for="r13" class="ident">cancel</label>()</code></span>
+<span class="codeline" id="line-132"><code>		&lt;-<label for="r9" class="ident">p</label>.<a href="#line-74" class="ident">Done</a>()</code></span>
+<span class="codeline" id="line-133"><code>		<span class="keyword">return</span> <label for="r11" class="ident">ctx</label>.<a href="../../../context/context.go.html#line-115" class="ident">Err</a>()</code></span>
+<span class="codeline" id="line-134"><code>	<span class="keyword">case</span> <a href="../../../runtime/chan.go.html#line-505">&lt;-</a><label for="r9" class="ident">p</label>.<a href="#line-74" class="ident">Done</a>():</code></span>
+<span class="codeline" id="line-135"><code>		<span class="comment">// Note that a non-nil error is still an error on start if the</span></code></span>
+<span class="codeline" id="line-136"><code><span class="comment">		// process terminates without initialization.</span></code></span>
+<span class="codeline" id="line-137"><code>		<span class="keyword">return</span> <a href="../../../../pkg/fmt.html" class="ident i2">fmt</a>.<a href="../../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"run: %w"</span>, <label for="r9" class="ident">p</label>.<a href="#line-79" class="ident">Err</a>())</code></span>
+<span class="codeline" id="line-138"><code>	<span class="keyword">case</span> <a href="../../../runtime/chan.go.html#line-505">&lt;-</a><label for="r14" class="ident">init</label>:</code></span>
+<span class="codeline" id="line-139"><code>		<span class="comment">// OK</span></code></span>
+<span class="codeline" id="line-140"><code>	}</code></span>
+<span class="codeline" id="line-141"><code>	<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-142"><code>}</code></span>
+<span class="codeline" id="line-143"><code></code></span>
+<span class="codeline" id="line-144"><code><span class="comment">// Stop stops the process by returning from the Run method callback and waiting</span></code></span>
+<span class="codeline" id="line-145"><code><span class="comment">// for the termination.</span></code></span>
+<span class="codeline" id="line-146"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-147"><code><span class="comment">// The shutdown deadline may be set using the given ctx context. If the deadline</span></code></span>
+<span class="codeline" id="line-148"><code><span class="comment">// is exceeded, underlying context is canceled, signaling a forced shutdown to</span></code></span>
+<span class="codeline" id="line-149"><code><span class="comment">// the process.</span></code></span>
+<span class="codeline" id="line-150"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-151"><code><span class="comment">// It returns ErrProcessInvalidState if the process was not started or has</span></code></span>
+<span class="codeline" id="line-152"><code><span class="comment">// already been stopped.</span></code></span>
+<span class="codeline" id="line-153"><code><span class="keyword">func</span> (<label for="r17" class="ident">p</label> *<a href="#line-48" class="ident">Process</a>) <label for="r18" class="ident"><a href="../../../../use/go.pact.im/x/process..Process.Stop.html" class="ident">Stop</a></label>(<label for="r19" class="ident">ctx</label> <a href="../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../context/context.go.html#line-71" class="ident">Context</a>) <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-154"><code>	<span class="keyword">var</span> <label for="r20" class="ident">initial</label> <a href="../../../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-155"><code>	<span class="keyword">var</span> <label for="r21" class="ident">cancel</label> <a href="../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../context/context.go.html#line-231" class="ident">CancelFunc</a></code></span>
+<span class="codeline" id="line-156"><code>	<span class="keyword">if</span> !<label for="r17" class="ident">p</label>.<a href="#line-194" class="ident">transition</a>(<a href="#line-38" class="ident">StateStopped</a>, <span class="keyword">func</span>() {</code></span>
+<span class="codeline" id="line-157"><code>		<span class="keyword">switch</span> <label for="r17" class="ident">p</label>.<a href="#line-53" class="ident">state</a> {</code></span>
+<span class="codeline" id="line-158"><code>		<span class="keyword">case</span> <a href="#line-26" class="ident">StateInitial</a>:</code></span>
+<span class="codeline" id="line-159"><code>			<a href="../../../../pkg/builtin.html#name-close" class="ident">close</a>(<label for="r17" class="ident">p</label>.<a href="#line-58" class="ident">done</a>)</code></span>
+<span class="codeline" id="line-160"><code>			<label for="r20" class="ident">initial</label> = <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-161"><code>			<label for="r17" class="ident">p</label>.<a href="#line-50" class="ident">parent</a> = <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-162"><code>		<span class="keyword">case</span> <a href="#line-31" class="ident">StateStarting</a>:</code></span>
+<span class="codeline" id="line-163"><code>			<label for="r17" class="ident">p</label>.<a href="#line-55" class="ident">cancel</a>()</code></span>
+<span class="codeline" id="line-164"><code>			<label for="r21" class="ident">cancel</label> = <label for="r17" class="ident">p</label>.<a href="#line-55" class="ident">cancel</a></code></span>
+<span class="codeline" id="line-165"><code>			<label for="r17" class="ident">p</label>.<a href="#line-55" class="ident">cancel</a> = <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-166"><code>		<span class="keyword">case</span> <a href="#line-35" class="ident">StateRunning</a>:</code></span>
+<span class="codeline" id="line-167"><code>			<a href="../../../../pkg/builtin.html#name-close" class="ident">close</a>(<label for="r17" class="ident">p</label>.<a href="#line-57" class="ident">stop</a>)</code></span>
+<span class="codeline" id="line-168"><code>			<label for="r21" class="ident">cancel</label> = <label for="r17" class="ident">p</label>.<a href="#line-55" class="ident">cancel</a></code></span>
+<span class="codeline" id="line-169"><code>			<label for="r17" class="ident">p</label>.<a href="#line-55" class="ident">cancel</a> = <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-170"><code>		}</code></span>
+<span class="codeline" id="line-171"><code>	}) {</code></span>
+<span class="codeline" id="line-172"><code>		<span class="keyword">return</span> <a href="#line-16" class="ident">ErrProcessInvalidState</a></code></span>
+<span class="codeline" id="line-173"><code>	}</code></span>
+<span class="codeline" id="line-174"><code>	<span class="keyword">if</span> <label for="r20" class="ident">initial</label> {</code></span>
+<span class="codeline" id="line-175"><code>		<span class="comment">// We prevented a start. Do nothing.</span></code></span>
+<span class="codeline" id="line-176"><code>		<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-177"><code>	}</code></span>
+<span class="codeline" id="line-178"><code>	<a href="../../../runtime/select.go.html#line-122"><span class="keyword">select</span></a> {</code></span>
+<span class="codeline" id="line-179"><code>	<span class="keyword">case</span> <a href="../../../runtime/chan.go.html#line-505">&lt;-</a><label for="r19" class="ident">ctx</label>.<a href="../../../context/context.go.html#line-108" class="ident">Done</a>():</code></span>
+<span class="codeline" id="line-180"><code>		<span class="comment">// Propagate context cancellation to force shutdown.</span></code></span>
+<span class="codeline" id="line-181"><code>		<label for="r21" class="ident">cancel</label>()</code></span>
+<span class="codeline" id="line-182"><code>		&lt;-<label for="r17" class="ident">p</label>.<a href="#line-74" class="ident">Done</a>()</code></span>
+<span class="codeline" id="line-183"><code>		<span class="keyword">return</span> <label for="r19" class="ident">ctx</label>.<a href="../../../context/context.go.html#line-115" class="ident">Err</a>()</code></span>
+<span class="codeline" id="line-184"><code>	<span class="keyword">case</span> <a href="../../../runtime/chan.go.html#line-505">&lt;-</a><label for="r17" class="ident">p</label>.<a href="#line-74" class="ident">Done</a>():</code></span>
+<span class="codeline" id="line-185"><code>		<span class="keyword">if</span> <label for="r22" class="ident">err</label> := <label for="r17" class="ident">p</label>.<a href="#line-79" class="ident">Err</a>(); <label for="r22" class="ident">err</label> != <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-186"><code>			<span class="keyword">return</span> <a href="../../../../pkg/fmt.html" class="ident i2">fmt</a>.<a href="../../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"run: %w"</span>, <label for="r22" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-187"><code>		}</code></span>
+<span class="codeline" id="line-188"><code>		<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-189"><code>	}</code></span>
+<span class="codeline" id="line-190"><code>}</code></span>
+<span class="codeline" id="line-191"><code></code></span>
+<span class="codeline" id="line-192"><code><span class="comment">// transition advances to the next process state. It returns false if there is</span></code></span>
+<span class="codeline" id="line-193"><code><span class="comment">// not transition from the current to the given next state.</span></code></span>
+<span class="codeline" id="line-194"><code><span class="keyword">func</span> (<label for="r23" class="ident">p</label> *<a href="#line-48" class="ident">Process</a>) <label for="r24" class="ident"><a href="../../../../use/go.pact.im/x/process..Process.transition^70dd3.html" class="ident">transition</a></label>(<label for="r25" class="ident">next</label> <a href="#line-19" class="ident">State</a>, <label for="r26" class="ident">advance</label> <span class="keyword">func</span>()) <a href="../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-195"><code>	<label for="r23" class="ident">p</label>.<a href="#line-52" class="ident">stateMu</a>.<a href="../../../sync/mutex.go.html#line-45" class="ident">Lock</a>()</code></span>
+<span class="codeline" id="line-196"><code>	<span class="keyword">defer</span> <label for="r23" class="ident">p</label>.<a href="#line-52" class="ident">stateMu</a>.<a href="../../../sync/mutex.go.html#line-64" class="ident">Unlock</a>()</code></span>
+<span class="codeline" id="line-197"><code></code></span>
+<span class="codeline" id="line-198"><code>	<span class="keyword">switch</span> <label for="r23" class="ident">p</label>.<a href="#line-53" class="ident">state</a> {</code></span>
+<span class="codeline" id="line-199"><code>	<span class="keyword">case</span> <a href="#line-26" class="ident">StateInitial</a>:</code></span>
+<span class="codeline" id="line-200"><code>		<span class="keyword">if</span> <label for="r25" class="ident">next</label> != <a href="#line-31" class="ident">StateStarting</a> &amp;&amp; <label for="r25" class="ident">next</label> != <a href="#line-38" class="ident">StateStopped</a> {</code></span>
+<span class="codeline" id="line-201"><code>			<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-202"><code>		}</code></span>
+<span class="codeline" id="line-203"><code>	<span class="keyword">case</span> <a href="#line-31" class="ident">StateStarting</a>:</code></span>
+<span class="codeline" id="line-204"><code>		<span class="keyword">if</span> <label for="r25" class="ident">next</label> != <a href="#line-35" class="ident">StateRunning</a> &amp;&amp; <label for="r25" class="ident">next</label> != <a href="#line-38" class="ident">StateStopped</a> {</code></span>
+<span class="codeline" id="line-205"><code>			<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-206"><code>		}</code></span>
+<span class="codeline" id="line-207"><code>	<span class="keyword">case</span> <a href="#line-35" class="ident">StateRunning</a>:</code></span>
+<span class="codeline" id="line-208"><code>		<span class="keyword">if</span> <label for="r25" class="ident">next</label> != <a href="#line-38" class="ident">StateStopped</a> {</code></span>
+<span class="codeline" id="line-209"><code>			<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-210"><code>		}</code></span>
+<span class="codeline" id="line-211"><code>	<span class="keyword">case</span> <a href="#line-38" class="ident">StateStopped</a>:</code></span>
+<span class="codeline" id="line-212"><code>		<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-213"><code>	}</code></span>
+<span class="codeline" id="line-214"><code></code></span>
+<span class="codeline" id="line-215"><code>	<span class="keyword">if</span> <label for="r26" class="ident">advance</label> != <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-216"><code>		<label for="r26" class="ident">advance</label>()</code></span>
+<span class="codeline" id="line-217"><code>	}</code></span>
+<span class="codeline" id="line-218"><code></code></span>
+<span class="codeline" id="line-219"><code>	<label for="r23" class="ident">p</label>.<a href="#line-53" class="ident">state</a> = <label for="r25" class="ident">next</label></code></span>
+<span class="codeline" id="line-220"><code>	<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-221"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

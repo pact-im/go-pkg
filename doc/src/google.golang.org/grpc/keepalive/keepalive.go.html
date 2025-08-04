@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: keepalive.go in package google.golang.org/grpc/keepalive</title>
+<link href="../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	keepalive.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../pkg/google.golang.org/grpc/keepalive.html">google.golang.org/grpc/keepalive</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0
+{background: brown; color: #eed;}
+</style><input id="i0" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">/*</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment"> * Copyright 2017 gRPC authors.</span></code></span>
+<span class="codeline" id="line-4"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-5"><code><span class="comment"> * Licensed under the Apache License, Version 2.0 (the "License");</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment"> * you may not use this file except in compliance with the License.</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment"> * You may obtain a copy of the License at</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment"> *     http://www.apache.org/licenses/LICENSE-2.0</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment"> * Unless required by applicable law or agreed to in writing, software</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment"> * distributed under the License is distributed on an "AS IS" BASIS,</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment"> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment"> * See the License for the specific language governing permissions and</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment"> * limitations under the License.</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment"> */</span></code></span>
+<span class="codeline" id="line-18"><code></code></span>
+<div class="anchor" id="doc"><span class="codeline" id="line-19"><code><span class="comment">// Package keepalive defines configurable parameters for point-to-point</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">// healthcheck.</span></code></span></div><span class="codeline" id="line-21"><code><span class="keyword">package</span> keepalive</code></span>
+<span class="codeline" id="line-22"><code></code></span>
+<span class="codeline" id="line-23"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-24"><code>	<label for="i0"><span class="lit-string i0">"time"</span></label></code></span>
+<span class="codeline" id="line-25"><code>)</code></span>
+<span class="codeline" id="line-26"><code></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">// ClientParameters is used to set keepalive parameters on the client-side.</span></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">// These configure how the client will actively probe to notice when a</span></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">// connection is broken and send pings so intermediaries will be aware of the</span></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">// liveness of the connection. Make sure these parameters are set in</span></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">// coordination with the keepalive policy on the server, as incompatible</span></code></span>
+<span class="codeline" id="line-32"><code><span class="comment">// settings can result in closing of connection.</span></code></span>
+<span class="codeline" id="line-33"><code><span class="keyword">type</span> <a href="../../../../pkg/google.golang.org/grpc/keepalive.html#name-ClientParameters" class="ident">ClientParameters</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-34"><code>	<span class="comment">// After a duration of this time if the client doesn't see any activity it</span></code></span>
+<span class="codeline" id="line-35"><code><span class="comment">	// pings the server to see if the transport is still alive.</span></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">	// If set below 10s, a minimum value of 10s will be used instead.</span></code></span>
+<span class="codeline" id="line-37"><code>	<a href="../../../../use/google.golang.org/grpc/keepalive..ClientParameters.Time.html" class="ident">Time</a> <a href="../../../../pkg/time.html" class="ident i0">time</a>.<a href="../../../time/time.go.html#line-911" class="ident">Duration</a> <span class="comment">// The current default value is infinity.</span></code></span>
+<span class="codeline" id="line-38"><code>	<span class="comment">// After having pinged for keepalive check, the client waits for a duration</span></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">	// of Timeout and if no activity is seen even after that the connection is</span></code></span>
+<span class="codeline" id="line-40"><code><span class="comment">	// closed.</span></code></span>
+<span class="codeline" id="line-41"><code>	<a href="../../../../use/google.golang.org/grpc/keepalive..ClientParameters.Timeout.html" class="ident">Timeout</a> <a href="../../../../pkg/time.html" class="ident i0">time</a>.<a href="../../../time/time.go.html#line-911" class="ident">Duration</a> <span class="comment">// The current default value is 20 seconds.</span></code></span>
+<span class="codeline" id="line-42"><code>	<span class="comment">// If true, client sends keepalive pings even with no active RPCs. If false,</span></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">	// when there are no active RPCs, Time and Timeout will be ignored and no</span></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">	// keepalive pings will be sent.</span></code></span>
+<span class="codeline" id="line-45"><code>	<a href="../../../../use/google.golang.org/grpc/keepalive..ClientParameters.PermitWithoutStream.html" class="ident">PermitWithoutStream</a> <a href="../../../../pkg/builtin.html#name-bool" class="ident">bool</a> <span class="comment">// false by default.</span></code></span>
+<span class="codeline" id="line-46"><code>}</code></span>
+<span class="codeline" id="line-47"><code></code></span>
+<span class="codeline" id="line-48"><code><span class="comment">// ServerParameters is used to set keepalive and max-age parameters on the</span></code></span>
+<span class="codeline" id="line-49"><code><span class="comment">// server-side.</span></code></span>
+<span class="codeline" id="line-50"><code><span class="keyword">type</span> <a href="../../../../pkg/google.golang.org/grpc/keepalive.html#name-ServerParameters" class="ident">ServerParameters</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-51"><code>	<span class="comment">// MaxConnectionIdle is a duration for the amount of time after which an</span></code></span>
+<span class="codeline" id="line-52"><code><span class="comment">	// idle connection would be closed by sending a GoAway. Idleness duration is</span></code></span>
+<span class="codeline" id="line-53"><code><span class="comment">	// defined since the most recent time the number of outstanding RPCs became</span></code></span>
+<span class="codeline" id="line-54"><code><span class="comment">	// zero or the connection establishment.</span></code></span>
+<span class="codeline" id="line-55"><code>	<a href="../../../../use/google.golang.org/grpc/keepalive..ServerParameters.MaxConnectionIdle.html" class="ident">MaxConnectionIdle</a> <a href="../../../../pkg/time.html" class="ident i0">time</a>.<a href="../../../time/time.go.html#line-911" class="ident">Duration</a> <span class="comment">// The current default value is infinity.</span></code></span>
+<span class="codeline" id="line-56"><code>	<span class="comment">// MaxConnectionAge is a duration for the maximum amount of time a</span></code></span>
+<span class="codeline" id="line-57"><code><span class="comment">	// connection may exist before it will be closed by sending a GoAway. A</span></code></span>
+<span class="codeline" id="line-58"><code><span class="comment">	// random jitter of +/-10% will be added to MaxConnectionAge to spread out</span></code></span>
+<span class="codeline" id="line-59"><code><span class="comment">	// connection storms.</span></code></span>
+<span class="codeline" id="line-60"><code>	<a href="../../../../use/google.golang.org/grpc/keepalive..ServerParameters.MaxConnectionAge.html" class="ident">MaxConnectionAge</a> <a href="../../../../pkg/time.html" class="ident i0">time</a>.<a href="../../../time/time.go.html#line-911" class="ident">Duration</a> <span class="comment">// The current default value is infinity.</span></code></span>
+<span class="codeline" id="line-61"><code>	<span class="comment">// MaxConnectionAgeGrace is an additive period after MaxConnectionAge after</span></code></span>
+<span class="codeline" id="line-62"><code><span class="comment">	// which the connection will be forcibly closed.</span></code></span>
+<span class="codeline" id="line-63"><code>	<a href="../../../../use/google.golang.org/grpc/keepalive..ServerParameters.MaxConnectionAgeGrace.html" class="ident">MaxConnectionAgeGrace</a> <a href="../../../../pkg/time.html" class="ident i0">time</a>.<a href="../../../time/time.go.html#line-911" class="ident">Duration</a> <span class="comment">// The current default value is infinity.</span></code></span>
+<span class="codeline" id="line-64"><code>	<span class="comment">// After a duration of this time if the server doesn't see any activity it</span></code></span>
+<span class="codeline" id="line-65"><code><span class="comment">	// pings the client to see if the transport is still alive.</span></code></span>
+<span class="codeline" id="line-66"><code><span class="comment">	// If set below 1s, a minimum value of 1s will be used instead.</span></code></span>
+<span class="codeline" id="line-67"><code>	<a href="../../../../use/google.golang.org/grpc/keepalive..ServerParameters.Time.html" class="ident">Time</a> <a href="../../../../pkg/time.html" class="ident i0">time</a>.<a href="../../../time/time.go.html#line-911" class="ident">Duration</a> <span class="comment">// The current default value is 2 hours.</span></code></span>
+<span class="codeline" id="line-68"><code>	<span class="comment">// After having pinged for keepalive check, the server waits for a duration</span></code></span>
+<span class="codeline" id="line-69"><code><span class="comment">	// of Timeout and if no activity is seen even after that the connection is</span></code></span>
+<span class="codeline" id="line-70"><code><span class="comment">	// closed.</span></code></span>
+<span class="codeline" id="line-71"><code>	<a href="../../../../use/google.golang.org/grpc/keepalive..ServerParameters.Timeout.html" class="ident">Timeout</a> <a href="../../../../pkg/time.html" class="ident i0">time</a>.<a href="../../../time/time.go.html#line-911" class="ident">Duration</a> <span class="comment">// The current default value is 20 seconds.</span></code></span>
+<span class="codeline" id="line-72"><code>}</code></span>
+<span class="codeline" id="line-73"><code></code></span>
+<span class="codeline" id="line-74"><code><span class="comment">// EnforcementPolicy is used to set keepalive enforcement policy on the</span></code></span>
+<span class="codeline" id="line-75"><code><span class="comment">// server-side. Server will close connection with a client that violates this</span></code></span>
+<span class="codeline" id="line-76"><code><span class="comment">// policy.</span></code></span>
+<span class="codeline" id="line-77"><code><span class="keyword">type</span> <a href="../../../../pkg/google.golang.org/grpc/keepalive.html#name-EnforcementPolicy" class="ident">EnforcementPolicy</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-78"><code>	<span class="comment">// MinTime is the minimum amount of time a client should wait before sending</span></code></span>
+<span class="codeline" id="line-79"><code><span class="comment">	// a keepalive ping.</span></code></span>
+<span class="codeline" id="line-80"><code>	<a href="../../../../use/google.golang.org/grpc/keepalive..EnforcementPolicy.MinTime.html" class="ident">MinTime</a> <a href="../../../../pkg/time.html" class="ident i0">time</a>.<a href="../../../time/time.go.html#line-911" class="ident">Duration</a> <span class="comment">// The current default value is 5 minutes.</span></code></span>
+<span class="codeline" id="line-81"><code>	<span class="comment">// If true, server allows keepalive pings even when there are no active</span></code></span>
+<span class="codeline" id="line-82"><code><span class="comment">	// streams(RPCs). If false, and client sends ping when there are no active</span></code></span>
+<span class="codeline" id="line-83"><code><span class="comment">	// streams, server will send GOAWAY and close the connection.</span></code></span>
+<span class="codeline" id="line-84"><code>	<a href="../../../../use/google.golang.org/grpc/keepalive..EnforcementPolicy.PermitWithoutStream.html" class="ident">PermitWithoutStream</a> <a href="../../../../pkg/builtin.html#name-bool" class="ident">bool</a> <span class="comment">// false by default.</span></code></span>
+<span class="codeline" id="line-85"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

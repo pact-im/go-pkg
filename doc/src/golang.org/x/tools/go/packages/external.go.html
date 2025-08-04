@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: external.go in package golang.org/x/tools/go/packages</title>
+<link href="../../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	external.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../../pkg/golang.org/x/tools/go/packages.html">golang.org/x/tools/go/packages</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3,
+input[id=i4]:checked ~pre .i4,
+input[id=i5]:checked ~pre .i5
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+<input id="i4" type="radio" name="i"/>
+<input id="i5" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2018 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> packages</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="comment">// This file defines the protocol that enables an external "driver"</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment">// tool to supply package metadata in place of 'go list'.</span></code></span>
+<span class="codeline" id="line-9"><code></code></span>
+<span class="codeline" id="line-10"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-11"><code>	<label for="i0"><span class="lit-string i0">"bytes"</span></label></code></span>
+<span class="codeline" id="line-12"><code>	<label for="i1"><span class="lit-string i1">"encoding/json"</span></label></code></span>
+<span class="codeline" id="line-13"><code>	<label for="i2"><span class="lit-string i2">"fmt"</span></label></code></span>
+<span class="codeline" id="line-14"><code>	<label for="i3"><span class="lit-string i3">"os"</span></label></code></span>
+<span class="codeline" id="line-15"><code>	<label for="i4"><span class="lit-string i4">"os/exec"</span></label></code></span>
+<span class="codeline" id="line-16"><code>	<label for="i5"><span class="lit-string i5">"strings"</span></label></code></span>
+<span class="codeline" id="line-17"><code>)</code></span>
+<span class="codeline" id="line-18"><code></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">// DriverRequest defines the schema of a request for package metadata</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">// from an external driver program. The JSON-encoded DriverRequest</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">// message is provided to the driver program's standard input. The</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">// query patterns are provided as command-line arguments.</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">// See the package documentation for an overview.</span></code></span>
+<span class="codeline" id="line-25"><code><span class="keyword">type</span> <a href="../../../../../../pkg/golang.org/x/tools/go/packages.html#name-DriverRequest" class="ident">DriverRequest</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-26"><code>	<a href="../../../../../../use/golang.org/x/tools/go/packages..DriverRequest.Mode.html" class="ident">Mode</a> <a href="packages.go.html#line-54" class="ident">LoadMode</a> <span class="lit-string">`json:"mode"`</span></code></span>
+<span class="codeline" id="line-27"><code></code></span>
+<span class="codeline" id="line-28"><code>	<span class="comment">// Env specifies the environment the underlying build system should be run in.</span></code></span>
+<span class="codeline" id="line-29"><code>	<a href="../../../../../../use/golang.org/x/tools/go/packages..DriverRequest.Env.html" class="ident">Env</a> []<a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a> <span class="lit-string">`json:"env"`</span></code></span>
+<span class="codeline" id="line-30"><code></code></span>
+<span class="codeline" id="line-31"><code>	<span class="comment">// BuildFlags are flags that should be passed to the underlying build system.</span></code></span>
+<span class="codeline" id="line-32"><code>	<a href="../../../../../../use/golang.org/x/tools/go/packages..DriverRequest.BuildFlags.html" class="ident">BuildFlags</a> []<a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a> <span class="lit-string">`json:"build_flags"`</span></code></span>
+<span class="codeline" id="line-33"><code></code></span>
+<span class="codeline" id="line-34"><code>	<span class="comment">// Tests specifies whether the patterns should also return test packages.</span></code></span>
+<span class="codeline" id="line-35"><code>	<a href="../../../../../../use/golang.org/x/tools/go/packages..DriverRequest.Tests.html" class="ident">Tests</a> <a href="../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> <span class="lit-string">`json:"tests"`</span></code></span>
+<span class="codeline" id="line-36"><code></code></span>
+<span class="codeline" id="line-37"><code>	<span class="comment">// Overlay maps file paths (relative to the driver's working directory)</span></code></span>
+<span class="codeline" id="line-38"><code><span class="comment">	// to the contents of overlay files (see Config.Overlay).</span></code></span>
+<span class="codeline" id="line-39"><code>	<a href="../../../../../../use/golang.org/x/tools/go/packages..DriverRequest.Overlay.html" class="ident">Overlay</a> <span class="keyword">map</span>[<a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>][]<a href="../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a> <span class="lit-string">`json:"overlay"`</span></code></span>
+<span class="codeline" id="line-40"><code>}</code></span>
+<span class="codeline" id="line-41"><code></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">// DriverResponse defines the schema of a response from an external</span></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">// driver program, providing the results of a query for package</span></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">// metadata. The driver program must write a JSON-encoded</span></code></span>
+<span class="codeline" id="line-45"><code><span class="comment">// DriverResponse message to its standard output.</span></code></span>
+<span class="codeline" id="line-46"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-47"><code><span class="comment">// See the package documentation for an overview.</span></code></span>
+<span class="codeline" id="line-48"><code><span class="keyword">type</span> <a href="../../../../../../pkg/golang.org/x/tools/go/packages.html#name-DriverResponse" class="ident">DriverResponse</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-49"><code>	<span class="comment">// NotHandled is returned if the request can't be handled by the current</span></code></span>
+<span class="codeline" id="line-50"><code><span class="comment">	// driver. If an external driver returns a response with NotHandled, the</span></code></span>
+<span class="codeline" id="line-51"><code><span class="comment">	// rest of the DriverResponse is ignored, and go/packages will fallback</span></code></span>
+<span class="codeline" id="line-52"><code><span class="comment">	// to the next driver. If go/packages is extended in the future to support</span></code></span>
+<span class="codeline" id="line-53"><code><span class="comment">	// lists of multiple drivers, go/packages will fall back to the next driver.</span></code></span>
+<span class="codeline" id="line-54"><code>	<a href="../../../../../../use/golang.org/x/tools/go/packages..DriverResponse.NotHandled.html" class="ident">NotHandled</a> <a href="../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-55"><code></code></span>
+<span class="codeline" id="line-56"><code>	<span class="comment">// Compiler and Arch are the arguments pass of types.SizesFor</span></code></span>
+<span class="codeline" id="line-57"><code><span class="comment">	// to get a types.Sizes to use when type checking.</span></code></span>
+<span class="codeline" id="line-58"><code>	<a href="../../../../../../use/golang.org/x/tools/go/packages..DriverResponse.Compiler.html" class="ident">Compiler</a> <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-59"><code>	<a href="../../../../../../use/golang.org/x/tools/go/packages..DriverResponse.Arch.html" class="ident">Arch</a>     <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-60"><code></code></span>
+<span class="codeline" id="line-61"><code>	<span class="comment">// Roots is the set of package IDs that make up the root packages.</span></code></span>
+<span class="codeline" id="line-62"><code><span class="comment">	// We have to encode this separately because when we encode a single package</span></code></span>
+<span class="codeline" id="line-63"><code><span class="comment">	// we cannot know if it is one of the roots as that requires knowledge of the</span></code></span>
+<span class="codeline" id="line-64"><code><span class="comment">	// graph it is part of.</span></code></span>
+<span class="codeline" id="line-65"><code>	<a href="../../../../../../use/golang.org/x/tools/go/packages..DriverResponse.Roots.html" class="ident">Roots</a> []<a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a> <span class="lit-string">`json:",omitempty"`</span></code></span>
+<span class="codeline" id="line-66"><code></code></span>
+<span class="codeline" id="line-67"><code>	<span class="comment">// Packages is the full set of packages in the graph.</span></code></span>
+<span class="codeline" id="line-68"><code><span class="comment">	// The packages are not connected into a graph.</span></code></span>
+<span class="codeline" id="line-69"><code><span class="comment">	// The Imports if populated will be stubs that only have their ID set.</span></code></span>
+<span class="codeline" id="line-70"><code><span class="comment">	// Imports will be connected and then type and syntax information added in a</span></code></span>
+<span class="codeline" id="line-71"><code><span class="comment">	// later pass (see refine).</span></code></span>
+<span class="codeline" id="line-72"><code>	<a href="../../../../../../use/golang.org/x/tools/go/packages..DriverResponse.Packages.html" class="ident">Packages</a> []*<a href="packages.go.html#line-423" class="ident">Package</a></code></span>
+<span class="codeline" id="line-73"><code></code></span>
+<span class="codeline" id="line-74"><code>	<span class="comment">// GoVersion is the minor version number used by the driver</span></code></span>
+<span class="codeline" id="line-75"><code><span class="comment">	// (e.g. the go command on the PATH) when selecting .go files.</span></code></span>
+<span class="codeline" id="line-76"><code><span class="comment">	// Zero means unknown.</span></code></span>
+<span class="codeline" id="line-77"><code>	<a href="../../../../../../use/golang.org/x/tools/go/packages..DriverResponse.GoVersion.html" class="ident">GoVersion</a> <a href="../../../../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-78"><code>}</code></span>
+<span class="codeline" id="line-79"><code></code></span>
+<span class="codeline" id="line-80"><code><span class="comment">// driver is the type for functions that query the build system for the</span></code></span>
+<span class="codeline" id="line-81"><code><span class="comment">// packages named by the patterns.</span></code></span>
+<span class="codeline" id="line-82"><code><span class="keyword">type</span> <a href="../../../../../../pkg/golang.org/x/tools/go/packages.html#name-driver" class="ident">driver</a> <span class="keyword">func</span>(cfg *<a href="packages.go.html#line-144" class="ident">Config</a>, patterns ...<a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>) (*<a href="#line-48" class="ident">DriverResponse</a>, <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
+<span class="codeline" id="line-83"><code></code></span>
+<span class="codeline" id="line-84"><code><span class="comment">// findExternalDriver returns the file path of a tool that supplies</span></code></span>
+<span class="codeline" id="line-85"><code><span class="comment">// the build system package structure, or "" if not found."</span></code></span>
+<span class="codeline" id="line-86"><code><span class="comment">// If GOPACKAGESDRIVER is set in the environment findExternalTool returns its</span></code></span>
+<span class="codeline" id="line-87"><code><span class="comment">// value, otherwise it searches for a binary named gopackagesdriver on the PATH.</span></code></span>
+<span class="codeline" id="line-88"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../../../pkg/golang.org/x/tools/go/packages.html#name-findExternalDriver" class="ident">findExternalDriver</a></label>(<label for="r1" class="ident">cfg</label> *<a href="packages.go.html#line-144" class="ident">Config</a>) <a href="#line-82" class="ident">driver</a> {</code></span>
+<span class="codeline" id="line-89"><code>	<span class="keyword">const</span> <label for="r2" class="ident">toolPrefix</label> = <span class="lit-string">"GOPACKAGESDRIVER="</span></code></span>
+<span class="codeline" id="line-90"><code>	<label for="r3" class="ident">tool</label> := <span class="lit-string">""</span></code></span>
+<span class="codeline" id="line-91"><code>	<span class="keyword">for</span> <label for="r4" class="ident">_</label>, <label for="r5" class="ident">env</label> := <span class="keyword">range</span> <label for="r1" class="ident">cfg</label>.<a href="packages.go.html#line-172" class="ident">Env</a> {</code></span>
+<span class="codeline" id="line-92"><code>		<span class="keyword">if</span> <label for="r6" class="ident">val</label> := <a href="../../../../../../pkg/strings.html" class="ident i5">strings</a>.<a href="../../../../../strings/strings.go.html#line-1125" class="ident">TrimPrefix</a>(<label for="r5" class="ident">env</label>, <label for="r2" class="ident">toolPrefix</label>); <label for="r6" class="ident">val</label> != <label for="r5" class="ident">env</label> {</code></span>
+<span class="codeline" id="line-93"><code>			<label for="r3" class="ident">tool</label> = <label for="r6" class="ident">val</label></code></span>
+<span class="codeline" id="line-94"><code>		}</code></span>
+<span class="codeline" id="line-95"><code>	}</code></span>
+<span class="codeline" id="line-96"><code>	<span class="keyword">if</span> <label for="r3" class="ident">tool</label> != <span class="lit-string">""</span> &amp;&amp; <label for="r3" class="ident">tool</label> == <span class="lit-string">"off"</span> {</code></span>
+<span class="codeline" id="line-97"><code>		<span class="keyword">return</span> <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-98"><code>	}</code></span>
+<span class="codeline" id="line-99"><code>	<span class="keyword">if</span> <label for="r3" class="ident">tool</label> == <span class="lit-string">""</span> {</code></span>
+<span class="codeline" id="line-100"><code>		<span class="keyword">var</span> <label for="r7" class="ident">err</label> <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-101"><code>		<label for="r3" class="ident">tool</label>, <label for="r7" class="ident">err</label> = <a href="../../../../../../pkg/os/exec.html" class="ident i4">exec</a>.<a href="../../../../../os/exec/lp_unix.go.html#line-52" class="ident">LookPath</a>(<span class="lit-string">"gopackagesdriver"</span>)</code></span>
+<span class="codeline" id="line-102"><code>		<span class="keyword">if</span> <label for="r7" class="ident">err</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-103"><code>			<span class="keyword">return</span> <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-104"><code>		}</code></span>
+<span class="codeline" id="line-105"><code>	}</code></span>
+<span class="codeline" id="line-106"><code>	<span class="keyword">return</span> <span class="keyword">func</span>(<label for="r8" class="ident">cfg</label> *<a href="packages.go.html#line-144" class="ident">Config</a>, <label for="r9" class="ident">words</label> ...<a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>) (*<a href="#line-48" class="ident">DriverResponse</a>, <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-107"><code>		<label for="r10" class="ident">req</label>, <label for="r11" class="ident">err</label> := <a href="../../../../../../pkg/encoding/json.html" class="ident i1">json</a>.<a href="../../../../../encoding/json/encode.go.html#line-171" class="ident">Marshal</a>(<a href="#line-25" class="ident">DriverRequest</a>{</code></span>
+<span class="codeline" id="line-108"><code>			<a href="#line-26" class="ident">Mode</a>:       <label for="r8" class="ident">cfg</label>.<a href="packages.go.html#line-146" class="ident">Mode</a>,</code></span>
+<span class="codeline" id="line-109"><code>			<a href="#line-29" class="ident">Env</a>:        <label for="r8" class="ident">cfg</label>.<a href="packages.go.html#line-172" class="ident">Env</a>,</code></span>
+<span class="codeline" id="line-110"><code>			<a href="#line-32" class="ident">BuildFlags</a>: <label for="r8" class="ident">cfg</label>.<a href="packages.go.html#line-179" class="ident">BuildFlags</a>,</code></span>
+<span class="codeline" id="line-111"><code>			<a href="#line-35" class="ident">Tests</a>:      <label for="r8" class="ident">cfg</label>.<a href="packages.go.html#line-217" class="ident">Tests</a>,</code></span>
+<span class="codeline" id="line-112"><code>			<a href="#line-39" class="ident">Overlay</a>:    <label for="r8" class="ident">cfg</label>.<a href="packages.go.html#line-231" class="ident">Overlay</a>,</code></span>
+<span class="codeline" id="line-113"><code>		})</code></span>
+<span class="codeline" id="line-114"><code>		<span class="keyword">if</span> <label for="r11" class="ident">err</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-115"><code>			<span class="keyword">return</span> <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../../../../pkg/fmt.html" class="ident i2">fmt</a>.<a href="../../../../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"failed to encode message to driver tool: %v"</span>, <label for="r11" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-116"><code>		}</code></span>
+<span class="codeline" id="line-117"><code></code></span>
+<span class="codeline" id="line-118"><code>		<label for="r12" class="ident">buf</label> := <a href="../../../../../../pkg/builtin.html#name-new" class="ident">new</a>(<a href="../../../../../../pkg/bytes.html" class="ident i0">bytes</a>.<a href="../../../../../bytes/buffer.go.html#line-20" class="ident">Buffer</a>)</code></span>
+<span class="codeline" id="line-119"><code>		<label for="r13" class="ident">stderr</label> := <a href="../../../../../../pkg/builtin.html#name-new" class="ident">new</a>(<a href="../../../../../../pkg/bytes.html" class="ident i0">bytes</a>.<a href="../../../../../bytes/buffer.go.html#line-20" class="ident">Buffer</a>)</code></span>
+<span class="codeline" id="line-120"><code>		<label for="r14" class="ident">cmd</label> := <a href="../../../../../../pkg/os/exec.html" class="ident i4">exec</a>.<a href="../../../../../os/exec/exec.go.html#line-478" class="ident">CommandContext</a>(<label for="r8" class="ident">cfg</label>.<a href="packages.go.html#line-151" class="ident">Context</a>, <label for="r3" class="ident">tool</label>, <label for="r9" class="ident">words</label>...)</code></span>
+<span class="codeline" id="line-121"><code>		<label for="r14" class="ident">cmd</label>.<a href="../../../../../os/exec/exec.go.html#line-190" class="ident">Dir</a> = <label for="r8" class="ident">cfg</label>.<a href="packages.go.html#line-162" class="ident">Dir</a></code></span>
+<span class="codeline" id="line-122"><code>		<span class="comment">// The cwd gets resolved to the real path. On Darwin, where</span></code></span>
+<span class="codeline" id="line-123"><code><span class="comment">		// /tmp is a symlink, this breaks anything that expects the</span></code></span>
+<span class="codeline" id="line-124"><code><span class="comment">		// working directory to keep the original path, including the</span></code></span>
+<span class="codeline" id="line-125"><code><span class="comment">		// go command when dealing with modules.</span></code></span>
+<span class="codeline" id="line-126"><code><span class="comment">		//</span></code></span>
+<span class="codeline" id="line-127"><code><span class="comment">		// os.Getwd stdlib has a special feature where if the</span></code></span>
+<span class="codeline" id="line-128"><code><span class="comment">		// cwd and the PWD are the same node then it trusts</span></code></span>
+<span class="codeline" id="line-129"><code><span class="comment">		// the PWD, so by setting it in the env for the child</span></code></span>
+<span class="codeline" id="line-130"><code><span class="comment">		// process we fix up all the paths returned by the go</span></code></span>
+<span class="codeline" id="line-131"><code><span class="comment">		// command.</span></code></span>
+<span class="codeline" id="line-132"><code><span class="comment">		//</span></code></span>
+<span class="codeline" id="line-133"><code><span class="comment">		// (See similar trick in Invocation.run in ../../internal/gocommand/invoke.go)</span></code></span>
+<span class="codeline" id="line-134"><code>		<label for="r14" class="ident">cmd</label>.<a href="../../../../../os/exec/exec.go.html#line-171" class="ident">Env</a> = <a href="../../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<a href="#line-156" class="ident">slicesClip</a>(<label for="r8" class="ident">cfg</label>.<a href="packages.go.html#line-172" class="ident">Env</a>), <span class="lit-string">"PWD="</span>+<label for="r8" class="ident">cfg</label>.<a href="packages.go.html#line-162" class="ident">Dir</a>)</code></span>
+<span class="codeline" id="line-135"><code>		<label for="r14" class="ident">cmd</label>.<a href="../../../../../os/exec/exec.go.html#line-205" class="ident">Stdin</a> = <a href="../../../../../../pkg/bytes.html" class="ident i0">bytes</a>.<a href="../../../../../bytes/reader.go.html#line-159" class="ident">NewReader</a>(<label for="r10" class="ident">req</label>)</code></span>
+<span class="codeline" id="line-136"><code>		<label for="r14" class="ident">cmd</label>.<a href="../../../../../os/exec/exec.go.html#line-223" class="ident">Stdout</a> = <label for="r12" class="ident">buf</label></code></span>
+<span class="codeline" id="line-137"><code>		<label for="r14" class="ident">cmd</label>.<a href="../../../../../os/exec/exec.go.html#line-224" class="ident">Stderr</a> = <label for="r13" class="ident">stderr</label></code></span>
+<span class="codeline" id="line-138"><code></code></span>
+<span class="codeline" id="line-139"><code>		<span class="keyword">if</span> <label for="r15" class="ident">err</label> := <label for="r14" class="ident">cmd</label>.<a href="../../../../../os/exec/exec.go.html#line-622" class="ident">Run</a>(); <label for="r15" class="ident">err</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-140"><code>			<span class="keyword">return</span> <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../../../../pkg/fmt.html" class="ident i2">fmt</a>.<a href="../../../../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"%v: %v: %s"</span>, <label for="r3" class="ident">tool</label>, <label for="r15" class="ident">err</label>, <label for="r14" class="ident">cmd</label>.<a href="../../../../../os/exec/exec.go.html#line-224" class="ident">Stderr</a>)</code></span>
+<span class="codeline" id="line-141"><code>		}</code></span>
+<span class="codeline" id="line-142"><code>		<span class="keyword">if</span> <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r13" class="ident">stderr</label>.<a href="../../../../../bytes/buffer.go.html#line-54" class="ident">Bytes</a>()) != <span class="lit-number">0</span> &amp;&amp; <a href="../../../../../../pkg/os.html" class="ident i3">os</a>.<a href="../../../../../os/env.go.html#line-101" class="ident">Getenv</a>(<span class="lit-string">"GOPACKAGESPRINTDRIVERERRORS"</span>) != <span class="lit-string">""</span> {</code></span>
+<span class="codeline" id="line-143"><code>			<a href="../../../../../../pkg/fmt.html" class="ident i2">fmt</a>.<a href="../../../../../fmt/print.go.html#line-222" class="ident">Fprintf</a>(<a href="../../../../../../pkg/os.html" class="ident i3">os</a>.<a href="../../../../../os/file.go.html#line-73" class="ident">Stderr</a>, <span class="lit-string">"%s stderr: &lt;&lt;%s&gt;&gt;\n"</span>, <a href="golist.go.html#line-1008" class="ident">cmdDebugStr</a>(<label for="r14" class="ident">cmd</label>), <label for="r13" class="ident">stderr</label>)</code></span>
+<span class="codeline" id="line-144"><code>		}</code></span>
+<span class="codeline" id="line-145"><code></code></span>
+<span class="codeline" id="line-146"><code>		<span class="keyword">var</span> <label for="r16" class="ident">response</label> <a href="#line-48" class="ident">DriverResponse</a></code></span>
+<span class="codeline" id="line-147"><code>		<span class="keyword">if</span> <label for="r17" class="ident">err</label> := <a href="../../../../../../pkg/encoding/json.html" class="ident i1">json</a>.<a href="../../../../../encoding/json/decode.go.html#line-97" class="ident">Unmarshal</a>(<label for="r12" class="ident">buf</label>.<a href="../../../../../bytes/buffer.go.html#line-54" class="ident">Bytes</a>(), &amp;<label for="r16" class="ident">response</label>); <label for="r17" class="ident">err</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-148"><code>			<span class="keyword">return</span> <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r17" class="ident">err</label></code></span>
+<span class="codeline" id="line-149"><code>		}</code></span>
+<span class="codeline" id="line-150"><code>		<span class="keyword">return</span> &amp;<label for="r16" class="ident">response</label>, <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-151"><code>	}</code></span>
+<span class="codeline" id="line-152"><code>}</code></span>
+<span class="codeline" id="line-153"><code></code></span>
+<span class="codeline" id="line-154"><code><span class="comment">// slicesClip removes unused capacity from the slice, returning s[:len(s):len(s)].</span></code></span>
+<span class="codeline" id="line-155"><code><span class="comment">// TODO(adonovan): use go1.21 slices.Clip.</span></code></span>
+<span class="codeline" id="line-156"><code><span class="keyword">func</span> <label for="r18" class="ident"><a href="../../../../../../pkg/golang.org/x/tools/go/packages.html#name-slicesClip" class="ident">slicesClip</a></label>[<label for="r19" class="ident">S</label> ~[]<label for="r20" class="ident">E</label>, <label for="r20" class="ident">E</label> <a href="../../../../../../pkg/builtin.html#name-any" class="ident">any</a>](<label for="r21" class="ident">s</label> <label for="r19" class="ident">S</label>) <label for="r19" class="ident">S</label> { <span class="keyword">return</span> <label for="r21" class="ident">s</label>[:<a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r21" class="ident">s</label>):<a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r21" class="ident">s</label>)] }</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

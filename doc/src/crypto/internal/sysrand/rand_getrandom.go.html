@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: rand_getrandom.go in package crypto/internal/sysrand</title>
+<link href="../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	rand_getrandom.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../pkg/crypto/internal/sysrand.html">crypto/internal/sysrand</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3,
+input[id=i4]:checked ~pre .i4
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+<input id="i4" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2014 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="comment">//go:build dragonfly || freebsd || linux || solaris</span></code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">package</span> sysrand</code></span>
+<span class="codeline" id="line-8"><code></code></span>
+<span class="codeline" id="line-9"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-10"><code>	<label for="i0"><span class="lit-string i0">"errors"</span></label></code></span>
+<span class="codeline" id="line-11"><code>	<label for="i1"><span class="lit-string i1">"internal/syscall/unix"</span></label></code></span>
+<span class="codeline" id="line-12"><code>	<label for="i2"><span class="lit-string i2">"math"</span></label></code></span>
+<span class="codeline" id="line-13"><code>	<label for="i3"><span class="lit-string i3">"runtime"</span></label></code></span>
+<span class="codeline" id="line-14"><code>	<label for="i4"><span class="lit-string i4">"syscall"</span></label></code></span>
+<span class="codeline" id="line-15"><code>)</code></span>
+<span class="codeline" id="line-16"><code></code></span>
+<span class="codeline" id="line-17"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../pkg/crypto/internal/sysrand.html#name-read" class="ident">read</a></label>(<label for="r1" class="ident">b</label> []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-18"><code>	<span class="comment">// Linux, DragonFly, and illumos don't have a limit on the buffer size.</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">	// FreeBSD has a limit of IOSIZE_MAX, which seems to be either INT_MAX or</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">	// SSIZE_MAX. 2^31-1 is a safe and high enough value to use for all of them.</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">	// Note that Linux returns "a maximum of 32Mi-1 bytes", but that will only</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">	// result in a short read, not an error. Short reads can also happen above</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">	// 256 bytes due to signals. Reads up to 256 bytes are guaranteed not to</span></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">	// return short (and not to return an error IF THE POOL IS INITIALIZED) on</span></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">	// at least Linux, FreeBSD, DragonFly, and Oracle Solaris, but we don't make</span></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">	// use of that.</span></code></span>
+<span class="codeline" id="line-28"><code>	<label for="r2" class="ident">maxSize</label> := <a href="../../../../pkg/math.html" class="ident i2">math</a>.<a href="../../../math/const.go.html#line-48" class="ident">MaxInt32</a></code></span>
+<span class="codeline" id="line-29"><code></code></span>
+<span class="codeline" id="line-30"><code>	<span class="comment">// Oracle Solaris has a limit of 133120 bytes. Very specific.</span></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-32"><code><span class="comment">	//    The getrandom() and getentropy() functions fail if: [...]</span></code></span>
+<span class="codeline" id="line-33"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">	//    - bufsz is &lt;= 0 or &gt; 133120, when GRND_RANDOM is not set</span></code></span>
+<span class="codeline" id="line-35"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">	// https://docs.oracle.com/cd/E88353_01/html/E37841/getrandom-2.html</span></code></span>
+<span class="codeline" id="line-37"><code>	<span class="keyword">if</span> <a href="../../../../pkg/runtime.html" class="ident i3">runtime</a>.<a href="../../../runtime/extern.go.html#line-373" class="ident">GOOS</a> == <span class="lit-string">"solaris"</span> {</code></span>
+<span class="codeline" id="line-38"><code>		<label for="r2" class="ident">maxSize</label> = <span class="lit-number">133120</span></code></span>
+<span class="codeline" id="line-39"><code>	}</code></span>
+<span class="codeline" id="line-40"><code></code></span>
+<span class="codeline" id="line-41"><code>	<span class="keyword">for</span> <a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r1" class="ident">b</label>) &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-42"><code>		<label for="r3" class="ident">size</label> := <a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r1" class="ident">b</label>)</code></span>
+<span class="codeline" id="line-43"><code>		<span class="keyword">if</span> <label for="r3" class="ident">size</label> &gt; <label for="r2" class="ident">maxSize</label> {</code></span>
+<span class="codeline" id="line-44"><code>			<label for="r3" class="ident">size</label> = <label for="r2" class="ident">maxSize</label></code></span>
+<span class="codeline" id="line-45"><code>		}</code></span>
+<span class="codeline" id="line-46"><code>		<label for="r4" class="ident">n</label>, <label for="r5" class="ident">err</label> := <a href="../../../../pkg/internal/syscall/unix.html" class="ident i1">unix</a>.<a href="../../../internal/syscall/unix/getrandom.go.html#line-25" class="ident">GetRandom</a>(<label for="r1" class="ident">b</label>[:<label for="r3" class="ident">size</label>], <span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-47"><code>		<span class="keyword">if</span> <a href="../../../../pkg/errors.html" class="ident i0">errors</a>.<a href="../../../errors/wrap.go.html#line-44" class="ident">Is</a>(<label for="r5" class="ident">err</label>, <a href="../../../../pkg/syscall.html" class="ident i4">syscall</a>.<a href="../../../syscall/zerrors_linux_amd64.go.html#line-1270" class="ident">ENOSYS</a>) {</code></span>
+<span class="codeline" id="line-48"><code>			<span class="comment">// If getrandom(2) is not available, presumably on Linux versions</span></code></span>
+<span class="codeline" id="line-49"><code><span class="comment">			// earlier than 3.17, fall back to reading from /dev/urandom.</span></code></span>
+<span class="codeline" id="line-50"><code>			<span class="keyword">return</span> <a href="rand.go.html#line-59" class="ident">urandomRead</a>(<label for="r1" class="ident">b</label>)</code></span>
+<span class="codeline" id="line-51"><code>		}</code></span>
+<span class="codeline" id="line-52"><code>		<span class="keyword">if</span> <a href="../../../../pkg/errors.html" class="ident i0">errors</a>.<a href="../../../errors/wrap.go.html#line-44" class="ident">Is</a>(<label for="r5" class="ident">err</label>, <a href="../../../../pkg/syscall.html" class="ident i4">syscall</a>.<a href="../../../syscall/zerrors_linux_amd64.go.html#line-1220" class="ident">EINTR</a>) {</code></span>
+<span class="codeline" id="line-53"><code>			<span class="comment">// If getrandom(2) is blocking, either because it is waiting for the</span></code></span>
+<span class="codeline" id="line-54"><code><span class="comment">			// entropy pool to become initialized or because we requested more</span></code></span>
+<span class="codeline" id="line-55"><code><span class="comment">			// than 256 bytes, it might get interrupted by a signal.</span></code></span>
+<span class="codeline" id="line-56"><code>			<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-57"><code>		}</code></span>
+<span class="codeline" id="line-58"><code>		<span class="keyword">if</span> <label for="r5" class="ident">err</label> != <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-59"><code>			<span class="keyword">return</span> <label for="r5" class="ident">err</label></code></span>
+<span class="codeline" id="line-60"><code>		}</code></span>
+<span class="codeline" id="line-61"><code>		<label for="r1" class="ident">b</label> = <label for="r1" class="ident">b</label>[<label for="r4" class="ident">n</label>:]</code></span>
+<span class="codeline" id="line-62"><code>	}</code></span>
+<span class="codeline" id="line-63"><code>	<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-64"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

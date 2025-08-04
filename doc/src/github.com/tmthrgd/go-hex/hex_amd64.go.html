@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: hex_amd64.go in package github.com/tmthrgd/go-hex</title>
+<link href="../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	hex_amd64.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../pkg/github.com/tmthrgd/go-hex.html">github.com/tmthrgd/go-hex</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2016 Tom Thorogood. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// Modified BSD License license that can be found in</span></code></span>
+<span class="codeline" id="line-4"><code><span class="comment">// the LICENSE file.</span></code></span>
+<span class="codeline" id="line-5"><code></code></span>
+<span class="codeline" id="line-6"><code><span class="comment">// +build amd64,!gccgo,!appengine</span></code></span>
+<span class="codeline" id="line-7"><code></code></span>
+<span class="codeline" id="line-8"><code><span class="keyword">package</span> hex</code></span>
+<span class="codeline" id="line-9"><code></code></span>
+<span class="codeline" id="line-10"><code><span class="keyword">import</span> <label for="i0"><span class="lit-string i0">"golang.org/x/sys/cpu"</span></label></code></span>
+<span class="codeline" id="line-11"><code></code></span>
+<span class="codeline" id="line-12"><code><span class="comment">// RawEncode encodes src into EncodedLen(len(src))</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">// bytes of dst.  As a convenience, it returns the number</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">// of bytes written to dst, but this value is always EncodedLen(len(src)).</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">// RawEncode implements hexadecimal encoding for a given alphabet.</span></code></span>
+<span class="codeline" id="line-16"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../pkg/github.com/tmthrgd/go-hex.html#name-RawEncode" class="ident">RawEncode</a></label>(<label for="r1" class="ident">dst</label>, <label for="r2" class="ident">src</label>, <label for="r3" class="ident">alpha</label> []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-17"><code>	<span class="keyword">if</span> <a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r3" class="ident">alpha</label>) != <span class="lit-number">16</span> {</code></span>
+<span class="codeline" id="line-18"><code>		<a href="../../../../pkg/builtin.html#name-panic" class="ident">panic</a>(<span class="lit-string">"invalid alphabet"</span>)</code></span>
+<span class="codeline" id="line-19"><code>	}</code></span>
+<span class="codeline" id="line-20"><code></code></span>
+<span class="codeline" id="line-21"><code>	<span class="keyword">if</span> <a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r1" class="ident">dst</label>) &lt; <a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r2" class="ident">src</label>)*<span class="lit-number">2</span> {</code></span>
+<span class="codeline" id="line-22"><code>		<a href="../../../../pkg/builtin.html#name-panic" class="ident">panic</a>(<span class="lit-string">"dst buffer is too small"</span>)</code></span>
+<span class="codeline" id="line-23"><code>	}</code></span>
+<span class="codeline" id="line-24"><code></code></span>
+<span class="codeline" id="line-25"><code>	<span class="keyword">if</span> <a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r2" class="ident">src</label>) == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-26"><code>		<span class="keyword">return</span> <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-27"><code>	}</code></span>
+<span class="codeline" id="line-28"><code></code></span>
+<span class="codeline" id="line-29"><code>	<span class="keyword">switch</span> {</code></span>
+<span class="codeline" id="line-30"><code>	<span class="keyword">case</span> <a href="../../../../pkg/golang.org/x/sys/cpu.html" class="ident i0">cpu</a>.<a href="../../../golang.org/x/sys/cpu/cpu.go.html#line-31" class="ident">X86</a>.<a href="../../../golang.org/x/sys/cpu/cpu.go.html#line-35" class="ident">HasAVX</a>:</code></span>
+<span class="codeline" id="line-31"><code>		<a href="#line-82" class="ident">encodeAVX</a>(&amp;<label for="r1" class="ident">dst</label>[<span class="lit-number">0</span>], &amp;<label for="r2" class="ident">src</label>[<span class="lit-number">0</span>], <a href="../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r2" class="ident">src</label>)), &amp;<label for="r3" class="ident">alpha</label>[<span class="lit-number">0</span>])</code></span>
+<span class="codeline" id="line-32"><code>	<span class="keyword">case</span> <a href="../../../../pkg/golang.org/x/sys/cpu.html" class="ident i0">cpu</a>.<a href="../../../golang.org/x/sys/cpu/cpu.go.html#line-31" class="ident">X86</a>.<a href="../../../golang.org/x/sys/cpu/cpu.go.html#line-73" class="ident">HasSSE41</a>:</code></span>
+<span class="codeline" id="line-33"><code>		<a href="#line-86" class="ident">encodeSSE</a>(&amp;<label for="r1" class="ident">dst</label>[<span class="lit-number">0</span>], &amp;<label for="r2" class="ident">src</label>[<span class="lit-number">0</span>], <a href="../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r2" class="ident">src</label>)), &amp;<label for="r3" class="ident">alpha</label>[<span class="lit-number">0</span>])</code></span>
+<span class="codeline" id="line-34"><code>	<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-35"><code>		<a href="hex.go.html#line-100" class="ident">encodeGeneric</a>(<label for="r1" class="ident">dst</label>, <label for="r2" class="ident">src</label>, <label for="r3" class="ident">alpha</label>)</code></span>
+<span class="codeline" id="line-36"><code>	}</code></span>
+<span class="codeline" id="line-37"><code></code></span>
+<span class="codeline" id="line-38"><code>	<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r2" class="ident">src</label>) * <span class="lit-number">2</span></code></span>
+<span class="codeline" id="line-39"><code>}</code></span>
+<span class="codeline" id="line-40"><code></code></span>
+<span class="codeline" id="line-41"><code><span class="comment">// Decode decodes src into DecodedLen(len(src)) bytes, returning the actual</span></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">// number of bytes written to dst.</span></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">// If Decode encounters invalid input, it returns an error describing the failure.</span></code></span>
+<span class="codeline" id="line-45"><code><span class="keyword">func</span> <label for="r4" class="ident"><a href="../../../../pkg/github.com/tmthrgd/go-hex.html#name-Decode" class="ident">Decode</a></label>(<label for="r5" class="ident">dst</label>, <label for="r6" class="ident">src</label> []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) (<a href="../../../../pkg/builtin.html#name-int" class="ident">int</a>, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-46"><code>	<span class="keyword">if</span> <a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r6" class="ident">src</label>)%<span class="lit-number">2</span> != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-47"><code>		<span class="keyword">return</span> <span class="lit-number">0</span>, <a href="hex.go.html#line-18" class="ident">errLength</a></code></span>
+<span class="codeline" id="line-48"><code>	}</code></span>
+<span class="codeline" id="line-49"><code></code></span>
+<span class="codeline" id="line-50"><code>	<span class="keyword">if</span> <a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r5" class="ident">dst</label>) &lt; <a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r6" class="ident">src</label>)/<span class="lit-number">2</span> {</code></span>
+<span class="codeline" id="line-51"><code>		<a href="../../../../pkg/builtin.html#name-panic" class="ident">panic</a>(<span class="lit-string">"dst buffer is too small"</span>)</code></span>
+<span class="codeline" id="line-52"><code>	}</code></span>
+<span class="codeline" id="line-53"><code></code></span>
+<span class="codeline" id="line-54"><code>	<span class="keyword">if</span> <a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r6" class="ident">src</label>) == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-55"><code>		<span class="keyword">return</span> <span class="lit-number">0</span>, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-56"><code>	}</code></span>
+<span class="codeline" id="line-57"><code></code></span>
+<span class="codeline" id="line-58"><code>	<span class="keyword">var</span> (</code></span>
+<span class="codeline" id="line-59"><code>		<label for="r7" class="ident">n</label>  <a href="../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a></code></span>
+<span class="codeline" id="line-60"><code>		<label for="r8" class="ident">ok</label> <a href="../../../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-61"><code>	)</code></span>
+<span class="codeline" id="line-62"><code>	<span class="keyword">switch</span> {</code></span>
+<span class="codeline" id="line-63"><code>	<span class="keyword">case</span> <a href="../../../../pkg/golang.org/x/sys/cpu.html" class="ident i0">cpu</a>.<a href="../../../golang.org/x/sys/cpu/cpu.go.html#line-31" class="ident">X86</a>.<a href="../../../golang.org/x/sys/cpu/cpu.go.html#line-35" class="ident">HasAVX</a>:</code></span>
+<span class="codeline" id="line-64"><code>		<label for="r7" class="ident">n</label>, <label for="r8" class="ident">ok</label> = <a href="#line-90" class="ident">decodeAVX</a>(&amp;<label for="r5" class="ident">dst</label>[<span class="lit-number">0</span>], &amp;<label for="r6" class="ident">src</label>[<span class="lit-number">0</span>], <a href="../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r6" class="ident">src</label>)))</code></span>
+<span class="codeline" id="line-65"><code>	<span class="keyword">case</span> <a href="../../../../pkg/golang.org/x/sys/cpu.html" class="ident i0">cpu</a>.<a href="../../../golang.org/x/sys/cpu/cpu.go.html#line-31" class="ident">X86</a>.<a href="../../../golang.org/x/sys/cpu/cpu.go.html#line-73" class="ident">HasSSE41</a>:</code></span>
+<span class="codeline" id="line-66"><code>		<label for="r7" class="ident">n</label>, <label for="r8" class="ident">ok</label> = <a href="#line-94" class="ident">decodeSSE</a>(&amp;<label for="r5" class="ident">dst</label>[<span class="lit-number">0</span>], &amp;<label for="r6" class="ident">src</label>[<span class="lit-number">0</span>], <a href="../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r6" class="ident">src</label>)))</code></span>
+<span class="codeline" id="line-67"><code>	<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-68"><code>		<label for="r7" class="ident">n</label>, <label for="r8" class="ident">ok</label> = <a href="hex.go.html#line-107" class="ident">decodeGeneric</a>(<label for="r5" class="ident">dst</label>, <label for="r6" class="ident">src</label>)</code></span>
+<span class="codeline" id="line-69"><code>	}</code></span>
+<span class="codeline" id="line-70"><code></code></span>
+<span class="codeline" id="line-71"><code>	<span class="keyword">if</span> !<label for="r8" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-72"><code>		<span class="keyword">return</span> <span class="lit-number">0</span>, <a href="hex.go.html#line-26" class="ident">InvalidByteError</a>(<label for="r6" class="ident">src</label>[<label for="r7" class="ident">n</label>])</code></span>
+<span class="codeline" id="line-73"><code>	}</code></span>
+<span class="codeline" id="line-74"><code></code></span>
+<span class="codeline" id="line-75"><code>	<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r6" class="ident">src</label>) / <span class="lit-number">2</span>, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-76"><code>}</code></span>
+<span class="codeline" id="line-77"><code></code></span>
+<span class="codeline" id="line-78"><code><span class="comment">//go:generate go run asm_gen.go</span></code></span>
+<span class="codeline" id="line-79"><code></code></span>
+<span class="codeline" id="line-80"><code><span class="comment">// This function is implemented in hex_encode_amd64.s</span></code></span>
+<span class="codeline" id="line-81"><code><span class="comment">//go:noescape</span></code></span>
+<span class="codeline" id="line-82"><code><span class="keyword">func</span> <label for="r9" class="ident"><a href="../../../../pkg/github.com/tmthrgd/go-hex.html#name-encodeAVX" class="ident">encodeAVX</a></label>(<label for="r10" class="ident">dst</label> *<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r11" class="ident">src</label> *<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r12" class="ident">len</label> <a href="../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>, <label for="r13" class="ident">alpha</label> *<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>)</code></span>
+<span class="codeline" id="line-83"><code></code></span>
+<span class="codeline" id="line-84"><code><span class="comment">// This function is implemented in hex_encode_amd64.s</span></code></span>
+<span class="codeline" id="line-85"><code><span class="comment">//go:noescape</span></code></span>
+<span class="codeline" id="line-86"><code><span class="keyword">func</span> <label for="r14" class="ident"><a href="../../../../pkg/github.com/tmthrgd/go-hex.html#name-encodeSSE" class="ident">encodeSSE</a></label>(<label for="r15" class="ident">dst</label> *<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r16" class="ident">src</label> *<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r17" class="ident">len</label> <a href="../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>, <label for="r18" class="ident">alpha</label> *<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>)</code></span>
+<span class="codeline" id="line-87"><code></code></span>
+<span class="codeline" id="line-88"><code><span class="comment">// This function is implemented in hex_decode_amd64.s</span></code></span>
+<span class="codeline" id="line-89"><code><span class="comment">//go:noescape</span></code></span>
+<span class="codeline" id="line-90"><code><span class="keyword">func</span> <label for="r19" class="ident"><a href="../../../../pkg/github.com/tmthrgd/go-hex.html#name-decodeAVX" class="ident">decodeAVX</a></label>(<label for="r20" class="ident">dst</label> *<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r21" class="ident">src</label> *<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r22" class="ident">len</label> <a href="../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>) (<label for="r23" class="ident">n</label> <a href="../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>, <label for="r24" class="ident">ok</label> <a href="../../../../pkg/builtin.html#name-bool" class="ident">bool</a>)</code></span>
+<span class="codeline" id="line-91"><code></code></span>
+<span class="codeline" id="line-92"><code><span class="comment">// This function is implemented in hex_decode_amd64.s</span></code></span>
+<span class="codeline" id="line-93"><code><span class="comment">//go:noescape</span></code></span>
+<span class="codeline" id="line-94"><code><span class="keyword">func</span> <label for="r25" class="ident"><a href="../../../../pkg/github.com/tmthrgd/go-hex.html#name-decodeSSE" class="ident">decodeSSE</a></label>(<label for="r26" class="ident">dst</label> *<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r27" class="ident">src</label> *<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r28" class="ident">len</label> <a href="../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>) (<label for="r29" class="ident">n</label> <a href="../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>, <label for="r30" class="ident">ok</label> <a href="../../../../pkg/builtin.html#name-bool" class="ident">bool</a>)</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

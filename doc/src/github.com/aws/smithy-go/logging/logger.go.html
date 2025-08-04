@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: logger.go in package github.com/aws/smithy-go/logging</title>
+<link href="../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	logger.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../pkg/github.com/aws/smithy-go/logging.html">github.com/aws/smithy-go/logging</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="keyword">package</span> logging</code></span>
+<span class="codeline" id="line-2"><code></code></span>
+<span class="codeline" id="line-3"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-4"><code>	<label for="i0"><span class="lit-string i0">"context"</span></label></code></span>
+<span class="codeline" id="line-5"><code>	<label for="i1"><span class="lit-string i1">"io"</span></label></code></span>
+<span class="codeline" id="line-6"><code>	<label for="i2"><span class="lit-string i2">"log"</span></label></code></span>
+<span class="codeline" id="line-7"><code>)</code></span>
+<span class="codeline" id="line-8"><code></code></span>
+<span class="codeline" id="line-9"><code><span class="comment">// Classification is the type of the log entry's classification name.</span></code></span>
+<span class="codeline" id="line-10"><code><span class="keyword">type</span> <a href="../../../../../pkg/github.com/aws/smithy-go/logging.html#name-Classification" class="ident">Classification</a> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-11"><code></code></span>
+<span class="codeline" id="line-12"><code><span class="comment">// Set of standard classifications that can be used by clients and middleware</span></code></span>
+<span class="codeline" id="line-13"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-14"><code>	<a href="../../../../../pkg/github.com/aws/smithy-go/logging.html#name-Warn" class="ident">Warn</a>  <a href="#line-10" class="ident">Classification</a> = <span class="lit-string">"WARN"</span></code></span>
+<span class="codeline" id="line-15"><code>	<a href="../../../../../pkg/github.com/aws/smithy-go/logging.html#name-Debug" class="ident">Debug</a> <a href="#line-10" class="ident">Classification</a> = <span class="lit-string">"DEBUG"</span></code></span>
+<span class="codeline" id="line-16"><code>)</code></span>
+<span class="codeline" id="line-17"><code></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">// Logger is an interface for logging entries at certain classifications.</span></code></span>
+<span class="codeline" id="line-19"><code><span class="keyword">type</span> <a href="../../../../../pkg/github.com/aws/smithy-go/logging.html#name-Logger" class="ident">Logger</a> <span class="keyword">interface</span> {</code></span>
+<span class="codeline" id="line-20"><code>	<span class="comment">// Logf is expected to support the standard fmt package "verbs".</span></code></span>
+<span class="codeline" id="line-21"><code>	<a href="../../../../../imp/github.com/aws/smithy-go/logging.Logger.html#name-Logf" class="ident">Logf</a>(classification <a href="#line-10" class="ident">Classification</a>, format <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>, v ...<span class="keyword">interface</span>{})</code></span>
+<span class="codeline" id="line-22"><code>}</code></span>
+<span class="codeline" id="line-23"><code></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">// LoggerFunc is a wrapper around a function to satisfy the Logger interface.</span></code></span>
+<span class="codeline" id="line-25"><code><span class="keyword">type</span> <a href="../../../../../pkg/github.com/aws/smithy-go/logging.html#name-LoggerFunc" class="ident">LoggerFunc</a> <span class="keyword">func</span>(classification <a href="#line-10" class="ident">Classification</a>, format <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>, v ...<span class="keyword">interface</span>{})</code></span>
+<span class="codeline" id="line-26"><code></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">// Logf delegates the logging request to the wrapped function.</span></code></span>
+<span class="codeline" id="line-28"><code><span class="keyword">func</span> (<label for="r0" class="ident">f</label> <a href="#line-25" class="ident">LoggerFunc</a>) <label for="r1" class="ident"><a href="../../../../../use/github.com/aws/smithy-go/logging..LoggerFunc.Logf.html" class="ident">Logf</a></label>(<label for="r2" class="ident">classification</label> <a href="#line-10" class="ident">Classification</a>, <label for="r3" class="ident">format</label> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r4" class="ident">v</label> ...<span class="keyword">interface</span>{}) {</code></span>
+<span class="codeline" id="line-29"><code>	<label for="r0" class="ident">f</label>(<label for="r2" class="ident">classification</label>, <label for="r3" class="ident">format</label>, <label for="r4" class="ident">v</label>...)</code></span>
+<span class="codeline" id="line-30"><code>}</code></span>
+<span class="codeline" id="line-31"><code></code></span>
+<span class="codeline" id="line-32"><code><span class="comment">// ContextLogger is an optional interface a Logger implementation may expose that provides</span></code></span>
+<span class="codeline" id="line-33"><code><span class="comment">// the ability to create context aware log entries.</span></code></span>
+<span class="codeline" id="line-34"><code><span class="keyword">type</span> <a href="../../../../../pkg/github.com/aws/smithy-go/logging.html#name-ContextLogger" class="ident">ContextLogger</a> <span class="keyword">interface</span> {</code></span>
+<span class="codeline" id="line-35"><code>	<a href="../../../../../imp/github.com/aws/smithy-go/logging.ContextLogger.html#name-WithContext" class="ident">WithContext</a>(<a href="../../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../../context/context.go.html#line-71" class="ident">Context</a>) <a href="#line-19" class="ident">Logger</a></code></span>
+<span class="codeline" id="line-36"><code>}</code></span>
+<span class="codeline" id="line-37"><code></code></span>
+<span class="codeline" id="line-38"><code><span class="comment">// WithContext will pass the provided context to logger if it implements the ContextLogger interface and return the resulting</span></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">// logger. Otherwise the logger will be returned as is. As a special case if a nil logger is provided, a Nop logger will</span></code></span>
+<span class="codeline" id="line-40"><code><span class="comment">// be returned to the caller.</span></code></span>
+<span class="codeline" id="line-41"><code><span class="keyword">func</span> <label for="r5" class="ident"><a href="../../../../../pkg/github.com/aws/smithy-go/logging.html#name-WithContext" class="ident">WithContext</a></label>(<label for="r6" class="ident">ctx</label> <a href="../../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../../context/context.go.html#line-71" class="ident">Context</a>, <label for="r7" class="ident">logger</label> <a href="#line-19" class="ident">Logger</a>) <a href="#line-19" class="ident">Logger</a> {</code></span>
+<span class="codeline" id="line-42"><code>	<span class="keyword">if</span> <label for="r7" class="ident">logger</label> == <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-43"><code>		<span class="keyword">return</span> <a href="#line-55" class="ident">Nop</a>{}</code></span>
+<span class="codeline" id="line-44"><code>	}</code></span>
+<span class="codeline" id="line-45"><code></code></span>
+<span class="codeline" id="line-46"><code>	<label for="r8" class="ident">cl</label>, <label for="r9" class="ident">ok</label> := <label for="r7" class="ident">logger</label>.(<a href="#line-34" class="ident">ContextLogger</a>)</code></span>
+<span class="codeline" id="line-47"><code>	<span class="keyword">if</span> !<label for="r9" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-48"><code>		<span class="keyword">return</span> <label for="r7" class="ident">logger</label></code></span>
+<span class="codeline" id="line-49"><code>	}</code></span>
+<span class="codeline" id="line-50"><code></code></span>
+<span class="codeline" id="line-51"><code>	<span class="keyword">return</span> <label for="r8" class="ident">cl</label>.<a href="#line-35" class="ident">WithContext</a>(<label for="r6" class="ident">ctx</label>)</code></span>
+<span class="codeline" id="line-52"><code>}</code></span>
+<span class="codeline" id="line-53"><code></code></span>
+<span class="codeline" id="line-54"><code><span class="comment">// Nop is a Logger implementation that simply does not perform any logging.</span></code></span>
+<span class="codeline" id="line-55"><code><span class="keyword">type</span> <a href="../../../../../pkg/github.com/aws/smithy-go/logging.html#name-Nop" class="ident">Nop</a> <span class="keyword">struct</span>{}</code></span>
+<span class="codeline" id="line-56"><code></code></span>
+<span class="codeline" id="line-57"><code><span class="comment">// Logf simply returns without performing any action</span></code></span>
+<span class="codeline" id="line-58"><code><span class="keyword">func</span> (<label for="r10" class="ident">n</label> <a href="#line-55" class="ident">Nop</a>) <label for="r11" class="ident"><a href="../../../../../use/github.com/aws/smithy-go/logging..Nop.Logf.html" class="ident">Logf</a></label>(<a href="#line-10" class="ident">Classification</a>, <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>, ...<span class="keyword">interface</span>{}) {</code></span>
+<span class="codeline" id="line-59"><code>	<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-60"><code>}</code></span>
+<span class="codeline" id="line-61"><code></code></span>
+<span class="codeline" id="line-62"><code><span class="comment">// StandardLogger is a Logger implementation that wraps the standard library logger, and delegates logging to it's</span></code></span>
+<span class="codeline" id="line-63"><code><span class="comment">// Printf method.</span></code></span>
+<span class="codeline" id="line-64"><code><span class="keyword">type</span> <a href="../../../../../pkg/github.com/aws/smithy-go/logging.html#name-StandardLogger" class="ident">StandardLogger</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-65"><code>	<a href="../../../../../use/github.com/aws/smithy-go/logging..StandardLogger.Logger.html" class="ident">Logger</a> *<a href="../../../../../pkg/log.html" class="ident i2">log</a>.<a href="../../../../log/log.go.html#line-57" class="ident">Logger</a></code></span>
+<span class="codeline" id="line-66"><code>}</code></span>
+<span class="codeline" id="line-67"><code></code></span>
+<span class="codeline" id="line-68"><code><span class="comment">// Logf logs the given classification and message to the underlying logger.</span></code></span>
+<span class="codeline" id="line-69"><code><span class="keyword">func</span> (<label for="r12" class="ident">s</label> <a href="#line-64" class="ident">StandardLogger</a>) <label for="r13" class="ident"><a href="../../../../../use/github.com/aws/smithy-go/logging..StandardLogger.Logf.html" class="ident">Logf</a></label>(<label for="r14" class="ident">classification</label> <a href="#line-10" class="ident">Classification</a>, <label for="r15" class="ident">format</label> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r16" class="ident">v</label> ...<span class="keyword">interface</span>{}) {</code></span>
+<span class="codeline" id="line-70"><code>	<span class="keyword">if</span> <a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r14" class="ident">classification</label>) != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-71"><code>		<label for="r15" class="ident">format</label> = <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>(<label for="r14" class="ident">classification</label>) + <span class="lit-string">" "</span> + <label for="r15" class="ident">format</label></code></span>
+<span class="codeline" id="line-72"><code>	}</code></span>
+<span class="codeline" id="line-73"><code></code></span>
+<span class="codeline" id="line-74"><code>	<label for="r12" class="ident">s</label>.<a href="#line-65" class="ident">Logger</a>.<a href="../../../../log/log.go.html#line-267" class="ident">Printf</a>(<label for="r15" class="ident">format</label>, <label for="r16" class="ident">v</label>...)</code></span>
+<span class="codeline" id="line-75"><code>}</code></span>
+<span class="codeline" id="line-76"><code></code></span>
+<span class="codeline" id="line-77"><code><span class="comment">// NewStandardLogger returns a new StandardLogger</span></code></span>
+<span class="codeline" id="line-78"><code><span class="keyword">func</span> <label for="r17" class="ident"><a href="../../../../../pkg/github.com/aws/smithy-go/logging.html#name-NewStandardLogger" class="ident">NewStandardLogger</a></label>(<label for="r18" class="ident">writer</label> <a href="../../../../../pkg/io.html" class="ident i1">io</a>.<a href="../../../../io/io.go.html#line-99" class="ident">Writer</a>) *<a href="#line-64" class="ident">StandardLogger</a> {</code></span>
+<span class="codeline" id="line-79"><code>	<span class="keyword">return</span> &amp;<a href="#line-64" class="ident">StandardLogger</a>{</code></span>
+<span class="codeline" id="line-80"><code>		<a href="#line-65" class="ident">Logger</a>: <a href="../../../../../pkg/log.html" class="ident i2">log</a>.<a href="../../../../log/log.go.html#line-71" class="ident">New</a>(<label for="r18" class="ident">writer</label>, <span class="lit-string">"SDK "</span>, <a href="../../../../../pkg/log.html" class="ident i2">log</a>.<a href="../../../../log/log.go.html#line-50" class="ident">LstdFlags</a>),</code></span>
+<span class="codeline" id="line-81"><code>	}</code></span>
+<span class="codeline" id="line-82"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

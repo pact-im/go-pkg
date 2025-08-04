@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: features.go in package golang.org/x/tools/internal/versions</title>
+<link href="../../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	features.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../../pkg/golang.org/x/tools/internal/versions.html">golang.org/x/tools/internal/versions</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5]
+{background: #226; color: #ff8;}
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2023 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> versions</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="comment">// This file contains predicates for working with file versions to</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment">// decide when a tool should consider a language feature enabled.</span></code></span>
+<span class="codeline" id="line-9"><code></code></span>
+<span class="codeline" id="line-10"><code><span class="comment">// GoVersions that features in x/tools can be gated to.</span></code></span>
+<span class="codeline" id="line-11"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-12"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/versions.html#name-Go1_18" class="ident">Go1_18</a> = <span class="lit-string">"go1.18"</span></code></span>
+<span class="codeline" id="line-13"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/versions.html#name-Go1_19" class="ident">Go1_19</a> = <span class="lit-string">"go1.19"</span></code></span>
+<span class="codeline" id="line-14"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/versions.html#name-Go1_20" class="ident">Go1_20</a> = <span class="lit-string">"go1.20"</span></code></span>
+<span class="codeline" id="line-15"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/versions.html#name-Go1_21" class="ident">Go1_21</a> = <span class="lit-string">"go1.21"</span></code></span>
+<span class="codeline" id="line-16"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/versions.html#name-Go1_22" class="ident">Go1_22</a> = <span class="lit-string">"go1.22"</span></code></span>
+<span class="codeline" id="line-17"><code>)</code></span>
+<span class="codeline" id="line-18"><code></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">// Future is an invalid unknown Go version sometime in the future.</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">// Do not use directly with Compare.</span></code></span>
+<span class="codeline" id="line-21"><code><span class="keyword">const</span> <a href="../../../../../../pkg/golang.org/x/tools/internal/versions.html#name-Future" class="ident">Future</a> = <span class="lit-string">""</span></code></span>
+<span class="codeline" id="line-22"><code></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">// AtLeast reports whether the file version v comes after a Go release.</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">// Use this predicate to enable a behavior once a certain Go release</span></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">// has happened (and stays enabled in the future).</span></code></span>
+<span class="codeline" id="line-27"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../../../pkg/golang.org/x/tools/internal/versions.html#name-AtLeast" class="ident">AtLeast</a></label>(<label for="r1" class="ident">v</label>, <label for="r2" class="ident">release</label> <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-28"><code>	<span class="keyword">if</span> <label for="r1" class="ident">v</label> == <a href="#line-21" class="ident">Future</a> {</code></span>
+<span class="codeline" id="line-29"><code>		<span class="keyword">return</span> <a href="../../../../../../pkg/builtin.html#name-true" class="ident">true</a> <span class="comment">// an unknown future version is always after y.</span></code></span>
+<span class="codeline" id="line-30"><code>	}</code></span>
+<span class="codeline" id="line-31"><code>	<span class="keyword">return</span> <a href="versions.go.html#line-44" class="ident">Compare</a>(<a href="versions.go.html#line-27" class="ident">Lang</a>(<label for="r1" class="ident">v</label>), <a href="versions.go.html#line-27" class="ident">Lang</a>(<label for="r2" class="ident">release</label>)) &gt;= <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-32"><code>}</code></span>
+<span class="codeline" id="line-33"><code></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">// Before reports whether the file version v is strictly before a Go release.</span></code></span>
+<span class="codeline" id="line-35"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">// Use this predicate to disable a behavior once a certain Go release</span></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">// has happened (and stays enabled in the future).</span></code></span>
+<span class="codeline" id="line-38"><code><span class="keyword">func</span> <label for="r3" class="ident"><a href="../../../../../../pkg/golang.org/x/tools/internal/versions.html#name-Before" class="ident">Before</a></label>(<label for="r4" class="ident">v</label>, <label for="r5" class="ident">release</label> <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-39"><code>	<span class="keyword">if</span> <label for="r4" class="ident">v</label> == <a href="#line-21" class="ident">Future</a> {</code></span>
+<span class="codeline" id="line-40"><code>		<span class="keyword">return</span> <a href="../../../../../../pkg/builtin.html#name-false" class="ident">false</a> <span class="comment">// an unknown future version happens after y.</span></code></span>
+<span class="codeline" id="line-41"><code>	}</code></span>
+<span class="codeline" id="line-42"><code>	<span class="keyword">return</span> <a href="versions.go.html#line-44" class="ident">Compare</a>(<a href="versions.go.html#line-27" class="ident">Lang</a>(<label for="r4" class="ident">v</label>), <a href="versions.go.html#line-27" class="ident">Lang</a>(<label for="r5" class="ident">release</label>)) &lt; <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-43"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

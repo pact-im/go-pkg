@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: writesched_roundrobin.go in package golang.org/x/net/http2</title>
+<link href="../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	writesched_roundrobin.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../pkg/golang.org/x/net/http2.html">golang.org/x/net/http2</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2023 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> http2</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-8"><code>	<label for="i0"><span class="lit-string i0">"fmt"</span></label></code></span>
+<span class="codeline" id="line-9"><code>	<label for="i1"><span class="lit-string i1">"math"</span></label></code></span>
+<span class="codeline" id="line-10"><code>)</code></span>
+<span class="codeline" id="line-11"><code></code></span>
+<span class="codeline" id="line-12"><code><span class="keyword">type</span> <a href="../../../../../pkg/golang.org/x/net/http2.html#name-roundRobinWriteScheduler" class="ident">roundRobinWriteScheduler</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-13"><code>	<span class="comment">// control contains control frames (SETTINGS, PING, etc.).</span></code></span>
+<span class="codeline" id="line-14"><code>	<a href="../../../../../use/golang.org/x/net/http2..roundRobinWriteScheduler^515c1.control^0fcd5.html" class="ident">control</a> <a href="writesched.go.html#line-186" class="ident">writeQueue</a></code></span>
+<span class="codeline" id="line-15"><code></code></span>
+<span class="codeline" id="line-16"><code>	<span class="comment">// streams maps stream ID to a queue.</span></code></span>
+<span class="codeline" id="line-17"><code>	<a href="../../../../../use/golang.org/x/net/http2..roundRobinWriteScheduler^515c1.streams^d5a08.html" class="ident">streams</a> <span class="keyword">map</span>[<a href="../../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a>]*<a href="writesched.go.html#line-186" class="ident">writeQueue</a></code></span>
+<span class="codeline" id="line-18"><code></code></span>
+<span class="codeline" id="line-19"><code>	<span class="comment">// stream queues are stored in a circular linked list.</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">	// head is the next stream to write, or nil if there are no streams open.</span></code></span>
+<span class="codeline" id="line-21"><code>	<a href="../../../../../use/golang.org/x/net/http2..roundRobinWriteScheduler^515c1.head^9f2e6.html" class="ident">head</a> *<a href="writesched.go.html#line-186" class="ident">writeQueue</a></code></span>
+<span class="codeline" id="line-22"><code></code></span>
+<span class="codeline" id="line-23"><code>	<span class="comment">// pool of empty queues for reuse.</span></code></span>
+<span class="codeline" id="line-24"><code>	<a href="../../../../../use/golang.org/x/net/http2..roundRobinWriteScheduler^515c1.queuePool^b579e.html" class="ident">queuePool</a> <a href="writesched.go.html#line-229" class="ident">writeQueuePool</a></code></span>
+<span class="codeline" id="line-25"><code>}</code></span>
+<span class="codeline" id="line-26"><code></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">// newRoundRobinWriteScheduler constructs a new write scheduler.</span></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">// The round robin scheduler priorizes control frames</span></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">// like SETTINGS and PING over DATA frames.</span></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">// When there are no control frames to send, it performs a round-robin</span></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">// selection from the ready streams.</span></code></span>
+<span class="codeline" id="line-32"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../../pkg/golang.org/x/net/http2.html#name-newRoundRobinWriteScheduler" class="ident">newRoundRobinWriteScheduler</a></label>() <a href="writesched.go.html#line-11" class="ident">WriteScheduler</a> {</code></span>
+<span class="codeline" id="line-33"><code>	<label for="r1" class="ident">ws</label> := &amp;<a href="#line-12" class="ident">roundRobinWriteScheduler</a>{</code></span>
+<span class="codeline" id="line-34"><code>		<a href="#line-17" class="ident">streams</a>: <a href="../../../../../pkg/builtin.html#name-make" class="ident">make</a>(<span class="keyword">map</span>[<a href="../../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a>]*<a href="writesched.go.html#line-186" class="ident">writeQueue</a>),</code></span>
+<span class="codeline" id="line-35"><code>	}</code></span>
+<span class="codeline" id="line-36"><code>	<span class="keyword">return</span> <label for="r1" class="ident">ws</label></code></span>
+<span class="codeline" id="line-37"><code>}</code></span>
+<span class="codeline" id="line-38"><code></code></span>
+<span class="codeline" id="line-39"><code><span class="keyword">func</span> (<label for="r2" class="ident">ws</label> *<a href="#line-12" class="ident">roundRobinWriteScheduler</a>) <label for="r3" class="ident"><a href="../../../../../use/golang.org/x/net/http2..roundRobinWriteScheduler^515c1.OpenStream.html" class="ident">OpenStream</a></label>(<label for="r4" class="ident">streamID</label> <a href="../../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a>, <label for="r5" class="ident">options</label> <a href="writesched.go.html#line-41" class="ident">OpenStreamOptions</a>) {</code></span>
+<span class="codeline" id="line-40"><code>	<span class="keyword">if</span> <label for="r2" class="ident">ws</label>.<a href="#line-17" class="ident">streams</a>[<label for="r4" class="ident">streamID</label>] != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-41"><code>		<a href="../../../../../pkg/builtin.html#name-panic" class="ident">panic</a>(<a href="../../../../../pkg/fmt.html" class="ident i0">fmt</a>.<a href="../../../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"stream %d already opened"</span>, <label for="r4" class="ident">streamID</label>))</code></span>
+<span class="codeline" id="line-42"><code>	}</code></span>
+<span class="codeline" id="line-43"><code>	<label for="r6" class="ident">q</label> := <label for="r2" class="ident">ws</label>.<a href="#line-24" class="ident">queuePool</a>.<a href="writesched.go.html#line-241" class="ident">get</a>()</code></span>
+<span class="codeline" id="line-44"><code>	<label for="r2" class="ident">ws</label>.<a href="#line-17" class="ident">streams</a>[<label for="r4" class="ident">streamID</label>] = <label for="r6" class="ident">q</label></code></span>
+<span class="codeline" id="line-45"><code>	<span class="keyword">if</span> <label for="r2" class="ident">ws</label>.<a href="#line-21" class="ident">head</a> == <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-46"><code>		<label for="r2" class="ident">ws</label>.<a href="#line-21" class="ident">head</a> = <label for="r6" class="ident">q</label></code></span>
+<span class="codeline" id="line-47"><code>		<label for="r6" class="ident">q</label>.<a href="writesched.go.html#line-188" class="ident">next</a> = <label for="r6" class="ident">q</label></code></span>
+<span class="codeline" id="line-48"><code>		<label for="r6" class="ident">q</label>.<a href="writesched.go.html#line-188" class="ident">prev</a> = <label for="r6" class="ident">q</label></code></span>
+<span class="codeline" id="line-49"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-50"><code>		<span class="comment">// Queues are stored in a ring.</span></code></span>
+<span class="codeline" id="line-51"><code><span class="comment">		// Insert the new stream before ws.head, putting it at the end of the list.</span></code></span>
+<span class="codeline" id="line-52"><code>		<label for="r6" class="ident">q</label>.<a href="writesched.go.html#line-188" class="ident">prev</a> = <label for="r2" class="ident">ws</label>.<a href="#line-21" class="ident">head</a>.<a href="writesched.go.html#line-188" class="ident">prev</a></code></span>
+<span class="codeline" id="line-53"><code>		<label for="r6" class="ident">q</label>.<a href="writesched.go.html#line-188" class="ident">next</a> = <label for="r2" class="ident">ws</label>.<a href="#line-21" class="ident">head</a></code></span>
+<span class="codeline" id="line-54"><code>		<label for="r6" class="ident">q</label>.<a href="writesched.go.html#line-188" class="ident">prev</a>.<a href="writesched.go.html#line-188" class="ident">next</a> = <label for="r6" class="ident">q</label></code></span>
+<span class="codeline" id="line-55"><code>		<label for="r6" class="ident">q</label>.<a href="writesched.go.html#line-188" class="ident">next</a>.<a href="writesched.go.html#line-188" class="ident">prev</a> = <label for="r6" class="ident">q</label></code></span>
+<span class="codeline" id="line-56"><code>	}</code></span>
+<span class="codeline" id="line-57"><code>}</code></span>
+<span class="codeline" id="line-58"><code></code></span>
+<span class="codeline" id="line-59"><code><span class="keyword">func</span> (<label for="r7" class="ident">ws</label> *<a href="#line-12" class="ident">roundRobinWriteScheduler</a>) <label for="r8" class="ident"><a href="../../../../../use/golang.org/x/net/http2..roundRobinWriteScheduler^515c1.CloseStream.html" class="ident">CloseStream</a></label>(<label for="r9" class="ident">streamID</label> <a href="../../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a>) {</code></span>
+<span class="codeline" id="line-60"><code>	<label for="r10" class="ident">q</label> := <label for="r7" class="ident">ws</label>.<a href="#line-17" class="ident">streams</a>[<label for="r9" class="ident">streamID</label>]</code></span>
+<span class="codeline" id="line-61"><code>	<span class="keyword">if</span> <label for="r10" class="ident">q</label> == <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-62"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-63"><code>	}</code></span>
+<span class="codeline" id="line-64"><code>	<span class="keyword">if</span> <label for="r10" class="ident">q</label>.<a href="writesched.go.html#line-188" class="ident">next</a> == <label for="r10" class="ident">q</label> {</code></span>
+<span class="codeline" id="line-65"><code>		<span class="comment">// This was the only open stream.</span></code></span>
+<span class="codeline" id="line-66"><code>		<label for="r7" class="ident">ws</label>.<a href="#line-21" class="ident">head</a> = <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-67"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-68"><code>		<label for="r10" class="ident">q</label>.<a href="writesched.go.html#line-188" class="ident">prev</a>.<a href="writesched.go.html#line-188" class="ident">next</a> = <label for="r10" class="ident">q</label>.<a href="writesched.go.html#line-188" class="ident">next</a></code></span>
+<span class="codeline" id="line-69"><code>		<label for="r10" class="ident">q</label>.<a href="writesched.go.html#line-188" class="ident">next</a>.<a href="writesched.go.html#line-188" class="ident">prev</a> = <label for="r10" class="ident">q</label>.<a href="writesched.go.html#line-188" class="ident">prev</a></code></span>
+<span class="codeline" id="line-70"><code>		<span class="keyword">if</span> <label for="r7" class="ident">ws</label>.<a href="#line-21" class="ident">head</a> == <label for="r10" class="ident">q</label> {</code></span>
+<span class="codeline" id="line-71"><code>			<label for="r7" class="ident">ws</label>.<a href="#line-21" class="ident">head</a> = <label for="r10" class="ident">q</label>.<a href="writesched.go.html#line-188" class="ident">next</a></code></span>
+<span class="codeline" id="line-72"><code>		}</code></span>
+<span class="codeline" id="line-73"><code>	}</code></span>
+<span class="codeline" id="line-74"><code>	<a href="../../../../../pkg/builtin.html#name-delete" class="ident">delete</a>(<label for="r7" class="ident">ws</label>.<a href="#line-17" class="ident">streams</a>, <label for="r9" class="ident">streamID</label>)</code></span>
+<span class="codeline" id="line-75"><code>	<label for="r7" class="ident">ws</label>.<a href="#line-24" class="ident">queuePool</a>.<a href="writesched.go.html#line-232" class="ident">put</a>(<label for="r10" class="ident">q</label>)</code></span>
+<span class="codeline" id="line-76"><code>}</code></span>
+<span class="codeline" id="line-77"><code></code></span>
+<span class="codeline" id="line-78"><code><span class="keyword">func</span> (<label for="r11" class="ident">ws</label> *<a href="#line-12" class="ident">roundRobinWriteScheduler</a>) <label for="r12" class="ident"><a href="../../../../../use/golang.org/x/net/http2..roundRobinWriteScheduler^515c1.AdjustStream.html" class="ident">AdjustStream</a></label>(<label for="r13" class="ident">streamID</label> <a href="../../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a>, <label for="r14" class="ident">priority</label> <a href="frame.go.html#line-1145" class="ident">PriorityParam</a>) {}</code></span>
+<span class="codeline" id="line-79"><code></code></span>
+<span class="codeline" id="line-80"><code><span class="keyword">func</span> (<label for="r15" class="ident">ws</label> *<a href="#line-12" class="ident">roundRobinWriteScheduler</a>) <label for="r16" class="ident"><a href="../../../../../use/golang.org/x/net/http2..roundRobinWriteScheduler^515c1.Push.html" class="ident">Push</a></label>(<label for="r17" class="ident">wr</label> <a href="writesched.go.html#line-48" class="ident">FrameWriteRequest</a>) {</code></span>
+<span class="codeline" id="line-81"><code>	<span class="keyword">if</span> <label for="r17" class="ident">wr</label>.<a href="writesched.go.html#line-83" class="ident">isControl</a>() {</code></span>
+<span class="codeline" id="line-82"><code>		<label for="r15" class="ident">ws</label>.<a href="#line-14" class="ident">control</a>.<a href="writesched.go.html#line-193" class="ident">push</a>(<label for="r17" class="ident">wr</label>)</code></span>
+<span class="codeline" id="line-83"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-84"><code>	}</code></span>
+<span class="codeline" id="line-85"><code>	<label for="r18" class="ident">q</label> := <label for="r15" class="ident">ws</label>.<a href="#line-17" class="ident">streams</a>[<label for="r17" class="ident">wr</label>.<a href="writesched.go.html#line-67" class="ident">StreamID</a>()]</code></span>
+<span class="codeline" id="line-86"><code>	<span class="keyword">if</span> <label for="r18" class="ident">q</label> == <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-87"><code>		<span class="comment">// This is a closed stream.</span></code></span>
+<span class="codeline" id="line-88"><code><span class="comment">		// wr should not be a HEADERS or DATA frame.</span></code></span>
+<span class="codeline" id="line-89"><code><span class="comment">		// We push the request onto the control queue.</span></code></span>
+<span class="codeline" id="line-90"><code>		<span class="keyword">if</span> <label for="r17" class="ident">wr</label>.<a href="writesched.go.html#line-89" class="ident">DataSize</a>() &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-91"><code>			<a href="../../../../../pkg/builtin.html#name-panic" class="ident">panic</a>(<span class="lit-string">"add DATA on non-open stream"</span>)</code></span>
+<span class="codeline" id="line-92"><code>		}</code></span>
+<span class="codeline" id="line-93"><code>		<label for="r15" class="ident">ws</label>.<a href="#line-14" class="ident">control</a>.<a href="writesched.go.html#line-193" class="ident">push</a>(<label for="r17" class="ident">wr</label>)</code></span>
+<span class="codeline" id="line-94"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-95"><code>	}</code></span>
+<span class="codeline" id="line-96"><code>	<label for="r18" class="ident">q</label>.<a href="writesched.go.html#line-193" class="ident">push</a>(<label for="r17" class="ident">wr</label>)</code></span>
+<span class="codeline" id="line-97"><code>}</code></span>
+<span class="codeline" id="line-98"><code></code></span>
+<span class="codeline" id="line-99"><code><span class="keyword">func</span> (<label for="r19" class="ident">ws</label> *<a href="#line-12" class="ident">roundRobinWriteScheduler</a>) <label for="r20" class="ident"><a href="../../../../../use/golang.org/x/net/http2..roundRobinWriteScheduler^515c1.Pop.html" class="ident">Pop</a></label>() (<a href="writesched.go.html#line-48" class="ident">FrameWriteRequest</a>, <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a>) {</code></span>
+<span class="codeline" id="line-100"><code>	<span class="comment">// Control and RST_STREAM frames first.</span></code></span>
+<span class="codeline" id="line-101"><code>	<span class="keyword">if</span> !<label for="r19" class="ident">ws</label>.<a href="#line-14" class="ident">control</a>.<a href="writesched.go.html#line-191" class="ident">empty</a>() {</code></span>
+<span class="codeline" id="line-102"><code>		<span class="keyword">return</span> <label for="r19" class="ident">ws</label>.<a href="#line-14" class="ident">control</a>.<a href="writesched.go.html#line-197" class="ident">shift</a>(), <a href="../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-103"><code>	}</code></span>
+<span class="codeline" id="line-104"><code>	<span class="keyword">if</span> <label for="r19" class="ident">ws</label>.<a href="#line-21" class="ident">head</a> == <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-105"><code>		<span class="keyword">return</span> <a href="writesched.go.html#line-48" class="ident">FrameWriteRequest</a>{}, <a href="../../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-106"><code>	}</code></span>
+<span class="codeline" id="line-107"><code>	<label for="r21" class="ident">q</label> := <label for="r19" class="ident">ws</label>.<a href="#line-21" class="ident">head</a></code></span>
+<span class="codeline" id="line-108"><code>	<span class="keyword">for</span> {</code></span>
+<span class="codeline" id="line-109"><code>		<span class="keyword">if</span> <label for="r22" class="ident">wr</label>, <label for="r23" class="ident">ok</label> := <label for="r21" class="ident">q</label>.<a href="writesched.go.html#line-213" class="ident">consume</a>(<a href="../../../../../pkg/math.html" class="ident i1">math</a>.<a href="../../../../math/const.go.html#line-48" class="ident">MaxInt32</a>); <label for="r23" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-110"><code>			<label for="r19" class="ident">ws</label>.<a href="#line-21" class="ident">head</a> = <label for="r21" class="ident">q</label>.<a href="writesched.go.html#line-188" class="ident">next</a></code></span>
+<span class="codeline" id="line-111"><code>			<span class="keyword">return</span> <label for="r22" class="ident">wr</label>, <a href="../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-112"><code>		}</code></span>
+<span class="codeline" id="line-113"><code>		<label for="r21" class="ident">q</label> = <label for="r21" class="ident">q</label>.<a href="writesched.go.html#line-188" class="ident">next</a></code></span>
+<span class="codeline" id="line-114"><code>		<span class="keyword">if</span> <label for="r21" class="ident">q</label> == <label for="r19" class="ident">ws</label>.<a href="#line-21" class="ident">head</a> {</code></span>
+<span class="codeline" id="line-115"><code>			<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-116"><code>		}</code></span>
+<span class="codeline" id="line-117"><code>	}</code></span>
+<span class="codeline" id="line-118"><code>	<span class="keyword">return</span> <a href="writesched.go.html#line-48" class="ident">FrameWriteRequest</a>{}, <a href="../../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-119"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: pidfd_linux.go in package os</title>
+<link href="../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	pidfd_linux.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../pkg/os.html">os</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30],
+input[id=r31]:checked ~pre label[for=r31],
+input[id=r32]:checked ~pre label[for=r32],
+input[id=r33]:checked ~pre label[for=r33],
+input[id=r34]:checked ~pre label[for=r34]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3,
+input[id=i4]:checked ~pre .i4,
+input[id=i5]:checked ~pre .i5
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="r31" type="radio" name="g"/>
+<input id="r32" type="radio" name="g"/>
+<input id="r33" type="radio" name="g"/>
+<input id="r34" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+<input id="i4" type="radio" name="i"/>
+<input id="i5" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2023 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="comment">// Support for pidfd was added during the course of a few Linux releases:</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment">//  v5.1: pidfd_send_signal syscall;</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment">//  v5.2: CLONE_PIDFD flag for clone syscall;</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment">//  v5.3: pidfd_open syscall, clone3 syscall;</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment">//  v5.4: P_PIDFD idtype support for waitid syscall;</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment">//  v5.6: pidfd_getfd syscall.</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment">// N.B. Alternative Linux implementations may not follow this ordering. e.g.,</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">// QEMU user mode 7.2 added pidfd_open, but CLONE_PIDFD was not added until</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">// 8.0.</span></code></span>
+<span class="codeline" id="line-15"><code></code></span>
+<span class="codeline" id="line-16"><code><span class="keyword">package</span> os</code></span>
+<span class="codeline" id="line-17"><code></code></span>
+<span class="codeline" id="line-18"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-19"><code>	<label for="i0"><span class="lit-string i0">"errors"</span></label></code></span>
+<span class="codeline" id="line-20"><code>	<label for="i1"><span class="lit-string i1">"internal/syscall/unix"</span></label></code></span>
+<span class="codeline" id="line-21"><code>	<label for="i2"><span class="lit-string i2">"runtime"</span></label></code></span>
+<span class="codeline" id="line-22"><code>	<label for="i3"><span class="lit-string i3">"sync"</span></label></code></span>
+<span class="codeline" id="line-23"><code>	<label for="i4"><span class="lit-string i4">"syscall"</span></label></code></span>
+<span class="codeline" id="line-24"><code>	<a href="../../pkg/unsafe.html" class="ident i5">_</a> <label for="i5"><span class="lit-string i5">"unsafe"</span></label> <span class="comment">// for linkname</span></code></span>
+<span class="codeline" id="line-25"><code>)</code></span>
+<span class="codeline" id="line-26"><code></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">// ensurePidfd initializes the PidFD field in sysAttr if it is not already set.</span></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">// It returns the original or modified SysProcAttr struct and a flag indicating</span></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">// whether the PidFD should be duplicated before using.</span></code></span>
+<span class="codeline" id="line-30"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../pkg/os.html#name-ensurePidfd" class="ident">ensurePidfd</a></label>(<label for="r1" class="ident">sysAttr</label> *<a href="../../pkg/syscall.html" class="ident i4">syscall</a>.<a href="../syscall/exec_linux.go.html#line-67" class="ident">SysProcAttr</a>) (*<a href="../../pkg/syscall.html" class="ident i4">syscall</a>.<a href="../syscall/exec_linux.go.html#line-67" class="ident">SysProcAttr</a>, <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a>) {</code></span>
+<span class="codeline" id="line-31"><code>	<span class="keyword">if</span> !<a href="#line-134" class="ident">pidfdWorks</a>() {</code></span>
+<span class="codeline" id="line-32"><code>		<span class="keyword">return</span> <label for="r1" class="ident">sysAttr</label>, <a href="../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-33"><code>	}</code></span>
+<span class="codeline" id="line-34"><code></code></span>
+<span class="codeline" id="line-35"><code>	<span class="keyword">var</span> <label for="r2" class="ident">pidfd</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-36"><code></code></span>
+<span class="codeline" id="line-37"><code>	<span class="keyword">if</span> <label for="r1" class="ident">sysAttr</label> == <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-38"><code>		<span class="keyword">return</span> &amp;<a href="../../pkg/syscall.html" class="ident i4">syscall</a>.<a href="../syscall/exec_linux.go.html#line-67" class="ident">SysProcAttr</a>{</code></span>
+<span class="codeline" id="line-39"><code>			<a href="../syscall/exec_linux.go.html#line-112" class="ident">PidFD</a>: &amp;<label for="r2" class="ident">pidfd</label>,</code></span>
+<span class="codeline" id="line-40"><code>		}, <a href="../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-41"><code>	}</code></span>
+<span class="codeline" id="line-42"><code>	<span class="keyword">if</span> <label for="r1" class="ident">sysAttr</label>.<a href="../syscall/exec_linux.go.html#line-112" class="ident">PidFD</a> == <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-43"><code>		<label for="r3" class="ident">newSys</label> := *<label for="r1" class="ident">sysAttr</label> <span class="comment">// copy</span></code></span>
+<span class="codeline" id="line-44"><code>		<label for="r3" class="ident">newSys</label>.<a href="../syscall/exec_linux.go.html#line-112" class="ident">PidFD</a> = &amp;<label for="r2" class="ident">pidfd</label></code></span>
+<span class="codeline" id="line-45"><code>		<span class="keyword">return</span> &amp;<label for="r3" class="ident">newSys</label>, <a href="../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-46"><code>	}</code></span>
+<span class="codeline" id="line-47"><code></code></span>
+<span class="codeline" id="line-48"><code>	<span class="keyword">return</span> <label for="r1" class="ident">sysAttr</label>, <a href="../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-49"><code>}</code></span>
+<span class="codeline" id="line-50"><code></code></span>
+<span class="codeline" id="line-51"><code><span class="comment">// getPidfd returns the value of sysAttr.PidFD (or its duplicate if needDup is</span></code></span>
+<span class="codeline" id="line-52"><code><span class="comment">// set) and a flag indicating whether the value can be used.</span></code></span>
+<span class="codeline" id="line-53"><code><span class="keyword">func</span> <label for="r4" class="ident"><a href="../../pkg/os.html#name-getPidfd" class="ident">getPidfd</a></label>(<label for="r5" class="ident">sysAttr</label> *<a href="../../pkg/syscall.html" class="ident i4">syscall</a>.<a href="../syscall/exec_linux.go.html#line-67" class="ident">SysProcAttr</a>, <label for="r6" class="ident">needDup</label> <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a>) (<a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>, <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a>) {</code></span>
+<span class="codeline" id="line-54"><code>	<span class="keyword">if</span> !<a href="#line-134" class="ident">pidfdWorks</a>() {</code></span>
+<span class="codeline" id="line-55"><code>		<span class="keyword">return</span> <span class="lit-number">0</span>, <a href="../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-56"><code>	}</code></span>
+<span class="codeline" id="line-57"><code></code></span>
+<span class="codeline" id="line-58"><code>	<label for="r7" class="ident">h</label> := *<label for="r5" class="ident">sysAttr</label>.<a href="../syscall/exec_linux.go.html#line-112" class="ident">PidFD</a></code></span>
+<span class="codeline" id="line-59"><code>	<span class="keyword">if</span> <label for="r6" class="ident">needDup</label> {</code></span>
+<span class="codeline" id="line-60"><code>		<label for="r8" class="ident">dupH</label>, <label for="r9" class="ident">e</label> := <a href="../../pkg/internal/syscall/unix.html" class="ident i1">unix</a>.<a href="../internal/syscall/unix/fcntl_unix.go.html#line-19" class="ident">Fcntl</a>(<label for="r7" class="ident">h</label>, <a href="../../pkg/syscall.html" class="ident i4">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-243" class="ident">F_DUPFD_CLOEXEC</a>, <span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-61"><code>		<span class="keyword">if</span> <label for="r9" class="ident">e</label> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-62"><code>			<span class="keyword">return</span> <span class="lit-number">0</span>, <a href="../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-63"><code>		}</code></span>
+<span class="codeline" id="line-64"><code>		<label for="r7" class="ident">h</label> = <label for="r8" class="ident">dupH</label></code></span>
+<span class="codeline" id="line-65"><code>	}</code></span>
+<span class="codeline" id="line-66"><code>	<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>(<label for="r7" class="ident">h</label>), <a href="../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-67"><code>}</code></span>
+<span class="codeline" id="line-68"><code></code></span>
+<span class="codeline" id="line-69"><code><span class="keyword">func</span> <label for="r10" class="ident"><a href="../../pkg/os.html#name-pidfdFind" class="ident">pidfdFind</a></label>(<label for="r11" class="ident">pid</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>) (<a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>, <a href="../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-70"><code>	<span class="keyword">if</span> !<a href="#line-134" class="ident">pidfdWorks</a>() {</code></span>
+<span class="codeline" id="line-71"><code>		<span class="keyword">return</span> <span class="lit-number">0</span>, <a href="../../pkg/syscall.html" class="ident i4">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-1270" class="ident">ENOSYS</a></code></span>
+<span class="codeline" id="line-72"><code>	}</code></span>
+<span class="codeline" id="line-73"><code></code></span>
+<span class="codeline" id="line-74"><code>	<label for="r12" class="ident">h</label>, <label for="r13" class="ident">err</label> := <a href="../../pkg/internal/syscall/unix.html" class="ident i1">unix</a>.<a href="../internal/syscall/unix/pidfd_linux.go.html#line-17" class="ident">PidFDOpen</a>(<label for="r11" class="ident">pid</label>, <span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-75"><code>	<span class="keyword">if</span> <label for="r13" class="ident">err</label> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-76"><code>		<span class="keyword">return</span> <span class="lit-number">0</span>, <a href="exec_unix.go.html#line-121" class="ident">convertESRCH</a>(<label for="r13" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-77"><code>	}</code></span>
+<span class="codeline" id="line-78"><code>	<span class="keyword">return</span> <label for="r12" class="ident">h</label>, <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-79"><code>}</code></span>
+<span class="codeline" id="line-80"><code></code></span>
+<span class="codeline" id="line-81"><code><span class="keyword">func</span> (<label for="r14" class="ident">p</label> *<a href="exec.go.html#line-58" class="ident">Process</a>) <label for="r15" class="ident"><a href="../../use/os..Process.pidfdWait^661f1.html" class="ident">pidfdWait</a></label>() (*<a href="exec_posix.go.html#line-81" class="ident">ProcessState</a>, <a href="../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-82"><code>	<span class="comment">// When pidfd is used, there is no wait/kill race (described in CL 23967)</span></code></span>
+<span class="codeline" id="line-83"><code><span class="comment">	// because the PID recycle issue doesn't exist (IOW, pidfd, unlike PID,</span></code></span>
+<span class="codeline" id="line-84"><code><span class="comment">	// is guaranteed to refer to one particular process). Thus, there is no</span></code></span>
+<span class="codeline" id="line-85"><code><span class="comment">	// need for the workaround (blockUntilWaitable + sigMu) from pidWait.</span></code></span>
+<span class="codeline" id="line-86"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-87"><code><span class="comment">	// We _do_ need to be careful about reuse of the pidfd FD number when</span></code></span>
+<span class="codeline" id="line-88"><code><span class="comment">	// closing the pidfd. See handle for more details.</span></code></span>
+<span class="codeline" id="line-89"><code>	<label for="r16" class="ident">handle</label>, <label for="r17" class="ident">status</label> := <label for="r14" class="ident">p</label>.<a href="exec.go.html#line-137" class="ident">handleTransientAcquire</a>()</code></span>
+<span class="codeline" id="line-90"><code>	<span class="keyword">switch</span> <label for="r17" class="ident">status</label> {</code></span>
+<span class="codeline" id="line-91"><code>	<span class="keyword">case</span> <a href="exec.go.html#line-48" class="ident">statusDone</a>:</code></span>
+<span class="codeline" id="line-92"><code>		<span class="comment">// Process already completed Wait, or was not found by</span></code></span>
+<span class="codeline" id="line-93"><code><span class="comment">		// pidfdFind. Return ECHILD for consistency with what the wait</span></code></span>
+<span class="codeline" id="line-94"><code><span class="comment">		// syscall would return.</span></code></span>
+<span class="codeline" id="line-95"><code>		<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="error.go.html#line-67" class="ident">NewSyscallError</a>(<span class="lit-string">"wait"</span>, <a href="../../pkg/syscall.html" class="ident i4">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-1200" class="ident">ECHILD</a>)</code></span>
+<span class="codeline" id="line-96"><code>	<span class="keyword">case</span> <a href="exec.go.html#line-52" class="ident">statusReleased</a>:</code></span>
+<span class="codeline" id="line-97"><code>		<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../pkg/syscall.html" class="ident i4">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-1221" class="ident">EINVAL</a></code></span>
+<span class="codeline" id="line-98"><code>	}</code></span>
+<span class="codeline" id="line-99"><code>	<span class="keyword">defer</span> <label for="r14" class="ident">p</label>.<a href="exec.go.html#line-155" class="ident">handleTransientRelease</a>()</code></span>
+<span class="codeline" id="line-100"><code></code></span>
+<span class="codeline" id="line-101"><code>	<span class="keyword">var</span> (</code></span>
+<span class="codeline" id="line-102"><code>		<label for="r18" class="ident">info</label>   <a href="../../pkg/internal/syscall/unix.html" class="ident i1">unix</a>.<a href="../internal/syscall/unix/siginfo_linux.go.html#line-18" class="ident">SiginfoChild</a></code></span>
+<span class="codeline" id="line-103"><code>		<label for="r19" class="ident">rusage</label> <a href="../../pkg/syscall.html" class="ident i4">syscall</a>.<a href="../syscall/ztypes_linux_amd64.go.html#line-73" class="ident">Rusage</a></code></span>
+<span class="codeline" id="line-104"><code>	)</code></span>
+<span class="codeline" id="line-105"><code>	<label for="r20" class="ident">err</label> := <a href="file_posix.go.html#line-249" class="ident">ignoringEINTR</a>(<span class="keyword">func</span>() <a href="../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-106"><code>		<span class="keyword">return</span> <a href="../../pkg/internal/syscall/unix.html" class="ident i1">unix</a>.<a href="../internal/syscall/unix/waitid_linux.go.html#line-17" class="ident">Waitid</a>(<a href="../../pkg/internal/syscall/unix.html" class="ident i1">unix</a>.<a href="../internal/syscall/unix/waitid_linux.go.html#line-14" class="ident">P_PIDFD</a>, <a href="../../pkg/builtin.html#name-int" class="ident">int</a>(<label for="r16" class="ident">handle</label>), &amp;<label for="r18" class="ident">info</label>, <a href="../../pkg/syscall.html" class="ident i4">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-1171" class="ident">WEXITED</a>, &amp;<label for="r19" class="ident">rusage</label>)</code></span>
+<span class="codeline" id="line-107"><code>	})</code></span>
+<span class="codeline" id="line-108"><code>	<span class="keyword">if</span> <label for="r20" class="ident">err</label> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-109"><code>		<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="error.go.html#line-67" class="ident">NewSyscallError</a>(<span class="lit-string">"waitid"</span>, <label for="r20" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-110"><code>	}</code></span>
+<span class="codeline" id="line-111"><code>	<span class="comment">// Release the Process' handle reference, in addition to the reference</span></code></span>
+<span class="codeline" id="line-112"><code><span class="comment">	// we took above.</span></code></span>
+<span class="codeline" id="line-113"><code>	<label for="r14" class="ident">p</label>.<a href="exec.go.html#line-194" class="ident">handlePersistentRelease</a>(<a href="exec.go.html#line-48" class="ident">statusDone</a>)</code></span>
+<span class="codeline" id="line-114"><code>	<span class="keyword">return</span> &amp;<a href="exec_posix.go.html#line-81" class="ident">ProcessState</a>{</code></span>
+<span class="codeline" id="line-115"><code>		<a href="exec_posix.go.html#line-82" class="ident">pid</a>:    <a href="../../pkg/builtin.html#name-int" class="ident">int</a>(<label for="r18" class="ident">info</label>.<a href="../internal/syscall/unix/siginfo_linux.go.html#line-25" class="ident">Pid</a>),</code></span>
+<span class="codeline" id="line-116"><code>		<a href="exec_posix.go.html#line-83" class="ident">status</a>: <label for="r18" class="ident">info</label>.<a href="../internal/syscall/unix/siginfo_linux.go.html#line-50" class="ident">WaitStatus</a>(),</code></span>
+<span class="codeline" id="line-117"><code>		<a href="exec_posix.go.html#line-84" class="ident">rusage</a>: &amp;<label for="r19" class="ident">rusage</label>,</code></span>
+<span class="codeline" id="line-118"><code>	}, <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-119"><code>}</code></span>
+<span class="codeline" id="line-120"><code></code></span>
+<span class="codeline" id="line-121"><code><span class="keyword">func</span> (<label for="r21" class="ident">p</label> *<a href="exec.go.html#line-58" class="ident">Process</a>) <label for="r22" class="ident"><a href="../../use/os..Process.pidfdSendSignal^299ba.html" class="ident">pidfdSendSignal</a></label>(<label for="r23" class="ident">s</label> <a href="../../pkg/syscall.html" class="ident i4">syscall</a>.<a href="../syscall/syscall_unix.go.html#line-168" class="ident">Signal</a>) <a href="../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-122"><code>	<label for="r24" class="ident">handle</label>, <label for="r25" class="ident">status</label> := <label for="r21" class="ident">p</label>.<a href="exec.go.html#line-137" class="ident">handleTransientAcquire</a>()</code></span>
+<span class="codeline" id="line-123"><code>	<span class="keyword">switch</span> <label for="r25" class="ident">status</label> {</code></span>
+<span class="codeline" id="line-124"><code>	<span class="keyword">case</span> <a href="exec.go.html#line-48" class="ident">statusDone</a>:</code></span>
+<span class="codeline" id="line-125"><code>		<span class="keyword">return</span> <a href="exec.go.html#line-18" class="ident">ErrProcessDone</a></code></span>
+<span class="codeline" id="line-126"><code>	<span class="keyword">case</span> <a href="exec.go.html#line-52" class="ident">statusReleased</a>:</code></span>
+<span class="codeline" id="line-127"><code>		<span class="keyword">return</span> <a href="../../pkg/errors.html" class="ident i0">errors</a>.<a href="../errors/errors.go.html#line-64" class="ident">New</a>(<span class="lit-string">"os: process already released"</span>)</code></span>
+<span class="codeline" id="line-128"><code>	}</code></span>
+<span class="codeline" id="line-129"><code>	<span class="keyword">defer</span> <label for="r21" class="ident">p</label>.<a href="exec.go.html#line-155" class="ident">handleTransientRelease</a>()</code></span>
+<span class="codeline" id="line-130"><code></code></span>
+<span class="codeline" id="line-131"><code>	<span class="keyword">return</span> <a href="exec_unix.go.html#line-121" class="ident">convertESRCH</a>(<a href="../../pkg/internal/syscall/unix.html" class="ident i1">unix</a>.<a href="../internal/syscall/unix/pidfd_linux.go.html#line-9" class="ident">PidFDSendSignal</a>(<label for="r24" class="ident">handle</label>, <label for="r23" class="ident">s</label>))</code></span>
+<span class="codeline" id="line-132"><code>}</code></span>
+<span class="codeline" id="line-133"><code></code></span>
+<span class="codeline" id="line-134"><code><span class="keyword">func</span> <label for="r26" class="ident"><a href="../../pkg/os.html#name-pidfdWorks" class="ident">pidfdWorks</a></label>() <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-135"><code>	<span class="keyword">return</span> <a href="#line-138" class="ident">checkPidfdOnce</a>() == <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-136"><code>}</code></span>
+<span class="codeline" id="line-137"><code></code></span>
+<span class="codeline" id="line-138"><code><span class="keyword">var</span> <a href="../../pkg/os.html#name-checkPidfdOnce" class="ident">checkPidfdOnce</a> = <a href="../../pkg/sync.html" class="ident i3">sync</a>.<a href="../sync/oncefunc.go.html#line-43" class="ident">OnceValue</a>(<a href="#line-147" class="ident">checkPidfd</a>)</code></span>
+<span class="codeline" id="line-139"><code></code></span>
+<span class="codeline" id="line-140"><code><span class="comment">// checkPidfd checks whether all required pidfd-related syscalls work. This</span></code></span>
+<span class="codeline" id="line-141"><code><span class="comment">// consists of pidfd_open and pidfd_send_signal syscalls, waitid syscall with</span></code></span>
+<span class="codeline" id="line-142"><code><span class="comment">// idtype of P_PIDFD, and clone(CLONE_PIDFD).</span></code></span>
+<span class="codeline" id="line-143"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-144"><code><span class="comment">// Reasons for non-working pidfd syscalls include an older kernel and an</span></code></span>
+<span class="codeline" id="line-145"><code><span class="comment">// execution environment in which the above system calls are restricted by</span></code></span>
+<span class="codeline" id="line-146"><code><span class="comment">// seccomp or a similar technology.</span></code></span>
+<span class="codeline" id="line-147"><code><span class="keyword">func</span> <label for="r27" class="ident"><a href="../../pkg/os.html#name-checkPidfd" class="ident">checkPidfd</a></label>() <a href="../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-148"><code>	<span class="comment">// In Android version &lt; 12, pidfd-related system calls are not allowed</span></code></span>
+<span class="codeline" id="line-149"><code><span class="comment">	// by seccomp and trigger the SIGSYS signal. See issue #69065.</span></code></span>
+<span class="codeline" id="line-150"><code>	<span class="keyword">if</span> <a href="../../pkg/runtime.html" class="ident i2">runtime</a>.<a href="../runtime/extern.go.html#line-373" class="ident">GOOS</a> == <span class="lit-string">"android"</span> {</code></span>
+<span class="codeline" id="line-151"><code>		<a href="#line-197" class="ident">ignoreSIGSYS</a>()</code></span>
+<span class="codeline" id="line-152"><code>		<span class="keyword">defer</span> <a href="#line-200" class="ident">restoreSIGSYS</a>()</code></span>
+<span class="codeline" id="line-153"><code>	}</code></span>
+<span class="codeline" id="line-154"><code></code></span>
+<span class="codeline" id="line-155"><code>	<span class="comment">// Get a pidfd of the current process (opening of "/proc/self" won't</span></code></span>
+<span class="codeline" id="line-156"><code><span class="comment">	// work for waitid).</span></code></span>
+<span class="codeline" id="line-157"><code>	<label for="r28" class="ident">fd</label>, <label for="r29" class="ident">err</label> := <a href="../../pkg/internal/syscall/unix.html" class="ident i1">unix</a>.<a href="../internal/syscall/unix/pidfd_linux.go.html#line-17" class="ident">PidFDOpen</a>(<a href="../../pkg/syscall.html" class="ident i4">syscall</a>.<a href="../syscall/zsyscall_linux_amd64.go.html#line-500" class="ident">Getpid</a>(), <span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-158"><code>	<span class="keyword">if</span> <label for="r29" class="ident">err</label> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-159"><code>		<span class="keyword">return</span> <a href="error.go.html#line-67" class="ident">NewSyscallError</a>(<span class="lit-string">"pidfd_open"</span>, <label for="r29" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-160"><code>	}</code></span>
+<span class="codeline" id="line-161"><code>	<span class="keyword">defer</span> <a href="../../pkg/syscall.html" class="ident i4">syscall</a>.<a href="../syscall/zsyscall_linux_amd64.go.html#line-334" class="ident">Close</a>(<a href="../../pkg/builtin.html#name-int" class="ident">int</a>(<label for="r28" class="ident">fd</label>))</code></span>
+<span class="codeline" id="line-162"><code></code></span>
+<span class="codeline" id="line-163"><code>	<span class="comment">// Check waitid(P_PIDFD) works.</span></code></span>
+<span class="codeline" id="line-164"><code>	<label for="r29" class="ident">err</label> = <a href="file_posix.go.html#line-249" class="ident">ignoringEINTR</a>(<span class="keyword">func</span>() <a href="../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-165"><code>		<span class="keyword">return</span> <a href="../../pkg/internal/syscall/unix.html" class="ident i1">unix</a>.<a href="../internal/syscall/unix/waitid_linux.go.html#line-17" class="ident">Waitid</a>(<a href="../../pkg/internal/syscall/unix.html" class="ident i1">unix</a>.<a href="../internal/syscall/unix/waitid_linux.go.html#line-14" class="ident">P_PIDFD</a>, <a href="../../pkg/builtin.html#name-int" class="ident">int</a>(<label for="r28" class="ident">fd</label>), <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../pkg/syscall.html" class="ident i4">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-1171" class="ident">WEXITED</a>, <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>)</code></span>
+<span class="codeline" id="line-166"><code>	})</code></span>
+<span class="codeline" id="line-167"><code>	<span class="comment">// Expect ECHILD from waitid since we're not our own parent.</span></code></span>
+<span class="codeline" id="line-168"><code>	<span class="keyword">if</span> <label for="r29" class="ident">err</label> != <a href="../../pkg/syscall.html" class="ident i4">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-1200" class="ident">ECHILD</a> {</code></span>
+<span class="codeline" id="line-169"><code>		<span class="keyword">return</span> <a href="error.go.html#line-67" class="ident">NewSyscallError</a>(<span class="lit-string">"pidfd_wait"</span>, <label for="r29" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-170"><code>	}</code></span>
+<span class="codeline" id="line-171"><code></code></span>
+<span class="codeline" id="line-172"><code>	<span class="comment">// Check pidfd_send_signal works (should be able to send 0 to itself).</span></code></span>
+<span class="codeline" id="line-173"><code>	<span class="keyword">if</span> <label for="r30" class="ident">err</label> := <a href="../../pkg/internal/syscall/unix.html" class="ident i1">unix</a>.<a href="../internal/syscall/unix/pidfd_linux.go.html#line-9" class="ident">PidFDSendSignal</a>(<label for="r28" class="ident">fd</label>, <span class="lit-number">0</span>); <label for="r30" class="ident">err</label> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-174"><code>		<span class="keyword">return</span> <a href="error.go.html#line-67" class="ident">NewSyscallError</a>(<span class="lit-string">"pidfd_send_signal"</span>, <label for="r30" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-175"><code>	}</code></span>
+<span class="codeline" id="line-176"><code></code></span>
+<span class="codeline" id="line-177"><code>	<span class="comment">// Verify that clone(CLONE_PIDFD) works.</span></code></span>
+<span class="codeline" id="line-178"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-179"><code><span class="comment">	// This shouldn't be necessary since pidfd_open was added in Linux 5.3,</span></code></span>
+<span class="codeline" id="line-180"><code><span class="comment">	// after CLONE_PIDFD in Linux 5.2, but some alternative Linux</span></code></span>
+<span class="codeline" id="line-181"><code><span class="comment">	// implementations may not adhere to this ordering.</span></code></span>
+<span class="codeline" id="line-182"><code>	<span class="keyword">if</span> <label for="r31" class="ident">err</label> := <a href="#line-192" class="ident">checkClonePidfd</a>(); <label for="r31" class="ident">err</label> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-183"><code>		<span class="keyword">return</span> <label for="r31" class="ident">err</label></code></span>
+<span class="codeline" id="line-184"><code>	}</code></span>
+<span class="codeline" id="line-185"><code></code></span>
+<span class="codeline" id="line-186"><code>	<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-187"><code>}</code></span>
+<span class="codeline" id="line-188"><code></code></span>
+<span class="codeline" id="line-189"><code><span class="comment">// Provided by syscall.</span></code></span>
+<span class="codeline" id="line-190"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-191"><code><span class="comment">//go:linkname checkClonePidfd</span></code></span>
+<span class="codeline" id="line-192"><code><span class="keyword">func</span> <label for="r32" class="ident"><a href="../../pkg/os.html#name-checkClonePidfd" class="ident">checkClonePidfd</a></label>() <a href="../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-193"><code></code></span>
+<span class="codeline" id="line-194"><code><span class="comment">// Provided by runtime.</span></code></span>
+<span class="codeline" id="line-195"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-196"><code><span class="comment">//go:linkname ignoreSIGSYS</span></code></span>
+<span class="codeline" id="line-197"><code><span class="keyword">func</span> <label for="r33" class="ident"><a href="../../pkg/os.html#name-ignoreSIGSYS" class="ident">ignoreSIGSYS</a></label>()</code></span>
+<span class="codeline" id="line-198"><code></code></span>
+<span class="codeline" id="line-199"><code><span class="comment">//go:linkname restoreSIGSYS</span></code></span>
+<span class="codeline" id="line-200"><code><span class="keyword">func</span> <label for="r34" class="ident"><a href="../../pkg/os.html#name-restoreSIGSYS" class="ident">restoreSIGSYS</a></label>()</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

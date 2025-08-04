@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: sleep.go in package time</title>
+<link href="../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	sleep.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../pkg/time.html">time</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30],
+input[id=r31]:checked ~pre label[for=r31],
+input[id=r32]:checked ~pre label[for=r32],
+input[id=r33]:checked ~pre label[for=r33],
+input[id=r34]:checked ~pre label[for=r34],
+input[id=r35]:checked ~pre label[for=r35],
+input[id=r36]:checked ~pre label[for=r36],
+input[id=r37]:checked ~pre label[for=r37],
+input[id=r38]:checked ~pre label[for=r38],
+input[id=r39]:checked ~pre label[for=r39],
+input[id=r40]:checked ~pre label[for=r40]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="r31" type="radio" name="g"/>
+<input id="r32" type="radio" name="g"/>
+<input id="r33" type="radio" name="g"/>
+<input id="r34" type="radio" name="g"/>
+<input id="r35" type="radio" name="g"/>
+<input id="r36" type="radio" name="g"/>
+<input id="r37" type="radio" name="g"/>
+<input id="r38" type="radio" name="g"/>
+<input id="r39" type="radio" name="g"/>
+<input id="r40" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2009 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> time</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-8"><code>	<label for="i0"><span class="lit-string i0">"internal/godebug"</span></label></code></span>
+<span class="codeline" id="line-9"><code>	<label for="i1"><span class="lit-string i1">"unsafe"</span></label></code></span>
+<span class="codeline" id="line-10"><code>)</code></span>
+<span class="codeline" id="line-11"><code></code></span>
+<span class="codeline" id="line-12"><code><span class="comment">// Sleep pauses the current goroutine for at least the duration d.</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">// A negative or zero duration causes Sleep to return immediately.</span></code></span>
+<span class="codeline" id="line-14"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../pkg/time.html#name-Sleep" class="ident">Sleep</a></label>(<label for="r1" class="ident">d</label> <a href="time.go.html#line-911" class="ident">Duration</a>)</code></span>
+<span class="codeline" id="line-15"><code></code></span>
+<span class="codeline" id="line-16"><code><span class="keyword">var</span> <a href="../../pkg/time.html#name-asynctimerchan" class="ident">asynctimerchan</a> = <a href="../../pkg/internal/godebug.html" class="ident i0">godebug</a>.<a href="../internal/godebug/godebug.go.html#line-93" class="ident">New</a>(<span class="lit-string">"asynctimerchan"</span>)</code></span>
+<span class="codeline" id="line-17"><code></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">// syncTimer returns c as an unsafe.Pointer, for passing to newTimer.</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">// If the GODEBUG asynctimerchan has disabled the async timer chan</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">// code, then syncTimer always returns nil, to disable the special</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">// channel code paths in the runtime.</span></code></span>
+<span class="codeline" id="line-22"><code><span class="keyword">func</span> <label for="r2" class="ident"><a href="../../pkg/time.html#name-syncTimer" class="ident">syncTimer</a></label>(<label for="r3" class="ident">c</label> <span class="keyword">chan</span> <a href="time.go.html#line-140" class="ident">Time</a>) <a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a> {</code></span>
+<span class="codeline" id="line-23"><code>	<span class="comment">// If asynctimerchan=1, we don't even tell the runtime</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">	// about channel timers, so that we get the pre-Go 1.23 code paths.</span></code></span>
+<span class="codeline" id="line-25"><code>	<span class="keyword">if</span> <a href="#line-16" class="ident">asynctimerchan</a>.<a href="../internal/godebug/godebug.go.html#line-157" class="ident">Value</a>() == <span class="lit-string">"1"</span> {</code></span>
+<span class="codeline" id="line-26"><code>		<a href="#line-16" class="ident">asynctimerchan</a>.<a href="../internal/godebug/godebug.go.html#line-121" class="ident">IncNonDefault</a>()</code></span>
+<span class="codeline" id="line-27"><code>		<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-28"><code>	}</code></span>
+<span class="codeline" id="line-29"><code></code></span>
+<span class="codeline" id="line-30"><code>	<span class="comment">// Otherwise pass to runtime.</span></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">	// This handles asynctimerchan=0, which is the default Go 1.23 behavior,</span></code></span>
+<span class="codeline" id="line-32"><code><span class="comment">	// as well as asynctimerchan=2, which is like asynctimerchan=1</span></code></span>
+<span class="codeline" id="line-33"><code><span class="comment">	// but implemented entirely by the runtime.</span></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">	// The only reason to use asynctimerchan=2 is for debugging</span></code></span>
+<span class="codeline" id="line-35"><code><span class="comment">	// a problem fixed by asynctimerchan=1: it enables the new</span></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">	// GC-able timer channels (#61542) but not the sync channels (#37196).</span></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-38"><code><span class="comment">	// If we decide to roll back the sync channels, we will still have</span></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">	// a fully tested async runtime implementation (asynctimerchan=2)</span></code></span>
+<span class="codeline" id="line-40"><code><span class="comment">	// and can make this function always return c.</span></code></span>
+<span class="codeline" id="line-41"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">	// If we decide to keep the sync channels, we can delete all the</span></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">	// handling of asynctimerchan in the runtime and keep just this</span></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">	// function to handle asynctimerchan=1.</span></code></span>
+<span class="codeline" id="line-45"><code>	<span class="keyword">return</span> *(*<a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>)(<a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(&amp;<label for="r3" class="ident">c</label>))</code></span>
+<span class="codeline" id="line-46"><code>}</code></span>
+<span class="codeline" id="line-47"><code></code></span>
+<span class="codeline" id="line-48"><code><span class="comment">// when is a helper function for setting the 'when' field of a runtimeTimer.</span></code></span>
+<span class="codeline" id="line-49"><code><span class="comment">// It returns what the time will be, in nanoseconds, Duration d in the future.</span></code></span>
+<span class="codeline" id="line-50"><code><span class="comment">// If d is negative, it is ignored. If the returned value would be less than</span></code></span>
+<span class="codeline" id="line-51"><code><span class="comment">// zero because of an overflow, MaxInt64 is returned.</span></code></span>
+<span class="codeline" id="line-52"><code><span class="keyword">func</span> <label for="r4" class="ident"><a href="../../pkg/time.html#name-when" class="ident">when</a></label>(<label for="r5" class="ident">d</label> <a href="time.go.html#line-911" class="ident">Duration</a>) <a href="../../pkg/builtin.html#name-int64" class="ident">int64</a> {</code></span>
+<span class="codeline" id="line-53"><code>	<span class="keyword">if</span> <label for="r5" class="ident">d</label> &lt;= <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-54"><code>		<span class="keyword">return</span> <a href="time.go.html#line-1326" class="ident">runtimeNano</a>()</code></span>
+<span class="codeline" id="line-55"><code>	}</code></span>
+<span class="codeline" id="line-56"><code>	<label for="r6" class="ident">t</label> := <a href="time.go.html#line-1326" class="ident">runtimeNano</a>() + <a href="../../pkg/builtin.html#name-int64" class="ident">int64</a>(<label for="r5" class="ident">d</label>)</code></span>
+<span class="codeline" id="line-57"><code>	<span class="keyword">if</span> <label for="r6" class="ident">t</label> &lt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-58"><code>		<span class="comment">// N.B. runtimeNano() and d are always positive, so addition</span></code></span>
+<span class="codeline" id="line-59"><code><span class="comment">		// (including overflow) will never result in t == 0.</span></code></span>
+<span class="codeline" id="line-60"><code>		<label for="r6" class="ident">t</label> = <span class="lit-number">1</span>&lt;&lt;<span class="lit-number">63</span> - <span class="lit-number">1</span> <span class="comment">// math.MaxInt64</span></code></span>
+<span class="codeline" id="line-61"><code>	}</code></span>
+<span class="codeline" id="line-62"><code>	<span class="keyword">return</span> <label for="r6" class="ident">t</label></code></span>
+<span class="codeline" id="line-63"><code>}</code></span>
+<span class="codeline" id="line-64"><code></code></span>
+<span class="codeline" id="line-65"><code><span class="comment">// These functions are pushed to package time from package runtime.</span></code></span>
+<span class="codeline" id="line-66"><code></code></span>
+<span class="codeline" id="line-67"><code><span class="comment">// The arg cp is a chan Time, but the declaration in runtime uses a pointer,</span></code></span>
+<span class="codeline" id="line-68"><code><span class="comment">// so we use a pointer here too. This keeps some tools that aggressively</span></code></span>
+<span class="codeline" id="line-69"><code><span class="comment">// compare linknamed symbol definitions happier.</span></code></span>
+<span class="codeline" id="line-70"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-71"><code><span class="comment">//go:linkname newTimer</span></code></span>
+<span class="codeline" id="line-72"><code><span class="keyword">func</span> <label for="r7" class="ident"><a href="../../pkg/time.html#name-newTimer" class="ident">newTimer</a></label>(<label for="r8" class="ident">when</label>, <label for="r9" class="ident">period</label> <a href="../../pkg/builtin.html#name-int64" class="ident">int64</a>, <label for="r10" class="ident">f</label> <span class="keyword">func</span>(<a href="../../pkg/builtin.html#name-any" class="ident">any</a>, <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>, <a href="../../pkg/builtin.html#name-int64" class="ident">int64</a>), <label for="r11" class="ident">arg</label> <a href="../../pkg/builtin.html#name-any" class="ident">any</a>, <label for="r12" class="ident">cp</label> <a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>) *<a href="#line-89" class="ident">Timer</a></code></span>
+<span class="codeline" id="line-73"><code></code></span>
+<span class="codeline" id="line-74"><code><span class="comment">//go:linkname stopTimer</span></code></span>
+<span class="codeline" id="line-75"><code><span class="keyword">func</span> <label for="r13" class="ident"><a href="../../pkg/time.html#name-stopTimer" class="ident">stopTimer</a></label>(*<a href="#line-89" class="ident">Timer</a>) <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-76"><code></code></span>
+<span class="codeline" id="line-77"><code><span class="comment">//go:linkname resetTimer</span></code></span>
+<span class="codeline" id="line-78"><code><span class="keyword">func</span> <label for="r14" class="ident"><a href="../../pkg/time.html#name-resetTimer" class="ident">resetTimer</a></label>(<label for="r15" class="ident">t</label> *<a href="#line-89" class="ident">Timer</a>, <label for="r16" class="ident">when</label>, <label for="r17" class="ident">period</label> <a href="../../pkg/builtin.html#name-int64" class="ident">int64</a>) <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-79"><code></code></span>
+<span class="codeline" id="line-80"><code><span class="comment">// Note: The runtime knows the layout of struct Timer, since newTimer allocates it.</span></code></span>
+<span class="codeline" id="line-81"><code><span class="comment">// The runtime also knows that Ticker and Timer have the same layout.</span></code></span>
+<span class="codeline" id="line-82"><code><span class="comment">// There are extra fields after the channel, reserved for the runtime</span></code></span>
+<span class="codeline" id="line-83"><code><span class="comment">// and inaccessible to users.</span></code></span>
+<span class="codeline" id="line-84"><code></code></span>
+<span class="codeline" id="line-85"><code><span class="comment">// The Timer type represents a single event.</span></code></span>
+<span class="codeline" id="line-86"><code><span class="comment">// When the Timer expires, the current time will be sent on C,</span></code></span>
+<span class="codeline" id="line-87"><code><span class="comment">// unless the Timer was created by [AfterFunc].</span></code></span>
+<span class="codeline" id="line-88"><code><span class="comment">// A Timer must be created with [NewTimer] or AfterFunc.</span></code></span>
+<span class="codeline" id="line-89"><code><span class="keyword">type</span> <a href="../../pkg/time.html#name-Timer" class="ident">Timer</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-90"><code>	<a href="../../use/time..Timer.C.html" class="ident">C</a>         &lt;-<span class="keyword">chan</span> <a href="time.go.html#line-140" class="ident">Time</a></code></span>
+<span class="codeline" id="line-91"><code>	<a href="../../use/time..Timer.initTimer^4f636.html" class="ident">initTimer</a> <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-92"><code>}</code></span>
+<span class="codeline" id="line-93"><code></code></span>
+<span class="codeline" id="line-94"><code><span class="comment">// Stop prevents the [Timer] from firing.</span></code></span>
+<span class="codeline" id="line-95"><code><span class="comment">// It returns true if the call stops the timer, false if the timer has already</span></code></span>
+<span class="codeline" id="line-96"><code><span class="comment">// expired or been stopped.</span></code></span>
+<span class="codeline" id="line-97"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-98"><code><span class="comment">// For a func-based timer created with [AfterFunc](d, f),</span></code></span>
+<span class="codeline" id="line-99"><code><span class="comment">// if t.Stop returns false, then the timer has already expired</span></code></span>
+<span class="codeline" id="line-100"><code><span class="comment">// and the function f has been started in its own goroutine;</span></code></span>
+<span class="codeline" id="line-101"><code><span class="comment">// Stop does not wait for f to complete before returning.</span></code></span>
+<span class="codeline" id="line-102"><code><span class="comment">// If the caller needs to know whether f is completed,</span></code></span>
+<span class="codeline" id="line-103"><code><span class="comment">// it must coordinate with f explicitly.</span></code></span>
+<span class="codeline" id="line-104"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-105"><code><span class="comment">// For a chan-based timer created with NewTimer(d), as of Go 1.23,</span></code></span>
+<span class="codeline" id="line-106"><code><span class="comment">// any receive from t.C after Stop has returned is guaranteed to block</span></code></span>
+<span class="codeline" id="line-107"><code><span class="comment">// rather than receive a stale time value from before the Stop;</span></code></span>
+<span class="codeline" id="line-108"><code><span class="comment">// if the program has not received from t.C already and the timer is</span></code></span>
+<span class="codeline" id="line-109"><code><span class="comment">// running, Stop is guaranteed to return true.</span></code></span>
+<span class="codeline" id="line-110"><code><span class="comment">// Before Go 1.23, the only safe way to use Stop was insert an extra</span></code></span>
+<span class="codeline" id="line-111"><code><span class="comment">// &lt;-t.C if Stop returned false to drain a potential stale value.</span></code></span>
+<span class="codeline" id="line-112"><code><span class="comment">// See the [NewTimer] documentation for more details.</span></code></span>
+<span class="codeline" id="line-113"><code><span class="keyword">func</span> (<label for="r18" class="ident">t</label> *<a href="#line-89" class="ident">Timer</a>) <label for="r19" class="ident"><a href="../../use/time..Timer.Stop.html" class="ident">Stop</a></label>() <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-114"><code>	<span class="keyword">if</span> !<label for="r18" class="ident">t</label>.<a href="#line-91" class="ident">initTimer</a> {</code></span>
+<span class="codeline" id="line-115"><code>		<a href="../../pkg/builtin.html#name-panic" class="ident">panic</a>(<span class="lit-string">"time: Stop called on uninitialized Timer"</span>)</code></span>
+<span class="codeline" id="line-116"><code>	}</code></span>
+<span class="codeline" id="line-117"><code>	<span class="keyword">return</span> <a href="#line-75" class="ident">stopTimer</a>(<label for="r18" class="ident">t</label>)</code></span>
+<span class="codeline" id="line-118"><code>}</code></span>
+<span class="codeline" id="line-119"><code></code></span>
+<span class="codeline" id="line-120"><code><span class="comment">// NewTimer creates a new Timer that will send</span></code></span>
+<span class="codeline" id="line-121"><code><span class="comment">// the current time on its channel after at least duration d.</span></code></span>
+<span class="codeline" id="line-122"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-123"><code><span class="comment">// Before Go 1.23, the garbage collector did not recover</span></code></span>
+<span class="codeline" id="line-124"><code><span class="comment">// timers that had not yet expired or been stopped, so code often</span></code></span>
+<span class="codeline" id="line-125"><code><span class="comment">// immediately deferred t.Stop after calling NewTimer, to make</span></code></span>
+<span class="codeline" id="line-126"><code><span class="comment">// the timer recoverable when it was no longer needed.</span></code></span>
+<span class="codeline" id="line-127"><code><span class="comment">// As of Go 1.23, the garbage collector can recover unreferenced</span></code></span>
+<span class="codeline" id="line-128"><code><span class="comment">// timers, even if they haven't expired or been stopped.</span></code></span>
+<span class="codeline" id="line-129"><code><span class="comment">// The Stop method is no longer necessary to help the garbage collector.</span></code></span>
+<span class="codeline" id="line-130"><code><span class="comment">// (Code may of course still want to call Stop to stop the timer for other reasons.)</span></code></span>
+<span class="codeline" id="line-131"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-132"><code><span class="comment">// Before Go 1.23, the channel associated with a Timer was</span></code></span>
+<span class="codeline" id="line-133"><code><span class="comment">// asynchronous (buffered, capacity 1), which meant that</span></code></span>
+<span class="codeline" id="line-134"><code><span class="comment">// stale time values could be received even after [Timer.Stop]</span></code></span>
+<span class="codeline" id="line-135"><code><span class="comment">// or [Timer.Reset] returned.</span></code></span>
+<span class="codeline" id="line-136"><code><span class="comment">// As of Go 1.23, the channel is synchronous (unbuffered, capacity 0),</span></code></span>
+<span class="codeline" id="line-137"><code><span class="comment">// eliminating the possibility of those stale values.</span></code></span>
+<span class="codeline" id="line-138"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-139"><code><span class="comment">// The GODEBUG setting asynctimerchan=1 restores both pre-Go 1.23</span></code></span>
+<span class="codeline" id="line-140"><code><span class="comment">// behaviors: when set, unexpired timers won't be garbage collected, and</span></code></span>
+<span class="codeline" id="line-141"><code><span class="comment">// channels will have buffered capacity. This setting may be removed</span></code></span>
+<span class="codeline" id="line-142"><code><span class="comment">// in Go 1.27 or later.</span></code></span>
+<span class="codeline" id="line-143"><code><span class="keyword">func</span> <label for="r20" class="ident"><a href="../../pkg/time.html#name-NewTimer" class="ident">NewTimer</a></label>(<label for="r21" class="ident">d</label> <a href="time.go.html#line-911" class="ident">Duration</a>) *<a href="#line-89" class="ident">Timer</a> {</code></span>
+<span class="codeline" id="line-144"><code>	<label for="r22" class="ident">c</label> := <a href="../runtime/chan.go.html#line-75">make</a>(<span class="keyword">chan</span> <a href="time.go.html#line-140" class="ident">Time</a>, <span class="lit-number">1</span>)</code></span>
+<span class="codeline" id="line-145"><code>	<label for="r23" class="ident">t</label> := (*<a href="#line-89" class="ident">Timer</a>)(<a href="#line-72" class="ident">newTimer</a>(<a href="#line-52" class="ident">when</a>(<label for="r21" class="ident">d</label>), <span class="lit-number">0</span>, <a href="#line-180" class="ident">sendTime</a>, <label for="r22" class="ident">c</label>, <a href="#line-22" class="ident">syncTimer</a>(<label for="r22" class="ident">c</label>)))</code></span>
+<span class="codeline" id="line-146"><code>	<label for="r23" class="ident">t</label>.<a href="#line-90" class="ident">C</a> = <label for="r22" class="ident">c</label></code></span>
+<span class="codeline" id="line-147"><code>	<span class="keyword">return</span> <label for="r23" class="ident">t</label></code></span>
+<span class="codeline" id="line-148"><code>}</code></span>
+<span class="codeline" id="line-149"><code></code></span>
+<span class="codeline" id="line-150"><code><span class="comment">// Reset changes the timer to expire after duration d.</span></code></span>
+<span class="codeline" id="line-151"><code><span class="comment">// It returns true if the timer had been active, false if the timer had</span></code></span>
+<span class="codeline" id="line-152"><code><span class="comment">// expired or been stopped.</span></code></span>
+<span class="codeline" id="line-153"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-154"><code><span class="comment">// For a func-based timer created with [AfterFunc](d, f), Reset either reschedules</span></code></span>
+<span class="codeline" id="line-155"><code><span class="comment">// when f will run, in which case Reset returns true, or schedules f</span></code></span>
+<span class="codeline" id="line-156"><code><span class="comment">// to run again, in which case it returns false.</span></code></span>
+<span class="codeline" id="line-157"><code><span class="comment">// When Reset returns false, Reset neither waits for the prior f to</span></code></span>
+<span class="codeline" id="line-158"><code><span class="comment">// complete before returning nor does it guarantee that the subsequent</span></code></span>
+<span class="codeline" id="line-159"><code><span class="comment">// goroutine running f does not run concurrently with the prior</span></code></span>
+<span class="codeline" id="line-160"><code><span class="comment">// one. If the caller needs to know whether the prior execution of</span></code></span>
+<span class="codeline" id="line-161"><code><span class="comment">// f is completed, it must coordinate with f explicitly.</span></code></span>
+<span class="codeline" id="line-162"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-163"><code><span class="comment">// For a chan-based timer created with NewTimer, as of Go 1.23,</span></code></span>
+<span class="codeline" id="line-164"><code><span class="comment">// any receive from t.C after Reset has returned is guaranteed not</span></code></span>
+<span class="codeline" id="line-165"><code><span class="comment">// to receive a time value corresponding to the previous timer settings;</span></code></span>
+<span class="codeline" id="line-166"><code><span class="comment">// if the program has not received from t.C already and the timer is</span></code></span>
+<span class="codeline" id="line-167"><code><span class="comment">// running, Reset is guaranteed to return true.</span></code></span>
+<span class="codeline" id="line-168"><code><span class="comment">// Before Go 1.23, the only safe way to use Reset was to call [Timer.Stop]</span></code></span>
+<span class="codeline" id="line-169"><code><span class="comment">// and explicitly drain the timer first.</span></code></span>
+<span class="codeline" id="line-170"><code><span class="comment">// See the [NewTimer] documentation for more details.</span></code></span>
+<span class="codeline" id="line-171"><code><span class="keyword">func</span> (<label for="r24" class="ident">t</label> *<a href="#line-89" class="ident">Timer</a>) <label for="r25" class="ident"><a href="../../use/time..Timer.Reset.html" class="ident">Reset</a></label>(<label for="r26" class="ident">d</label> <a href="time.go.html#line-911" class="ident">Duration</a>) <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-172"><code>	<span class="keyword">if</span> !<label for="r24" class="ident">t</label>.<a href="#line-91" class="ident">initTimer</a> {</code></span>
+<span class="codeline" id="line-173"><code>		<a href="../../pkg/builtin.html#name-panic" class="ident">panic</a>(<span class="lit-string">"time: Reset called on uninitialized Timer"</span>)</code></span>
+<span class="codeline" id="line-174"><code>	}</code></span>
+<span class="codeline" id="line-175"><code>	<label for="r27" class="ident">w</label> := <a href="#line-52" class="ident">when</a>(<label for="r26" class="ident">d</label>)</code></span>
+<span class="codeline" id="line-176"><code>	<span class="keyword">return</span> <a href="#line-78" class="ident">resetTimer</a>(<label for="r24" class="ident">t</label>, <label for="r27" class="ident">w</label>, <span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-177"><code>}</code></span>
+<span class="codeline" id="line-178"><code></code></span>
+<span class="codeline" id="line-179"><code><span class="comment">// sendTime does a non-blocking send of the current time on c.</span></code></span>
+<span class="codeline" id="line-180"><code><span class="keyword">func</span> <label for="r28" class="ident"><a href="../../pkg/time.html#name-sendTime" class="ident">sendTime</a></label>(<label for="r29" class="ident">c</label> <a href="../../pkg/builtin.html#name-any" class="ident">any</a>, <label for="r30" class="ident">seq</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>, <label for="r31" class="ident">delta</label> <a href="../../pkg/builtin.html#name-int64" class="ident">int64</a>) {</code></span>
+<span class="codeline" id="line-181"><code>	<span class="comment">// delta is how long ago the channel send was supposed to happen.</span></code></span>
+<span class="codeline" id="line-182"><code><span class="comment">	// The current time can be arbitrarily far into the future, because the runtime</span></code></span>
+<span class="codeline" id="line-183"><code><span class="comment">	// can delay a sendTime call until a goroutine tries to receive from</span></code></span>
+<span class="codeline" id="line-184"><code><span class="comment">	// the channel. Subtract delta to go back to the old time that we</span></code></span>
+<span class="codeline" id="line-185"><code><span class="comment">	// used to send.</span></code></span>
+<span class="codeline" id="line-186"><code>	<a href="../runtime/chan.go.html#line-781"><span class="keyword">select</span></a> {</code></span>
+<span class="codeline" id="line-187"><code>	<span class="keyword">case</span> <label for="r29" class="ident">c</label>.(<span class="keyword">chan</span> <a href="time.go.html#line-140" class="ident">Time</a>) <a href="../runtime/chan.go.html#line-176">&lt;-</a> <a href="time.go.html#line-1340" class="ident">Now</a>().<a href="time.go.html#line-1166" class="ident">Add</a>(<a href="time.go.html#line-911" class="ident">Duration</a>(-<label for="r31" class="ident">delta</label>)):</code></span>
+<span class="codeline" id="line-188"><code>	<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-189"><code>	}</code></span>
+<span class="codeline" id="line-190"><code>}</code></span>
+<span class="codeline" id="line-191"><code></code></span>
+<span class="codeline" id="line-192"><code><span class="comment">// After waits for the duration to elapse and then sends the current time</span></code></span>
+<span class="codeline" id="line-193"><code><span class="comment">// on the returned channel.</span></code></span>
+<span class="codeline" id="line-194"><code><span class="comment">// It is equivalent to [NewTimer](d).C.</span></code></span>
+<span class="codeline" id="line-195"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-196"><code><span class="comment">// Before Go 1.23, this documentation warned that the underlying</span></code></span>
+<span class="codeline" id="line-197"><code><span class="comment">// [Timer] would not be recovered by the garbage collector until the</span></code></span>
+<span class="codeline" id="line-198"><code><span class="comment">// timer fired, and that if efficiency was a concern, code should use</span></code></span>
+<span class="codeline" id="line-199"><code><span class="comment">// NewTimer instead and call [Timer.Stop] if the timer is no longer needed.</span></code></span>
+<span class="codeline" id="line-200"><code><span class="comment">// As of Go 1.23, the garbage collector can recover unreferenced,</span></code></span>
+<span class="codeline" id="line-201"><code><span class="comment">// unstopped timers. There is no reason to prefer NewTimer when After will do.</span></code></span>
+<span class="codeline" id="line-202"><code><span class="keyword">func</span> <label for="r32" class="ident"><a href="../../pkg/time.html#name-After" class="ident">After</a></label>(<label for="r33" class="ident">d</label> <a href="time.go.html#line-911" class="ident">Duration</a>) &lt;-<span class="keyword">chan</span> <a href="time.go.html#line-140" class="ident">Time</a> {</code></span>
+<span class="codeline" id="line-203"><code>	<span class="keyword">return</span> <a href="#line-143" class="ident">NewTimer</a>(<label for="r33" class="ident">d</label>).<a href="#line-90" class="ident">C</a></code></span>
+<span class="codeline" id="line-204"><code>}</code></span>
+<span class="codeline" id="line-205"><code></code></span>
+<span class="codeline" id="line-206"><code><span class="comment">// AfterFunc waits for the duration to elapse and then calls f</span></code></span>
+<span class="codeline" id="line-207"><code><span class="comment">// in its own goroutine. It returns a [Timer] that can</span></code></span>
+<span class="codeline" id="line-208"><code><span class="comment">// be used to cancel the call using its Stop method.</span></code></span>
+<span class="codeline" id="line-209"><code><span class="comment">// The returned Timer's C field is not used and will be nil.</span></code></span>
+<span class="codeline" id="line-210"><code><span class="keyword">func</span> <label for="r34" class="ident"><a href="../../pkg/time.html#name-AfterFunc" class="ident">AfterFunc</a></label>(<label for="r35" class="ident">d</label> <a href="time.go.html#line-911" class="ident">Duration</a>, <label for="r36" class="ident">f</label> <span class="keyword">func</span>()) *<a href="#line-89" class="ident">Timer</a> {</code></span>
+<span class="codeline" id="line-211"><code>	<span class="keyword">return</span> (*<a href="#line-89" class="ident">Timer</a>)(<a href="#line-72" class="ident">newTimer</a>(<a href="#line-52" class="ident">when</a>(<label for="r35" class="ident">d</label>), <span class="lit-number">0</span>, <a href="#line-214" class="ident">goFunc</a>, <label for="r36" class="ident">f</label>, <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>))</code></span>
+<span class="codeline" id="line-212"><code>}</code></span>
+<span class="codeline" id="line-213"><code></code></span>
+<span class="codeline" id="line-214"><code><span class="keyword">func</span> <label for="r37" class="ident"><a href="../../pkg/time.html#name-goFunc" class="ident">goFunc</a></label>(<label for="r38" class="ident">arg</label> <a href="../../pkg/builtin.html#name-any" class="ident">any</a>, <label for="r39" class="ident">seq</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>, <label for="r40" class="ident">delta</label> <a href="../../pkg/builtin.html#name-int64" class="ident">int64</a>) {</code></span>
+<span class="codeline" id="line-215"><code>	<span class="keyword">go</span> <label for="r38" class="ident">arg</label>.(<span class="keyword">func</span>())()</code></span>
+<span class="codeline" id="line-216"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

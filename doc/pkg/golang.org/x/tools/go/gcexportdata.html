@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Package: golang.org/x/tools/go/gcexportdata</title>
+<link href="../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="package-details"><code><span style="font-size:xx-large;">package <b>gcexportdata</b></span>
+
+<span class="title">Import Path</span>
+	<a href="../../../../../index.html#pkg-golang.org/x/tools/go/gcexportdata">golang.org/x/tools/go/gcexportdata</a><i> (on <a href="https://pkg.go.dev/golang.org/x/tools/go/gcexportdata" target="_blank">go.dev</a>)</i>
+
+<span class="title">Dependency Relation</span>
+	imports <a href="../../../../../dep/golang.org/x/tools/go/gcexportdata.html">10 packages</a>, and imported by <a href="../../../../../dep/golang.org/x/tools/go/gcexportdata.html#imported-by">one package</a>
+
+<div id="files"><span class="title">Involved Source Files</span>
+
+	<input type='checkbox' checked class="fold" id="file-0-fold-content"><label for="file-0-fold-content">  <a href="../../../../../src/golang.org/x/tools/go/gcexportdata/gcexportdata.go.html#doc">d</a> <a href="../../../../../src/golang.org/x/tools/go/gcexportdata/gcexportdata.go.html">gcexportdata.go</a></label><span id='file-0-fold-content-items' class="fold-items">
+<span class="md-text">		Package gcexportdata provides functions for locating, reading, and
+		writing export data files containing type information produced by the
+		gc compiler.  This package supports go1.7 export data format and all
+		later versions.
+		
+		Although it might seem convenient for this package to live alongside
+		go/types in the standard library, this would cause version skew
+		problems for developer tools that use it, since they must be able to
+		consume the outputs of the gc compiler both before and after a Go
+		update such as from Go 1.7 to Go 1.8.  Because this package lives in
+		golang.org/x/tools, sites can update their version of this repo some
+		time before the Go 1.8 release and rebuild and redeploy their
+		developer tools, which will then be able to consume both Go 1.7 and
+		Go 1.8 export data files, so they will work before and after the
+		Go update. (See discussion at https://golang.org/issue/15651.)</span>
+</span>
+	<span class="nodocs">    <a href="../../../../../src/golang.org/x/tools/go/gcexportdata/importer.go.html">importer.go</a></span></div>
+<div id="examples"><span class="title">Code Examples</span>
+
+	<input type='checkbox' class="fold" id="example-0-fold-content"><label for="example-0-fold-content">NewImporter</label><span id='example-0-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"go/ast"
+			"go/parser"
+			"go/token"
+			"go/types"
+			"log"
+			"path/filepath"
+		
+			"golang.org/x/tools/go/gcexportdata"
+		)
+		
+		func main() {
+			const src = `package myrpc
+		
+		// choosing a package that doesn't change across releases
+		import "net/rpc"
+		
+		const serverError rpc.ServerError = ""
+		`
+			fset := token.NewFileSet()
+			f, err := parser.ParseFile(fset, "myrpc.go", src, 0)
+			if err != nil {
+				log.Fatal(err)
+			}
+		
+			packages := make(map[string]*types.Package)
+			imp := gcexportdata.NewImporter(fset, packages)
+			conf := types.Config{Importer: imp}
+			pkg, err := conf.Check("myrpc", fset, []*ast.File{f}, nil)
+			if err != nil {
+				log.Fatal(err)
+			}
+		
+			// object from imported package
+			pi := packages["net/rpc"].Scope().Lookup("ServerError")
+			fmt.Printf("type %s.%s %s // %s\n",
+				pi.Pkg().Path(),
+				pi.Name(),
+				pi.Type().Underlying(),
+				slashify(fset.Position(pi.Pos())),
+			)
+		
+			// object in source package
+			twopi := pkg.Scope().Lookup("serverError")
+			fmt.Printf("const %s %s = %s // %s\n",
+				twopi.Name(),
+				twopi.Type(),
+				twopi.(*types.Const).Val(),
+				slashify(fset.Position(twopi.Pos())),
+			)
+		
+		}
+		
+		func slashify(posn token.Position) token.Position {
+			posn.Filename = filepath.ToSlash(posn.Filename)
+			return posn
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-1-fold-content"><label for="example-1-fold-content">Read</label><span id='example-1-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"go/token"
+			"go/types"
+			"log"
+			"os"
+			"path/filepath"
+			"strings"
+		
+			"golang.org/x/tools/go/gcexportdata"
+		)
+		
+		func main() {
+			// Find the export data file.
+			filename, path := gcexportdata.Find("fmt", "")
+			if filename == "" {
+				log.Fatalf("can't find export data for fmt")
+			}
+			fmt.Printf("Package path:       %s\n", path)
+		
+			// Open and read the file.
+			f, err := os.Open(filename)
+			if err != nil {
+				log.Fatal(err)
+			}
+			defer f.Close()
+			r, err := gcexportdata.NewReader(f)
+			if err != nil {
+				log.Fatalf("reading export data %s: %v", filename, err)
+			}
+		
+			// Decode the export data.
+			fset := token.NewFileSet()
+			imports := make(map[string]*types.Package)
+			pkg, err := gcexportdata.Read(r, fset, imports, path)
+			if err != nil {
+				log.Fatal(err)
+			}
+		
+			// We can see all the names in Names.
+			members := pkg.Scope().Names()
+			foundPrintln := false
+			for _, member := range members {
+				if member == "Println" {
+					foundPrintln = true
+					break
+				}
+			}
+			fmt.Print("Package members:    ")
+			if foundPrintln {
+				fmt.Println("Println found")
+			} else {
+				fmt.Println("Println not found")
+			}
+		
+			// We can also look up a name directly using Lookup.
+			println := pkg.Scope().Lookup("Println")
+			// go 1.18+ uses the 'any' alias
+			typ := strings.ReplaceAll(println.Type().String(), "interface{}", "any")
+			fmt.Printf("Println type:       %s\n", typ)
+			posn := fset.Position(println.Pos())
+			// make example deterministic
+			posn.Line = 123
+			fmt.Printf("Println location:   %s\n", slashify(posn))
+		
+		}
+		
+		func slashify(posn token.Position) token.Position {
+			posn.Filename = filepath.ToSlash(posn.Filename)
+			return posn
+		}
+</span>
+</div>
+<div id="exported-types"><span class="title">Package-Level Type Names<span class="title-stat"><i> (only one, which is unexported)</i></span></span>
+
+<div id="exported-types-buttons" class="js-on">	/* sort exporteds by: <label id="sort-types-by-alphabet" class="button">alphabet</label> | <label id="sort-types-by-popularity" class="button">popularity</label> */</div></div><div>	<input type='checkbox' class="showhide" id="unexported-typenames-showhide"><i><label for="unexported-typenames-showhide" class="show-inline">/* one unexported ... */</label><label for="unexported-typenames-showhide" class="hide-inline">/* one unexported: */</label></i><div class="anchor type-res hidden" id="name-importer" data-popularity="200">	<input type='checkbox' class="fold" id="importer-fold-content"><label for="importer-fold-content"> <a href="../../../../../use/golang.org/x/tools/go/gcexportdata..importer^2c98a.html">type</a> <a href="../../../../../src/golang.org/x/tools/go/gcexportdata/importer.go.html#line-32">importer</a> <i>(struct)</i></label><span id='importer-fold-content-docs' class="fold-docs">
+
+		<input type='checkbox' class="fold" id="importer-fold-fields"><label for="importer-fold-fields">Fields (<i>total 2, neither is exported</i>)</label><span id='importer-fold-fields-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="importer-showhide-fields"><i><label for="importer-showhide-fields" class="show-inline">/* 2 unexporteds ... */</label><label for="importer-showhide-fields" class="hide-inline">/* 2 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/gcexportdata/importer.go.html#line-33">fset</a> <i>*<a href="../../../../go/token.html">token</a>.<a href="../../../../go/token.html#name-FileSet">FileSet</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../../../src/golang.org/x/tools/go/gcexportdata/importer.go.html#line-34">imports</a> <i>map[<a href="../../../../builtin.html#name-string">string</a>]*<a href="../../../../go/types.html">types</a>.<a href="../../../../go/types.html#name-Package">Package</a></i></span></i></span></span>
+		<input type='checkbox' class="fold" id="importer-fold-methods"><label for="importer-fold-methods">Methods (<i>total 2, both are exported</i>)</label><span id='importer-fold-methods-items' class="fold-items"><span>
+			<span class="nodocs">( importer) <a href="../../../../../src/golang.org/x/tools/go/gcexportdata/importer.go.html#line-37">Import</a>(importPath <a href="../../../../builtin.html#name-string">string</a>) (*<a href="../../../../go/types.html">types</a>.<a href="../../../../go/types.html#name-Package">Package</a>, <a href="../../../../builtin.html#name-error">error</a>)</span></span><span>
+			<span class="nodocs">( importer) <a href="../../../../../src/golang.org/x/tools/go/gcexportdata/importer.go.html#line-41">ImportFrom</a>(importPath, srcDir <a href="../../../../builtin.html#name-string">string</a>, mode <a href="../../../../go/types.html">types</a>.<a href="../../../../go/types.html#name-ImportMode">ImportMode</a>) (_ *<a href="../../../../go/types.html">types</a>.<a href="../../../../go/types.html#name-Package">Package</a>, err <a href="../../../../builtin.html#name-error">error</a>)</span></span></span>
+		<input type='checkbox' class="fold" id="importer-fold-impls"><label for="importer-fold-impls">Implements (<i>at least 2, both are exported</i>)</label><span id='importer-fold-impls-items' class="fold-items"><span>
+			 importer : go/types.<a href="../../../../go/types.html#name-Importer">Importer</a></span><span>
+			 importer : go/types.<a href="../../../../go/types.html#name-ImporterFrom">ImporterFrom</a></span></span>
+
+</span></div></div>
+<div id="exported-functions"><span class="title">Package-Level Functions<span class="title-stat"><i> (total 8, in which 7 are exported)</i></span></span>
+
+<div class="anchor value-res" id="name-Find">	<input type='checkbox' class="fold" id="Find-fold-content"><label for="Find-fold-content"> <a href="../../../../../use/golang.org/x/tools/go/gcexportdata..Find.html">func</a> <a href="../../../../../src/golang.org/x/tools/go/gcexportdata/gcexportdata.go.html#line-47">Find</a>(importPath, srcDir <a href="../../../../builtin.html#name-string">string</a>) (filename, path <a href="../../../../builtin.html#name-string">string</a>)</label><span id='Find-fold-content-docs' class="fold-docs">
+<span class="md-text">		Find returns the name of an object (.o) or archive (.a) file
+		containing type information for the specified import path,
+		using the go command.
+		If no file was found, an empty filename is returned.
+		
+		A relative srcDir is interpreted relative to the current working directory.
+		
+		Find also returns the package's resolved (canonical) import path,
+		reflecting the effects of srcDir and vendoring on importPath.
+		
+		Deprecated: Use the higher-level API in golang.org/x/tools/go/packages,
+		which is more efficient.</span>
+
+</span></div><div class="anchor value-res" id="name-NewImporter">	<input type='checkbox' class="fold" id="NewImporter-fold-content"><label for="NewImporter-fold-content"> <a href="../../../../../use/golang.org/x/tools/go/gcexportdata..NewImporter.html">func</a> <a href="../../../../../src/golang.org/x/tools/go/gcexportdata/importer.go.html#line-28">NewImporter</a>(fset *<a href="../../../../go/token.html">token</a>.<a href="../../../../go/token.html#name-FileSet">FileSet</a>, imports map[<a href="../../../../builtin.html#name-string">string</a>]*<a href="../../../../go/types.html">types</a>.<a href="../../../../go/types.html#name-Package">Package</a>) <a href="../../../../go/types.html">types</a>.<a href="../../../../go/types.html#name-ImporterFrom">ImporterFrom</a></label><span id='NewImporter-fold-content-docs' class="fold-docs">
+<span class="md-text">		NewImporter returns a new instance of the types.Importer interface
+		that reads type information from export data files written by gc.
+		The Importer also satisfies types.ImporterFrom.
+		
+		Export data files are located using "go build" workspace conventions
+		and the build.Default context.
+		
+		Use this importer instead of go/importer.For("gc", ...) to avoid the
+		version-skew problems described in the documentation of this package,
+		or to control the FileSet or access the imports map populated during
+		package loading.
+		
+		Deprecated: Use the higher-level API in golang.org/x/tools/go/packages,
+		which is more efficient.</span>
+
+</span></div><div class="anchor value-res" id="name-NewReader">	<input type='checkbox' class="fold" id="NewReader-fold-content"><label for="NewReader-fold-content"> <a href="../../../../../use/golang.org/x/tools/go/gcexportdata..NewReader.html">func</a> <a href="../../../../../src/golang.org/x/tools/go/gcexportdata/gcexportdata.go.html#line-65">NewReader</a>(r <a href="../../../../io.html">io</a>.<a href="../../../../io.html#name-Reader">Reader</a>) (<a href="../../../../io.html">io</a>.<a href="../../../../io.html#name-Reader">Reader</a>, <a href="../../../../builtin.html#name-error">error</a>)</label><span id='NewReader-fold-content-docs' class="fold-docs">
+<span class="md-text">		NewReader returns a reader for the export data section of an object
+		(.o) or archive (.a) file read from r.  The new reader may provide
+		additional trailing data beyond the end of the export data.</span>
+
+</span></div><div class="anchor value-res" id="name-Read">	<input type='checkbox' class="fold" id="Read-fold-content"><label for="Read-fold-content"> <a href="../../../../../use/golang.org/x/tools/go/gcexportdata..Read.html">func</a> <a href="../../../../../src/golang.org/x/tools/go/gcexportdata/gcexportdata.go.html#line-116">Read</a>(in <a href="../../../../io.html">io</a>.<a href="../../../../io.html#name-Reader">Reader</a>, fset *<a href="../../../../go/token.html">token</a>.<a href="../../../../go/token.html#name-FileSet">FileSet</a>, imports map[<a href="../../../../builtin.html#name-string">string</a>]*<a href="../../../../go/types.html">types</a>.<a href="../../../../go/types.html#name-Package">Package</a>, path <a href="../../../../builtin.html#name-string">string</a>) (*<a href="../../../../go/types.html">types</a>.<a href="../../../../go/types.html#name-Package">Package</a>, <a href="../../../../builtin.html#name-error">error</a>)</label><span id='Read-fold-content-docs' class="fold-docs">
+<span class="md-text">		Read reads export data from in, decodes it, and returns type
+		information for the package.
+		
+		The package path (effectively its linker symbol prefix) is
+		specified by path, since unlike the package name, this information
+		may not be recorded in the export data.
+		
+		File position information is added to fset.
+		
+		Read may inspect and add to the imports map to ensure that references
+		within the export data to other packages are consistent.  The caller
+		must ensure that imports[path] does not exist, or exists but is
+		incomplete (see types.Package.Complete), and Read inserts the
+		resulting package into this map entry.
+		
+		On return, the state of the reader is undefined.</span>
+
+</span></div><div class="anchor value-res" id="name-ReadBundle">	<input type='checkbox' class="fold" id="ReadBundle-fold-content"><label for="ReadBundle-fold-content"> <a href="../../../../../use/golang.org/x/tools/go/gcexportdata..ReadBundle.html">func</a> <a href="../../../../../src/golang.org/x/tools/go/gcexportdata/gcexportdata.go.html#line-172">ReadBundle</a>(in <a href="../../../../io.html">io</a>.<a href="../../../../io.html#name-Reader">Reader</a>, fset *<a href="../../../../go/token.html">token</a>.<a href="../../../../go/token.html#name-FileSet">FileSet</a>, imports map[<a href="../../../../builtin.html#name-string">string</a>]*<a href="../../../../go/types.html">types</a>.<a href="../../../../go/types.html#name-Package">Package</a>) ([]*<a href="../../../../go/types.html">types</a>.<a href="../../../../go/types.html#name-Package">Package</a>, <a href="../../../../builtin.html#name-error">error</a>)</label><span id='ReadBundle-fold-content-docs' class="fold-docs">
+<span class="md-text">		ReadBundle reads an export bundle from in, decodes it, and returns type
+		information for the packages.
+		File position information is added to fset.
+		
+		ReadBundle may inspect and add to the imports map to ensure that references
+		within the export bundle to other packages are consistent.
+		
+		On return, the state of the reader is undefined.
+		
+		Experimental: This API is experimental and may change in the future.</span>
+
+</span></div><div class="anchor value-res" id="name-Write">	<input type='checkbox' class="fold" id="Write-fold-content"><label for="Write-fold-content"> <a href="../../../../../use/golang.org/x/tools/go/gcexportdata..Write.html">func</a> <a href="../../../../../src/golang.org/x/tools/go/gcexportdata/gcexportdata.go.html#line-155">Write</a>(out <a href="../../../../io.html">io</a>.<a href="../../../../io.html#name-Writer">Writer</a>, fset *<a href="../../../../go/token.html">token</a>.<a href="../../../../go/token.html#name-FileSet">FileSet</a>, pkg *<a href="../../../../go/types.html">types</a>.<a href="../../../../go/types.html#name-Package">Package</a>) <a href="../../../../builtin.html#name-error">error</a></label><span id='Write-fold-content-docs' class="fold-docs">
+<span class="md-text">		Write writes encoded type information for the specified package to out.
+		The FileSet provides file position information for named objects.</span>
+
+</span></div><div class="anchor value-res" id="name-WriteBundle">	<input type='checkbox' class="fold" id="WriteBundle-fold-content"><label for="WriteBundle-fold-content"> <a href="../../../../../use/golang.org/x/tools/go/gcexportdata..WriteBundle.html">func</a> <a href="../../../../../src/golang.org/x/tools/go/gcexportdata/gcexportdata.go.html#line-184">WriteBundle</a>(out <a href="../../../../io.html">io</a>.<a href="../../../../io.html#name-Writer">Writer</a>, fset *<a href="../../../../go/token.html">token</a>.<a href="../../../../go/token.html#name-FileSet">FileSet</a>, pkgs []*<a href="../../../../go/types.html">types</a>.<a href="../../../../go/types.html#name-Package">Package</a>) <a href="../../../../builtin.html#name-error">error</a></label><span id='WriteBundle-fold-content-docs' class="fold-docs">
+<span class="md-text">		WriteBundle writes encoded type information for the specified packages to out.
+		The FileSet provides file position information for named objects.
+		
+		Experimental: This API is experimental and may change in the future.</span>
+
+</span></div>	<input type='checkbox' class="showhide" id="unexported-functions-showhide"><i><label for="unexported-functions-showhide" class="show-inline">/* one unexported ... */</label><label for="unexported-functions-showhide" class="hide-inline">/* one unexported: */</label></i><div class="anchor value-res hidden" id="name-readAll"><i>	<input type='checkbox' class="fold" id="readAll-fold-content"><label for="readAll-fold-content"> <a href="../../../../../use/golang.org/x/tools/go/gcexportdata..readAll^79a2b.html">func</a> <a href="../../../../../src/golang.org/x/tools/go/gcexportdata/gcexportdata.go.html#line-91">readAll</a>(r <a href="../../../../io.html">io</a>.<a href="../../../../io.html#name-Reader">Reader</a>) ([]<a href="../../../../builtin.html#name-byte">byte</a>, <a href="../../../../builtin.html#name-error">error</a>)</label><span id='readAll-fold-content-docs' class="fold-docs">
+<span class="md-text">		readAll works the same way as io.ReadAll, but avoids allocations and copies
+		by preallocating a byte slice of the necessary size if the size is known up
+		front. This is always possible when the input is an archive. In that case,
+		NewReader will return the known size using an io.LimitedReader.</span>
+
+</span></i></div></div></code></pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

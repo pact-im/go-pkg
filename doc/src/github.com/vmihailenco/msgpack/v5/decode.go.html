@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: decode.go in package github.com/vmihailenco/msgpack/v5</title>
+<link href="../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	decode.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5.html">github.com/vmihailenco/msgpack/v5</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30],
+input[id=r31]:checked ~pre label[for=r31],
+input[id=r32]:checked ~pre label[for=r32],
+input[id=r33]:checked ~pre label[for=r33],
+input[id=r34]:checked ~pre label[for=r34],
+input[id=r35]:checked ~pre label[for=r35],
+input[id=r36]:checked ~pre label[for=r36],
+input[id=r37]:checked ~pre label[for=r37],
+input[id=r38]:checked ~pre label[for=r38],
+input[id=r39]:checked ~pre label[for=r39],
+input[id=r40]:checked ~pre label[for=r40],
+input[id=r41]:checked ~pre label[for=r41],
+input[id=r42]:checked ~pre label[for=r42],
+input[id=r43]:checked ~pre label[for=r43],
+input[id=r44]:checked ~pre label[for=r44],
+input[id=r45]:checked ~pre label[for=r45],
+input[id=r46]:checked ~pre label[for=r46],
+input[id=r47]:checked ~pre label[for=r47],
+input[id=r48]:checked ~pre label[for=r48],
+input[id=r49]:checked ~pre label[for=r49],
+input[id=r50]:checked ~pre label[for=r50],
+input[id=r51]:checked ~pre label[for=r51],
+input[id=r52]:checked ~pre label[for=r52],
+input[id=r53]:checked ~pre label[for=r53],
+input[id=r54]:checked ~pre label[for=r54],
+input[id=r55]:checked ~pre label[for=r55],
+input[id=r56]:checked ~pre label[for=r56],
+input[id=r57]:checked ~pre label[for=r57],
+input[id=r58]:checked ~pre label[for=r58],
+input[id=r59]:checked ~pre label[for=r59],
+input[id=r60]:checked ~pre label[for=r60],
+input[id=r61]:checked ~pre label[for=r61],
+input[id=r62]:checked ~pre label[for=r62],
+input[id=r63]:checked ~pre label[for=r63],
+input[id=r64]:checked ~pre label[for=r64],
+input[id=r65]:checked ~pre label[for=r65],
+input[id=r66]:checked ~pre label[for=r66],
+input[id=r67]:checked ~pre label[for=r67],
+input[id=r68]:checked ~pre label[for=r68],
+input[id=r69]:checked ~pre label[for=r69],
+input[id=r70]:checked ~pre label[for=r70],
+input[id=r71]:checked ~pre label[for=r71],
+input[id=r72]:checked ~pre label[for=r72],
+input[id=r73]:checked ~pre label[for=r73],
+input[id=r74]:checked ~pre label[for=r74],
+input[id=r75]:checked ~pre label[for=r75],
+input[id=r76]:checked ~pre label[for=r76],
+input[id=r77]:checked ~pre label[for=r77],
+input[id=r78]:checked ~pre label[for=r78],
+input[id=r79]:checked ~pre label[for=r79],
+input[id=r80]:checked ~pre label[for=r80],
+input[id=r81]:checked ~pre label[for=r81],
+input[id=r82]:checked ~pre label[for=r82],
+input[id=r83]:checked ~pre label[for=r83],
+input[id=r84]:checked ~pre label[for=r84],
+input[id=r85]:checked ~pre label[for=r85],
+input[id=r86]:checked ~pre label[for=r86],
+input[id=r87]:checked ~pre label[for=r87],
+input[id=r88]:checked ~pre label[for=r88],
+input[id=r89]:checked ~pre label[for=r89],
+input[id=r90]:checked ~pre label[for=r90],
+input[id=r91]:checked ~pre label[for=r91],
+input[id=r92]:checked ~pre label[for=r92],
+input[id=r93]:checked ~pre label[for=r93],
+input[id=r94]:checked ~pre label[for=r94],
+input[id=r95]:checked ~pre label[for=r95],
+input[id=r96]:checked ~pre label[for=r96],
+input[id=r97]:checked ~pre label[for=r97],
+input[id=r98]:checked ~pre label[for=r98],
+input[id=r99]:checked ~pre label[for=r99],
+input[id=r100]:checked ~pre label[for=r100],
+input[id=r101]:checked ~pre label[for=r101],
+input[id=r102]:checked ~pre label[for=r102],
+input[id=r103]:checked ~pre label[for=r103],
+input[id=r104]:checked ~pre label[for=r104],
+input[id=r105]:checked ~pre label[for=r105],
+input[id=r106]:checked ~pre label[for=r106],
+input[id=r107]:checked ~pre label[for=r107],
+input[id=r108]:checked ~pre label[for=r108],
+input[id=r109]:checked ~pre label[for=r109],
+input[id=r110]:checked ~pre label[for=r110],
+input[id=r111]:checked ~pre label[for=r111],
+input[id=r112]:checked ~pre label[for=r112],
+input[id=r113]:checked ~pre label[for=r113],
+input[id=r114]:checked ~pre label[for=r114],
+input[id=r115]:checked ~pre label[for=r115],
+input[id=r116]:checked ~pre label[for=r116],
+input[id=r117]:checked ~pre label[for=r117],
+input[id=r118]:checked ~pre label[for=r118],
+input[id=r119]:checked ~pre label[for=r119],
+input[id=r120]:checked ~pre label[for=r120],
+input[id=r121]:checked ~pre label[for=r121],
+input[id=r122]:checked ~pre label[for=r122],
+input[id=r123]:checked ~pre label[for=r123],
+input[id=r124]:checked ~pre label[for=r124],
+input[id=r125]:checked ~pre label[for=r125],
+input[id=r126]:checked ~pre label[for=r126],
+input[id=r127]:checked ~pre label[for=r127],
+input[id=r128]:checked ~pre label[for=r128],
+input[id=r129]:checked ~pre label[for=r129],
+input[id=r130]:checked ~pre label[for=r130],
+input[id=r131]:checked ~pre label[for=r131],
+input[id=r132]:checked ~pre label[for=r132],
+input[id=r133]:checked ~pre label[for=r133],
+input[id=r134]:checked ~pre label[for=r134],
+input[id=r135]:checked ~pre label[for=r135],
+input[id=r136]:checked ~pre label[for=r136],
+input[id=r137]:checked ~pre label[for=r137],
+input[id=r138]:checked ~pre label[for=r138],
+input[id=r139]:checked ~pre label[for=r139],
+input[id=r140]:checked ~pre label[for=r140],
+input[id=r141]:checked ~pre label[for=r141],
+input[id=r142]:checked ~pre label[for=r142],
+input[id=r143]:checked ~pre label[for=r143],
+input[id=r144]:checked ~pre label[for=r144],
+input[id=r145]:checked ~pre label[for=r145],
+input[id=r146]:checked ~pre label[for=r146],
+input[id=r147]:checked ~pre label[for=r147],
+input[id=r148]:checked ~pre label[for=r148],
+input[id=r149]:checked ~pre label[for=r149],
+input[id=r150]:checked ~pre label[for=r150],
+input[id=r151]:checked ~pre label[for=r151],
+input[id=r152]:checked ~pre label[for=r152],
+input[id=r153]:checked ~pre label[for=r153],
+input[id=r154]:checked ~pre label[for=r154],
+input[id=r155]:checked ~pre label[for=r155],
+input[id=r156]:checked ~pre label[for=r156],
+input[id=r157]:checked ~pre label[for=r157],
+input[id=r158]:checked ~pre label[for=r158],
+input[id=r159]:checked ~pre label[for=r159]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3,
+input[id=i4]:checked ~pre .i4,
+input[id=i5]:checked ~pre .i5,
+input[id=i6]:checked ~pre .i6,
+input[id=i7]:checked ~pre .i7,
+input[id=i8]:checked ~pre .i8
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="r31" type="radio" name="g"/>
+<input id="r32" type="radio" name="g"/>
+<input id="r33" type="radio" name="g"/>
+<input id="r34" type="radio" name="g"/>
+<input id="r35" type="radio" name="g"/>
+<input id="r36" type="radio" name="g"/>
+<input id="r37" type="radio" name="g"/>
+<input id="r38" type="radio" name="g"/>
+<input id="r39" type="radio" name="g"/>
+<input id="r40" type="radio" name="g"/>
+<input id="r41" type="radio" name="g"/>
+<input id="r42" type="radio" name="g"/>
+<input id="r43" type="radio" name="g"/>
+<input id="r44" type="radio" name="g"/>
+<input id="r45" type="radio" name="g"/>
+<input id="r46" type="radio" name="g"/>
+<input id="r47" type="radio" name="g"/>
+<input id="r48" type="radio" name="g"/>
+<input id="r49" type="radio" name="g"/>
+<input id="r50" type="radio" name="g"/>
+<input id="r51" type="radio" name="g"/>
+<input id="r52" type="radio" name="g"/>
+<input id="r53" type="radio" name="g"/>
+<input id="r54" type="radio" name="g"/>
+<input id="r55" type="radio" name="g"/>
+<input id="r56" type="radio" name="g"/>
+<input id="r57" type="radio" name="g"/>
+<input id="r58" type="radio" name="g"/>
+<input id="r59" type="radio" name="g"/>
+<input id="r60" type="radio" name="g"/>
+<input id="r61" type="radio" name="g"/>
+<input id="r62" type="radio" name="g"/>
+<input id="r63" type="radio" name="g"/>
+<input id="r64" type="radio" name="g"/>
+<input id="r65" type="radio" name="g"/>
+<input id="r66" type="radio" name="g"/>
+<input id="r67" type="radio" name="g"/>
+<input id="r68" type="radio" name="g"/>
+<input id="r69" type="radio" name="g"/>
+<input id="r70" type="radio" name="g"/>
+<input id="r71" type="radio" name="g"/>
+<input id="r72" type="radio" name="g"/>
+<input id="r73" type="radio" name="g"/>
+<input id="r74" type="radio" name="g"/>
+<input id="r75" type="radio" name="g"/>
+<input id="r76" type="radio" name="g"/>
+<input id="r77" type="radio" name="g"/>
+<input id="r78" type="radio" name="g"/>
+<input id="r79" type="radio" name="g"/>
+<input id="r80" type="radio" name="g"/>
+<input id="r81" type="radio" name="g"/>
+<input id="r82" type="radio" name="g"/>
+<input id="r83" type="radio" name="g"/>
+<input id="r84" type="radio" name="g"/>
+<input id="r85" type="radio" name="g"/>
+<input id="r86" type="radio" name="g"/>
+<input id="r87" type="radio" name="g"/>
+<input id="r88" type="radio" name="g"/>
+<input id="r89" type="radio" name="g"/>
+<input id="r90" type="radio" name="g"/>
+<input id="r91" type="radio" name="g"/>
+<input id="r92" type="radio" name="g"/>
+<input id="r93" type="radio" name="g"/>
+<input id="r94" type="radio" name="g"/>
+<input id="r95" type="radio" name="g"/>
+<input id="r96" type="radio" name="g"/>
+<input id="r97" type="radio" name="g"/>
+<input id="r98" type="radio" name="g"/>
+<input id="r99" type="radio" name="g"/>
+<input id="r100" type="radio" name="g"/>
+<input id="r101" type="radio" name="g"/>
+<input id="r102" type="radio" name="g"/>
+<input id="r103" type="radio" name="g"/>
+<input id="r104" type="radio" name="g"/>
+<input id="r105" type="radio" name="g"/>
+<input id="r106" type="radio" name="g"/>
+<input id="r107" type="radio" name="g"/>
+<input id="r108" type="radio" name="g"/>
+<input id="r109" type="radio" name="g"/>
+<input id="r110" type="radio" name="g"/>
+<input id="r111" type="radio" name="g"/>
+<input id="r112" type="radio" name="g"/>
+<input id="r113" type="radio" name="g"/>
+<input id="r114" type="radio" name="g"/>
+<input id="r115" type="radio" name="g"/>
+<input id="r116" type="radio" name="g"/>
+<input id="r117" type="radio" name="g"/>
+<input id="r118" type="radio" name="g"/>
+<input id="r119" type="radio" name="g"/>
+<input id="r120" type="radio" name="g"/>
+<input id="r121" type="radio" name="g"/>
+<input id="r122" type="radio" name="g"/>
+<input id="r123" type="radio" name="g"/>
+<input id="r124" type="radio" name="g"/>
+<input id="r125" type="radio" name="g"/>
+<input id="r126" type="radio" name="g"/>
+<input id="r127" type="radio" name="g"/>
+<input id="r128" type="radio" name="g"/>
+<input id="r129" type="radio" name="g"/>
+<input id="r130" type="radio" name="g"/>
+<input id="r131" type="radio" name="g"/>
+<input id="r132" type="radio" name="g"/>
+<input id="r133" type="radio" name="g"/>
+<input id="r134" type="radio" name="g"/>
+<input id="r135" type="radio" name="g"/>
+<input id="r136" type="radio" name="g"/>
+<input id="r137" type="radio" name="g"/>
+<input id="r138" type="radio" name="g"/>
+<input id="r139" type="radio" name="g"/>
+<input id="r140" type="radio" name="g"/>
+<input id="r141" type="radio" name="g"/>
+<input id="r142" type="radio" name="g"/>
+<input id="r143" type="radio" name="g"/>
+<input id="r144" type="radio" name="g"/>
+<input id="r145" type="radio" name="g"/>
+<input id="r146" type="radio" name="g"/>
+<input id="r147" type="radio" name="g"/>
+<input id="r148" type="radio" name="g"/>
+<input id="r149" type="radio" name="g"/>
+<input id="r150" type="radio" name="g"/>
+<input id="r151" type="radio" name="g"/>
+<input id="r152" type="radio" name="g"/>
+<input id="r153" type="radio" name="g"/>
+<input id="r154" type="radio" name="g"/>
+<input id="r155" type="radio" name="g"/>
+<input id="r156" type="radio" name="g"/>
+<input id="r157" type="radio" name="g"/>
+<input id="r158" type="radio" name="g"/>
+<input id="r159" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+<input id="i4" type="radio" name="i"/>
+<input id="i5" type="radio" name="i"/>
+<input id="i6" type="radio" name="i"/>
+<input id="i7" type="radio" name="i"/>
+<input id="i8" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="keyword">package</span> msgpack</code></span>
+<span class="codeline" id="line-2"><code></code></span>
+<span class="codeline" id="line-3"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-4"><code>	<label for="i0"><span class="lit-string i0">"bufio"</span></label></code></span>
+<span class="codeline" id="line-5"><code>	<label for="i1"><span class="lit-string i1">"bytes"</span></label></code></span>
+<span class="codeline" id="line-6"><code>	<label for="i2"><span class="lit-string i2">"errors"</span></label></code></span>
+<span class="codeline" id="line-7"><code>	<label for="i3"><span class="lit-string i3">"fmt"</span></label></code></span>
+<span class="codeline" id="line-8"><code>	<label for="i4"><span class="lit-string i4">"io"</span></label></code></span>
+<span class="codeline" id="line-9"><code>	<label for="i5"><span class="lit-string i5">"reflect"</span></label></code></span>
+<span class="codeline" id="line-10"><code>	<label for="i6"><span class="lit-string i6">"sync"</span></label></code></span>
+<span class="codeline" id="line-11"><code>	<label for="i7"><span class="lit-string i7">"time"</span></label></code></span>
+<span class="codeline" id="line-12"><code></code></span>
+<span class="codeline" id="line-13"><code>	<label for="i8"><span class="lit-string i8">"github.com/vmihailenco/msgpack/v5/msgpcode"</span></label></code></span>
+<span class="codeline" id="line-14"><code>)</code></span>
+<span class="codeline" id="line-15"><code></code></span>
+<span class="codeline" id="line-16"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-17"><code>	<a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5.html#name-looseInterfaceDecodingFlag" class="ident">looseInterfaceDecodingFlag</a> <a href="../../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a> = <span class="lit-number">1</span> &lt;&lt; <a href="../../../../../pkg/builtin.html#name-iota" class="ident">iota</a></code></span>
+<span class="codeline" id="line-18"><code>	<a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5.html#name-disallowUnknownFieldsFlag" class="ident">disallowUnknownFieldsFlag</a></code></span>
+<span class="codeline" id="line-19"><code>)</code></span>
+<span class="codeline" id="line-20"><code></code></span>
+<span class="codeline" id="line-21"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-22"><code>	<a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5.html#name-bytesAllocLimit" class="ident">bytesAllocLimit</a> = <span class="lit-number">1e6</span> <span class="comment">// 1mb</span></code></span>
+<span class="codeline" id="line-23"><code>	<a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5.html#name-sliceAllocLimit" class="ident">sliceAllocLimit</a> = <span class="lit-number">1e4</span></code></span>
+<span class="codeline" id="line-24"><code>	<a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5.html#name-maxMapSize" class="ident">maxMapSize</a>      = <span class="lit-number">1e6</span></code></span>
+<span class="codeline" id="line-25"><code>)</code></span>
+<span class="codeline" id="line-26"><code></code></span>
+<span class="codeline" id="line-27"><code><span class="keyword">type</span> <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5.html#name-bufReader" class="ident">bufReader</a> <span class="keyword">interface</span> {</code></span>
+<span class="codeline" id="line-28"><code>	<a href="../../../../../pkg/io.html" class="ident i4">io</a>.<a href="../../../../io/io.go.html#line-86" class="ident">Reader</a></code></span>
+<span class="codeline" id="line-29"><code>	<a href="../../../../../pkg/io.html" class="ident i4">io</a>.<a href="../../../../io/io.go.html#line-274" class="ident">ByteScanner</a></code></span>
+<span class="codeline" id="line-30"><code>}</code></span>
+<span class="codeline" id="line-31"><code></code></span>
+<span class="codeline" id="line-32"><code><span class="comment">//------------------------------------------------------------------------------</span></code></span>
+<span class="codeline" id="line-33"><code></code></span>
+<span class="codeline" id="line-34"><code><span class="keyword">var</span> <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5.html#name-decPool" class="ident">decPool</a> = <a href="../../../../../pkg/sync.html" class="ident i6">sync</a>.<a href="../../../../sync/pool.go.html#line-51" class="ident">Pool</a>{</code></span>
+<span class="codeline" id="line-35"><code>	<a href="../../../../sync/pool.go.html#line-63" class="ident">New</a>: <span class="keyword">func</span>() <span class="keyword">interface</span>{} {</code></span>
+<span class="codeline" id="line-36"><code>		<span class="keyword">return</span> <a href="#line-84" class="ident">NewDecoder</a>(<a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>)</code></span>
+<span class="codeline" id="line-37"><code>	},</code></span>
+<span class="codeline" id="line-38"><code>}</code></span>
+<span class="codeline" id="line-39"><code></code></span>
+<span class="codeline" id="line-40"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5.html#name-GetDecoder" class="ident">GetDecoder</a></label>() *<a href="#line-66" class="ident">Decoder</a> {</code></span>
+<span class="codeline" id="line-41"><code>	<span class="keyword">return</span> <a href="#line-34" class="ident">decPool</a>.<a href="../../../../sync/pool.go.html#line-131" class="ident">Get</a>().(*<a href="#line-66" class="ident">Decoder</a>)</code></span>
+<span class="codeline" id="line-42"><code>}</code></span>
+<span class="codeline" id="line-43"><code></code></span>
+<span class="codeline" id="line-44"><code><span class="keyword">func</span> <label for="r1" class="ident"><a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5.html#name-PutDecoder" class="ident">PutDecoder</a></label>(<label for="r2" class="ident">dec</label> *<a href="#line-66" class="ident">Decoder</a>) {</code></span>
+<span class="codeline" id="line-45"><code>	<label for="r2" class="ident">dec</label>.<a href="#line-67" class="ident">r</a> = <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-46"><code>	<label for="r2" class="ident">dec</label>.<a href="#line-68" class="ident">s</a> = <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-47"><code>	<a href="#line-34" class="ident">decPool</a>.<a href="../../../../sync/pool.go.html#line-99" class="ident">Put</a>(<label for="r2" class="ident">dec</label>)</code></span>
+<span class="codeline" id="line-48"><code>}</code></span>
+<span class="codeline" id="line-49"><code></code></span>
+<span class="codeline" id="line-50"><code><span class="comment">//------------------------------------------------------------------------------</span></code></span>
+<span class="codeline" id="line-51"><code></code></span>
+<span class="codeline" id="line-52"><code><span class="comment">// Unmarshal decodes the MessagePack-encoded data and stores the result</span></code></span>
+<span class="codeline" id="line-53"><code><span class="comment">// in the value pointed to by v.</span></code></span>
+<span class="codeline" id="line-54"><code><span class="keyword">func</span> <label for="r3" class="ident"><a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5.html#name-Unmarshal" class="ident">Unmarshal</a></label>(<label for="r4" class="ident">data</label> []<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r5" class="ident">v</label> <span class="keyword">interface</span>{}) <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-55"><code>	<label for="r6" class="ident">dec</label> := <a href="#line-40" class="ident">GetDecoder</a>()</code></span>
+<span class="codeline" id="line-56"><code></code></span>
+<span class="codeline" id="line-57"><code>	<label for="r6" class="ident">dec</label>.<a href="#line-92" class="ident">Reset</a>(<a href="../../../../../pkg/bytes.html" class="ident i1">bytes</a>.<a href="../../../../bytes/reader.go.html#line-159" class="ident">NewReader</a>(<label for="r4" class="ident">data</label>))</code></span>
+<span class="codeline" id="line-58"><code>	<label for="r7" class="ident">err</label> := <label for="r6" class="ident">dec</label>.<a href="#line-171" class="ident">Decode</a>(<label for="r5" class="ident">v</label>)</code></span>
+<span class="codeline" id="line-59"><code></code></span>
+<span class="codeline" id="line-60"><code>	<a href="#line-44" class="ident">PutDecoder</a>(<label for="r6" class="ident">dec</label>)</code></span>
+<span class="codeline" id="line-61"><code></code></span>
+<span class="codeline" id="line-62"><code>	<span class="keyword">return</span> <label for="r7" class="ident">err</label></code></span>
+<span class="codeline" id="line-63"><code>}</code></span>
+<span class="codeline" id="line-64"><code></code></span>
+<span class="codeline" id="line-65"><code><span class="comment">// A Decoder reads and decodes MessagePack values from an input stream.</span></code></span>
+<span class="codeline" id="line-66"><code><span class="keyword">type</span> <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5.html#name-Decoder" class="ident">Decoder</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-67"><code>	<a href="../../../../../use/github.com/vmihailenco/msgpack/v5..Decoder.r^45434.html" class="ident">r</a>   <a href="../../../../../pkg/io.html" class="ident i4">io</a>.<a href="../../../../io/io.go.html#line-86" class="ident">Reader</a></code></span>
+<span class="codeline" id="line-68"><code>	<a href="../../../../../use/github.com/vmihailenco/msgpack/v5..Decoder.s^043a7.html" class="ident">s</a>   <a href="../../../../../pkg/io.html" class="ident i4">io</a>.<a href="../../../../io/io.go.html#line-274" class="ident">ByteScanner</a></code></span>
+<span class="codeline" id="line-69"><code>	<a href="../../../../../use/github.com/vmihailenco/msgpack/v5..Decoder.buf^3ef31.html" class="ident">buf</a> []<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
+<span class="codeline" id="line-70"><code></code></span>
+<span class="codeline" id="line-71"><code>	<a href="../../../../../use/github.com/vmihailenco/msgpack/v5..Decoder.rec^cb41b.html" class="ident">rec</a> []<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a> <span class="comment">// accumulates read data if not nil</span></code></span>
+<span class="codeline" id="line-72"><code></code></span>
+<span class="codeline" id="line-73"><code>	<a href="../../../../../use/github.com/vmihailenco/msgpack/v5..Decoder.dict^6ab47.html" class="ident">dict</a>       []<a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-74"><code>	<a href="../../../../../use/github.com/vmihailenco/msgpack/v5..Decoder.flags^2934f.html" class="ident">flags</a>      <a href="../../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a></code></span>
+<span class="codeline" id="line-75"><code>	<a href="../../../../../use/github.com/vmihailenco/msgpack/v5..Decoder.structTag^3f798.html" class="ident">structTag</a>  <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-76"><code>	<a href="../../../../../use/github.com/vmihailenco/msgpack/v5..Decoder.mapDecoder^db4d2.html" class="ident">mapDecoder</a> <span class="keyword">func</span>(*<a href="#line-66" class="ident">Decoder</a>) (<span class="keyword">interface</span>{}, <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
+<span class="codeline" id="line-77"><code>}</code></span>
+<span class="codeline" id="line-78"><code></code></span>
+<span class="codeline" id="line-79"><code><span class="comment">// NewDecoder returns a new decoder that reads from r.</span></code></span>
+<span class="codeline" id="line-80"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-81"><code><span class="comment">// The decoder introduces its own buffering and may read data from r</span></code></span>
+<span class="codeline" id="line-82"><code><span class="comment">// beyond the requested msgpack values. Buffering can be disabled</span></code></span>
+<span class="codeline" id="line-83"><code><span class="comment">// by passing a reader that implements io.ByteScanner interface.</span></code></span>
+<span class="codeline" id="line-84"><code><span class="keyword">func</span> <label for="r8" class="ident"><a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5.html#name-NewDecoder" class="ident">NewDecoder</a></label>(<label for="r9" class="ident">r</label> <a href="../../../../../pkg/io.html" class="ident i4">io</a>.<a href="../../../../io/io.go.html#line-86" class="ident">Reader</a>) *<a href="#line-66" class="ident">Decoder</a> {</code></span>
+<span class="codeline" id="line-85"><code>	<label for="r10" class="ident">d</label> := <a href="../../../../../pkg/builtin.html#name-new" class="ident">new</a>(<a href="#line-66" class="ident">Decoder</a>)</code></span>
+<span class="codeline" id="line-86"><code>	<label for="r10" class="ident">d</label>.<a href="#line-92" class="ident">Reset</a>(<label for="r9" class="ident">r</label>)</code></span>
+<span class="codeline" id="line-87"><code>	<span class="keyword">return</span> <label for="r10" class="ident">d</label></code></span>
+<span class="codeline" id="line-88"><code>}</code></span>
+<span class="codeline" id="line-89"><code></code></span>
+<span class="codeline" id="line-90"><code><span class="comment">// Reset discards any buffered data, resets all state, and switches the buffered</span></code></span>
+<span class="codeline" id="line-91"><code><span class="comment">// reader to read from r.</span></code></span>
+<span class="codeline" id="line-92"><code><span class="keyword">func</span> (<label for="r11" class="ident">d</label> *<a href="#line-66" class="ident">Decoder</a>) <label for="r12" class="ident"><a href="../../../../../use/github.com/vmihailenco/msgpack/v5..Decoder.Reset.html" class="ident">Reset</a></label>(<label for="r13" class="ident">r</label> <a href="../../../../../pkg/io.html" class="ident i4">io</a>.<a href="../../../../io/io.go.html#line-86" class="ident">Reader</a>) {</code></span>
+<span class="codeline" id="line-93"><code>	<label for="r11" class="ident">d</label>.<a href="#line-97" class="ident">ResetDict</a>(<label for="r13" class="ident">r</label>, <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>)</code></span>
+<span class="codeline" id="line-94"><code>}</code></span>
+<span class="codeline" id="line-95"><code></code></span>
+<span class="codeline" id="line-96"><code><span class="comment">// ResetDict is like Reset, but also resets the dict.</span></code></span>
+<span class="codeline" id="line-97"><code><span class="keyword">func</span> (<label for="r14" class="ident">d</label> *<a href="#line-66" class="ident">Decoder</a>) <label for="r15" class="ident"><a href="../../../../../use/github.com/vmihailenco/msgpack/v5..Decoder.ResetDict.html" class="ident">ResetDict</a></label>(<label for="r16" class="ident">r</label> <a href="../../../../../pkg/io.html" class="ident i4">io</a>.<a href="../../../../io/io.go.html#line-86" class="ident">Reader</a>, <label for="r17" class="ident">dict</label> []<a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>) {</code></span>
+<span class="codeline" id="line-98"><code>	<label for="r14" class="ident">d</label>.<a href="#line-113" class="ident">resetReader</a>(<label for="r16" class="ident">r</label>)</code></span>
+<span class="codeline" id="line-99"><code>	<label for="r14" class="ident">d</label>.<a href="#line-74" class="ident">flags</a> = <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-100"><code>	<label for="r14" class="ident">d</label>.<a href="#line-75" class="ident">structTag</a> = <span class="lit-string">""</span></code></span>
+<span class="codeline" id="line-101"><code>	<label for="r14" class="ident">d</label>.<a href="#line-76" class="ident">mapDecoder</a> = <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-102"><code>	<label for="r14" class="ident">d</label>.<a href="#line-73" class="ident">dict</a> = <label for="r17" class="ident">dict</label></code></span>
+<span class="codeline" id="line-103"><code>}</code></span>
+<span class="codeline" id="line-104"><code></code></span>
+<span class="codeline" id="line-105"><code><span class="keyword">func</span> (<label for="r18" class="ident">d</label> *<a href="#line-66" class="ident">Decoder</a>) <label for="r19" class="ident"><a href="../../../../../use/github.com/vmihailenco/msgpack/v5..Decoder.WithDict.html" class="ident">WithDict</a></label>(<label for="r20" class="ident">dict</label> []<a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r21" class="ident">fn</label> <span class="keyword">func</span>(*<a href="#line-66" class="ident">Decoder</a>) <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>) <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-106"><code>	<label for="r22" class="ident">oldDict</label> := <label for="r18" class="ident">d</label>.<a href="#line-73" class="ident">dict</a></code></span>
+<span class="codeline" id="line-107"><code>	<label for="r18" class="ident">d</label>.<a href="#line-73" class="ident">dict</a> = <label for="r20" class="ident">dict</label></code></span>
+<span class="codeline" id="line-108"><code>	<label for="r23" class="ident">err</label> := <label for="r21" class="ident">fn</label>(<label for="r18" class="ident">d</label>)</code></span>
+<span class="codeline" id="line-109"><code>	<label for="r18" class="ident">d</label>.<a href="#line-73" class="ident">dict</a> = <label for="r22" class="ident">oldDict</label></code></span>
+<span class="codeline" id="line-110"><code>	<span class="keyword">return</span> <label for="r23" class="ident">err</label></code></span>
+<span class="codeline" id="line-111"><code>}</code></span>
+<span class="codeline" id="line-112"><code></code></span>
+<span class="codeline" id="line-113"><code><span class="keyword">func</span> (<label for="r24" class="ident">d</label> *<a href="#line-66" class="ident">Decoder</a>) <label for="r25" class="ident"><a href="../../../../../use/github.com/vmihailenco/msgpack/v5..Decoder.resetReader^948f0.html" class="ident">resetReader</a></label>(<label for="r26" class="ident">r</label> <a href="../../../../../pkg/io.html" class="ident i4">io</a>.<a href="../../../../io/io.go.html#line-86" class="ident">Reader</a>) {</code></span>
+<span class="codeline" id="line-114"><code>	<span class="keyword">if</span> <label for="r27" class="ident">br</label>, <label for="r28" class="ident">ok</label> := <label for="r26" class="ident">r</label>.(<a href="#line-27" class="ident">bufReader</a>); <label for="r28" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-115"><code>		<label for="r24" class="ident">d</label>.<a href="#line-67" class="ident">r</a> = <label for="r27" class="ident">br</label></code></span>
+<span class="codeline" id="line-116"><code>		<label for="r24" class="ident">d</label>.<a href="#line-68" class="ident">s</a> = <label for="r27" class="ident">br</label></code></span>
+<span class="codeline" id="line-117"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-118"><code>		<label for="r29" class="ident">br</label> := <a href="../../../../../pkg/bufio.html" class="ident i0">bufio</a>.<a href="../../../../bufio/bufio.go.html#line-62" class="ident">NewReader</a>(<label for="r26" class="ident">r</label>)</code></span>
+<span class="codeline" id="line-119"><code>		<label for="r24" class="ident">d</label>.<a href="#line-67" class="ident">r</a> = <label for="r29" class="ident">br</label></code></span>
+<span class="codeline" id="line-120"><code>		<label for="r24" class="ident">d</label>.<a href="#line-68" class="ident">s</a> = <label for="r29" class="ident">br</label></code></span>
+<span class="codeline" id="line-121"><code>	}</code></span>
+<span class="codeline" id="line-122"><code>}</code></span>
+<span class="codeline" id="line-123"><code></code></span>
+<span class="codeline" id="line-124"><code><span class="keyword">func</span> (<label for="r30" class="ident">d</label> *<a href="#line-66" class="ident">Decoder</a>) <label for="r31" class="ident"><a href="../../../../../use/github.com/vmihailenco/msgpack/v5..Decoder.SetMapDecoder.html" class="ident">SetMapDecoder</a></label>(<label for="r32" class="ident">fn</label> <span class="keyword">func</span>(*<a href="#line-66" class="ident">Decoder</a>) (<span class="keyword">interface</span>{}, <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>)) {</code></span>
+<span class="codeline" id="line-125"><code>	<label for="r30" class="ident">d</label>.<a href="#line-76" class="ident">mapDecoder</a> = <label for="r32" class="ident">fn</label></code></span>
+<span class="codeline" id="line-126"><code>}</code></span>
+<span class="codeline" id="line-127"><code></code></span>
+<span class="codeline" id="line-128"><code><span class="comment">// UseLooseInterfaceDecoding causes decoder to use DecodeInterfaceLoose</span></code></span>
+<span class="codeline" id="line-129"><code><span class="comment">// to decode msgpack value into Go interface{}.</span></code></span>
+<span class="codeline" id="line-130"><code><span class="keyword">func</span> (<label for="r33" class="ident">d</label> *<a href="#line-66" class="ident">Decoder</a>) <label for="r34" class="ident"><a href="../../../../../use/github.com/vmihailenco/msgpack/v5..Decoder.UseLooseInterfaceDecoding.html" class="ident">UseLooseInterfaceDecoding</a></label>(<label for="r35" class="ident">on</label> <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a>) {</code></span>
+<span class="codeline" id="line-131"><code>	<span class="keyword">if</span> <label for="r35" class="ident">on</label> {</code></span>
+<span class="codeline" id="line-132"><code>		<label for="r33" class="ident">d</label>.<a href="#line-74" class="ident">flags</a> |= <a href="#line-17" class="ident">looseInterfaceDecodingFlag</a></code></span>
+<span class="codeline" id="line-133"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-134"><code>		<label for="r33" class="ident">d</label>.<a href="#line-74" class="ident">flags</a> &amp;= ^<a href="#line-17" class="ident">looseInterfaceDecodingFlag</a></code></span>
+<span class="codeline" id="line-135"><code>	}</code></span>
+<span class="codeline" id="line-136"><code>}</code></span>
+<span class="codeline" id="line-137"><code></code></span>
+<span class="codeline" id="line-138"><code><span class="comment">// SetCustomStructTag causes the decoder to use the supplied tag as a fallback option</span></code></span>
+<span class="codeline" id="line-139"><code><span class="comment">// if there is no msgpack tag.</span></code></span>
+<span class="codeline" id="line-140"><code><span class="keyword">func</span> (<label for="r36" class="ident">d</label> *<a href="#line-66" class="ident">Decoder</a>) <label for="r37" class="ident"><a href="../../../../../use/github.com/vmihailenco/msgpack/v5..Decoder.SetCustomStructTag.html" class="ident">SetCustomStructTag</a></label>(<label for="r38" class="ident">tag</label> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>) {</code></span>
+<span class="codeline" id="line-141"><code>	<label for="r36" class="ident">d</label>.<a href="#line-75" class="ident">structTag</a> = <label for="r38" class="ident">tag</label></code></span>
+<span class="codeline" id="line-142"><code>}</code></span>
+<span class="codeline" id="line-143"><code></code></span>
+<span class="codeline" id="line-144"><code><span class="comment">// DisallowUnknownFields causes the Decoder to return an error when the destination</span></code></span>
+<span class="codeline" id="line-145"><code><span class="comment">// is a struct and the input contains object keys which do not match any</span></code></span>
+<span class="codeline" id="line-146"><code><span class="comment">// non-ignored, exported fields in the destination.</span></code></span>
+<span class="codeline" id="line-147"><code><span class="keyword">func</span> (<label for="r39" class="ident">d</label> *<a href="#line-66" class="ident">Decoder</a>) <label for="r40" class="ident"><a href="../../../../../use/github.com/vmihailenco/msgpack/v5..Decoder.DisallowUnknownFields.html" class="ident">DisallowUnknownFields</a></label>(<label for="r41" class="ident">on</label> <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a>) {</code></span>
+<span class="codeline" id="line-148"><code>	<span class="keyword">if</span> <label for="r41" class="ident">on</label> {</code></span>
+<span class="codeline" id="line-149"><code>		<label for="r39" class="ident">d</label>.<a href="#line-74" class="ident">flags</a> |= <a href="#line-18" class="ident">disallowUnknownFieldsFlag</a></code></span>
+<span class="codeline" id="line-150"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-151"><code>		<label for="r39" class="ident">d</label>.<a href="#line-74" class="ident">flags</a> &amp;= ^<a href="#line-18" class="ident">disallowUnknownFieldsFlag</a></code></span>
+<span class="codeline" id="line-152"><code>	}</code></span>
+<span class="codeline" id="line-153"><code>}</code></span>
+<span class="codeline" id="line-154"><code></code></span>
+<span class="codeline" id="line-155"><code><span class="comment">// UseInternedStrings enables support for decoding interned strings.</span></code></span>
+<span class="codeline" id="line-156"><code><span class="keyword">func</span> (<label for="r42" class="ident">d</label> *<a href="#line-66" class="ident">Decoder</a>) <label for="r43" class="ident"><a href="../../../../../use/github.com/vmihailenco/msgpack/v5..Decoder.UseInternedStrings.html" class="ident">UseInternedStrings</a></label>(<label for="r44" class="ident">on</label> <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a>) {</code></span>
+<span class="codeline" id="line-157"><code>	<span class="keyword">if</span> <label for="r44" class="ident">on</label> {</code></span>
+<span class="codeline" id="line-158"><code>		<label for="r42" class="ident">d</label>.<a href="#line-74" class="ident">flags</a> |= <a href="encode.go.html#line-18" class="ident">useInternedStringsFlag</a></code></span>
+<span class="codeline" id="line-159"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-160"><code>		<label for="r42" class="ident">d</label>.<a href="#line-74" class="ident">flags</a> &amp;= ^<a href="encode.go.html#line-18" class="ident">useInternedStringsFlag</a></code></span>
+<span class="codeline" id="line-161"><code>	}</code></span>
+<span class="codeline" id="line-162"><code>}</code></span>
+<span class="codeline" id="line-163"><code></code></span>
+<span class="codeline" id="line-164"><code><span class="comment">// Buffered returns a reader of the data remaining in the Decoder's buffer.</span></code></span>
+<span class="codeline" id="line-165"><code><span class="comment">// The reader is valid until the next call to Decode.</span></code></span>
+<span class="codeline" id="line-166"><code><span class="keyword">func</span> (<label for="r45" class="ident">d</label> *<a href="#line-66" class="ident">Decoder</a>) <label for="r46" class="ident"><a href="../../../../../use/github.com/vmihailenco/msgpack/v5..Decoder.Buffered.html" class="ident">Buffered</a></label>() <a href="../../../../../pkg/io.html" class="ident i4">io</a>.<a href="../../../../io/io.go.html#line-86" class="ident">Reader</a> {</code></span>
+<span class="codeline" id="line-167"><code>	<span class="keyword">return</span> <label for="r45" class="ident">d</label>.<a href="#line-67" class="ident">r</a></code></span>
+<span class="codeline" id="line-168"><code>}</code></span>
+<span class="codeline" id="line-169"><code></code></span>
+<span class="codeline" id="line-170"><code><span class="comment">//nolint:gocyclo</span></code></span>
+<span class="codeline" id="line-171"><code><span class="keyword">func</span> (<label for="r47" class="ident">d</label> *<a href="#line-66" class="ident">Decoder</a>) <label for="r48" class="ident"><a href="../../../../../use/github.com/vmihailenco/msgpack/v5..Decoder.Decode.html" class="ident">Decode</a></label>(<label for="r49" class="ident">v</label> <span class="keyword">interface</span>{}) <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-172"><code>	<span class="keyword">var</span> <label for="r50" class="ident">err</label> <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-173"><code>	<span class="keyword">switch</span> v := <label for="r49" class="ident">v</label>.(<span class="keyword">type</span>) {</code></span>
+<span class="codeline" id="line-174"><code>	<span class="keyword">case</span> *<a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>:</code></span>
+<span class="codeline" id="line-175"><code>		<span class="keyword">if</span> <label for="r51" class="ident">v</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-176"><code>			*<label for="r51" class="ident">v</label>, <label for="r50" class="ident">err</label> = <label for="r47" class="ident">d</label>.<a href="decode_string.go.html#line-34" class="ident">DecodeString</a>()</code></span>
+<span class="codeline" id="line-177"><code>			<span class="keyword">return</span> <label for="r50" class="ident">err</label></code></span>
+<span class="codeline" id="line-178"><code>		}</code></span>
+<span class="codeline" id="line-179"><code>	<span class="keyword">case</span> *[]<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>:</code></span>
+<span class="codeline" id="line-180"><code>		<span class="keyword">if</span> <label for="r52" class="ident">v</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-181"><code>			<span class="keyword">return</span> <label for="r47" class="ident">d</label>.<a href="decode_string.go.html#line-124" class="ident">decodeBytesPtr</a>(<label for="r52" class="ident">v</label>)</code></span>
+<span class="codeline" id="line-182"><code>		}</code></span>
+<span class="codeline" id="line-183"><code>	<span class="keyword">case</span> *<a href="../../../../../pkg/builtin.html#name-int" class="ident">int</a>:</code></span>
+<span class="codeline" id="line-184"><code>		<span class="keyword">if</span> <label for="r53" class="ident">v</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-185"><code>			*<label for="r53" class="ident">v</label>, <label for="r50" class="ident">err</label> = <label for="r47" class="ident">d</label>.<a href="decode_number.go.html#line-241" class="ident">DecodeInt</a>()</code></span>
+<span class="codeline" id="line-186"><code>			<span class="keyword">return</span> <label for="r50" class="ident">err</label></code></span>
+<span class="codeline" id="line-187"><code>		}</code></span>
+<span class="codeline" id="line-188"><code>	<span class="keyword">case</span> *<a href="../../../../../pkg/builtin.html#name-int8" class="ident">int8</a>:</code></span>
+<span class="codeline" id="line-189"><code>		<span class="keyword">if</span> <label for="r54" class="ident">v</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-190"><code>			*<label for="r54" class="ident">v</label>, <label for="r50" class="ident">err</label> = <label for="r47" class="ident">d</label>.<a href="decode_number.go.html#line-246" class="ident">DecodeInt8</a>()</code></span>
+<span class="codeline" id="line-191"><code>			<span class="keyword">return</span> <label for="r50" class="ident">err</label></code></span>
+<span class="codeline" id="line-192"><code>		}</code></span>
+<span class="codeline" id="line-193"><code>	<span class="keyword">case</span> *<a href="../../../../../pkg/builtin.html#name-int16" class="ident">int16</a>:</code></span>
+<span class="codeline" id="line-194"><code>		<span class="keyword">if</span> <label for="r55" class="ident">v</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-195"><code>			*<label for="r55" class="ident">v</label>, <label for="r50" class="ident">err</label> = <label for="r47" class="ident">d</label>.<a href="decode_number.go.html#line-251" class="ident">DecodeInt16</a>()</code></span>
+<span class="codeline" id="line-196"><code>			<span class="keyword">return</span> <label for="r50" class="ident">err</label></code></span>
+<span class="codeline" id="line-197"><code>		}</code></span>
+<span class="codeline" id="line-198"><code>	<span class="keyword">case</span> *<a href="../../../../../pkg/builtin.html#name-int32" class="ident">int32</a>:</code></span>
+<span class="codeline" id="line-199"><code>		<span class="keyword">if</span> <label for="r56" class="ident">v</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-200"><code>			*<label for="r56" class="ident">v</label>, <label for="r50" class="ident">err</label> = <label for="r47" class="ident">d</label>.<a href="decode_number.go.html#line-256" class="ident">DecodeInt32</a>()</code></span>
+<span class="codeline" id="line-201"><code>			<span class="keyword">return</span> <label for="r50" class="ident">err</label></code></span>
+<span class="codeline" id="line-202"><code>		}</code></span>
+<span class="codeline" id="line-203"><code>	<span class="keyword">case</span> *<a href="../../../../../pkg/builtin.html#name-int64" class="ident">int64</a>:</code></span>
+<span class="codeline" id="line-204"><code>		<span class="keyword">if</span> <label for="r57" class="ident">v</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-205"><code>			*<label for="r57" class="ident">v</label>, <label for="r50" class="ident">err</label> = <label for="r47" class="ident">d</label>.<a href="decode_number.go.html#line-124" class="ident">DecodeInt64</a>()</code></span>
+<span class="codeline" id="line-206"><code>			<span class="keyword">return</span> <label for="r50" class="ident">err</label></code></span>
+<span class="codeline" id="line-207"><code>		}</code></span>
+<span class="codeline" id="line-208"><code>	<span class="keyword">case</span> *<a href="../../../../../pkg/builtin.html#name-uint" class="ident">uint</a>:</code></span>
+<span class="codeline" id="line-209"><code>		<span class="keyword">if</span> <label for="r58" class="ident">v</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-210"><code>			*<label for="r58" class="ident">v</label>, <label for="r50" class="ident">err</label> = <label for="r47" class="ident">d</label>.<a href="decode_number.go.html#line-221" class="ident">DecodeUint</a>()</code></span>
+<span class="codeline" id="line-211"><code>			<span class="keyword">return</span> <label for="r50" class="ident">err</label></code></span>
+<span class="codeline" id="line-212"><code>		}</code></span>
+<span class="codeline" id="line-213"><code>	<span class="keyword">case</span> *<a href="../../../../../pkg/builtin.html#name-uint8" class="ident">uint8</a>:</code></span>
+<span class="codeline" id="line-214"><code>		<span class="keyword">if</span> <label for="r59" class="ident">v</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-215"><code>			*<label for="r59" class="ident">v</label>, <label for="r50" class="ident">err</label> = <label for="r47" class="ident">d</label>.<a href="decode_number.go.html#line-226" class="ident">DecodeUint8</a>()</code></span>
+<span class="codeline" id="line-216"><code>			<span class="keyword">return</span> <label for="r50" class="ident">err</label></code></span>
+<span class="codeline" id="line-217"><code>		}</code></span>
+<span class="codeline" id="line-218"><code>	<span class="keyword">case</span> *<a href="../../../../../pkg/builtin.html#name-uint16" class="ident">uint16</a>:</code></span>
+<span class="codeline" id="line-219"><code>		<span class="keyword">if</span> <label for="r60" class="ident">v</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-220"><code>			*<label for="r60" class="ident">v</label>, <label for="r50" class="ident">err</label> = <label for="r47" class="ident">d</label>.<a href="decode_number.go.html#line-231" class="ident">DecodeUint16</a>()</code></span>
+<span class="codeline" id="line-221"><code>			<span class="keyword">return</span> <label for="r50" class="ident">err</label></code></span>
+<span class="codeline" id="line-222"><code>		}</code></span>
+<span class="codeline" id="line-223"><code>	<span class="keyword">case</span> *<a href="../../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a>:</code></span>
+<span class="codeline" id="line-224"><code>		<span class="keyword">if</span> <label for="r61" class="ident">v</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-225"><code>			*<label for="r61" class="ident">v</label>, <label for="r50" class="ident">err</label> = <label for="r47" class="ident">d</label>.<a href="decode_number.go.html#line-236" class="ident">DecodeUint32</a>()</code></span>
+<span class="codeline" id="line-226"><code>			<span class="keyword">return</span> <label for="r50" class="ident">err</label></code></span>
+<span class="codeline" id="line-227"><code>		}</code></span>
+<span class="codeline" id="line-228"><code>	<span class="keyword">case</span> *<a href="../../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>:</code></span>
+<span class="codeline" id="line-229"><code>		<span class="keyword">if</span> <label for="r62" class="ident">v</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-230"><code>			*<label for="r62" class="ident">v</label>, <label for="r50" class="ident">err</label> = <label for="r47" class="ident">d</label>.<a href="decode_number.go.html#line-82" class="ident">DecodeUint64</a>()</code></span>
+<span class="codeline" id="line-231"><code>			<span class="keyword">return</span> <label for="r50" class="ident">err</label></code></span>
+<span class="codeline" id="line-232"><code>		}</code></span>
+<span class="codeline" id="line-233"><code>	<span class="keyword">case</span> *<a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a>:</code></span>
+<span class="codeline" id="line-234"><code>		<span class="keyword">if</span> <label for="r63" class="ident">v</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-235"><code>			*<label for="r63" class="ident">v</label>, <label for="r50" class="ident">err</label> = <label for="r47" class="ident">d</label>.<a href="#line-335" class="ident">DecodeBool</a>()</code></span>
+<span class="codeline" id="line-236"><code>			<span class="keyword">return</span> <label for="r50" class="ident">err</label></code></span>
+<span class="codeline" id="line-237"><code>		}</code></span>
+<span class="codeline" id="line-238"><code>	<span class="keyword">case</span> *<a href="../../../../../pkg/builtin.html#name-float32" class="ident">float32</a>:</code></span>
+<span class="codeline" id="line-239"><code>		<span class="keyword">if</span> <label for="r64" class="ident">v</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-240"><code>			*<label for="r64" class="ident">v</label>, <label for="r50" class="ident">err</label> = <label for="r47" class="ident">d</label>.<a href="decode_number.go.html#line-165" class="ident">DecodeFloat32</a>()</code></span>
+<span class="codeline" id="line-241"><code>			<span class="keyword">return</span> <label for="r50" class="ident">err</label></code></span>
+<span class="codeline" id="line-242"><code>		}</code></span>
+<span class="codeline" id="line-243"><code>	<span class="keyword">case</span> *<a href="../../../../../pkg/builtin.html#name-float64" class="ident">float64</a>:</code></span>
+<span class="codeline" id="line-244"><code>		<span class="keyword">if</span> <label for="r65" class="ident">v</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-245"><code>			*<label for="r65" class="ident">v</label>, <label for="r50" class="ident">err</label> = <label for="r47" class="ident">d</label>.<a href="decode_number.go.html#line-190" class="ident">DecodeFloat64</a>()</code></span>
+<span class="codeline" id="line-246"><code>			<span class="keyword">return</span> <label for="r50" class="ident">err</label></code></span>
+<span class="codeline" id="line-247"><code>		}</code></span>
+<span class="codeline" id="line-248"><code>	<span class="keyword">case</span> *[]<a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>:</code></span>
+<span class="codeline" id="line-249"><code>		<span class="keyword">return</span> <label for="r47" class="ident">d</label>.<a href="decode_slice.go.html#line-43" class="ident">decodeStringSlicePtr</a>(<label for="r66" class="ident">v</label>)</code></span>
+<span class="codeline" id="line-250"><code>	<span class="keyword">case</span> *<span class="keyword">map</span>[<a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>]<a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>:</code></span>
+<span class="codeline" id="line-251"><code>		<span class="keyword">return</span> <label for="r47" class="ident">d</label>.<a href="decode_map.go.html#line-95" class="ident">decodeMapStringStringPtr</a>(<label for="r67" class="ident">v</label>)</code></span>
+<span class="codeline" id="line-252"><code>	<span class="keyword">case</span> *<span class="keyword">map</span>[<a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>]<span class="keyword">interface</span>{}:</code></span>
+<span class="codeline" id="line-253"><code>		<span class="keyword">return</span> <label for="r47" class="ident">d</label>.<a href="decode_map.go.html#line-131" class="ident">decodeMapStringInterfacePtr</a>(<label for="r68" class="ident">v</label>)</code></span>
+<span class="codeline" id="line-254"><code>	<span class="keyword">case</span> *<a href="../../../../../pkg/time.html" class="ident i7">time</a>.<a href="../../../../time/time.go.html#line-911" class="ident">Duration</a>:</code></span>
+<span class="codeline" id="line-255"><code>		<span class="keyword">if</span> <label for="r69" class="ident">v</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-256"><code>			<label for="r70" class="ident">vv</label>, <label for="r71" class="ident">err</label> := <label for="r47" class="ident">d</label>.<a href="decode_number.go.html#line-124" class="ident">DecodeInt64</a>()</code></span>
+<span class="codeline" id="line-257"><code>			*<label for="r69" class="ident">v</label> = <a href="../../../../../pkg/time.html" class="ident i7">time</a>.<a href="../../../../time/time.go.html#line-911" class="ident">Duration</a>(<label for="r70" class="ident">vv</label>)</code></span>
+<span class="codeline" id="line-258"><code>			<span class="keyword">return</span> <label for="r71" class="ident">err</label></code></span>
+<span class="codeline" id="line-259"><code>		}</code></span>
+<span class="codeline" id="line-260"><code>	<span class="keyword">case</span> *<a href="../../../../../pkg/time.html" class="ident i7">time</a>.<a href="../../../../time/time.go.html#line-140" class="ident">Time</a>:</code></span>
+<span class="codeline" id="line-261"><code>		<span class="keyword">if</span> <label for="r72" class="ident">v</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-262"><code>			*<label for="r72" class="ident">v</label>, <label for="r50" class="ident">err</label> = <label for="r47" class="ident">d</label>.<a href="time.go.html#line-72" class="ident">DecodeTime</a>()</code></span>
+<span class="codeline" id="line-263"><code>			<span class="keyword">return</span> <label for="r50" class="ident">err</label></code></span>
+<span class="codeline" id="line-264"><code>		}</code></span>
+<span class="codeline" id="line-265"><code>	}</code></span>
+<span class="codeline" id="line-266"><code></code></span>
+<span class="codeline" id="line-267"><code>	<label for="r73" class="ident">vv</label> := <a href="../../../../../pkg/reflect.html" class="ident i5">reflect</a>.<a href="../../../../reflect/value.go.html#line-2976" class="ident">ValueOf</a>(<label for="r49" class="ident">v</label>)</code></span>
+<span class="codeline" id="line-268"><code>	<span class="keyword">if</span> !<label for="r73" class="ident">vv</label>.<a href="../../../../reflect/value.go.html#line-1569" class="ident">IsValid</a>() {</code></span>
+<span class="codeline" id="line-269"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/errors.html" class="ident i2">errors</a>.<a href="../../../../errors/errors.go.html#line-64" class="ident">New</a>(<span class="lit-string">"msgpack: Decode(nil)"</span>)</code></span>
+<span class="codeline" id="line-270"><code>	}</code></span>
+<span class="codeline" id="line-271"><code>	<span class="keyword">if</span> <label for="r73" class="ident">vv</label>.<a href="../../../../reflect/value.go.html#line-1750" class="ident">Kind</a>() != <a href="../../../../../pkg/reflect.html" class="ident i5">reflect</a>.<a href="../../../../reflect/type.go.html#line-304" class="ident">Ptr</a> {</code></span>
+<span class="codeline" id="line-272"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/fmt.html" class="ident i3">fmt</a>.<a href="../../../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"msgpack: Decode(non-pointer %T)"</span>, <label for="r49" class="ident">v</label>)</code></span>
+<span class="codeline" id="line-273"><code>	}</code></span>
+<span class="codeline" id="line-274"><code>	<span class="keyword">if</span> <label for="r73" class="ident">vv</label>.<a href="../../../../reflect/value.go.html#line-1544" class="ident">IsNil</a>() {</code></span>
+<span class="codeline" id="line-275"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/fmt.html" class="ident i3">fmt</a>.<a href="../../../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"msgpack: Decode(non-settable %T)"</span>, <label for="r49" class="ident">v</label>)</code></span>
+<span class="codeline" id="line-276"><code>	}</code></span>
+<span class="codeline" id="line-277"><code></code></span>
+<span class="codeline" id="line-278"><code>	<label for="r73" class="ident">vv</label> = <label for="r73" class="ident">vv</label>.<a href="../../../../reflect/value.go.html#line-1218" class="ident">Elem</a>()</code></span>
+<span class="codeline" id="line-279"><code>	<span class="keyword">if</span> <label for="r73" class="ident">vv</label>.<a href="../../../../reflect/value.go.html#line-1750" class="ident">Kind</a>() == <a href="../../../../../pkg/reflect.html" class="ident i5">reflect</a>.<a href="../../../../reflect/type.go.html#line-294" class="ident">Interface</a> {</code></span>
+<span class="codeline" id="line-280"><code>		<span class="keyword">if</span> !<label for="r73" class="ident">vv</label>.<a href="../../../../reflect/value.go.html#line-1544" class="ident">IsNil</a>() {</code></span>
+<span class="codeline" id="line-281"><code>			<label for="r73" class="ident">vv</label> = <label for="r73" class="ident">vv</label>.<a href="../../../../reflect/value.go.html#line-1218" class="ident">Elem</a>()</code></span>
+<span class="codeline" id="line-282"><code>			<span class="keyword">if</span> <label for="r73" class="ident">vv</label>.<a href="../../../../reflect/value.go.html#line-1750" class="ident">Kind</a>() != <a href="../../../../../pkg/reflect.html" class="ident i5">reflect</a>.<a href="../../../../reflect/type.go.html#line-304" class="ident">Ptr</a> {</code></span>
+<span class="codeline" id="line-283"><code>				<span class="keyword">return</span> <a href="../../../../../pkg/fmt.html" class="ident i3">fmt</a>.<a href="../../../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"msgpack: Decode(non-pointer %s)"</span>, <label for="r73" class="ident">vv</label>.<a href="../../../../reflect/value.go.html#line-2379" class="ident">Type</a>().<a href="../../../../reflect/type.go.html#line-101" class="ident">String</a>())</code></span>
+<span class="codeline" id="line-284"><code>			}</code></span>
+<span class="codeline" id="line-285"><code>		}</code></span>
+<span class="codeline" id="line-286"><code>	}</code></span>
+<span class="codeline" id="line-287"><code></code></span>
+<span class="codeline" id="line-288"><code>	<span class="keyword">return</span> <label for="r47" class="ident">d</label>.<a href="#line-307" class="ident">DecodeValue</a>(<label for="r73" class="ident">vv</label>)</code></span>
+<span class="codeline" id="line-289"><code>}</code></span>
+<span class="codeline" id="line-290"><code></code></span>
+<span class="codeline" id="line-291"><code><span class="keyword">func</span> (<label for="r74" class="ident">d</label> *<a href="#line-66" class="ident">Decoder</a>) <label for="r75" class="ident"><a href="../../../../../use/github.com/vmihailenco/msgpack/v5..Decoder.DecodeMulti.html" class="ident">DecodeMulti</a></label>(<label for="r76" class="ident">v</label> ...<span class="keyword">interface</span>{}) <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-292"><code>	<span class="keyword">for</span> <label for="r77" class="ident">_</label>, <label for="r78" class="ident">vv</label> := <span class="keyword">range</span> <label for="r76" class="ident">v</label> {</code></span>
+<span class="codeline" id="line-293"><code>		<span class="keyword">if</span> <label for="r79" class="ident">err</label> := <label for="r74" class="ident">d</label>.<a href="#line-171" class="ident">Decode</a>(<label for="r78" class="ident">vv</label>); <label for="r79" class="ident">err</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-294"><code>			<span class="keyword">return</span> <label for="r79" class="ident">err</label></code></span>
+<span class="codeline" id="line-295"><code>		}</code></span>
+<span class="codeline" id="line-296"><code>	}</code></span>
+<span class="codeline" id="line-297"><code>	<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-298"><code>}</code></span>
+<span class="codeline" id="line-299"><code></code></span>
+<span class="codeline" id="line-300"><code><span class="keyword">func</span> (<label for="r80" class="ident">d</label> *<a href="#line-66" class="ident">Decoder</a>) <label for="r81" class="ident"><a href="../../../../../use/github.com/vmihailenco/msgpack/v5..Decoder.decodeInterfaceCond^f42dc.html" class="ident">decodeInterfaceCond</a></label>() (<span class="keyword">interface</span>{}, <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-301"><code>	<span class="keyword">if</span> <label for="r80" class="ident">d</label>.<a href="#line-74" class="ident">flags</a>&amp;<a href="#line-17" class="ident">looseInterfaceDecodingFlag</a> != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-302"><code>		<span class="keyword">return</span> <label for="r80" class="ident">d</label>.<a href="#line-451" class="ident">DecodeInterfaceLoose</a>()</code></span>
+<span class="codeline" id="line-303"><code>	}</code></span>
+<span class="codeline" id="line-304"><code>	<span class="keyword">return</span> <label for="r80" class="ident">d</label>.<a href="#line-378" class="ident">DecodeInterface</a>()</code></span>
+<span class="codeline" id="line-305"><code>}</code></span>
+<span class="codeline" id="line-306"><code></code></span>
+<span class="codeline" id="line-307"><code><span class="keyword">func</span> (<label for="r82" class="ident">d</label> *<a href="#line-66" class="ident">Decoder</a>) <label for="r83" class="ident"><a href="../../../../../use/github.com/vmihailenco/msgpack/v5..Decoder.DecodeValue.html" class="ident">DecodeValue</a></label>(<label for="r84" class="ident">v</label> <a href="../../../../../pkg/reflect.html" class="ident i5">reflect</a>.<a href="../../../../reflect/value.go.html#line-39" class="ident">Value</a>) <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-308"><code>	<label for="r85" class="ident">decode</label> := <a href="decode_value.go.html#line-48" class="ident">getDecoder</a>(<label for="r84" class="ident">v</label>.<a href="../../../../reflect/value.go.html#line-2379" class="ident">Type</a>())</code></span>
+<span class="codeline" id="line-309"><code>	<span class="keyword">return</span> <label for="r85" class="ident">decode</label>(<label for="r82" class="ident">d</label>, <label for="r84" class="ident">v</label>)</code></span>
+<span class="codeline" id="line-310"><code>}</code></span>
+<span class="codeline" id="line-311"><code></code></span>
+<span class="codeline" id="line-312"><code><span class="keyword">func</span> (<label for="r86" class="ident">d</label> *<a href="#line-66" class="ident">Decoder</a>) <label for="r87" class="ident"><a href="../../../../../use/github.com/vmihailenco/msgpack/v5..Decoder.DecodeNil.html" class="ident">DecodeNil</a></label>() <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-313"><code>	<label for="r88" class="ident">c</label>, <label for="r89" class="ident">err</label> := <label for="r86" class="ident">d</label>.<a href="#line-582" class="ident">readCode</a>()</code></span>
+<span class="codeline" id="line-314"><code>	<span class="keyword">if</span> <label for="r89" class="ident">err</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-315"><code>		<span class="keyword">return</span> <label for="r89" class="ident">err</label></code></span>
+<span class="codeline" id="line-316"><code>	}</code></span>
+<span class="codeline" id="line-317"><code>	<span class="keyword">if</span> <label for="r88" class="ident">c</label> != <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-7" class="ident">Nil</a> {</code></span>
+<span class="codeline" id="line-318"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/fmt.html" class="ident i3">fmt</a>.<a href="../../../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"msgpack: invalid code=%x decoding nil"</span>, <label for="r88" class="ident">c</label>)</code></span>
+<span class="codeline" id="line-319"><code>	}</code></span>
+<span class="codeline" id="line-320"><code>	<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-321"><code>}</code></span>
+<span class="codeline" id="line-322"><code></code></span>
+<span class="codeline" id="line-323"><code><span class="keyword">func</span> (<label for="r90" class="ident">d</label> *<a href="#line-66" class="ident">Decoder</a>) <label for="r91" class="ident"><a href="../../../../../use/github.com/vmihailenco/msgpack/v5..Decoder.decodeNilValue^e43d2.html" class="ident">decodeNilValue</a></label>(<label for="r92" class="ident">v</label> <a href="../../../../../pkg/reflect.html" class="ident i5">reflect</a>.<a href="../../../../reflect/value.go.html#line-39" class="ident">Value</a>) <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-324"><code>	<label for="r93" class="ident">err</label> := <label for="r90" class="ident">d</label>.<a href="#line-312" class="ident">DecodeNil</a>()</code></span>
+<span class="codeline" id="line-325"><code>	<span class="keyword">if</span> <label for="r92" class="ident">v</label>.<a href="../../../../reflect/value.go.html#line-1544" class="ident">IsNil</a>() {</code></span>
+<span class="codeline" id="line-326"><code>		<span class="keyword">return</span> <label for="r93" class="ident">err</label></code></span>
+<span class="codeline" id="line-327"><code>	}</code></span>
+<span class="codeline" id="line-328"><code>	<span class="keyword">if</span> <label for="r92" class="ident">v</label>.<a href="../../../../reflect/value.go.html#line-1750" class="ident">Kind</a>() == <a href="../../../../../pkg/reflect.html" class="ident i5">reflect</a>.<a href="../../../../reflect/type.go.html#line-304" class="ident">Ptr</a> {</code></span>
+<span class="codeline" id="line-329"><code>		<label for="r92" class="ident">v</label> = <label for="r92" class="ident">v</label>.<a href="../../../../reflect/value.go.html#line-1218" class="ident">Elem</a>()</code></span>
+<span class="codeline" id="line-330"><code>	}</code></span>
+<span class="codeline" id="line-331"><code>	<label for="r92" class="ident">v</label>.<a href="../../../../reflect/value.go.html#line-2050" class="ident">Set</a>(<a href="../../../../../pkg/reflect.html" class="ident i5">reflect</a>.<a href="../../../../reflect/value.go.html#line-2988" class="ident">Zero</a>(<label for="r92" class="ident">v</label>.<a href="../../../../reflect/value.go.html#line-2379" class="ident">Type</a>()))</code></span>
+<span class="codeline" id="line-332"><code>	<span class="keyword">return</span> <label for="r93" class="ident">err</label></code></span>
+<span class="codeline" id="line-333"><code>}</code></span>
+<span class="codeline" id="line-334"><code></code></span>
+<span class="codeline" id="line-335"><code><span class="keyword">func</span> (<label for="r94" class="ident">d</label> *<a href="#line-66" class="ident">Decoder</a>) <label for="r95" class="ident"><a href="../../../../../use/github.com/vmihailenco/msgpack/v5..Decoder.DecodeBool.html" class="ident">DecodeBool</a></label>() (<a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a>, <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-336"><code>	<label for="r96" class="ident">c</label>, <label for="r97" class="ident">err</label> := <label for="r94" class="ident">d</label>.<a href="#line-582" class="ident">readCode</a>()</code></span>
+<span class="codeline" id="line-337"><code>	<span class="keyword">if</span> <label for="r97" class="ident">err</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-338"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-false" class="ident">false</a>, <label for="r97" class="ident">err</label></code></span>
+<span class="codeline" id="line-339"><code>	}</code></span>
+<span class="codeline" id="line-340"><code>	<span class="keyword">return</span> <label for="r94" class="ident">d</label>.<a href="#line-343" class="ident">bool</a>(<label for="r96" class="ident">c</label>)</code></span>
+<span class="codeline" id="line-341"><code>}</code></span>
+<span class="codeline" id="line-342"><code></code></span>
+<span class="codeline" id="line-343"><code><span class="keyword">func</span> (<label for="r98" class="ident">d</label> *<a href="#line-66" class="ident">Decoder</a>) <label for="r99" class="ident"><a href="../../../../../use/github.com/vmihailenco/msgpack/v5..Decoder.bool^b760f.html" class="ident">bool</a></label>(<label for="r100" class="ident">c</label> <a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) (<a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a>, <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-344"><code>	<span class="keyword">if</span> <label for="r100" class="ident">c</label> == <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-7" class="ident">Nil</a> {</code></span>
+<span class="codeline" id="line-345"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-false" class="ident">false</a>, <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-346"><code>	}</code></span>
+<span class="codeline" id="line-347"><code>	<span class="keyword">if</span> <label for="r100" class="ident">c</label> == <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-9" class="ident">False</a> {</code></span>
+<span class="codeline" id="line-348"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-false" class="ident">false</a>, <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-349"><code>	}</code></span>
+<span class="codeline" id="line-350"><code>	<span class="keyword">if</span> <label for="r100" class="ident">c</label> == <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-10" class="ident">True</a> {</code></span>
+<span class="codeline" id="line-351"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-true" class="ident">true</a>, <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-352"><code>	}</code></span>
+<span class="codeline" id="line-353"><code>	<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-false" class="ident">false</a>, <a href="../../../../../pkg/fmt.html" class="ident i3">fmt</a>.<a href="../../../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"msgpack: invalid code=%x decoding bool"</span>, <label for="r100" class="ident">c</label>)</code></span>
+<span class="codeline" id="line-354"><code>}</code></span>
+<span class="codeline" id="line-355"><code></code></span>
+<span class="codeline" id="line-356"><code><span class="keyword">func</span> (<label for="r101" class="ident">d</label> *<a href="#line-66" class="ident">Decoder</a>) <label for="r102" class="ident"><a href="../../../../../use/github.com/vmihailenco/msgpack/v5..Decoder.DecodeDuration.html" class="ident">DecodeDuration</a></label>() (<a href="../../../../../pkg/time.html" class="ident i7">time</a>.<a href="../../../../time/time.go.html#line-911" class="ident">Duration</a>, <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-357"><code>	<label for="r103" class="ident">n</label>, <label for="r104" class="ident">err</label> := <label for="r101" class="ident">d</label>.<a href="decode_number.go.html#line-124" class="ident">DecodeInt64</a>()</code></span>
+<span class="codeline" id="line-358"><code>	<span class="keyword">if</span> <label for="r104" class="ident">err</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-359"><code>		<span class="keyword">return</span> <span class="lit-number">0</span>, <label for="r104" class="ident">err</label></code></span>
+<span class="codeline" id="line-360"><code>	}</code></span>
+<span class="codeline" id="line-361"><code>	<span class="keyword">return</span> <a href="../../../../../pkg/time.html" class="ident i7">time</a>.<a href="../../../../time/time.go.html#line-911" class="ident">Duration</a>(<label for="r103" class="ident">n</label>), <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-362"><code>}</code></span>
+<span class="codeline" id="line-363"><code></code></span>
+<span class="codeline" id="line-364"><code><span class="comment">// DecodeInterface decodes value into interface. It returns following types:</span></code></span>
+<span class="codeline" id="line-365"><code><span class="comment">//   - nil,</span></code></span>
+<span class="codeline" id="line-366"><code><span class="comment">//   - bool,</span></code></span>
+<span class="codeline" id="line-367"><code><span class="comment">//   - int8, int16, int32, int64,</span></code></span>
+<span class="codeline" id="line-368"><code><span class="comment">//   - uint8, uint16, uint32, uint64,</span></code></span>
+<span class="codeline" id="line-369"><code><span class="comment">//   - float32 and float64,</span></code></span>
+<span class="codeline" id="line-370"><code><span class="comment">//   - string,</span></code></span>
+<span class="codeline" id="line-371"><code><span class="comment">//   - []byte,</span></code></span>
+<span class="codeline" id="line-372"><code><span class="comment">//   - slices of any of the above,</span></code></span>
+<span class="codeline" id="line-373"><code><span class="comment">//   - maps of any of the above.</span></code></span>
+<span class="codeline" id="line-374"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-375"><code><span class="comment">// DecodeInterface should be used only when you don't know the type of value</span></code></span>
+<span class="codeline" id="line-376"><code><span class="comment">// you are decoding. For example, if you are decoding number it is better to use</span></code></span>
+<span class="codeline" id="line-377"><code><span class="comment">// DecodeInt64 for negative numbers and DecodeUint64 for positive numbers.</span></code></span>
+<span class="codeline" id="line-378"><code><span class="keyword">func</span> (<label for="r105" class="ident">d</label> *<a href="#line-66" class="ident">Decoder</a>) <label for="r106" class="ident"><a href="../../../../../use/github.com/vmihailenco/msgpack/v5..Decoder.DecodeInterface.html" class="ident">DecodeInterface</a></label>() (<span class="keyword">interface</span>{}, <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-379"><code>	<label for="r107" class="ident">c</label>, <label for="r108" class="ident">err</label> := <label for="r105" class="ident">d</label>.<a href="#line-582" class="ident">readCode</a>()</code></span>
+<span class="codeline" id="line-380"><code>	<span class="keyword">if</span> <label for="r108" class="ident">err</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-381"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r108" class="ident">err</label></code></span>
+<span class="codeline" id="line-382"><code>	}</code></span>
+<span class="codeline" id="line-383"><code></code></span>
+<span class="codeline" id="line-384"><code>	<span class="keyword">if</span> <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-58" class="ident">IsFixedNum</a>(<label for="r107" class="ident">c</label>) {</code></span>
+<span class="codeline" id="line-385"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-int8" class="ident">int8</a>(<label for="r107" class="ident">c</label>), <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-386"><code>	}</code></span>
+<span class="codeline" id="line-387"><code>	<span class="keyword">if</span> <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-62" class="ident">IsFixedMap</a>(<label for="r107" class="ident">c</label>) {</code></span>
+<span class="codeline" id="line-388"><code>		<label for="r108" class="ident">err</label> = <label for="r105" class="ident">d</label>.<a href="#line-68" class="ident">s</a>.<a href="../../../../io/io.go.html#line-276" class="ident">UnreadByte</a>()</code></span>
+<span class="codeline" id="line-389"><code>		<span class="keyword">if</span> <label for="r108" class="ident">err</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-390"><code>			<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r108" class="ident">err</label></code></span>
+<span class="codeline" id="line-391"><code>		}</code></span>
+<span class="codeline" id="line-392"><code>		<span class="keyword">return</span> <label for="r105" class="ident">d</label>.<a href="decode_map.go.html#line-45" class="ident">decodeMapDefault</a>()</code></span>
+<span class="codeline" id="line-393"><code>	}</code></span>
+<span class="codeline" id="line-394"><code>	<span class="keyword">if</span> <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-66" class="ident">IsFixedArray</a>(<label for="r107" class="ident">c</label>) {</code></span>
+<span class="codeline" id="line-395"><code>		<span class="keyword">return</span> <label for="r105" class="ident">d</label>.<a href="decode_slice.go.html#line-157" class="ident">decodeSlice</a>(<label for="r107" class="ident">c</label>)</code></span>
+<span class="codeline" id="line-396"><code>	}</code></span>
+<span class="codeline" id="line-397"><code>	<span class="keyword">if</span> <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-70" class="ident">IsFixedString</a>(<label for="r107" class="ident">c</label>) {</code></span>
+<span class="codeline" id="line-398"><code>		<span class="keyword">return</span> <label for="r105" class="ident">d</label>.<a href="decode_string.go.html#line-46" class="ident">string</a>(<label for="r107" class="ident">c</label>)</code></span>
+<span class="codeline" id="line-399"><code>	}</code></span>
+<span class="codeline" id="line-400"><code></code></span>
+<span class="codeline" id="line-401"><code>	<span class="keyword">switch</span> <label for="r107" class="ident">c</label> {</code></span>
+<span class="codeline" id="line-402"><code>	<span class="keyword">case</span> <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-7" class="ident">Nil</a>:</code></span>
+<span class="codeline" id="line-403"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-404"><code>	<span class="keyword">case</span> <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-9" class="ident">False</a>, <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-10" class="ident">True</a>:</code></span>
+<span class="codeline" id="line-405"><code>		<span class="keyword">return</span> <label for="r105" class="ident">d</label>.<a href="#line-343" class="ident">bool</a>(<label for="r107" class="ident">c</label>)</code></span>
+<span class="codeline" id="line-406"><code>	<span class="keyword">case</span> <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-12" class="ident">Float</a>:</code></span>
+<span class="codeline" id="line-407"><code>		<span class="keyword">return</span> <label for="r105" class="ident">d</label>.<a href="decode_number.go.html#line-173" class="ident">float32</a>(<label for="r107" class="ident">c</label>)</code></span>
+<span class="codeline" id="line-408"><code>	<span class="keyword">case</span> <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-13" class="ident">Double</a>:</code></span>
+<span class="codeline" id="line-409"><code>		<span class="keyword">return</span> <label for="r105" class="ident">d</label>.<a href="decode_number.go.html#line-198" class="ident">float64</a>(<label for="r107" class="ident">c</label>)</code></span>
+<span class="codeline" id="line-410"><code>	<span class="keyword">case</span> <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-15" class="ident">Uint8</a>:</code></span>
+<span class="codeline" id="line-411"><code>		<span class="keyword">return</span> <label for="r105" class="ident">d</label>.<a href="decode_number.go.html#line-16" class="ident">uint8</a>()</code></span>
+<span class="codeline" id="line-412"><code>	<span class="keyword">case</span> <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-16" class="ident">Uint16</a>:</code></span>
+<span class="codeline" id="line-413"><code>		<span class="keyword">return</span> <label for="r105" class="ident">d</label>.<a href="decode_number.go.html#line-29" class="ident">uint16</a>()</code></span>
+<span class="codeline" id="line-414"><code>	<span class="keyword">case</span> <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-17" class="ident">Uint32</a>:</code></span>
+<span class="codeline" id="line-415"><code>		<span class="keyword">return</span> <label for="r105" class="ident">d</label>.<a href="decode_number.go.html#line-42" class="ident">uint32</a>()</code></span>
+<span class="codeline" id="line-416"><code>	<span class="keyword">case</span> <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-18" class="ident">Uint64</a>:</code></span>
+<span class="codeline" id="line-417"><code>		<span class="keyword">return</span> <label for="r105" class="ident">d</label>.<a href="decode_number.go.html#line-59" class="ident">uint64</a>()</code></span>
+<span class="codeline" id="line-418"><code>	<span class="keyword">case</span> <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-20" class="ident">Int8</a>:</code></span>
+<span class="codeline" id="line-419"><code>		<span class="keyword">return</span> <label for="r105" class="ident">d</label>.<a href="decode_number.go.html#line-24" class="ident">int8</a>()</code></span>
+<span class="codeline" id="line-420"><code>	<span class="keyword">case</span> <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-21" class="ident">Int16</a>:</code></span>
+<span class="codeline" id="line-421"><code>		<span class="keyword">return</span> <label for="r105" class="ident">d</label>.<a href="decode_number.go.html#line-37" class="ident">int16</a>()</code></span>
+<span class="codeline" id="line-422"><code>	<span class="keyword">case</span> <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-22" class="ident">Int32</a>:</code></span>
+<span class="codeline" id="line-423"><code>		<span class="keyword">return</span> <label for="r105" class="ident">d</label>.<a href="decode_number.go.html#line-54" class="ident">int32</a>()</code></span>
+<span class="codeline" id="line-424"><code>	<span class="keyword">case</span> <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-23" class="ident">Int64</a>:</code></span>
+<span class="codeline" id="line-425"><code>		<span class="keyword">return</span> <label for="r105" class="ident">d</label>.<a href="decode_number.go.html#line-75" class="ident">int64</a>()</code></span>
+<span class="codeline" id="line-426"><code>	<span class="keyword">case</span> <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-32" class="ident">Bin8</a>, <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-33" class="ident">Bin16</a>, <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-34" class="ident">Bin32</a>:</code></span>
+<span class="codeline" id="line-427"><code>		<span class="keyword">return</span> <label for="r105" class="ident">d</label>.<a href="decode_string.go.html#line-87" class="ident">bytes</a>(<label for="r107" class="ident">c</label>, <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>)</code></span>
+<span class="codeline" id="line-428"><code>	<span class="keyword">case</span> <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-28" class="ident">Str8</a>, <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-29" class="ident">Str16</a>, <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-30" class="ident">Str32</a>:</code></span>
+<span class="codeline" id="line-429"><code>		<span class="keyword">return</span> <label for="r105" class="ident">d</label>.<a href="decode_string.go.html#line-46" class="ident">string</a>(<label for="r107" class="ident">c</label>)</code></span>
+<span class="codeline" id="line-430"><code>	<span class="keyword">case</span> <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-39" class="ident">Array16</a>, <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-40" class="ident">Array32</a>:</code></span>
+<span class="codeline" id="line-431"><code>		<span class="keyword">return</span> <label for="r105" class="ident">d</label>.<a href="decode_slice.go.html#line-157" class="ident">decodeSlice</a>(<label for="r107" class="ident">c</label>)</code></span>
+<span class="codeline" id="line-432"><code>	<span class="keyword">case</span> <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-45" class="ident">Map16</a>, <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-46" class="ident">Map32</a>:</code></span>
+<span class="codeline" id="line-433"><code>		<label for="r108" class="ident">err</label> = <label for="r105" class="ident">d</label>.<a href="#line-68" class="ident">s</a>.<a href="../../../../io/io.go.html#line-276" class="ident">UnreadByte</a>()</code></span>
+<span class="codeline" id="line-434"><code>		<span class="keyword">if</span> <label for="r108" class="ident">err</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-435"><code>			<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r108" class="ident">err</label></code></span>
+<span class="codeline" id="line-436"><code>		}</code></span>
+<span class="codeline" id="line-437"><code>		<span class="keyword">return</span> <label for="r105" class="ident">d</label>.<a href="decode_map.go.html#line-45" class="ident">decodeMapDefault</a>()</code></span>
+<span class="codeline" id="line-438"><code>	<span class="keyword">case</span> <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-48" class="ident">FixExt1</a>, <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-49" class="ident">FixExt2</a>, <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-50" class="ident">FixExt4</a>, <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-51" class="ident">FixExt8</a>, <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-52" class="ident">FixExt16</a>,</code></span>
+<span class="codeline" id="line-439"><code>		<a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-53" class="ident">Ext8</a>, <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-54" class="ident">Ext16</a>, <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-55" class="ident">Ext32</a>:</code></span>
+<span class="codeline" id="line-440"><code>		<span class="keyword">return</span> <label for="r105" class="ident">d</label>.<a href="ext.go.html#line-246" class="ident">decodeInterfaceExt</a>(<label for="r107" class="ident">c</label>)</code></span>
+<span class="codeline" id="line-441"><code>	}</code></span>
+<span class="codeline" id="line-442"><code></code></span>
+<span class="codeline" id="line-443"><code>	<span class="keyword">return</span> <span class="lit-number">0</span>, <a href="../../../../../pkg/fmt.html" class="ident i3">fmt</a>.<a href="../../../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"msgpack: unknown code %x decoding interface{}"</span>, <label for="r107" class="ident">c</label>)</code></span>
+<span class="codeline" id="line-444"><code>}</code></span>
+<span class="codeline" id="line-445"><code></code></span>
+<span class="codeline" id="line-446"><code><span class="comment">// DecodeInterfaceLoose is like DecodeInterface except that:</span></code></span>
+<span class="codeline" id="line-447"><code><span class="comment">//   - int8, int16, and int32 are converted to int64,</span></code></span>
+<span class="codeline" id="line-448"><code><span class="comment">//   - uint8, uint16, and uint32 are converted to uint64,</span></code></span>
+<span class="codeline" id="line-449"><code><span class="comment">//   - float32 is converted to float64.</span></code></span>
+<span class="codeline" id="line-450"><code><span class="comment">//   - []byte is converted to string.</span></code></span>
+<span class="codeline" id="line-451"><code><span class="keyword">func</span> (<label for="r109" class="ident">d</label> *<a href="#line-66" class="ident">Decoder</a>) <label for="r110" class="ident"><a href="../../../../../use/github.com/vmihailenco/msgpack/v5..Decoder.DecodeInterfaceLoose.html" class="ident">DecodeInterfaceLoose</a></label>() (<span class="keyword">interface</span>{}, <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-452"><code>	<label for="r111" class="ident">c</label>, <label for="r112" class="ident">err</label> := <label for="r109" class="ident">d</label>.<a href="#line-582" class="ident">readCode</a>()</code></span>
+<span class="codeline" id="line-453"><code>	<span class="keyword">if</span> <label for="r112" class="ident">err</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-454"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r112" class="ident">err</label></code></span>
+<span class="codeline" id="line-455"><code>	}</code></span>
+<span class="codeline" id="line-456"><code></code></span>
+<span class="codeline" id="line-457"><code>	<span class="keyword">if</span> <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-58" class="ident">IsFixedNum</a>(<label for="r111" class="ident">c</label>) {</code></span>
+<span class="codeline" id="line-458"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-int64" class="ident">int64</a>(<a href="../../../../../pkg/builtin.html#name-int8" class="ident">int8</a>(<label for="r111" class="ident">c</label>)), <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-459"><code>	}</code></span>
+<span class="codeline" id="line-460"><code>	<span class="keyword">if</span> <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-62" class="ident">IsFixedMap</a>(<label for="r111" class="ident">c</label>) {</code></span>
+<span class="codeline" id="line-461"><code>		<label for="r112" class="ident">err</label> = <label for="r109" class="ident">d</label>.<a href="#line-68" class="ident">s</a>.<a href="../../../../io/io.go.html#line-276" class="ident">UnreadByte</a>()</code></span>
+<span class="codeline" id="line-462"><code>		<span class="keyword">if</span> <label for="r112" class="ident">err</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-463"><code>			<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r112" class="ident">err</label></code></span>
+<span class="codeline" id="line-464"><code>		}</code></span>
+<span class="codeline" id="line-465"><code>		<span class="keyword">return</span> <label for="r109" class="ident">d</label>.<a href="decode_map.go.html#line-45" class="ident">decodeMapDefault</a>()</code></span>
+<span class="codeline" id="line-466"><code>	}</code></span>
+<span class="codeline" id="line-467"><code>	<span class="keyword">if</span> <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-66" class="ident">IsFixedArray</a>(<label for="r111" class="ident">c</label>) {</code></span>
+<span class="codeline" id="line-468"><code>		<span class="keyword">return</span> <label for="r109" class="ident">d</label>.<a href="decode_slice.go.html#line-157" class="ident">decodeSlice</a>(<label for="r111" class="ident">c</label>)</code></span>
+<span class="codeline" id="line-469"><code>	}</code></span>
+<span class="codeline" id="line-470"><code>	<span class="keyword">if</span> <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-70" class="ident">IsFixedString</a>(<label for="r111" class="ident">c</label>) {</code></span>
+<span class="codeline" id="line-471"><code>		<span class="keyword">return</span> <label for="r109" class="ident">d</label>.<a href="decode_string.go.html#line-46" class="ident">string</a>(<label for="r111" class="ident">c</label>)</code></span>
+<span class="codeline" id="line-472"><code>	}</code></span>
+<span class="codeline" id="line-473"><code></code></span>
+<span class="codeline" id="line-474"><code>	<span class="keyword">switch</span> <label for="r111" class="ident">c</label> {</code></span>
+<span class="codeline" id="line-475"><code>	<span class="keyword">case</span> <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-7" class="ident">Nil</a>:</code></span>
+<span class="codeline" id="line-476"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-477"><code>	<span class="keyword">case</span> <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-9" class="ident">False</a>, <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-10" class="ident">True</a>:</code></span>
+<span class="codeline" id="line-478"><code>		<span class="keyword">return</span> <label for="r109" class="ident">d</label>.<a href="#line-343" class="ident">bool</a>(<label for="r111" class="ident">c</label>)</code></span>
+<span class="codeline" id="line-479"><code>	<span class="keyword">case</span> <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-12" class="ident">Float</a>, <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-13" class="ident">Double</a>:</code></span>
+<span class="codeline" id="line-480"><code>		<span class="keyword">return</span> <label for="r109" class="ident">d</label>.<a href="decode_number.go.html#line-198" class="ident">float64</a>(<label for="r111" class="ident">c</label>)</code></span>
+<span class="codeline" id="line-481"><code>	<span class="keyword">case</span> <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-15" class="ident">Uint8</a>, <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-16" class="ident">Uint16</a>, <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-17" class="ident">Uint32</a>, <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-18" class="ident">Uint64</a>:</code></span>
+<span class="codeline" id="line-482"><code>		<span class="keyword">return</span> <label for="r109" class="ident">d</label>.<a href="decode_number.go.html#line-90" class="ident">uint</a>(<label for="r111" class="ident">c</label>)</code></span>
+<span class="codeline" id="line-483"><code>	<span class="keyword">case</span> <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-20" class="ident">Int8</a>, <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-21" class="ident">Int16</a>, <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-22" class="ident">Int32</a>, <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-23" class="ident">Int64</a>:</code></span>
+<span class="codeline" id="line-484"><code>		<span class="keyword">return</span> <label for="r109" class="ident">d</label>.<a href="decode_number.go.html#line-132" class="ident">int</a>(<label for="r111" class="ident">c</label>)</code></span>
+<span class="codeline" id="line-485"><code>	<span class="keyword">case</span> <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-28" class="ident">Str8</a>, <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-29" class="ident">Str16</a>, <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-30" class="ident">Str32</a>,</code></span>
+<span class="codeline" id="line-486"><code>		<a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-32" class="ident">Bin8</a>, <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-33" class="ident">Bin16</a>, <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-34" class="ident">Bin32</a>:</code></span>
+<span class="codeline" id="line-487"><code>		<span class="keyword">return</span> <label for="r109" class="ident">d</label>.<a href="decode_string.go.html#line-46" class="ident">string</a>(<label for="r111" class="ident">c</label>)</code></span>
+<span class="codeline" id="line-488"><code>	<span class="keyword">case</span> <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-39" class="ident">Array16</a>, <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-40" class="ident">Array32</a>:</code></span>
+<span class="codeline" id="line-489"><code>		<span class="keyword">return</span> <label for="r109" class="ident">d</label>.<a href="decode_slice.go.html#line-157" class="ident">decodeSlice</a>(<label for="r111" class="ident">c</label>)</code></span>
+<span class="codeline" id="line-490"><code>	<span class="keyword">case</span> <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-45" class="ident">Map16</a>, <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-46" class="ident">Map32</a>:</code></span>
+<span class="codeline" id="line-491"><code>		<label for="r112" class="ident">err</label> = <label for="r109" class="ident">d</label>.<a href="#line-68" class="ident">s</a>.<a href="../../../../io/io.go.html#line-276" class="ident">UnreadByte</a>()</code></span>
+<span class="codeline" id="line-492"><code>		<span class="keyword">if</span> <label for="r112" class="ident">err</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-493"><code>			<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r112" class="ident">err</label></code></span>
+<span class="codeline" id="line-494"><code>		}</code></span>
+<span class="codeline" id="line-495"><code>		<span class="keyword">return</span> <label for="r109" class="ident">d</label>.<a href="decode_map.go.html#line-45" class="ident">decodeMapDefault</a>()</code></span>
+<span class="codeline" id="line-496"><code>	<span class="keyword">case</span> <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-48" class="ident">FixExt1</a>, <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-49" class="ident">FixExt2</a>, <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-50" class="ident">FixExt4</a>, <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-51" class="ident">FixExt8</a>, <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-52" class="ident">FixExt16</a>,</code></span>
+<span class="codeline" id="line-497"><code>		<a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-53" class="ident">Ext8</a>, <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-54" class="ident">Ext16</a>, <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-55" class="ident">Ext32</a>:</code></span>
+<span class="codeline" id="line-498"><code>		<span class="keyword">return</span> <label for="r109" class="ident">d</label>.<a href="ext.go.html#line-246" class="ident">decodeInterfaceExt</a>(<label for="r111" class="ident">c</label>)</code></span>
+<span class="codeline" id="line-499"><code>	}</code></span>
+<span class="codeline" id="line-500"><code></code></span>
+<span class="codeline" id="line-501"><code>	<span class="keyword">return</span> <span class="lit-number">0</span>, <a href="../../../../../pkg/fmt.html" class="ident i3">fmt</a>.<a href="../../../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"msgpack: unknown code %x decoding interface{}"</span>, <label for="r111" class="ident">c</label>)</code></span>
+<span class="codeline" id="line-502"><code>}</code></span>
+<span class="codeline" id="line-503"><code></code></span>
+<span class="codeline" id="line-504"><code><span class="comment">// Skip skips next value.</span></code></span>
+<span class="codeline" id="line-505"><code><span class="keyword">func</span> (<label for="r113" class="ident">d</label> *<a href="#line-66" class="ident">Decoder</a>) <label for="r114" class="ident"><a href="../../../../../use/github.com/vmihailenco/msgpack/v5..Decoder.Skip.html" class="ident">Skip</a></label>() <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-506"><code>	<label for="r115" class="ident">c</label>, <label for="r116" class="ident">err</label> := <label for="r113" class="ident">d</label>.<a href="#line-582" class="ident">readCode</a>()</code></span>
+<span class="codeline" id="line-507"><code>	<span class="keyword">if</span> <label for="r116" class="ident">err</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-508"><code>		<span class="keyword">return</span> <label for="r116" class="ident">err</label></code></span>
+<span class="codeline" id="line-509"><code>	}</code></span>
+<span class="codeline" id="line-510"><code></code></span>
+<span class="codeline" id="line-511"><code>	<span class="keyword">if</span> <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-58" class="ident">IsFixedNum</a>(<label for="r115" class="ident">c</label>) {</code></span>
+<span class="codeline" id="line-512"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-513"><code>	}</code></span>
+<span class="codeline" id="line-514"><code>	<span class="keyword">if</span> <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-62" class="ident">IsFixedMap</a>(<label for="r115" class="ident">c</label>) {</code></span>
+<span class="codeline" id="line-515"><code>		<span class="keyword">return</span> <label for="r113" class="ident">d</label>.<a href="decode_map.go.html#line-258" class="ident">skipMap</a>(<label for="r115" class="ident">c</label>)</code></span>
+<span class="codeline" id="line-516"><code>	}</code></span>
+<span class="codeline" id="line-517"><code>	<span class="keyword">if</span> <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-66" class="ident">IsFixedArray</a>(<label for="r115" class="ident">c</label>) {</code></span>
+<span class="codeline" id="line-518"><code>		<span class="keyword">return</span> <label for="r113" class="ident">d</label>.<a href="decode_slice.go.html#line-178" class="ident">skipSlice</a>(<label for="r115" class="ident">c</label>)</code></span>
+<span class="codeline" id="line-519"><code>	}</code></span>
+<span class="codeline" id="line-520"><code>	<span class="keyword">if</span> <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-70" class="ident">IsFixedString</a>(<label for="r115" class="ident">c</label>) {</code></span>
+<span class="codeline" id="line-521"><code>		<span class="keyword">return</span> <label for="r113" class="ident">d</label>.<a href="decode_string.go.html#line-146" class="ident">skipBytes</a>(<label for="r115" class="ident">c</label>)</code></span>
+<span class="codeline" id="line-522"><code>	}</code></span>
+<span class="codeline" id="line-523"><code></code></span>
+<span class="codeline" id="line-524"><code>	<span class="keyword">switch</span> <label for="r115" class="ident">c</label> {</code></span>
+<span class="codeline" id="line-525"><code>	<span class="keyword">case</span> <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-7" class="ident">Nil</a>, <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-9" class="ident">False</a>, <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-10" class="ident">True</a>:</code></span>
+<span class="codeline" id="line-526"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-527"><code>	<span class="keyword">case</span> <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-15" class="ident">Uint8</a>, <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-20" class="ident">Int8</a>:</code></span>
+<span class="codeline" id="line-528"><code>		<span class="keyword">return</span> <label for="r113" class="ident">d</label>.<a href="decode_number.go.html#line-11" class="ident">skipN</a>(<span class="lit-number">1</span>)</code></span>
+<span class="codeline" id="line-529"><code>	<span class="keyword">case</span> <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-16" class="ident">Uint16</a>, <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-21" class="ident">Int16</a>:</code></span>
+<span class="codeline" id="line-530"><code>		<span class="keyword">return</span> <label for="r113" class="ident">d</label>.<a href="decode_number.go.html#line-11" class="ident">skipN</a>(<span class="lit-number">2</span>)</code></span>
+<span class="codeline" id="line-531"><code>	<span class="keyword">case</span> <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-17" class="ident">Uint32</a>, <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-22" class="ident">Int32</a>, <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-12" class="ident">Float</a>:</code></span>
+<span class="codeline" id="line-532"><code>		<span class="keyword">return</span> <label for="r113" class="ident">d</label>.<a href="decode_number.go.html#line-11" class="ident">skipN</a>(<span class="lit-number">4</span>)</code></span>
+<span class="codeline" id="line-533"><code>	<span class="keyword">case</span> <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-18" class="ident">Uint64</a>, <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-23" class="ident">Int64</a>, <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-13" class="ident">Double</a>:</code></span>
+<span class="codeline" id="line-534"><code>		<span class="keyword">return</span> <label for="r113" class="ident">d</label>.<a href="decode_number.go.html#line-11" class="ident">skipN</a>(<span class="lit-number">8</span>)</code></span>
+<span class="codeline" id="line-535"><code>	<span class="keyword">case</span> <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-32" class="ident">Bin8</a>, <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-33" class="ident">Bin16</a>, <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-34" class="ident">Bin32</a>:</code></span>
+<span class="codeline" id="line-536"><code>		<span class="keyword">return</span> <label for="r113" class="ident">d</label>.<a href="decode_string.go.html#line-146" class="ident">skipBytes</a>(<label for="r115" class="ident">c</label>)</code></span>
+<span class="codeline" id="line-537"><code>	<span class="keyword">case</span> <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-28" class="ident">Str8</a>, <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-29" class="ident">Str16</a>, <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-30" class="ident">Str32</a>:</code></span>
+<span class="codeline" id="line-538"><code>		<span class="keyword">return</span> <label for="r113" class="ident">d</label>.<a href="decode_string.go.html#line-146" class="ident">skipBytes</a>(<label for="r115" class="ident">c</label>)</code></span>
+<span class="codeline" id="line-539"><code>	<span class="keyword">case</span> <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-39" class="ident">Array16</a>, <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-40" class="ident">Array32</a>:</code></span>
+<span class="codeline" id="line-540"><code>		<span class="keyword">return</span> <label for="r113" class="ident">d</label>.<a href="decode_slice.go.html#line-178" class="ident">skipSlice</a>(<label for="r115" class="ident">c</label>)</code></span>
+<span class="codeline" id="line-541"><code>	<span class="keyword">case</span> <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-45" class="ident">Map16</a>, <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-46" class="ident">Map32</a>:</code></span>
+<span class="codeline" id="line-542"><code>		<span class="keyword">return</span> <label for="r113" class="ident">d</label>.<a href="decode_map.go.html#line-258" class="ident">skipMap</a>(<label for="r115" class="ident">c</label>)</code></span>
+<span class="codeline" id="line-543"><code>	<span class="keyword">case</span> <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-48" class="ident">FixExt1</a>, <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-49" class="ident">FixExt2</a>, <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-50" class="ident">FixExt4</a>, <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-51" class="ident">FixExt8</a>, <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-52" class="ident">FixExt16</a>,</code></span>
+<span class="codeline" id="line-544"><code>		<a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-53" class="ident">Ext8</a>, <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-54" class="ident">Ext16</a>, <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-55" class="ident">Ext32</a>:</code></span>
+<span class="codeline" id="line-545"><code>		<span class="keyword">return</span> <label for="r113" class="ident">d</label>.<a href="ext.go.html#line-269" class="ident">skipExt</a>(<label for="r115" class="ident">c</label>)</code></span>
+<span class="codeline" id="line-546"><code>	}</code></span>
+<span class="codeline" id="line-547"><code></code></span>
+<span class="codeline" id="line-548"><code>	<span class="keyword">return</span> <a href="../../../../../pkg/fmt.html" class="ident i3">fmt</a>.<a href="../../../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"msgpack: unknown code %x"</span>, <label for="r115" class="ident">c</label>)</code></span>
+<span class="codeline" id="line-549"><code>}</code></span>
+<span class="codeline" id="line-550"><code></code></span>
+<span class="codeline" id="line-551"><code><span class="keyword">func</span> (<label for="r117" class="ident">d</label> *<a href="#line-66" class="ident">Decoder</a>) <label for="r118" class="ident"><a href="../../../../../use/github.com/vmihailenco/msgpack/v5..Decoder.DecodeRaw.html" class="ident">DecodeRaw</a></label>() (<a href="msgpack.go.html#line-23" class="ident">RawMessage</a>, <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-552"><code>	<label for="r117" class="ident">d</label>.<a href="#line-71" class="ident">rec</a> = <a href="../../../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-553"><code>	<span class="keyword">if</span> <label for="r119" class="ident">err</label> := <label for="r117" class="ident">d</label>.<a href="#line-505" class="ident">Skip</a>(); <label for="r119" class="ident">err</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-554"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r119" class="ident">err</label></code></span>
+<span class="codeline" id="line-555"><code>	}</code></span>
+<span class="codeline" id="line-556"><code>	<label for="r120" class="ident">msg</label> := <a href="msgpack.go.html#line-23" class="ident">RawMessage</a>(<label for="r117" class="ident">d</label>.<a href="#line-71" class="ident">rec</a>)</code></span>
+<span class="codeline" id="line-557"><code>	<label for="r117" class="ident">d</label>.<a href="#line-71" class="ident">rec</a> = <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-558"><code>	<span class="keyword">return</span> <label for="r120" class="ident">msg</label>, <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-559"><code>}</code></span>
+<span class="codeline" id="line-560"><code></code></span>
+<span class="codeline" id="line-561"><code><span class="comment">// PeekCode returns the next MessagePack code without advancing the reader.</span></code></span>
+<span class="codeline" id="line-562"><code><span class="comment">// Subpackage msgpack/codes defines the list of available msgpcode.</span></code></span>
+<span class="codeline" id="line-563"><code><span class="keyword">func</span> (<label for="r121" class="ident">d</label> *<a href="#line-66" class="ident">Decoder</a>) <label for="r122" class="ident"><a href="../../../../../use/github.com/vmihailenco/msgpack/v5..Decoder.PeekCode.html" class="ident">PeekCode</a></label>() (<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-564"><code>	<label for="r123" class="ident">c</label>, <label for="r124" class="ident">err</label> := <label for="r121" class="ident">d</label>.<a href="#line-68" class="ident">s</a>.<a href="../../../../io/io.go.html#line-263" class="ident">ReadByte</a>()</code></span>
+<span class="codeline" id="line-565"><code>	<span class="keyword">if</span> <label for="r124" class="ident">err</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-566"><code>		<span class="keyword">return</span> <span class="lit-number">0</span>, <label for="r124" class="ident">err</label></code></span>
+<span class="codeline" id="line-567"><code>	}</code></span>
+<span class="codeline" id="line-568"><code>	<span class="keyword">return</span> <label for="r123" class="ident">c</label>, <label for="r121" class="ident">d</label>.<a href="#line-68" class="ident">s</a>.<a href="../../../../io/io.go.html#line-276" class="ident">UnreadByte</a>()</code></span>
+<span class="codeline" id="line-569"><code>}</code></span>
+<span class="codeline" id="line-570"><code></code></span>
+<span class="codeline" id="line-571"><code><span class="comment">// ReadFull reads exactly len(buf) bytes into the buf.</span></code></span>
+<span class="codeline" id="line-572"><code><span class="keyword">func</span> (<label for="r125" class="ident">d</label> *<a href="#line-66" class="ident">Decoder</a>) <label for="r126" class="ident"><a href="../../../../../use/github.com/vmihailenco/msgpack/v5..Decoder.ReadFull.html" class="ident">ReadFull</a></label>(<label for="r127" class="ident">buf</label> []<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-573"><code>	<label for="r128" class="ident">_</label>, <label for="r129" class="ident">err</label> := <a href="#line-617" class="ident">readN</a>(<label for="r125" class="ident">d</label>.<a href="#line-67" class="ident">r</a>, <label for="r127" class="ident">buf</label>, <a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r127" class="ident">buf</label>))</code></span>
+<span class="codeline" id="line-574"><code>	<span class="keyword">return</span> <label for="r129" class="ident">err</label></code></span>
+<span class="codeline" id="line-575"><code>}</code></span>
+<span class="codeline" id="line-576"><code></code></span>
+<span class="codeline" id="line-577"><code><span class="keyword">func</span> (<label for="r130" class="ident">d</label> *<a href="#line-66" class="ident">Decoder</a>) <label for="r131" class="ident"><a href="../../../../../use/github.com/vmihailenco/msgpack/v5..Decoder.hasNilCode^1d392.html" class="ident">hasNilCode</a></label>() <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-578"><code>	<label for="r132" class="ident">code</label>, <label for="r133" class="ident">err</label> := <label for="r130" class="ident">d</label>.<a href="#line-563" class="ident">PeekCode</a>()</code></span>
+<span class="codeline" id="line-579"><code>	<span class="keyword">return</span> <label for="r133" class="ident">err</label> == <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> &amp;&amp; <label for="r132" class="ident">code</label> == <a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5/msgpcode.html" class="ident i8">msgpcode</a>.<a href="msgpcode/msgpcode.go.html#line-7" class="ident">Nil</a></code></span>
+<span class="codeline" id="line-580"><code>}</code></span>
+<span class="codeline" id="line-581"><code></code></span>
+<span class="codeline" id="line-582"><code><span class="keyword">func</span> (<label for="r134" class="ident">d</label> *<a href="#line-66" class="ident">Decoder</a>) <label for="r135" class="ident"><a href="../../../../../use/github.com/vmihailenco/msgpack/v5..Decoder.readCode^cce96.html" class="ident">readCode</a></label>() (<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-583"><code>	<label for="r136" class="ident">c</label>, <label for="r137" class="ident">err</label> := <label for="r134" class="ident">d</label>.<a href="#line-68" class="ident">s</a>.<a href="../../../../io/io.go.html#line-263" class="ident">ReadByte</a>()</code></span>
+<span class="codeline" id="line-584"><code>	<span class="keyword">if</span> <label for="r137" class="ident">err</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-585"><code>		<span class="keyword">return</span> <span class="lit-number">0</span>, <label for="r137" class="ident">err</label></code></span>
+<span class="codeline" id="line-586"><code>	}</code></span>
+<span class="codeline" id="line-587"><code>	<span class="keyword">if</span> <label for="r134" class="ident">d</label>.<a href="#line-71" class="ident">rec</a> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-588"><code>		<label for="r134" class="ident">d</label>.<a href="#line-71" class="ident">rec</a> = <a href="../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r134" class="ident">d</label>.<a href="#line-71" class="ident">rec</a>, <label for="r136" class="ident">c</label>)</code></span>
+<span class="codeline" id="line-589"><code>	}</code></span>
+<span class="codeline" id="line-590"><code>	<span class="keyword">return</span> <label for="r136" class="ident">c</label>, <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-591"><code>}</code></span>
+<span class="codeline" id="line-592"><code></code></span>
+<span class="codeline" id="line-593"><code><span class="keyword">func</span> (<label for="r138" class="ident">d</label> *<a href="#line-66" class="ident">Decoder</a>) <label for="r139" class="ident"><a href="../../../../../use/github.com/vmihailenco/msgpack/v5..Decoder.readFull^241f1.html" class="ident">readFull</a></label>(<label for="r140" class="ident">b</label> []<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-594"><code>	<label for="r141" class="ident">_</label>, <label for="r142" class="ident">err</label> := <a href="../../../../../pkg/io.html" class="ident i4">io</a>.<a href="../../../../io/io.go.html#line-353" class="ident">ReadFull</a>(<label for="r138" class="ident">d</label>.<a href="#line-67" class="ident">r</a>, <label for="r140" class="ident">b</label>)</code></span>
+<span class="codeline" id="line-595"><code>	<span class="keyword">if</span> <label for="r142" class="ident">err</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-596"><code>		<span class="keyword">return</span> <label for="r142" class="ident">err</label></code></span>
+<span class="codeline" id="line-597"><code>	}</code></span>
+<span class="codeline" id="line-598"><code>	<span class="keyword">if</span> <label for="r138" class="ident">d</label>.<a href="#line-71" class="ident">rec</a> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-599"><code>		<label for="r138" class="ident">d</label>.<a href="#line-71" class="ident">rec</a> = <a href="../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r138" class="ident">d</label>.<a href="#line-71" class="ident">rec</a>, <label for="r140" class="ident">b</label>...)</code></span>
+<span class="codeline" id="line-600"><code>	}</code></span>
+<span class="codeline" id="line-601"><code>	<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-602"><code>}</code></span>
+<span class="codeline" id="line-603"><code></code></span>
+<span class="codeline" id="line-604"><code><span class="keyword">func</span> (<label for="r143" class="ident">d</label> *<a href="#line-66" class="ident">Decoder</a>) <label for="r144" class="ident"><a href="../../../../../use/github.com/vmihailenco/msgpack/v5..Decoder.readN^b3481.html" class="ident">readN</a></label>(<label for="r145" class="ident">n</label> <a href="../../../../../pkg/builtin.html#name-int" class="ident">int</a>) ([]<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-605"><code>	<span class="keyword">var</span> <label for="r146" class="ident">err</label> <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-606"><code>	<label for="r143" class="ident">d</label>.<a href="#line-69" class="ident">buf</a>, <label for="r146" class="ident">err</label> = <a href="#line-617" class="ident">readN</a>(<label for="r143" class="ident">d</label>.<a href="#line-67" class="ident">r</a>, <label for="r143" class="ident">d</label>.<a href="#line-69" class="ident">buf</a>, <label for="r145" class="ident">n</label>)</code></span>
+<span class="codeline" id="line-607"><code>	<span class="keyword">if</span> <label for="r146" class="ident">err</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-608"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r146" class="ident">err</label></code></span>
+<span class="codeline" id="line-609"><code>	}</code></span>
+<span class="codeline" id="line-610"><code>	<span class="keyword">if</span> <label for="r143" class="ident">d</label>.<a href="#line-71" class="ident">rec</a> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-611"><code>		<span class="comment">// TODO: read directly into d.rec?</span></code></span>
+<span class="codeline" id="line-612"><code>		<label for="r143" class="ident">d</label>.<a href="#line-71" class="ident">rec</a> = <a href="../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r143" class="ident">d</label>.<a href="#line-71" class="ident">rec</a>, <label for="r143" class="ident">d</label>.<a href="#line-69" class="ident">buf</a>...)</code></span>
+<span class="codeline" id="line-613"><code>	}</code></span>
+<span class="codeline" id="line-614"><code>	<span class="keyword">return</span> <label for="r143" class="ident">d</label>.<a href="#line-69" class="ident">buf</a>, <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-615"><code>}</code></span>
+<span class="codeline" id="line-616"><code></code></span>
+<span class="codeline" id="line-617"><code><span class="keyword">func</span> <label for="r147" class="ident"><a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5.html#name-readN" class="ident">readN</a></label>(<label for="r148" class="ident">r</label> <a href="../../../../../pkg/io.html" class="ident i4">io</a>.<a href="../../../../io/io.go.html#line-86" class="ident">Reader</a>, <label for="r149" class="ident">b</label> []<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r150" class="ident">n</label> <a href="../../../../../pkg/builtin.html#name-int" class="ident">int</a>) ([]<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-618"><code>	<span class="keyword">if</span> <label for="r149" class="ident">b</label> == <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-619"><code>		<span class="keyword">if</span> <label for="r150" class="ident">n</label> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-620"><code>			<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <span class="lit-number">0</span>), <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-621"><code>		}</code></span>
+<span class="codeline" id="line-622"><code>		<span class="keyword">switch</span> {</code></span>
+<span class="codeline" id="line-623"><code>		<span class="keyword">case</span> <label for="r150" class="ident">n</label> &lt; <span class="lit-number">64</span>:</code></span>
+<span class="codeline" id="line-624"><code>			<label for="r149" class="ident">b</label> = <a href="../../../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <span class="lit-number">0</span>, <span class="lit-number">64</span>)</code></span>
+<span class="codeline" id="line-625"><code>		<span class="keyword">case</span> <label for="r150" class="ident">n</label> &lt;= <a href="#line-22" class="ident">bytesAllocLimit</a>:</code></span>
+<span class="codeline" id="line-626"><code>			<label for="r149" class="ident">b</label> = <a href="../../../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <span class="lit-number">0</span>, <label for="r150" class="ident">n</label>)</code></span>
+<span class="codeline" id="line-627"><code>		<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-628"><code>			<label for="r149" class="ident">b</label> = <a href="../../../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <span class="lit-number">0</span>, <a href="#line-22" class="ident">bytesAllocLimit</a>)</code></span>
+<span class="codeline" id="line-629"><code>		}</code></span>
+<span class="codeline" id="line-630"><code>	}</code></span>
+<span class="codeline" id="line-631"><code></code></span>
+<span class="codeline" id="line-632"><code>	<span class="keyword">if</span> <label for="r150" class="ident">n</label> &lt;= <a href="../../../../../pkg/builtin.html#name-cap" class="ident">cap</a>(<label for="r149" class="ident">b</label>) {</code></span>
+<span class="codeline" id="line-633"><code>		<label for="r149" class="ident">b</label> = <label for="r149" class="ident">b</label>[:<label for="r150" class="ident">n</label>]</code></span>
+<span class="codeline" id="line-634"><code>		<label for="r151" class="ident">_</label>, <label for="r152" class="ident">err</label> := <a href="../../../../../pkg/io.html" class="ident i4">io</a>.<a href="../../../../io/io.go.html#line-353" class="ident">ReadFull</a>(<label for="r148" class="ident">r</label>, <label for="r149" class="ident">b</label>)</code></span>
+<span class="codeline" id="line-635"><code>		<span class="keyword">return</span> <label for="r149" class="ident">b</label>, <label for="r152" class="ident">err</label></code></span>
+<span class="codeline" id="line-636"><code>	}</code></span>
+<span class="codeline" id="line-637"><code>	<label for="r149" class="ident">b</label> = <label for="r149" class="ident">b</label>[:<a href="../../../../../pkg/builtin.html#name-cap" class="ident">cap</a>(<label for="r149" class="ident">b</label>)]</code></span>
+<span class="codeline" id="line-638"><code></code></span>
+<span class="codeline" id="line-639"><code>	<span class="keyword">var</span> <label for="r153" class="ident">pos</label> <a href="../../../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-640"><code>	<span class="keyword">for</span> {</code></span>
+<span class="codeline" id="line-641"><code>		<label for="r154" class="ident">alloc</label> := <a href="#line-658" class="ident">min</a>(<label for="r150" class="ident">n</label>-<a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r149" class="ident">b</label>), <a href="#line-22" class="ident">bytesAllocLimit</a>)</code></span>
+<span class="codeline" id="line-642"><code>		<label for="r149" class="ident">b</label> = <a href="../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r149" class="ident">b</label>, <a href="../../../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r154" class="ident">alloc</label>)...)</code></span>
+<span class="codeline" id="line-643"><code></code></span>
+<span class="codeline" id="line-644"><code>		<label for="r155" class="ident">_</label>, <label for="r156" class="ident">err</label> := <a href="../../../../../pkg/io.html" class="ident i4">io</a>.<a href="../../../../io/io.go.html#line-353" class="ident">ReadFull</a>(<label for="r148" class="ident">r</label>, <label for="r149" class="ident">b</label>[<label for="r153" class="ident">pos</label>:])</code></span>
+<span class="codeline" id="line-645"><code>		<span class="keyword">if</span> <label for="r156" class="ident">err</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-646"><code>			<span class="keyword">return</span> <label for="r149" class="ident">b</label>, <label for="r156" class="ident">err</label></code></span>
+<span class="codeline" id="line-647"><code>		}</code></span>
+<span class="codeline" id="line-648"><code></code></span>
+<span class="codeline" id="line-649"><code>		<span class="keyword">if</span> <a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r149" class="ident">b</label>) == <label for="r150" class="ident">n</label> {</code></span>
+<span class="codeline" id="line-650"><code>			<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-651"><code>		}</code></span>
+<span class="codeline" id="line-652"><code>		<label for="r153" class="ident">pos</label> = <a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r149" class="ident">b</label>)</code></span>
+<span class="codeline" id="line-653"><code>	}</code></span>
+<span class="codeline" id="line-654"><code></code></span>
+<span class="codeline" id="line-655"><code>	<span class="keyword">return</span> <label for="r149" class="ident">b</label>, <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-656"><code>}</code></span>
+<span class="codeline" id="line-657"><code></code></span>
+<span class="codeline" id="line-658"><code><span class="keyword">func</span> <label for="r157" class="ident"><a href="../../../../../pkg/github.com/vmihailenco/msgpack/v5.html#name-min" class="ident">min</a></label>(<label for="r158" class="ident">a</label>, <label for="r159" class="ident">b</label> <a href="../../../../../pkg/builtin.html#name-int" class="ident">int</a>) <a href="../../../../../pkg/builtin.html#name-int" class="ident">int</a> { <span class="comment">//nolint:unparam</span></code></span>
+<span class="codeline" id="line-659"><code>	<span class="keyword">if</span> <label for="r158" class="ident">a</label> &lt;= <label for="r159" class="ident">b</label> {</code></span>
+<span class="codeline" id="line-660"><code>		<span class="keyword">return</span> <label for="r158" class="ident">a</label></code></span>
+<span class="codeline" id="line-661"><code>	}</code></span>
+<span class="codeline" id="line-662"><code>	<span class="keyword">return</span> <label for="r159" class="ident">b</label></code></span>
+<span class="codeline" id="line-663"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: doc.go in package github.com/aws/smithy-go/encoding/xml</title>
+<link href="../../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	doc.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../../pkg/github.com/aws/smithy-go/encoding/xml.html">github.com/aws/smithy-go/encoding/xml</a>
+</code></pre>
+
+<pre class="line-numbers">
+<div class="anchor" id="doc"><span class="codeline" id="line-1"><code><span class="comment">/*</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">Package xml holds the XMl encoder utility. This utility is written in accordance to our design to delegate to</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">shape serializer function in which a xml.Value will be passed around.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="comment">Resources followed: https://smithy.io/2.0/spec/protocol-traits.html#xml-bindings</span></code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="comment">Member Element</span></code></span>
+<span class="codeline" id="line-8"><code></code></span>
+<span class="codeline" id="line-9"><code><span class="comment">Member element should be used to encode xml shapes into xml elements except for flattened xml shapes. Member element</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment">write their own element start tag. These elements should always be closed.</span></code></span>
+<span class="codeline" id="line-11"><code></code></span>
+<span class="codeline" id="line-12"><code><span class="comment">Flattened Element</span></code></span>
+<span class="codeline" id="line-13"><code></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">Flattened element should be used to encode shapes marked with flattened trait into xml elements. Flattened element</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">do not write a start tag, and thus should not be closed.</span></code></span>
+<span class="codeline" id="line-16"><code></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">Simple types encoding</span></code></span>
+<span class="codeline" id="line-18"><code></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">All simple type methods on value such as String(), Long() etc; auto close the associated member element.</span></code></span>
+<span class="codeline" id="line-20"><code></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">Array</span></code></span>
+<span class="codeline" id="line-22"><code></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">Array returns the collection encoder. It has two modes, wrapped and flattened encoding.</span></code></span>
+<span class="codeline" id="line-24"><code></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">Wrapped arrays have two methods Array() and ArrayWithCustomName() which facilitate array member wrapping.</span></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">By default, a wrapped array members are wrapped with `member` named start element.</span></code></span>
+<span class="codeline" id="line-27"><code></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">	&lt;wrappedArray&gt;&lt;member&gt;apple&lt;/member&gt;&lt;member&gt;tree&lt;/member&gt;&lt;/wrappedArray&gt;</span></code></span>
+<span class="codeline" id="line-29"><code></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">Flattened arrays rely on Value being marked as flattened.</span></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">If a shape is marked as flattened, Array() will use the shape element name as wrapper for array elements.</span></code></span>
+<span class="codeline" id="line-32"><code></code></span>
+<span class="codeline" id="line-33"><code><span class="comment">	&lt;flattenedAarray&gt;apple&lt;/flattenedArray&gt;&lt;flattenedArray&gt;tree&lt;/flattenedArray&gt;</span></code></span>
+<span class="codeline" id="line-34"><code></code></span>
+<span class="codeline" id="line-35"><code><span class="comment">Map</span></code></span>
+<span class="codeline" id="line-36"><code></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">Map is the map encoder. It has two modes, wrapped and flattened encoding.</span></code></span>
+<span class="codeline" id="line-38"><code></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">Wrapped map has Array() method, which facilitate map member wrapping.</span></code></span>
+<span class="codeline" id="line-40"><code><span class="comment">By default, a wrapped map members are wrapped with `entry` named start element.</span></code></span>
+<span class="codeline" id="line-41"><code></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">	&lt;wrappedMap&gt;&lt;entry&gt;&lt;Key&gt;apple&lt;/Key&gt;&lt;Value&gt;tree&lt;/Value&gt;&lt;/entry&gt;&lt;entry&gt;&lt;Key&gt;snow&lt;/Key&gt;&lt;Value&gt;ice&lt;/Value&gt;&lt;/entry&gt;&lt;/wrappedMap&gt;</span></code></span>
+<span class="codeline" id="line-43"><code></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">Flattened map rely on Value being marked as flattened.</span></code></span>
+<span class="codeline" id="line-45"><code><span class="comment">If a shape is marked as flattened, Map() will use the shape element name as wrapper for map entry elements.</span></code></span>
+<span class="codeline" id="line-46"><code></code></span>
+<span class="codeline" id="line-47"><code><span class="comment">	&lt;flattenedMap&gt;&lt;Key&gt;apple&lt;/Key&gt;&lt;Value&gt;tree&lt;/Value&gt;&lt;/flattenedMap&gt;&lt;flattenedMap&gt;&lt;Key&gt;snow&lt;/Key&gt;&lt;Value&gt;ice&lt;/Value&gt;&lt;/flattenedMap&gt;</span></code></span>
+<span class="codeline" id="line-48"><code><span class="comment">*/</span></code></span></div><span class="codeline" id="line-49"><code><span class="keyword">package</span> xml</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

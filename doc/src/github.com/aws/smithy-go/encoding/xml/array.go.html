@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: array.go in package github.com/aws/smithy-go/encoding/xml</title>
+<link href="../../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	array.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../../pkg/github.com/aws/smithy-go/encoding/xml.html">github.com/aws/smithy-go/encoding/xml</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9]
+{background: #226; color: #ff8;}
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="keyword">package</span> xml</code></span>
+<span class="codeline" id="line-2"><code></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// arrayMemberWrapper is the default member wrapper tag name for XML Array type</span></code></span>
+<span class="codeline" id="line-4"><code><span class="keyword">var</span> <a href="../../../../../../pkg/github.com/aws/smithy-go/encoding/xml.html#name-arrayMemberWrapper" class="ident">arrayMemberWrapper</a> = <a href="element.go.html#line-60" class="ident">StartElement</a>{</code></span>
+<span class="codeline" id="line-5"><code>	<a href="element.go.html#line-61" class="ident">Name</a>: <a href="element.go.html#line-14" class="ident">Name</a>{<a href="element.go.html#line-15" class="ident">Local</a>: <span class="lit-string">"member"</span>},</code></span>
+<span class="codeline" id="line-6"><code>}</code></span>
+<span class="codeline" id="line-7"><code></code></span>
+<span class="codeline" id="line-8"><code><span class="comment">// Array represents the encoding of a XML array type</span></code></span>
+<span class="codeline" id="line-9"><code><span class="keyword">type</span> <a href="../../../../../../pkg/github.com/aws/smithy-go/encoding/xml.html#name-Array" class="ident">Array</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-10"><code>	<a href="../../../../../../use/github.com/aws/smithy-go/encoding/xml..Array.w^50e72.html" class="ident">w</a>       <a href="encoder.go.html#line-5" class="ident">writer</a></code></span>
+<span class="codeline" id="line-11"><code>	<a href="../../../../../../use/github.com/aws/smithy-go/encoding/xml..Array.scratch^5a9cb.html" class="ident">scratch</a> *[]<a href="../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
+<span class="codeline" id="line-12"><code></code></span>
+<span class="codeline" id="line-13"><code>	<span class="comment">// member start element is the array member wrapper start element</span></code></span>
+<span class="codeline" id="line-14"><code>	<a href="../../../../../../use/github.com/aws/smithy-go/encoding/xml..Array.memberStartElement^07e91.html" class="ident">memberStartElement</a> <a href="element.go.html#line-60" class="ident">StartElement</a></code></span>
+<span class="codeline" id="line-15"><code></code></span>
+<span class="codeline" id="line-16"><code>	<span class="comment">// isFlattened indicates if the array is a flattened array.</span></code></span>
+<span class="codeline" id="line-17"><code>	<a href="../../../../../../use/github.com/aws/smithy-go/encoding/xml..Array.isFlattened^e3d47.html" class="ident">isFlattened</a> <a href="../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-18"><code>}</code></span>
+<span class="codeline" id="line-19"><code></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">// newArray returns an array encoder.</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">// It also takes in the  member start element, array start element.</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">// It takes in a isFlattened bool, indicating that an array is flattened array.</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">// A wrapped array ["value1", "value2"] is represented as</span></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">// `&lt;List&gt;&lt;member&gt;value1&lt;/member&gt;&lt;member&gt;value2&lt;/member&gt;&lt;/List&gt;`.</span></code></span>
+<span class="codeline" id="line-26"><code></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">// A flattened array `someList: ["value1", "value2"]` is represented as</span></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">// `&lt;someList&gt;value1&lt;/someList&gt;&lt;someList&gt;value2&lt;/someList&gt;`.</span></code></span>
+<span class="codeline" id="line-29"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../../../pkg/github.com/aws/smithy-go/encoding/xml.html#name-newArray" class="ident">newArray</a></label>(<label for="r1" class="ident">w</label> <a href="encoder.go.html#line-5" class="ident">writer</a>, <label for="r2" class="ident">scratch</label> *[]<a href="../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r3" class="ident">memberStartElement</label> <a href="element.go.html#line-60" class="ident">StartElement</a>, <label for="r4" class="ident">arrayStartElement</label> <a href="element.go.html#line-60" class="ident">StartElement</a>, <label for="r5" class="ident">isFlattened</label> <a href="../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a>) *<a href="#line-9" class="ident">Array</a> {</code></span>
+<span class="codeline" id="line-30"><code>	<span class="keyword">var</span> <label for="r6" class="ident">memberWrapper</label> = <label for="r3" class="ident">memberStartElement</label></code></span>
+<span class="codeline" id="line-31"><code>	<span class="keyword">if</span> <label for="r5" class="ident">isFlattened</label> {</code></span>
+<span class="codeline" id="line-32"><code>		<label for="r6" class="ident">memberWrapper</label> = <label for="r4" class="ident">arrayStartElement</label></code></span>
+<span class="codeline" id="line-33"><code>	}</code></span>
+<span class="codeline" id="line-34"><code></code></span>
+<span class="codeline" id="line-35"><code>	<span class="keyword">return</span> &amp;<a href="#line-9" class="ident">Array</a>{</code></span>
+<span class="codeline" id="line-36"><code>		<a href="#line-10" class="ident">w</a>:                  <label for="r1" class="ident">w</label>,</code></span>
+<span class="codeline" id="line-37"><code>		<a href="#line-11" class="ident">scratch</a>:            <label for="r2" class="ident">scratch</label>,</code></span>
+<span class="codeline" id="line-38"><code>		<a href="#line-14" class="ident">memberStartElement</a>: <label for="r6" class="ident">memberWrapper</label>,</code></span>
+<span class="codeline" id="line-39"><code>		<a href="#line-17" class="ident">isFlattened</a>:        <label for="r5" class="ident">isFlattened</label>,</code></span>
+<span class="codeline" id="line-40"><code>	}</code></span>
+<span class="codeline" id="line-41"><code>}</code></span>
+<span class="codeline" id="line-42"><code></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">// Member adds a new member to the XML array.</span></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">// It returns a Value encoder.</span></code></span>
+<span class="codeline" id="line-45"><code><span class="keyword">func</span> (<label for="r7" class="ident">a</label> *<a href="#line-9" class="ident">Array</a>) <label for="r8" class="ident"><a href="../../../../../../use/github.com/aws/smithy-go/encoding/xml..Array.Member.html" class="ident">Member</a></label>() <a href="value.go.html#line-14" class="ident">Value</a> {</code></span>
+<span class="codeline" id="line-46"><code>	<label for="r9" class="ident">v</label> := <a href="value.go.html#line-35" class="ident">newValue</a>(<label for="r7" class="ident">a</label>.<a href="#line-10" class="ident">w</a>, <label for="r7" class="ident">a</label>.<a href="#line-11" class="ident">scratch</a>, <label for="r7" class="ident">a</label>.<a href="#line-14" class="ident">memberStartElement</a>)</code></span>
+<span class="codeline" id="line-47"><code>	<label for="r9" class="ident">v</label>.<a href="value.go.html#line-22" class="ident">isFlattened</a> = <label for="r7" class="ident">a</label>.<a href="#line-17" class="ident">isFlattened</a></code></span>
+<span class="codeline" id="line-48"><code>	<span class="keyword">return</span> <label for="r9" class="ident">v</label></code></span>
+<span class="codeline" id="line-49"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: unify.go in package go/types</title>
+<link href="../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	unify.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../pkg/go/types.html">go/types</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30],
+input[id=r31]:checked ~pre label[for=r31],
+input[id=r32]:checked ~pre label[for=r32],
+input[id=r33]:checked ~pre label[for=r33],
+input[id=r34]:checked ~pre label[for=r34],
+input[id=r35]:checked ~pre label[for=r35],
+input[id=r36]:checked ~pre label[for=r36],
+input[id=r37]:checked ~pre label[for=r37],
+input[id=r38]:checked ~pre label[for=r38],
+input[id=r39]:checked ~pre label[for=r39],
+input[id=r40]:checked ~pre label[for=r40],
+input[id=r41]:checked ~pre label[for=r41],
+input[id=r42]:checked ~pre label[for=r42],
+input[id=r43]:checked ~pre label[for=r43],
+input[id=r44]:checked ~pre label[for=r44],
+input[id=r45]:checked ~pre label[for=r45],
+input[id=r46]:checked ~pre label[for=r46],
+input[id=r47]:checked ~pre label[for=r47],
+input[id=r48]:checked ~pre label[for=r48],
+input[id=r49]:checked ~pre label[for=r49],
+input[id=r50]:checked ~pre label[for=r50],
+input[id=r51]:checked ~pre label[for=r51],
+input[id=r52]:checked ~pre label[for=r52],
+input[id=r53]:checked ~pre label[for=r53],
+input[id=r54]:checked ~pre label[for=r54],
+input[id=r55]:checked ~pre label[for=r55],
+input[id=r56]:checked ~pre label[for=r56],
+input[id=r57]:checked ~pre label[for=r57],
+input[id=r58]:checked ~pre label[for=r58],
+input[id=r59]:checked ~pre label[for=r59],
+input[id=r60]:checked ~pre label[for=r60],
+input[id=r61]:checked ~pre label[for=r61],
+input[id=r62]:checked ~pre label[for=r62],
+input[id=r63]:checked ~pre label[for=r63],
+input[id=r64]:checked ~pre label[for=r64],
+input[id=r65]:checked ~pre label[for=r65],
+input[id=r66]:checked ~pre label[for=r66],
+input[id=r67]:checked ~pre label[for=r67],
+input[id=r68]:checked ~pre label[for=r68],
+input[id=r69]:checked ~pre label[for=r69],
+input[id=r70]:checked ~pre label[for=r70],
+input[id=r71]:checked ~pre label[for=r71],
+input[id=r72]:checked ~pre label[for=r72],
+input[id=r73]:checked ~pre label[for=r73],
+input[id=r74]:checked ~pre label[for=r74],
+input[id=r75]:checked ~pre label[for=r75],
+input[id=r76]:checked ~pre label[for=r76],
+input[id=r77]:checked ~pre label[for=r77],
+input[id=r78]:checked ~pre label[for=r78],
+input[id=r79]:checked ~pre label[for=r79],
+input[id=r80]:checked ~pre label[for=r80],
+input[id=r81]:checked ~pre label[for=r81],
+input[id=r82]:checked ~pre label[for=r82],
+input[id=r83]:checked ~pre label[for=r83],
+input[id=r84]:checked ~pre label[for=r84],
+input[id=r85]:checked ~pre label[for=r85],
+input[id=r86]:checked ~pre label[for=r86],
+input[id=r87]:checked ~pre label[for=r87],
+input[id=r88]:checked ~pre label[for=r88],
+input[id=r89]:checked ~pre label[for=r89],
+input[id=r90]:checked ~pre label[for=r90],
+input[id=r91]:checked ~pre label[for=r91],
+input[id=r92]:checked ~pre label[for=r92],
+input[id=r93]:checked ~pre label[for=r93],
+input[id=r94]:checked ~pre label[for=r94],
+input[id=r95]:checked ~pre label[for=r95],
+input[id=r96]:checked ~pre label[for=r96],
+input[id=r97]:checked ~pre label[for=r97],
+input[id=r98]:checked ~pre label[for=r98],
+input[id=r99]:checked ~pre label[for=r99],
+input[id=r100]:checked ~pre label[for=r100],
+input[id=r101]:checked ~pre label[for=r101],
+input[id=r102]:checked ~pre label[for=r102],
+input[id=r103]:checked ~pre label[for=r103],
+input[id=r104]:checked ~pre label[for=r104],
+input[id=r105]:checked ~pre label[for=r105],
+input[id=r106]:checked ~pre label[for=r106],
+input[id=r107]:checked ~pre label[for=r107],
+input[id=r108]:checked ~pre label[for=r108],
+input[id=r109]:checked ~pre label[for=r109],
+input[id=r110]:checked ~pre label[for=r110],
+input[id=r111]:checked ~pre label[for=r111],
+input[id=r112]:checked ~pre label[for=r112],
+input[id=r113]:checked ~pre label[for=r113],
+input[id=r114]:checked ~pre label[for=r114],
+input[id=r115]:checked ~pre label[for=r115],
+input[id=r116]:checked ~pre label[for=r116],
+input[id=r117]:checked ~pre label[for=r117],
+input[id=r118]:checked ~pre label[for=r118],
+input[id=r119]:checked ~pre label[for=r119],
+input[id=r120]:checked ~pre label[for=r120],
+input[id=r121]:checked ~pre label[for=r121],
+input[id=r122]:checked ~pre label[for=r122],
+input[id=r123]:checked ~pre label[for=r123],
+input[id=r124]:checked ~pre label[for=r124],
+input[id=r125]:checked ~pre label[for=r125],
+input[id=r126]:checked ~pre label[for=r126],
+input[id=r127]:checked ~pre label[for=r127],
+input[id=r128]:checked ~pre label[for=r128],
+input[id=r129]:checked ~pre label[for=r129],
+input[id=r130]:checked ~pre label[for=r130],
+input[id=r131]:checked ~pre label[for=r131],
+input[id=r132]:checked ~pre label[for=r132],
+input[id=r133]:checked ~pre label[for=r133],
+input[id=r134]:checked ~pre label[for=r134],
+input[id=r135]:checked ~pre label[for=r135],
+input[id=r136]:checked ~pre label[for=r136],
+input[id=r137]:checked ~pre label[for=r137],
+input[id=r138]:checked ~pre label[for=r138],
+input[id=r139]:checked ~pre label[for=r139],
+input[id=r140]:checked ~pre label[for=r140],
+input[id=r141]:checked ~pre label[for=r141],
+input[id=r142]:checked ~pre label[for=r142],
+input[id=r143]:checked ~pre label[for=r143],
+input[id=r144]:checked ~pre label[for=r144],
+input[id=r145]:checked ~pre label[for=r145],
+input[id=r146]:checked ~pre label[for=r146],
+input[id=r147]:checked ~pre label[for=r147],
+input[id=r148]:checked ~pre label[for=r148],
+input[id=r149]:checked ~pre label[for=r149],
+input[id=r150]:checked ~pre label[for=r150],
+input[id=r151]:checked ~pre label[for=r151],
+input[id=r152]:checked ~pre label[for=r152],
+input[id=r153]:checked ~pre label[for=r153],
+input[id=r154]:checked ~pre label[for=r154],
+input[id=r155]:checked ~pre label[for=r155],
+input[id=r156]:checked ~pre label[for=r156],
+input[id=r157]:checked ~pre label[for=r157],
+input[id=r158]:checked ~pre label[for=r158],
+input[id=r159]:checked ~pre label[for=r159],
+input[id=r160]:checked ~pre label[for=r160],
+input[id=r161]:checked ~pre label[for=r161],
+input[id=r162]:checked ~pre label[for=r162],
+input[id=r163]:checked ~pre label[for=r163],
+input[id=r164]:checked ~pre label[for=r164],
+input[id=r165]:checked ~pre label[for=r165],
+input[id=r166]:checked ~pre label[for=r166],
+input[id=r167]:checked ~pre label[for=r167],
+input[id=r168]:checked ~pre label[for=r168],
+input[id=r169]:checked ~pre label[for=r169],
+input[id=r170]:checked ~pre label[for=r170],
+input[id=r171]:checked ~pre label[for=r171],
+input[id=r172]:checked ~pre label[for=r172],
+input[id=r173]:checked ~pre label[for=r173]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="r31" type="radio" name="g"/>
+<input id="r32" type="radio" name="g"/>
+<input id="r33" type="radio" name="g"/>
+<input id="r34" type="radio" name="g"/>
+<input id="r35" type="radio" name="g"/>
+<input id="r36" type="radio" name="g"/>
+<input id="r37" type="radio" name="g"/>
+<input id="r38" type="radio" name="g"/>
+<input id="r39" type="radio" name="g"/>
+<input id="r40" type="radio" name="g"/>
+<input id="r41" type="radio" name="g"/>
+<input id="r42" type="radio" name="g"/>
+<input id="r43" type="radio" name="g"/>
+<input id="r44" type="radio" name="g"/>
+<input id="r45" type="radio" name="g"/>
+<input id="r46" type="radio" name="g"/>
+<input id="r47" type="radio" name="g"/>
+<input id="r48" type="radio" name="g"/>
+<input id="r49" type="radio" name="g"/>
+<input id="r50" type="radio" name="g"/>
+<input id="r51" type="radio" name="g"/>
+<input id="r52" type="radio" name="g"/>
+<input id="r53" type="radio" name="g"/>
+<input id="r54" type="radio" name="g"/>
+<input id="r55" type="radio" name="g"/>
+<input id="r56" type="radio" name="g"/>
+<input id="r57" type="radio" name="g"/>
+<input id="r58" type="radio" name="g"/>
+<input id="r59" type="radio" name="g"/>
+<input id="r60" type="radio" name="g"/>
+<input id="r61" type="radio" name="g"/>
+<input id="r62" type="radio" name="g"/>
+<input id="r63" type="radio" name="g"/>
+<input id="r64" type="radio" name="g"/>
+<input id="r65" type="radio" name="g"/>
+<input id="r66" type="radio" name="g"/>
+<input id="r67" type="radio" name="g"/>
+<input id="r68" type="radio" name="g"/>
+<input id="r69" type="radio" name="g"/>
+<input id="r70" type="radio" name="g"/>
+<input id="r71" type="radio" name="g"/>
+<input id="r72" type="radio" name="g"/>
+<input id="r73" type="radio" name="g"/>
+<input id="r74" type="radio" name="g"/>
+<input id="r75" type="radio" name="g"/>
+<input id="r76" type="radio" name="g"/>
+<input id="r77" type="radio" name="g"/>
+<input id="r78" type="radio" name="g"/>
+<input id="r79" type="radio" name="g"/>
+<input id="r80" type="radio" name="g"/>
+<input id="r81" type="radio" name="g"/>
+<input id="r82" type="radio" name="g"/>
+<input id="r83" type="radio" name="g"/>
+<input id="r84" type="radio" name="g"/>
+<input id="r85" type="radio" name="g"/>
+<input id="r86" type="radio" name="g"/>
+<input id="r87" type="radio" name="g"/>
+<input id="r88" type="radio" name="g"/>
+<input id="r89" type="radio" name="g"/>
+<input id="r90" type="radio" name="g"/>
+<input id="r91" type="radio" name="g"/>
+<input id="r92" type="radio" name="g"/>
+<input id="r93" type="radio" name="g"/>
+<input id="r94" type="radio" name="g"/>
+<input id="r95" type="radio" name="g"/>
+<input id="r96" type="radio" name="g"/>
+<input id="r97" type="radio" name="g"/>
+<input id="r98" type="radio" name="g"/>
+<input id="r99" type="radio" name="g"/>
+<input id="r100" type="radio" name="g"/>
+<input id="r101" type="radio" name="g"/>
+<input id="r102" type="radio" name="g"/>
+<input id="r103" type="radio" name="g"/>
+<input id="r104" type="radio" name="g"/>
+<input id="r105" type="radio" name="g"/>
+<input id="r106" type="radio" name="g"/>
+<input id="r107" type="radio" name="g"/>
+<input id="r108" type="radio" name="g"/>
+<input id="r109" type="radio" name="g"/>
+<input id="r110" type="radio" name="g"/>
+<input id="r111" type="radio" name="g"/>
+<input id="r112" type="radio" name="g"/>
+<input id="r113" type="radio" name="g"/>
+<input id="r114" type="radio" name="g"/>
+<input id="r115" type="radio" name="g"/>
+<input id="r116" type="radio" name="g"/>
+<input id="r117" type="radio" name="g"/>
+<input id="r118" type="radio" name="g"/>
+<input id="r119" type="radio" name="g"/>
+<input id="r120" type="radio" name="g"/>
+<input id="r121" type="radio" name="g"/>
+<input id="r122" type="radio" name="g"/>
+<input id="r123" type="radio" name="g"/>
+<input id="r124" type="radio" name="g"/>
+<input id="r125" type="radio" name="g"/>
+<input id="r126" type="radio" name="g"/>
+<input id="r127" type="radio" name="g"/>
+<input id="r128" type="radio" name="g"/>
+<input id="r129" type="radio" name="g"/>
+<input id="r130" type="radio" name="g"/>
+<input id="r131" type="radio" name="g"/>
+<input id="r132" type="radio" name="g"/>
+<input id="r133" type="radio" name="g"/>
+<input id="r134" type="radio" name="g"/>
+<input id="r135" type="radio" name="g"/>
+<input id="r136" type="radio" name="g"/>
+<input id="r137" type="radio" name="g"/>
+<input id="r138" type="radio" name="g"/>
+<input id="r139" type="radio" name="g"/>
+<input id="r140" type="radio" name="g"/>
+<input id="r141" type="radio" name="g"/>
+<input id="r142" type="radio" name="g"/>
+<input id="r143" type="radio" name="g"/>
+<input id="r144" type="radio" name="g"/>
+<input id="r145" type="radio" name="g"/>
+<input id="r146" type="radio" name="g"/>
+<input id="r147" type="radio" name="g"/>
+<input id="r148" type="radio" name="g"/>
+<input id="r149" type="radio" name="g"/>
+<input id="r150" type="radio" name="g"/>
+<input id="r151" type="radio" name="g"/>
+<input id="r152" type="radio" name="g"/>
+<input id="r153" type="radio" name="g"/>
+<input id="r154" type="radio" name="g"/>
+<input id="r155" type="radio" name="g"/>
+<input id="r156" type="radio" name="g"/>
+<input id="r157" type="radio" name="g"/>
+<input id="r158" type="radio" name="g"/>
+<input id="r159" type="radio" name="g"/>
+<input id="r160" type="radio" name="g"/>
+<input id="r161" type="radio" name="g"/>
+<input id="r162" type="radio" name="g"/>
+<input id="r163" type="radio" name="g"/>
+<input id="r164" type="radio" name="g"/>
+<input id="r165" type="radio" name="g"/>
+<input id="r166" type="radio" name="g"/>
+<input id="r167" type="radio" name="g"/>
+<input id="r168" type="radio" name="g"/>
+<input id="r169" type="radio" name="g"/>
+<input id="r170" type="radio" name="g"/>
+<input id="r171" type="radio" name="g"/>
+<input id="r172" type="radio" name="g"/>
+<input id="r173" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Code generated by "go test -run=Generate -write=all"; DO NOT EDIT.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Source: ../../cmd/compile/internal/types2/unify.go</span></code></span>
+<span class="codeline" id="line-3"><code></code></span>
+<span class="codeline" id="line-4"><code><span class="comment">// Copyright 2020 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-5"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-7"><code></code></span>
+<span class="codeline" id="line-8"><code><span class="comment">// This file implements type unification.</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment">// Type unification attempts to make two types x and y structurally</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment">// equivalent by determining the types for a given list of (bound)</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment">// type parameters which may occur within x and y. If x and y are</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">// structurally different (say []T vs chan T), or conflicting</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">// types are determined for type parameters, unification fails.</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">// If unification succeeds, as a side-effect, the types of the</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">// bound type parameters may be determined.</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">// Unification typically requires multiple calls u.unify(x, y) to</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">// a given unifier u, with various combinations of types x and y.</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">// In each call, additional type parameter types may be determined</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">// as a side effect and recorded in u.</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">// If a call fails (returns false), unification fails.</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">// In the unification context, structural equivalence of two types</span></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">// ignores the difference between a defined type and its underlying</span></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">// type if one type is a defined type and the other one is not.</span></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">// It also ignores the difference between an (external, unbound)</span></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">// type parameter and its core type.</span></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">// If two types are not structurally equivalent, they cannot be Go</span></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">// identical types. On the other hand, if they are structurally</span></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">// equivalent, they may be Go identical or at least assignable, or</span></code></span>
+<span class="codeline" id="line-32"><code><span class="comment">// they may be in the type set of a constraint.</span></code></span>
+<span class="codeline" id="line-33"><code><span class="comment">// Whether they indeed are identical or assignable is determined</span></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">// upon instantiation and function argument passing.</span></code></span>
+<span class="codeline" id="line-35"><code></code></span>
+<span class="codeline" id="line-36"><code><span class="keyword">package</span> types</code></span>
+<span class="codeline" id="line-37"><code></code></span>
+<span class="codeline" id="line-38"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-39"><code>	<label for="i0"><span class="lit-string i0">"bytes"</span></label></code></span>
+<span class="codeline" id="line-40"><code>	<label for="i1"><span class="lit-string i1">"fmt"</span></label></code></span>
+<span class="codeline" id="line-41"><code>	<label for="i2"><span class="lit-string i2">"sort"</span></label></code></span>
+<span class="codeline" id="line-42"><code>	<label for="i3"><span class="lit-string i3">"strings"</span></label></code></span>
+<span class="codeline" id="line-43"><code>)</code></span>
+<span class="codeline" id="line-44"><code></code></span>
+<span class="codeline" id="line-45"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-46"><code>	<span class="comment">// Upper limit for recursion depth. Used to catch infinite recursions</span></code></span>
+<span class="codeline" id="line-47"><code><span class="comment">	// due to implementation issues (e.g., see issues go.dev/issue/48619, go.dev/issue/48656).</span></code></span>
+<span class="codeline" id="line-48"><code>	<a href="../../../pkg/go/types.html#name-unificationDepthLimit" class="ident">unificationDepthLimit</a> = <span class="lit-number">50</span></code></span>
+<span class="codeline" id="line-49"><code></code></span>
+<span class="codeline" id="line-50"><code>	<span class="comment">// Whether to panic when unificationDepthLimit is reached.</span></code></span>
+<span class="codeline" id="line-51"><code><span class="comment">	// If disabled, a recursion depth overflow results in a (quiet)</span></code></span>
+<span class="codeline" id="line-52"><code><span class="comment">	// unification failure.</span></code></span>
+<span class="codeline" id="line-53"><code>	<a href="../../../pkg/go/types.html#name-panicAtUnificationDepthLimit" class="ident">panicAtUnificationDepthLimit</a> = <a href="../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-54"><code></code></span>
+<span class="codeline" id="line-55"><code>	<span class="comment">// If enableCoreTypeUnification is set, unification will consider</span></code></span>
+<span class="codeline" id="line-56"><code><span class="comment">	// the core types, if any, of non-local (unbound) type parameters.</span></code></span>
+<span class="codeline" id="line-57"><code>	<a href="../../../pkg/go/types.html#name-enableCoreTypeUnification" class="ident">enableCoreTypeUnification</a> = <a href="../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-58"><code></code></span>
+<span class="codeline" id="line-59"><code>	<span class="comment">// If traceInference is set, unification will print a trace of its operation.</span></code></span>
+<span class="codeline" id="line-60"><code><span class="comment">	// Interpretation of trace:</span></code></span>
+<span class="codeline" id="line-61"><code><span class="comment">	//   x ≡ y    attempt to unify types x and y</span></code></span>
+<span class="codeline" id="line-62"><code><span class="comment">	//   p ➞ y    type parameter p is set to type y (p is inferred to be y)</span></code></span>
+<span class="codeline" id="line-63"><code><span class="comment">	//   p ⇄ q    type parameters p and q match (p is inferred to be q and vice versa)</span></code></span>
+<span class="codeline" id="line-64"><code><span class="comment">	//   x ≢ y    types x and y cannot be unified</span></code></span>
+<span class="codeline" id="line-65"><code><span class="comment">	//   [p, q, ...] ➞ [x, y, ...]    mapping from type parameters to types</span></code></span>
+<span class="codeline" id="line-66"><code>	<a href="../../../pkg/go/types.html#name-traceInference" class="ident">traceInference</a> = <a href="../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-67"><code>)</code></span>
+<span class="codeline" id="line-68"><code></code></span>
+<span class="codeline" id="line-69"><code><span class="comment">// A unifier maintains a list of type parameters and</span></code></span>
+<span class="codeline" id="line-70"><code><span class="comment">// corresponding types inferred for each type parameter.</span></code></span>
+<span class="codeline" id="line-71"><code><span class="comment">// A unifier is created by calling newUnifier.</span></code></span>
+<span class="codeline" id="line-72"><code><span class="keyword">type</span> <a href="../../../pkg/go/types.html#name-unifier" class="ident">unifier</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-73"><code>	<span class="comment">// handles maps each type parameter to its inferred type through</span></code></span>
+<span class="codeline" id="line-74"><code><span class="comment">	// an indirection *Type called (inferred type) "handle".</span></code></span>
+<span class="codeline" id="line-75"><code><span class="comment">	// Initially, each type parameter has its own, separate handle,</span></code></span>
+<span class="codeline" id="line-76"><code><span class="comment">	// with a nil (i.e., not yet inferred) type.</span></code></span>
+<span class="codeline" id="line-77"><code><span class="comment">	// After a type parameter P is unified with a type parameter Q,</span></code></span>
+<span class="codeline" id="line-78"><code><span class="comment">	// P and Q share the same handle (and thus type). This ensures</span></code></span>
+<span class="codeline" id="line-79"><code><span class="comment">	// that inferring the type for a given type parameter P will</span></code></span>
+<span class="codeline" id="line-80"><code><span class="comment">	// automatically infer the same type for all other parameters</span></code></span>
+<span class="codeline" id="line-81"><code><span class="comment">	// unified (joined) with P.</span></code></span>
+<span class="codeline" id="line-82"><code>	<a href="../../../use/go/types..unifier^d5b51.handles^53982.html" class="ident">handles</a>                  <span class="keyword">map</span>[*<a href="typeparam.go.html#line-25" class="ident">TypeParam</a>]*<a href="type.go.html#line-9" class="ident">Type</a></code></span>
+<span class="codeline" id="line-83"><code>	<a href="../../../use/go/types..unifier^d5b51.depth^ded32.html" class="ident">depth</a>                    <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>  <span class="comment">// recursion depth during unification</span></code></span>
+<span class="codeline" id="line-84"><code>	<a href="../../../use/go/types..unifier^d5b51.enableInterfaceInference^f8dd5.html" class="ident">enableInterfaceInference</a> <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a> <span class="comment">// use shared methods for better inference</span></code></span>
+<span class="codeline" id="line-85"><code>}</code></span>
+<span class="codeline" id="line-86"><code></code></span>
+<span class="codeline" id="line-87"><code><span class="comment">// newUnifier returns a new unifier initialized with the given type parameter</span></code></span>
+<span class="codeline" id="line-88"><code><span class="comment">// and corresponding type argument lists. The type argument list may be shorter</span></code></span>
+<span class="codeline" id="line-89"><code><span class="comment">// than the type parameter list, and it may contain nil types. Matching type</span></code></span>
+<span class="codeline" id="line-90"><code><span class="comment">// parameters and arguments must have the same index.</span></code></span>
+<span class="codeline" id="line-91"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../pkg/go/types.html#name-newUnifier" class="ident">newUnifier</a></label>(<label for="r1" class="ident">tparams</label> []*<a href="typeparam.go.html#line-25" class="ident">TypeParam</a>, <label for="r2" class="ident">targs</label> []<a href="type.go.html#line-9" class="ident">Type</a>, <label for="r3" class="ident">enableInterfaceInference</label> <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a>) *<a href="#line-72" class="ident">unifier</a> {</code></span>
+<span class="codeline" id="line-92"><code>	<a href="errors.go.html#line-18" class="ident">assert</a>(<a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r1" class="ident">tparams</label>) &gt;= <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r2" class="ident">targs</label>))</code></span>
+<span class="codeline" id="line-93"><code>	<label for="r4" class="ident">handles</label> := <a href="../../../pkg/builtin.html#name-make" class="ident">make</a>(<span class="keyword">map</span>[*<a href="typeparam.go.html#line-25" class="ident">TypeParam</a>]*<a href="type.go.html#line-9" class="ident">Type</a>, <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r1" class="ident">tparams</label>))</code></span>
+<span class="codeline" id="line-94"><code>	<span class="comment">// Allocate all handles up-front: in a correct program, all type parameters</span></code></span>
+<span class="codeline" id="line-95"><code><span class="comment">	// must be resolved and thus eventually will get a handle.</span></code></span>
+<span class="codeline" id="line-96"><code><span class="comment">	// Also, sharing of handles caused by unified type parameters is rare and</span></code></span>
+<span class="codeline" id="line-97"><code><span class="comment">	// so it's ok to not optimize for that case (and delay handle allocation).</span></code></span>
+<span class="codeline" id="line-98"><code>	<span class="keyword">for</span> <label for="r5" class="ident">i</label>, <label for="r6" class="ident">x</label> := <span class="keyword">range</span> <label for="r1" class="ident">tparams</label> {</code></span>
+<span class="codeline" id="line-99"><code>		<span class="keyword">var</span> <label for="r7" class="ident">t</label> <a href="type.go.html#line-9" class="ident">Type</a></code></span>
+<span class="codeline" id="line-100"><code>		<span class="keyword">if</span> <label for="r5" class="ident">i</label> &lt; <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r2" class="ident">targs</label>) {</code></span>
+<span class="codeline" id="line-101"><code>			<label for="r7" class="ident">t</label> = <label for="r2" class="ident">targs</label>[<label for="r5" class="ident">i</label>]</code></span>
+<span class="codeline" id="line-102"><code>		}</code></span>
+<span class="codeline" id="line-103"><code>		<label for="r4" class="ident">handles</label>[<label for="r6" class="ident">x</label>] = &amp;<label for="r7" class="ident">t</label></code></span>
+<span class="codeline" id="line-104"><code>	}</code></span>
+<span class="codeline" id="line-105"><code>	<span class="keyword">return</span> &amp;<a href="#line-72" class="ident">unifier</a>{<label for="r4" class="ident">handles</label>, <span class="lit-number">0</span>, <label for="r3" class="ident">enableInterfaceInference</label>}</code></span>
+<span class="codeline" id="line-106"><code>}</code></span>
+<span class="codeline" id="line-107"><code></code></span>
+<span class="codeline" id="line-108"><code><span class="comment">// unifyMode controls the behavior of the unifier.</span></code></span>
+<span class="codeline" id="line-109"><code><span class="keyword">type</span> <a href="../../../pkg/go/types.html#name-unifyMode" class="ident">unifyMode</a> <a href="../../../pkg/builtin.html#name-uint" class="ident">uint</a></code></span>
+<span class="codeline" id="line-110"><code></code></span>
+<span class="codeline" id="line-111"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-112"><code>	<span class="comment">// If assign is set, we are unifying types involved in an assignment:</span></code></span>
+<span class="codeline" id="line-113"><code><span class="comment">	// they may match inexactly at the top, but element types must match</span></code></span>
+<span class="codeline" id="line-114"><code><span class="comment">	// exactly.</span></code></span>
+<span class="codeline" id="line-115"><code>	<a href="../../../pkg/go/types.html#name-assign" class="ident">assign</a> <a href="#line-109" class="ident">unifyMode</a> = <span class="lit-number">1</span> &lt;&lt; <a href="../../../pkg/builtin.html#name-iota" class="ident">iota</a></code></span>
+<span class="codeline" id="line-116"><code></code></span>
+<span class="codeline" id="line-117"><code>	<span class="comment">// If exact is set, types unify if they are identical (or can be</span></code></span>
+<span class="codeline" id="line-118"><code><span class="comment">	// made identical with suitable arguments for type parameters).</span></code></span>
+<span class="codeline" id="line-119"><code><span class="comment">	// Otherwise, a named type and a type literal unify if their</span></code></span>
+<span class="codeline" id="line-120"><code><span class="comment">	// underlying types unify, channel directions are ignored, and</span></code></span>
+<span class="codeline" id="line-121"><code><span class="comment">	// if there is an interface, the other type must implement the</span></code></span>
+<span class="codeline" id="line-122"><code><span class="comment">	// interface.</span></code></span>
+<span class="codeline" id="line-123"><code>	<a href="../../../pkg/go/types.html#name-exact" class="ident">exact</a></code></span>
+<span class="codeline" id="line-124"><code>)</code></span>
+<span class="codeline" id="line-125"><code></code></span>
+<span class="codeline" id="line-126"><code><span class="keyword">func</span> (<label for="r8" class="ident">m</label> <a href="#line-109" class="ident">unifyMode</a>) <label for="r9" class="ident"><a href="../../../use/go/types..unifyMode^2d197.String.html" class="ident">String</a></label>() <a href="../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-127"><code>	<span class="keyword">switch</span> <label for="r8" class="ident">m</label> {</code></span>
+<span class="codeline" id="line-128"><code>	<span class="keyword">case</span> <span class="lit-number">0</span>:</code></span>
+<span class="codeline" id="line-129"><code>		<span class="keyword">return</span> <span class="lit-string">"inexact"</span></code></span>
+<span class="codeline" id="line-130"><code>	<span class="keyword">case</span> <a href="#line-115" class="ident">assign</a>:</code></span>
+<span class="codeline" id="line-131"><code>		<span class="keyword">return</span> <span class="lit-string">"assign"</span></code></span>
+<span class="codeline" id="line-132"><code>	<span class="keyword">case</span> <a href="#line-123" class="ident">exact</a>:</code></span>
+<span class="codeline" id="line-133"><code>		<span class="keyword">return</span> <span class="lit-string">"exact"</span></code></span>
+<span class="codeline" id="line-134"><code>	<span class="keyword">case</span> <a href="#line-115" class="ident">assign</a> | <a href="#line-123" class="ident">exact</a>:</code></span>
+<span class="codeline" id="line-135"><code>		<span class="keyword">return</span> <span class="lit-string">"assign, exact"</span></code></span>
+<span class="codeline" id="line-136"><code>	}</code></span>
+<span class="codeline" id="line-137"><code>	<span class="keyword">return</span> <a href="../../../pkg/fmt.html" class="ident i1">fmt</a>.<a href="../../fmt/print.go.html#line-237" class="ident">Sprintf</a>(<span class="lit-string">"mode %d"</span>, <label for="r8" class="ident">m</label>)</code></span>
+<span class="codeline" id="line-138"><code>}</code></span>
+<span class="codeline" id="line-139"><code></code></span>
+<span class="codeline" id="line-140"><code><span class="comment">// unify attempts to unify x and y and reports whether it succeeded.</span></code></span>
+<span class="codeline" id="line-141"><code><span class="comment">// As a side-effect, types may be inferred for type parameters.</span></code></span>
+<span class="codeline" id="line-142"><code><span class="comment">// The mode parameter controls how types are compared.</span></code></span>
+<span class="codeline" id="line-143"><code><span class="keyword">func</span> (<label for="r10" class="ident">u</label> *<a href="#line-72" class="ident">unifier</a>) <label for="r11" class="ident"><a href="../../../use/go/types..unifier^d5b51.unify^91e77.html" class="ident">unify</a></label>(<label for="r12" class="ident">x</label>, <label for="r13" class="ident">y</label> <a href="type.go.html#line-9" class="ident">Type</a>, <label for="r14" class="ident">mode</label> <a href="#line-109" class="ident">unifyMode</a>) <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-144"><code>	<span class="keyword">return</span> <label for="r10" class="ident">u</label>.<a href="#line-285" class="ident">nify</a>(<label for="r12" class="ident">x</label>, <label for="r13" class="ident">y</label>, <label for="r14" class="ident">mode</label>, <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>)</code></span>
+<span class="codeline" id="line-145"><code>}</code></span>
+<span class="codeline" id="line-146"><code></code></span>
+<span class="codeline" id="line-147"><code><span class="keyword">func</span> (<label for="r15" class="ident">u</label> *<a href="#line-72" class="ident">unifier</a>) <label for="r16" class="ident"><a href="../../../use/go/types..unifier^d5b51.tracef^deb38.html" class="ident">tracef</a></label>(<label for="r17" class="ident">format</label> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r18" class="ident">args</label> ...<span class="keyword">interface</span>{}) {</code></span>
+<span class="codeline" id="line-148"><code>	<a href="../../../pkg/fmt.html" class="ident i1">fmt</a>.<a href="../../fmt/print.go.html#line-313" class="ident">Println</a>(<a href="../../../pkg/strings.html" class="ident i3">strings</a>.<a href="../../strings/strings.go.html#line-612" class="ident">Repeat</a>(<span class="lit-string">".  "</span>, <label for="r15" class="ident">u</label>.<a href="#line-83" class="ident">depth</a>) + <a href="format.go.html#line-18" class="ident">sprintf</a>(<a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../pkg/builtin.html#name-true" class="ident">true</a>, <label for="r17" class="ident">format</label>, <label for="r18" class="ident">args</label>...))</code></span>
+<span class="codeline" id="line-149"><code>}</code></span>
+<span class="codeline" id="line-150"><code></code></span>
+<span class="codeline" id="line-151"><code><span class="comment">// String returns a string representation of the current mapping</span></code></span>
+<span class="codeline" id="line-152"><code><span class="comment">// from type parameters to types.</span></code></span>
+<span class="codeline" id="line-153"><code><span class="keyword">func</span> (<label for="r19" class="ident">u</label> *<a href="#line-72" class="ident">unifier</a>) <label for="r20" class="ident"><a href="../../../use/go/types..unifier^d5b51.String.html" class="ident">String</a></label>() <a href="../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-154"><code>	<span class="comment">// sort type parameters for reproducible strings</span></code></span>
+<span class="codeline" id="line-155"><code>	<label for="r21" class="ident">tparams</label> := <a href="../../../pkg/builtin.html#name-make" class="ident">make</a>(<a href="#line-178" class="ident">typeParamsById</a>, <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r19" class="ident">u</label>.<a href="#line-82" class="ident">handles</a>))</code></span>
+<span class="codeline" id="line-156"><code>	<label for="r22" class="ident">i</label> := <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-157"><code>	<span class="keyword">for</span> <label for="r23" class="ident">tpar</label> := <span class="keyword">range</span> <label for="r19" class="ident">u</label>.<a href="#line-82" class="ident">handles</a> {</code></span>
+<span class="codeline" id="line-158"><code>		<label for="r21" class="ident">tparams</label>[<label for="r22" class="ident">i</label>] = <label for="r23" class="ident">tpar</label></code></span>
+<span class="codeline" id="line-159"><code>		<label for="r22" class="ident">i</label>++</code></span>
+<span class="codeline" id="line-160"><code>	}</code></span>
+<span class="codeline" id="line-161"><code>	<a href="../../../pkg/sort.html" class="ident i2">sort</a>.<a href="../../sort/sort.go.html#line-48" class="ident">Sort</a>(<label for="r21" class="ident">tparams</label>)</code></span>
+<span class="codeline" id="line-162"><code></code></span>
+<span class="codeline" id="line-163"><code>	<span class="keyword">var</span> <label for="r24" class="ident">buf</label> <a href="../../../pkg/bytes.html" class="ident i0">bytes</a>.<a href="../../bytes/buffer.go.html#line-20" class="ident">Buffer</a></code></span>
+<span class="codeline" id="line-164"><code>	<label for="r25" class="ident">w</label> := <a href="typestring.go.html#line-81" class="ident">newTypeWriter</a>(&amp;<label for="r24" class="ident">buf</label>, <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>)</code></span>
+<span class="codeline" id="line-165"><code>	<label for="r25" class="ident">w</label>.<a href="typestring.go.html#line-90" class="ident">byte</a>(<span class="lit-number">'['</span>)</code></span>
+<span class="codeline" id="line-166"><code>	<span class="keyword">for</span> <label for="r26" class="ident">i</label>, <label for="r27" class="ident">x</label> := <span class="keyword">range</span> <label for="r21" class="ident">tparams</label> {</code></span>
+<span class="codeline" id="line-167"><code>		<span class="keyword">if</span> <label for="r26" class="ident">i</label> &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-168"><code>			<label for="r25" class="ident">w</label>.<a href="typestring.go.html#line-104" class="ident">string</a>(<span class="lit-string">", "</span>)</code></span>
+<span class="codeline" id="line-169"><code>		}</code></span>
+<span class="codeline" id="line-170"><code>		<label for="r25" class="ident">w</label>.<a href="typestring.go.html#line-115" class="ident">typ</a>(<label for="r27" class="ident">x</label>)</code></span>
+<span class="codeline" id="line-171"><code>		<label for="r25" class="ident">w</label>.<a href="typestring.go.html#line-104" class="ident">string</a>(<span class="lit-string">": "</span>)</code></span>
+<span class="codeline" id="line-172"><code>		<label for="r25" class="ident">w</label>.<a href="typestring.go.html#line-115" class="ident">typ</a>(<label for="r19" class="ident">u</label>.<a href="#line-235" class="ident">at</a>(<label for="r27" class="ident">x</label>))</code></span>
+<span class="codeline" id="line-173"><code>	}</code></span>
+<span class="codeline" id="line-174"><code>	<label for="r25" class="ident">w</label>.<a href="typestring.go.html#line-90" class="ident">byte</a>(<span class="lit-number">']'</span>)</code></span>
+<span class="codeline" id="line-175"><code>	<span class="keyword">return</span> <label for="r24" class="ident">buf</label>.<a href="../../bytes/buffer.go.html#line-66" class="ident">String</a>()</code></span>
+<span class="codeline" id="line-176"><code>}</code></span>
+<span class="codeline" id="line-177"><code></code></span>
+<span class="codeline" id="line-178"><code><span class="keyword">type</span> <a href="../../../pkg/go/types.html#name-typeParamsById" class="ident">typeParamsById</a> []*<a href="typeparam.go.html#line-25" class="ident">TypeParam</a></code></span>
+<span class="codeline" id="line-179"><code></code></span>
+<span class="codeline" id="line-180"><code><span class="keyword">func</span> (<label for="r28" class="ident">s</label> <a href="#line-178" class="ident">typeParamsById</a>) <label for="r29" class="ident"><a href="../../../use/go/types..typeParamsById^bb73b.Len.html" class="ident">Len</a></label>() <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>           { <span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r28" class="ident">s</label>) }</code></span>
+<span class="codeline" id="line-181"><code><span class="keyword">func</span> (<label for="r30" class="ident">s</label> <a href="#line-178" class="ident">typeParamsById</a>) <label for="r31" class="ident"><a href="../../../use/go/types..typeParamsById^bb73b.Less.html" class="ident">Less</a></label>(<label for="r32" class="ident">i</label>, <label for="r33" class="ident">j</label> <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>) <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a> { <span class="keyword">return</span> <label for="r30" class="ident">s</label>[<label for="r32" class="ident">i</label>].<a href="typeparam.go.html#line-27" class="ident">id</a> &lt; <label for="r30" class="ident">s</label>[<label for="r33" class="ident">j</label>].<a href="typeparam.go.html#line-27" class="ident">id</a> }</code></span>
+<span class="codeline" id="line-182"><code><span class="keyword">func</span> (<label for="r34" class="ident">s</label> <a href="#line-178" class="ident">typeParamsById</a>) <label for="r35" class="ident"><a href="../../../use/go/types..typeParamsById^bb73b.Swap.html" class="ident">Swap</a></label>(<label for="r36" class="ident">i</label>, <label for="r37" class="ident">j</label> <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>)      { <label for="r34" class="ident">s</label>[<label for="r36" class="ident">i</label>], <label for="r34" class="ident">s</label>[<label for="r37" class="ident">j</label>] = <label for="r34" class="ident">s</label>[<label for="r37" class="ident">j</label>], <label for="r34" class="ident">s</label>[<label for="r36" class="ident">i</label>] }</code></span>
+<span class="codeline" id="line-183"><code></code></span>
+<span class="codeline" id="line-184"><code><span class="comment">// join unifies the given type parameters x and y.</span></code></span>
+<span class="codeline" id="line-185"><code><span class="comment">// If both type parameters already have a type associated with them</span></code></span>
+<span class="codeline" id="line-186"><code><span class="comment">// and they are not joined, join fails and returns false.</span></code></span>
+<span class="codeline" id="line-187"><code><span class="keyword">func</span> (<label for="r38" class="ident">u</label> *<a href="#line-72" class="ident">unifier</a>) <label for="r39" class="ident"><a href="../../../use/go/types..unifier^d5b51.join^58393.html" class="ident">join</a></label>(<label for="r40" class="ident">x</label>, <label for="r41" class="ident">y</label> *<a href="typeparam.go.html#line-25" class="ident">TypeParam</a>) <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-188"><code>	<span class="keyword">if</span> <a href="#line-66" class="ident">traceInference</a> {</code></span>
+<span class="codeline" id="line-189"><code>		<label for="r38" class="ident">u</label>.<a href="#line-147" class="ident">tracef</a>(<span class="lit-string">"%s ⇄ %s"</span>, <label for="r40" class="ident">x</label>, <label for="r41" class="ident">y</label>)</code></span>
+<span class="codeline" id="line-190"><code>	}</code></span>
+<span class="codeline" id="line-191"><code>	<span class="keyword">switch</span> <label for="r42" class="ident">hx</label>, <label for="r43" class="ident">hy</label> := <label for="r38" class="ident">u</label>.<a href="#line-82" class="ident">handles</a>[<label for="r40" class="ident">x</label>], <label for="r38" class="ident">u</label>.<a href="#line-82" class="ident">handles</a>[<label for="r41" class="ident">y</label>]; {</code></span>
+<span class="codeline" id="line-192"><code>	<span class="keyword">case</span> <label for="r42" class="ident">hx</label> == <label for="r43" class="ident">hy</label>:</code></span>
+<span class="codeline" id="line-193"><code>		<span class="comment">// Both type parameters already share the same handle. Nothing to do.</span></code></span>
+<span class="codeline" id="line-194"><code>	<span class="keyword">case</span> *<label for="r42" class="ident">hx</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> &amp;&amp; *<label for="r43" class="ident">hy</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>:</code></span>
+<span class="codeline" id="line-195"><code>		<span class="comment">// Both type parameters have (possibly different) inferred types. Cannot join.</span></code></span>
+<span class="codeline" id="line-196"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-197"><code>	<span class="keyword">case</span> *<label for="r42" class="ident">hx</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>:</code></span>
+<span class="codeline" id="line-198"><code>		<span class="comment">// Only type parameter x has an inferred type. Use handle of x.</span></code></span>
+<span class="codeline" id="line-199"><code>		<label for="r38" class="ident">u</label>.<a href="#line-224" class="ident">setHandle</a>(<label for="r41" class="ident">y</label>, <label for="r42" class="ident">hx</label>)</code></span>
+<span class="codeline" id="line-200"><code>	<span class="comment">// This case is treated like the default case.</span></code></span>
+<span class="codeline" id="line-201"><code><span class="comment">	// case *hy != nil:</span></code></span>
+<span class="codeline" id="line-202"><code><span class="comment">	// 	// Only type parameter y has an inferred type. Use handle of y.</span></code></span>
+<span class="codeline" id="line-203"><code><span class="comment">	//	u.setHandle(x, hy)</span></code></span>
+<span class="codeline" id="line-204"><code>	<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-205"><code>		<span class="comment">// Neither type parameter has an inferred type. Use handle of y.</span></code></span>
+<span class="codeline" id="line-206"><code>		<label for="r38" class="ident">u</label>.<a href="#line-224" class="ident">setHandle</a>(<label for="r40" class="ident">x</label>, <label for="r43" class="ident">hy</label>)</code></span>
+<span class="codeline" id="line-207"><code>	}</code></span>
+<span class="codeline" id="line-208"><code>	<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-209"><code>}</code></span>
+<span class="codeline" id="line-210"><code></code></span>
+<span class="codeline" id="line-211"><code><span class="comment">// asBoundTypeParam returns x.(*TypeParam) if x is a type parameter recorded with u.</span></code></span>
+<span class="codeline" id="line-212"><code><span class="comment">// Otherwise, the result is nil.</span></code></span>
+<span class="codeline" id="line-213"><code><span class="keyword">func</span> (<label for="r44" class="ident">u</label> *<a href="#line-72" class="ident">unifier</a>) <label for="r45" class="ident"><a href="../../../use/go/types..unifier^d5b51.asBoundTypeParam^03d7d.html" class="ident">asBoundTypeParam</a></label>(<label for="r46" class="ident">x</label> <a href="type.go.html#line-9" class="ident">Type</a>) *<a href="typeparam.go.html#line-25" class="ident">TypeParam</a> {</code></span>
+<span class="codeline" id="line-214"><code>	<span class="keyword">if</span> <label for="r47" class="ident">x</label>, <label for="r48" class="ident">_</label> := <a href="alias.go.html#line-104" class="ident">Unalias</a>(<label for="r46" class="ident">x</label>).(*<a href="typeparam.go.html#line-25" class="ident">TypeParam</a>); <label for="r47" class="ident">x</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-215"><code>		<span class="keyword">if</span> <label for="r49" class="ident">_</label>, <label for="r50" class="ident">found</label> := <label for="r44" class="ident">u</label>.<a href="#line-82" class="ident">handles</a>[<label for="r47" class="ident">x</label>]; <label for="r50" class="ident">found</label> {</code></span>
+<span class="codeline" id="line-216"><code>			<span class="keyword">return</span> <label for="r47" class="ident">x</label></code></span>
+<span class="codeline" id="line-217"><code>		}</code></span>
+<span class="codeline" id="line-218"><code>	}</code></span>
+<span class="codeline" id="line-219"><code>	<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-220"><code>}</code></span>
+<span class="codeline" id="line-221"><code></code></span>
+<span class="codeline" id="line-222"><code><span class="comment">// setHandle sets the handle for type parameter x</span></code></span>
+<span class="codeline" id="line-223"><code><span class="comment">// (and all its joined type parameters) to h.</span></code></span>
+<span class="codeline" id="line-224"><code><span class="keyword">func</span> (<label for="r51" class="ident">u</label> *<a href="#line-72" class="ident">unifier</a>) <label for="r52" class="ident"><a href="../../../use/go/types..unifier^d5b51.setHandle^00d92.html" class="ident">setHandle</a></label>(<label for="r53" class="ident">x</label> *<a href="typeparam.go.html#line-25" class="ident">TypeParam</a>, <label for="r54" class="ident">h</label> *<a href="type.go.html#line-9" class="ident">Type</a>) {</code></span>
+<span class="codeline" id="line-225"><code>	<label for="r55" class="ident">hx</label> := <label for="r51" class="ident">u</label>.<a href="#line-82" class="ident">handles</a>[<label for="r53" class="ident">x</label>]</code></span>
+<span class="codeline" id="line-226"><code>	<a href="errors.go.html#line-18" class="ident">assert</a>(<label for="r55" class="ident">hx</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>)</code></span>
+<span class="codeline" id="line-227"><code>	<span class="keyword">for</span> <label for="r56" class="ident">y</label>, <label for="r57" class="ident">hy</label> := <span class="keyword">range</span> <label for="r51" class="ident">u</label>.<a href="#line-82" class="ident">handles</a> {</code></span>
+<span class="codeline" id="line-228"><code>		<span class="keyword">if</span> <label for="r57" class="ident">hy</label> == <label for="r55" class="ident">hx</label> {</code></span>
+<span class="codeline" id="line-229"><code>			<label for="r51" class="ident">u</label>.<a href="#line-82" class="ident">handles</a>[<label for="r56" class="ident">y</label>] = <label for="r54" class="ident">h</label></code></span>
+<span class="codeline" id="line-230"><code>		}</code></span>
+<span class="codeline" id="line-231"><code>	}</code></span>
+<span class="codeline" id="line-232"><code>}</code></span>
+<span class="codeline" id="line-233"><code></code></span>
+<span class="codeline" id="line-234"><code><span class="comment">// at returns the (possibly nil) type for type parameter x.</span></code></span>
+<span class="codeline" id="line-235"><code><span class="keyword">func</span> (<label for="r58" class="ident">u</label> *<a href="#line-72" class="ident">unifier</a>) <label for="r59" class="ident"><a href="../../../use/go/types..unifier^d5b51.at^b1d6b.html" class="ident">at</a></label>(<label for="r60" class="ident">x</label> *<a href="typeparam.go.html#line-25" class="ident">TypeParam</a>) <a href="type.go.html#line-9" class="ident">Type</a> {</code></span>
+<span class="codeline" id="line-236"><code>	<span class="keyword">return</span> *<label for="r58" class="ident">u</label>.<a href="#line-82" class="ident">handles</a>[<label for="r60" class="ident">x</label>]</code></span>
+<span class="codeline" id="line-237"><code>}</code></span>
+<span class="codeline" id="line-238"><code></code></span>
+<span class="codeline" id="line-239"><code><span class="comment">// set sets the type t for type parameter x;</span></code></span>
+<span class="codeline" id="line-240"><code><span class="comment">// t must not be nil.</span></code></span>
+<span class="codeline" id="line-241"><code><span class="keyword">func</span> (<label for="r61" class="ident">u</label> *<a href="#line-72" class="ident">unifier</a>) <label for="r62" class="ident"><a href="../../../use/go/types..unifier^d5b51.set^6ee0e.html" class="ident">set</a></label>(<label for="r63" class="ident">x</label> *<a href="typeparam.go.html#line-25" class="ident">TypeParam</a>, <label for="r64" class="ident">t</label> <a href="type.go.html#line-9" class="ident">Type</a>) {</code></span>
+<span class="codeline" id="line-242"><code>	<a href="errors.go.html#line-18" class="ident">assert</a>(<label for="r64" class="ident">t</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>)</code></span>
+<span class="codeline" id="line-243"><code>	<span class="keyword">if</span> <a href="#line-66" class="ident">traceInference</a> {</code></span>
+<span class="codeline" id="line-244"><code>		<label for="r61" class="ident">u</label>.<a href="#line-147" class="ident">tracef</a>(<span class="lit-string">"%s ➞ %s"</span>, <label for="r63" class="ident">x</label>, <label for="r64" class="ident">t</label>)</code></span>
+<span class="codeline" id="line-245"><code>	}</code></span>
+<span class="codeline" id="line-246"><code>	*<label for="r61" class="ident">u</label>.<a href="#line-82" class="ident">handles</a>[<label for="r63" class="ident">x</label>] = <label for="r64" class="ident">t</label></code></span>
+<span class="codeline" id="line-247"><code>}</code></span>
+<span class="codeline" id="line-248"><code></code></span>
+<span class="codeline" id="line-249"><code><span class="comment">// unknowns returns the number of type parameters for which no type has been set yet.</span></code></span>
+<span class="codeline" id="line-250"><code><span class="keyword">func</span> (<label for="r65" class="ident">u</label> *<a href="#line-72" class="ident">unifier</a>) <label for="r66" class="ident"><a href="../../../use/go/types..unifier^d5b51.unknowns^2041e.html" class="ident">unknowns</a></label>() <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-251"><code>	<label for="r67" class="ident">n</label> := <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-252"><code>	<span class="keyword">for</span> <label for="r68" class="ident">_</label>, <label for="r69" class="ident">h</label> := <span class="keyword">range</span> <label for="r65" class="ident">u</label>.<a href="#line-82" class="ident">handles</a> {</code></span>
+<span class="codeline" id="line-253"><code>		<span class="keyword">if</span> *<label for="r69" class="ident">h</label> == <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-254"><code>			<label for="r67" class="ident">n</label>++</code></span>
+<span class="codeline" id="line-255"><code>		}</code></span>
+<span class="codeline" id="line-256"><code>	}</code></span>
+<span class="codeline" id="line-257"><code>	<span class="keyword">return</span> <label for="r67" class="ident">n</label></code></span>
+<span class="codeline" id="line-258"><code>}</code></span>
+<span class="codeline" id="line-259"><code></code></span>
+<span class="codeline" id="line-260"><code><span class="comment">// inferred returns the list of inferred types for the given type parameter list.</span></code></span>
+<span class="codeline" id="line-261"><code><span class="comment">// The result is never nil and has the same length as tparams; result types that</span></code></span>
+<span class="codeline" id="line-262"><code><span class="comment">// could not be inferred are nil. Corresponding type parameters and result types</span></code></span>
+<span class="codeline" id="line-263"><code><span class="comment">// have identical indices.</span></code></span>
+<span class="codeline" id="line-264"><code><span class="keyword">func</span> (<label for="r70" class="ident">u</label> *<a href="#line-72" class="ident">unifier</a>) <label for="r71" class="ident"><a href="../../../use/go/types..unifier^d5b51.inferred^204ed.html" class="ident">inferred</a></label>(<label for="r72" class="ident">tparams</label> []*<a href="typeparam.go.html#line-25" class="ident">TypeParam</a>) []<a href="type.go.html#line-9" class="ident">Type</a> {</code></span>
+<span class="codeline" id="line-265"><code>	<label for="r73" class="ident">list</label> := <a href="../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="type.go.html#line-9" class="ident">Type</a>, <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r72" class="ident">tparams</label>))</code></span>
+<span class="codeline" id="line-266"><code>	<span class="keyword">for</span> <label for="r74" class="ident">i</label>, <label for="r75" class="ident">x</label> := <span class="keyword">range</span> <label for="r72" class="ident">tparams</label> {</code></span>
+<span class="codeline" id="line-267"><code>		<label for="r73" class="ident">list</label>[<label for="r74" class="ident">i</label>] = <label for="r70" class="ident">u</label>.<a href="#line-235" class="ident">at</a>(<label for="r75" class="ident">x</label>)</code></span>
+<span class="codeline" id="line-268"><code>	}</code></span>
+<span class="codeline" id="line-269"><code>	<span class="keyword">return</span> <label for="r73" class="ident">list</label></code></span>
+<span class="codeline" id="line-270"><code>}</code></span>
+<span class="codeline" id="line-271"><code></code></span>
+<span class="codeline" id="line-272"><code><span class="comment">// asInterface returns the underlying type of x as an interface if</span></code></span>
+<span class="codeline" id="line-273"><code><span class="comment">// it is a non-type parameter interface. Otherwise it returns nil.</span></code></span>
+<span class="codeline" id="line-274"><code><span class="keyword">func</span> <label for="r76" class="ident"><a href="../../../pkg/go/types.html#name-asInterface" class="ident">asInterface</a></label>(<label for="r77" class="ident">x</label> <a href="type.go.html#line-9" class="ident">Type</a>) (<label for="r78" class="ident">i</label> *<a href="interface.go.html#line-17" class="ident">Interface</a>) {</code></span>
+<span class="codeline" id="line-275"><code>	<span class="keyword">if</span> <label for="r79" class="ident">_</label>, <label for="r80" class="ident">ok</label> := <a href="alias.go.html#line-104" class="ident">Unalias</a>(<label for="r77" class="ident">x</label>).(*<a href="typeparam.go.html#line-25" class="ident">TypeParam</a>); !<label for="r80" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-276"><code>		<label for="r78" class="ident">i</label>, _ = <a href="under.go.html#line-14" class="ident">under</a>(<label for="r77" class="ident">x</label>).(*<a href="interface.go.html#line-17" class="ident">Interface</a>)</code></span>
+<span class="codeline" id="line-277"><code>	}</code></span>
+<span class="codeline" id="line-278"><code>	<span class="keyword">return</span> <label for="r78" class="ident">i</label></code></span>
+<span class="codeline" id="line-279"><code>}</code></span>
+<span class="codeline" id="line-280"><code></code></span>
+<span class="codeline" id="line-281"><code><span class="comment">// nify implements the core unification algorithm which is an</span></code></span>
+<span class="codeline" id="line-282"><code><span class="comment">// adapted version of Checker.identical. For changes to that</span></code></span>
+<span class="codeline" id="line-283"><code><span class="comment">// code the corresponding changes should be made here.</span></code></span>
+<span class="codeline" id="line-284"><code><span class="comment">// Must not be called directly from outside the unifier.</span></code></span>
+<span class="codeline" id="line-285"><code><span class="keyword">func</span> (<label for="r81" class="ident">u</label> *<a href="#line-72" class="ident">unifier</a>) <label for="r82" class="ident"><a href="../../../use/go/types..unifier^d5b51.nify^65cb9.html" class="ident">nify</a></label>(<label for="r83" class="ident">x</label>, <label for="r84" class="ident">y</label> <a href="type.go.html#line-9" class="ident">Type</a>, <label for="r85" class="ident">mode</label> <a href="#line-109" class="ident">unifyMode</a>, <label for="r86" class="ident">p</label> *<a href="predicates.go.html#line-238" class="ident">ifacePair</a>) (<label for="r87" class="ident">result</label> <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a>) {</code></span>
+<span class="codeline" id="line-286"><code>	<label for="r81" class="ident">u</label>.<a href="#line-83" class="ident">depth</a>++</code></span>
+<span class="codeline" id="line-287"><code>	<span class="keyword">if</span> <a href="#line-66" class="ident">traceInference</a> {</code></span>
+<span class="codeline" id="line-288"><code>		<label for="r81" class="ident">u</label>.<a href="#line-147" class="ident">tracef</a>(<span class="lit-string">"%s ≡ %s\t// %s"</span>, <label for="r83" class="ident">x</label>, <label for="r84" class="ident">y</label>, <label for="r85" class="ident">mode</label>)</code></span>
+<span class="codeline" id="line-289"><code>	}</code></span>
+<span class="codeline" id="line-290"><code>	<span class="keyword">defer</span> <span class="keyword">func</span>() {</code></span>
+<span class="codeline" id="line-291"><code>		<span class="keyword">if</span> <a href="#line-66" class="ident">traceInference</a> &amp;&amp; !<label for="r87" class="ident">result</label> {</code></span>
+<span class="codeline" id="line-292"><code>			<label for="r81" class="ident">u</label>.<a href="#line-147" class="ident">tracef</a>(<span class="lit-string">"%s ≢ %s"</span>, <label for="r83" class="ident">x</label>, <label for="r84" class="ident">y</label>)</code></span>
+<span class="codeline" id="line-293"><code>		}</code></span>
+<span class="codeline" id="line-294"><code>		<label for="r81" class="ident">u</label>.<a href="#line-83" class="ident">depth</a>--</code></span>
+<span class="codeline" id="line-295"><code>	}()</code></span>
+<span class="codeline" id="line-296"><code></code></span>
+<span class="codeline" id="line-297"><code>	<span class="comment">// nothing to do if x == y</span></code></span>
+<span class="codeline" id="line-298"><code>	<span class="keyword">if</span> <label for="r83" class="ident">x</label> == <label for="r84" class="ident">y</label> || <a href="alias.go.html#line-104" class="ident">Unalias</a>(<label for="r83" class="ident">x</label>) == <a href="alias.go.html#line-104" class="ident">Unalias</a>(<label for="r84" class="ident">y</label>) {</code></span>
+<span class="codeline" id="line-299"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-300"><code>	}</code></span>
+<span class="codeline" id="line-301"><code></code></span>
+<span class="codeline" id="line-302"><code>	<span class="comment">// Stop gap for cases where unification fails.</span></code></span>
+<span class="codeline" id="line-303"><code>	<span class="keyword">if</span> <label for="r81" class="ident">u</label>.<a href="#line-83" class="ident">depth</a> &gt; <a href="#line-48" class="ident">unificationDepthLimit</a> {</code></span>
+<span class="codeline" id="line-304"><code>		<span class="keyword">if</span> <a href="#line-66" class="ident">traceInference</a> {</code></span>
+<span class="codeline" id="line-305"><code>			<label for="r81" class="ident">u</label>.<a href="#line-147" class="ident">tracef</a>(<span class="lit-string">"depth %d &gt;= %d"</span>, <label for="r81" class="ident">u</label>.<a href="#line-83" class="ident">depth</a>, <a href="#line-48" class="ident">unificationDepthLimit</a>)</code></span>
+<span class="codeline" id="line-306"><code>		}</code></span>
+<span class="codeline" id="line-307"><code>		<span class="keyword">if</span> <a href="#line-53" class="ident">panicAtUnificationDepthLimit</a> {</code></span>
+<span class="codeline" id="line-308"><code>			<a href="../../../pkg/builtin.html#name-panic" class="ident">panic</a>(<span class="lit-string">"unification reached recursion depth limit"</span>)</code></span>
+<span class="codeline" id="line-309"><code>		}</code></span>
+<span class="codeline" id="line-310"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-311"><code>	}</code></span>
+<span class="codeline" id="line-312"><code></code></span>
+<span class="codeline" id="line-313"><code>	<span class="comment">// Unification is symmetric, so we can swap the operands.</span></code></span>
+<span class="codeline" id="line-314"><code><span class="comment">	// Ensure that if we have at least one</span></code></span>
+<span class="codeline" id="line-315"><code><span class="comment">	// - defined type, make sure one is in y</span></code></span>
+<span class="codeline" id="line-316"><code><span class="comment">	// - type parameter recorded with u, make sure one is in x</span></code></span>
+<span class="codeline" id="line-317"><code>	<span class="keyword">if</span> <a href="alias.go.html#line-137" class="ident">asNamed</a>(<label for="r83" class="ident">x</label>) != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> || <label for="r81" class="ident">u</label>.<a href="#line-213" class="ident">asBoundTypeParam</a>(<label for="r84" class="ident">y</label>) != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-318"><code>		<span class="keyword">if</span> <a href="#line-66" class="ident">traceInference</a> {</code></span>
+<span class="codeline" id="line-319"><code>			<label for="r81" class="ident">u</label>.<a href="#line-147" class="ident">tracef</a>(<span class="lit-string">"%s ≡ %s\t// swap"</span>, <label for="r84" class="ident">y</label>, <label for="r83" class="ident">x</label>)</code></span>
+<span class="codeline" id="line-320"><code>		}</code></span>
+<span class="codeline" id="line-321"><code>		<label for="r83" class="ident">x</label>, <label for="r84" class="ident">y</label> = <label for="r84" class="ident">y</label>, <label for="r83" class="ident">x</label></code></span>
+<span class="codeline" id="line-322"><code>	}</code></span>
+<span class="codeline" id="line-323"><code></code></span>
+<span class="codeline" id="line-324"><code>	<span class="comment">// Unification will fail if we match a defined type against a type literal.</span></code></span>
+<span class="codeline" id="line-325"><code><span class="comment">	// If we are matching types in an assignment, at the top-level, types with</span></code></span>
+<span class="codeline" id="line-326"><code><span class="comment">	// the same type structure are permitted as long as at least one of them</span></code></span>
+<span class="codeline" id="line-327"><code><span class="comment">	// is not a defined type. To accommodate for that possibility, we continue</span></code></span>
+<span class="codeline" id="line-328"><code><span class="comment">	// unification with the underlying type of a defined type if the other type</span></code></span>
+<span class="codeline" id="line-329"><code><span class="comment">	// is a type literal. This is controlled by the exact unification mode.</span></code></span>
+<span class="codeline" id="line-330"><code><span class="comment">	// We also continue if the other type is a basic type because basic types</span></code></span>
+<span class="codeline" id="line-331"><code><span class="comment">	// are valid underlying types and may appear as core types of type constraints.</span></code></span>
+<span class="codeline" id="line-332"><code><span class="comment">	// If we exclude them, inferred defined types for type parameters may not</span></code></span>
+<span class="codeline" id="line-333"><code><span class="comment">	// match against the core types of their constraints (even though they might</span></code></span>
+<span class="codeline" id="line-334"><code><span class="comment">	// correctly match against some of the types in the constraint's type set).</span></code></span>
+<span class="codeline" id="line-335"><code><span class="comment">	// Finally, if unification (incorrectly) succeeds by matching the underlying</span></code></span>
+<span class="codeline" id="line-336"><code><span class="comment">	// type of a defined type against a basic type (because we include basic types</span></code></span>
+<span class="codeline" id="line-337"><code><span class="comment">	// as type literals here), and if that leads to an incorrectly inferred type,</span></code></span>
+<span class="codeline" id="line-338"><code><span class="comment">	// we will fail at function instantiation or argument assignment time.</span></code></span>
+<span class="codeline" id="line-339"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-340"><code><span class="comment">	// If we have at least one defined type, there is one in y.</span></code></span>
+<span class="codeline" id="line-341"><code>	<span class="keyword">if</span> <label for="r88" class="ident">ny</label> := <a href="alias.go.html#line-137" class="ident">asNamed</a>(<label for="r84" class="ident">y</label>); <label for="r85" class="ident">mode</label>&amp;<a href="#line-123" class="ident">exact</a> == <span class="lit-number">0</span> &amp;&amp; <label for="r88" class="ident">ny</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> &amp;&amp; <a href="predicates.go.html#line-81" class="ident">isTypeLit</a>(<label for="r83" class="ident">x</label>) &amp;&amp; !(<label for="r81" class="ident">u</label>.<a href="#line-84" class="ident">enableInterfaceInference</a> &amp;&amp; <a href="predicates.go.html#line-115" class="ident">IsInterface</a>(<label for="r83" class="ident">x</label>)) {</code></span>
+<span class="codeline" id="line-342"><code>		<span class="keyword">if</span> <a href="#line-66" class="ident">traceInference</a> {</code></span>
+<span class="codeline" id="line-343"><code>			<label for="r81" class="ident">u</label>.<a href="#line-147" class="ident">tracef</a>(<span class="lit-string">"%s ≡ under %s"</span>, <label for="r83" class="ident">x</label>, <label for="r88" class="ident">ny</label>)</code></span>
+<span class="codeline" id="line-344"><code>		}</code></span>
+<span class="codeline" id="line-345"><code>		<label for="r84" class="ident">y</label> = <label for="r88" class="ident">ny</label>.<a href="named.go.html#line-538" class="ident">under</a>()</code></span>
+<span class="codeline" id="line-346"><code>		<span class="comment">// Per the spec, a defined type cannot have an underlying type</span></code></span>
+<span class="codeline" id="line-347"><code><span class="comment">		// that is a type parameter.</span></code></span>
+<span class="codeline" id="line-348"><code>		<a href="errors.go.html#line-18" class="ident">assert</a>(!<a href="predicates.go.html#line-126" class="ident">isTypeParam</a>(<label for="r84" class="ident">y</label>))</code></span>
+<span class="codeline" id="line-349"><code>		<span class="comment">// x and y may be identical now</span></code></span>
+<span class="codeline" id="line-350"><code>		<span class="keyword">if</span> <label for="r83" class="ident">x</label> == <label for="r84" class="ident">y</label> || <a href="alias.go.html#line-104" class="ident">Unalias</a>(<label for="r83" class="ident">x</label>) == <a href="alias.go.html#line-104" class="ident">Unalias</a>(<label for="r84" class="ident">y</label>) {</code></span>
+<span class="codeline" id="line-351"><code>			<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-352"><code>		}</code></span>
+<span class="codeline" id="line-353"><code>	}</code></span>
+<span class="codeline" id="line-354"><code></code></span>
+<span class="codeline" id="line-355"><code>	<span class="comment">// Cases where at least one of x or y is a type parameter recorded with u.</span></code></span>
+<span class="codeline" id="line-356"><code><span class="comment">	// If we have at least one type parameter, there is one in x.</span></code></span>
+<span class="codeline" id="line-357"><code><span class="comment">	// If we have exactly one type parameter, because it is in x,</span></code></span>
+<span class="codeline" id="line-358"><code><span class="comment">	// isTypeLit(x) is false and y was not changed above. In other</span></code></span>
+<span class="codeline" id="line-359"><code><span class="comment">	// words, if y was a defined type, it is still a defined type</span></code></span>
+<span class="codeline" id="line-360"><code><span class="comment">	// (relevant for the logic below).</span></code></span>
+<span class="codeline" id="line-361"><code>	<span class="keyword">switch</span> <label for="r89" class="ident">px</label>, <label for="r90" class="ident">py</label> := <label for="r81" class="ident">u</label>.<a href="#line-213" class="ident">asBoundTypeParam</a>(<label for="r83" class="ident">x</label>), <label for="r81" class="ident">u</label>.<a href="#line-213" class="ident">asBoundTypeParam</a>(<label for="r84" class="ident">y</label>); {</code></span>
+<span class="codeline" id="line-362"><code>	<span class="keyword">case</span> <label for="r89" class="ident">px</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> &amp;&amp; <label for="r90" class="ident">py</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>:</code></span>
+<span class="codeline" id="line-363"><code>		<span class="comment">// both x and y are type parameters</span></code></span>
+<span class="codeline" id="line-364"><code>		<span class="keyword">if</span> <label for="r81" class="ident">u</label>.<a href="#line-187" class="ident">join</a>(<label for="r89" class="ident">px</label>, <label for="r90" class="ident">py</label>) {</code></span>
+<span class="codeline" id="line-365"><code>			<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-366"><code>		}</code></span>
+<span class="codeline" id="line-367"><code>		<span class="comment">// both x and y have an inferred type - they must match</span></code></span>
+<span class="codeline" id="line-368"><code>		<span class="keyword">return</span> <label for="r81" class="ident">u</label>.<label for="r82" class="ident">nify</label>(<label for="r81" class="ident">u</label>.<a href="#line-235" class="ident">at</a>(<label for="r89" class="ident">px</label>), <label for="r81" class="ident">u</label>.<a href="#line-235" class="ident">at</a>(<label for="r90" class="ident">py</label>), <label for="r85" class="ident">mode</label>, <label for="r86" class="ident">p</label>)</code></span>
+<span class="codeline" id="line-369"><code></code></span>
+<span class="codeline" id="line-370"><code>	<span class="keyword">case</span> <label for="r89" class="ident">px</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>:</code></span>
+<span class="codeline" id="line-371"><code>		<span class="comment">// x is a type parameter, y is not</span></code></span>
+<span class="codeline" id="line-372"><code>		<span class="keyword">if</span> <label for="r91" class="ident">x</label> := <label for="r81" class="ident">u</label>.<a href="#line-235" class="ident">at</a>(<label for="r89" class="ident">px</label>); <label for="r91" class="ident">x</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-373"><code>			<span class="comment">// x has an inferred type which must match y</span></code></span>
+<span class="codeline" id="line-374"><code>			<span class="keyword">if</span> <label for="r81" class="ident">u</label>.<label for="r82" class="ident">nify</label>(<label for="r91" class="ident">x</label>, <label for="r84" class="ident">y</label>, <label for="r85" class="ident">mode</label>, <label for="r86" class="ident">p</label>) {</code></span>
+<span class="codeline" id="line-375"><code>				<span class="comment">// We have a match, possibly through underlying types.</span></code></span>
+<span class="codeline" id="line-376"><code>				<label for="r92" class="ident">xi</label> := <a href="#line-274" class="ident">asInterface</a>(<label for="r91" class="ident">x</label>)</code></span>
+<span class="codeline" id="line-377"><code>				<label for="r93" class="ident">yi</label> := <a href="#line-274" class="ident">asInterface</a>(<label for="r84" class="ident">y</label>)</code></span>
+<span class="codeline" id="line-378"><code>				<label for="r94" class="ident">xn</label> := <a href="alias.go.html#line-137" class="ident">asNamed</a>(<label for="r91" class="ident">x</label>) != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-379"><code>				<label for="r95" class="ident">yn</label> := <a href="alias.go.html#line-137" class="ident">asNamed</a>(<label for="r84" class="ident">y</label>) != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-380"><code>				<span class="comment">// If we have two interfaces, what to do depends on</span></code></span>
+<span class="codeline" id="line-381"><code><span class="comment">				// whether they are named and their method sets.</span></code></span>
+<span class="codeline" id="line-382"><code>				<span class="keyword">if</span> <label for="r92" class="ident">xi</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> &amp;&amp; <label for="r93" class="ident">yi</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-383"><code>					<span class="comment">// Both types are interfaces.</span></code></span>
+<span class="codeline" id="line-384"><code><span class="comment">					// If both types are defined types, they must be identical</span></code></span>
+<span class="codeline" id="line-385"><code><span class="comment">					// because unification doesn't know which type has the "right" name.</span></code></span>
+<span class="codeline" id="line-386"><code>					<span class="keyword">if</span> <label for="r94" class="ident">xn</label> &amp;&amp; <label for="r95" class="ident">yn</label> {</code></span>
+<span class="codeline" id="line-387"><code>						<span class="keyword">return</span> <a href="api_predicates.go.html#line-88" class="ident">Identical</a>(<label for="r91" class="ident">x</label>, <label for="r84" class="ident">y</label>)</code></span>
+<span class="codeline" id="line-388"><code>					}</code></span>
+<span class="codeline" id="line-389"><code>					<span class="comment">// In all other cases, the method sets must match.</span></code></span>
+<span class="codeline" id="line-390"><code><span class="comment">					// The types unified so we know that corresponding methods</span></code></span>
+<span class="codeline" id="line-391"><code><span class="comment">					// match and we can simply compare the number of methods.</span></code></span>
+<span class="codeline" id="line-392"><code><span class="comment">					// TODO(gri) We may be able to relax this rule and select</span></code></span>
+<span class="codeline" id="line-393"><code><span class="comment">					// the more general interface. But if one of them is a defined</span></code></span>
+<span class="codeline" id="line-394"><code><span class="comment">					// type, it's not clear how to choose and whether we introduce</span></code></span>
+<span class="codeline" id="line-395"><code><span class="comment">					// an order dependency or not. Requiring the same method set</span></code></span>
+<span class="codeline" id="line-396"><code><span class="comment">					// is conservative.</span></code></span>
+<span class="codeline" id="line-397"><code>					<span class="keyword">if</span> <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r92" class="ident">xi</label>.<a href="interface.go.html#line-29" class="ident">typeSet</a>().<a href="typeset.go.html#line-30" class="ident">methods</a>) != <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r93" class="ident">yi</label>.<a href="interface.go.html#line-29" class="ident">typeSet</a>().<a href="typeset.go.html#line-30" class="ident">methods</a>) {</code></span>
+<span class="codeline" id="line-398"><code>						<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-399"><code>					}</code></span>
+<span class="codeline" id="line-400"><code>				} <span class="keyword">else</span> <span class="keyword">if</span> <label for="r92" class="ident">xi</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> || <label for="r93" class="ident">yi</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-401"><code>					<span class="comment">// One but not both of them are interfaces.</span></code></span>
+<span class="codeline" id="line-402"><code><span class="comment">					// In this case, either x or y could be viable matches for the corresponding</span></code></span>
+<span class="codeline" id="line-403"><code><span class="comment">					// type parameter, which means choosing either introduces an order dependence.</span></code></span>
+<span class="codeline" id="line-404"><code><span class="comment">					// Therefore, we must fail unification (go.dev/issue/60933).</span></code></span>
+<span class="codeline" id="line-405"><code>					<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-406"><code>				}</code></span>
+<span class="codeline" id="line-407"><code>				<span class="comment">// If we have inexact unification and one of x or y is a defined type, select the</span></code></span>
+<span class="codeline" id="line-408"><code><span class="comment">				// defined type. This ensures that in a series of types, all matching against the</span></code></span>
+<span class="codeline" id="line-409"><code><span class="comment">				// same type parameter, we infer a defined type if there is one, independent of</span></code></span>
+<span class="codeline" id="line-410"><code><span class="comment">				// order. Type inference or assignment may fail, which is ok.</span></code></span>
+<span class="codeline" id="line-411"><code><span class="comment">				// Selecting a defined type, if any, ensures that we don't lose the type name;</span></code></span>
+<span class="codeline" id="line-412"><code><span class="comment">				// and since we have inexact unification, a value of equally named or matching</span></code></span>
+<span class="codeline" id="line-413"><code><span class="comment">				// undefined type remains assignable (go.dev/issue/43056).</span></code></span>
+<span class="codeline" id="line-414"><code><span class="comment">				//</span></code></span>
+<span class="codeline" id="line-415"><code><span class="comment">				// Similarly, if we have inexact unification and there are no defined types but</span></code></span>
+<span class="codeline" id="line-416"><code><span class="comment">				// channel types, select a directed channel, if any. This ensures that in a series</span></code></span>
+<span class="codeline" id="line-417"><code><span class="comment">				// of unnamed types, all matching against the same type parameter, we infer the</span></code></span>
+<span class="codeline" id="line-418"><code><span class="comment">				// directed channel if there is one, independent of order.</span></code></span>
+<span class="codeline" id="line-419"><code><span class="comment">				// Selecting a directional channel, if any, ensures that a value of another</span></code></span>
+<span class="codeline" id="line-420"><code><span class="comment">				// inexactly unifying channel type remains assignable (go.dev/issue/62157).</span></code></span>
+<span class="codeline" id="line-421"><code><span class="comment">				//</span></code></span>
+<span class="codeline" id="line-422"><code><span class="comment">				// If we have multiple defined channel types, they are either identical or we</span></code></span>
+<span class="codeline" id="line-423"><code><span class="comment">				// have assignment conflicts, so we can ignore directionality in this case.</span></code></span>
+<span class="codeline" id="line-424"><code><span class="comment">				//</span></code></span>
+<span class="codeline" id="line-425"><code><span class="comment">				// If we have defined and literal channel types, a defined type wins to avoid</span></code></span>
+<span class="codeline" id="line-426"><code><span class="comment">				// order dependencies.</span></code></span>
+<span class="codeline" id="line-427"><code>				<span class="keyword">if</span> <label for="r85" class="ident">mode</label>&amp;<a href="#line-123" class="ident">exact</a> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-428"><code>					<span class="keyword">switch</span> {</code></span>
+<span class="codeline" id="line-429"><code>					<span class="keyword">case</span> <label for="r94" class="ident">xn</label>:</code></span>
+<span class="codeline" id="line-430"><code>						<span class="comment">// x is a defined type: nothing to do.</span></code></span>
+<span class="codeline" id="line-431"><code>					<span class="keyword">case</span> <label for="r95" class="ident">yn</label>:</code></span>
+<span class="codeline" id="line-432"><code>						<span class="comment">// x is not a defined type and y is a defined type: select y.</span></code></span>
+<span class="codeline" id="line-433"><code>						<label for="r81" class="ident">u</label>.<a href="#line-241" class="ident">set</a>(<label for="r89" class="ident">px</label>, <label for="r84" class="ident">y</label>)</code></span>
+<span class="codeline" id="line-434"><code>					<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-435"><code>						<span class="comment">// Neither x nor y are defined types.</span></code></span>
+<span class="codeline" id="line-436"><code>						<span class="keyword">if</span> <label for="r96" class="ident">yc</label>, <label for="r97" class="ident">_</label> := <a href="under.go.html#line-14" class="ident">under</a>(<label for="r84" class="ident">y</label>).(*<a href="chan.go.html#line-11" class="ident">Chan</a>); <label for="r96" class="ident">yc</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> &amp;&amp; <label for="r96" class="ident">yc</label>.<a href="chan.go.html#line-12" class="ident">dir</a> != <a href="chan.go.html#line-21" class="ident">SendRecv</a> {</code></span>
+<span class="codeline" id="line-437"><code>							<span class="comment">// y is a directed channel type: select y.</span></code></span>
+<span class="codeline" id="line-438"><code>							<label for="r81" class="ident">u</label>.<a href="#line-241" class="ident">set</a>(<label for="r89" class="ident">px</label>, <label for="r84" class="ident">y</label>)</code></span>
+<span class="codeline" id="line-439"><code>						}</code></span>
+<span class="codeline" id="line-440"><code>					}</code></span>
+<span class="codeline" id="line-441"><code>				}</code></span>
+<span class="codeline" id="line-442"><code>				<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-443"><code>			}</code></span>
+<span class="codeline" id="line-444"><code>			<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-445"><code>		}</code></span>
+<span class="codeline" id="line-446"><code>		<span class="comment">// otherwise, infer type from y</span></code></span>
+<span class="codeline" id="line-447"><code>		<label for="r81" class="ident">u</label>.<a href="#line-241" class="ident">set</a>(<label for="r89" class="ident">px</label>, <label for="r84" class="ident">y</label>)</code></span>
+<span class="codeline" id="line-448"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-449"><code>	}</code></span>
+<span class="codeline" id="line-450"><code></code></span>
+<span class="codeline" id="line-451"><code>	<span class="comment">// x != y if we get here</span></code></span>
+<span class="codeline" id="line-452"><code>	<a href="errors.go.html#line-18" class="ident">assert</a>(<label for="r83" class="ident">x</label> != <label for="r84" class="ident">y</label> &amp;&amp; <a href="alias.go.html#line-104" class="ident">Unalias</a>(<label for="r83" class="ident">x</label>) != <a href="alias.go.html#line-104" class="ident">Unalias</a>(<label for="r84" class="ident">y</label>))</code></span>
+<span class="codeline" id="line-453"><code></code></span>
+<span class="codeline" id="line-454"><code>	<span class="comment">// If u.EnableInterfaceInference is set and we don't require exact unification,</span></code></span>
+<span class="codeline" id="line-455"><code><span class="comment">	// if both types are interfaces, one interface must have a subset of the</span></code></span>
+<span class="codeline" id="line-456"><code><span class="comment">	// methods of the other and corresponding method signatures must unify.</span></code></span>
+<span class="codeline" id="line-457"><code><span class="comment">	// If only one type is an interface, all its methods must be present in the</span></code></span>
+<span class="codeline" id="line-458"><code><span class="comment">	// other type and corresponding method signatures must unify.</span></code></span>
+<span class="codeline" id="line-459"><code>	<span class="keyword">if</span> <label for="r81" class="ident">u</label>.<a href="#line-84" class="ident">enableInterfaceInference</a> &amp;&amp; <label for="r85" class="ident">mode</label>&amp;<a href="#line-123" class="ident">exact</a> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-460"><code>		<span class="comment">// One or both interfaces may be defined types.</span></code></span>
+<span class="codeline" id="line-461"><code><span class="comment">		// Look under the name, but not under type parameters (go.dev/issue/60564).</span></code></span>
+<span class="codeline" id="line-462"><code>		<label for="r98" class="ident">xi</label> := <a href="#line-274" class="ident">asInterface</a>(<label for="r83" class="ident">x</label>)</code></span>
+<span class="codeline" id="line-463"><code>		<label for="r99" class="ident">yi</label> := <a href="#line-274" class="ident">asInterface</a>(<label for="r84" class="ident">y</label>)</code></span>
+<span class="codeline" id="line-464"><code>		<span class="comment">// If we have two interfaces, check the type terms for equivalence,</span></code></span>
+<span class="codeline" id="line-465"><code><span class="comment">		// and unify common methods if possible.</span></code></span>
+<span class="codeline" id="line-466"><code>		<span class="keyword">if</span> <label for="r98" class="ident">xi</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> &amp;&amp; <label for="r99" class="ident">yi</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-467"><code>			<label for="r100" class="ident">xset</label> := <label for="r98" class="ident">xi</label>.<a href="interface.go.html#line-29" class="ident">typeSet</a>()</code></span>
+<span class="codeline" id="line-468"><code>			<label for="r101" class="ident">yset</label> := <label for="r99" class="ident">yi</label>.<a href="interface.go.html#line-29" class="ident">typeSet</a>()</code></span>
+<span class="codeline" id="line-469"><code>			<span class="keyword">if</span> <label for="r100" class="ident">xset</label>.<a href="typeset.go.html#line-32" class="ident">comparable</a> != <label for="r101" class="ident">yset</label>.<a href="typeset.go.html#line-32" class="ident">comparable</a> {</code></span>
+<span class="codeline" id="line-470"><code>				<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-471"><code>			}</code></span>
+<span class="codeline" id="line-472"><code>			<span class="comment">// For now we require terms to be equal.</span></code></span>
+<span class="codeline" id="line-473"><code><span class="comment">			// We should be able to relax this as well, eventually.</span></code></span>
+<span class="codeline" id="line-474"><code>			<span class="keyword">if</span> !<label for="r100" class="ident">xset</label>.<a href="typeset.go.html#line-31" class="ident">terms</a>.<a href="termlist.go.html#line-126" class="ident">equal</a>(<label for="r101" class="ident">yset</label>.<a href="typeset.go.html#line-31" class="ident">terms</a>) {</code></span>
+<span class="codeline" id="line-475"><code>				<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-476"><code>			}</code></span>
+<span class="codeline" id="line-477"><code>			<span class="comment">// Interface types are the only types where cycles can occur</span></code></span>
+<span class="codeline" id="line-478"><code><span class="comment">			// that are not "terminated" via named types; and such cycles</span></code></span>
+<span class="codeline" id="line-479"><code><span class="comment">			// can only be created via method parameter types that are</span></code></span>
+<span class="codeline" id="line-480"><code><span class="comment">			// anonymous interfaces (directly or indirectly) embedding</span></code></span>
+<span class="codeline" id="line-481"><code><span class="comment">			// the current interface. Example:</span></code></span>
+<span class="codeline" id="line-482"><code><span class="comment">			//</span></code></span>
+<span class="codeline" id="line-483"><code><span class="comment">			//    type T interface {</span></code></span>
+<span class="codeline" id="line-484"><code><span class="comment">			//        m() interface{T}</span></code></span>
+<span class="codeline" id="line-485"><code><span class="comment">			//    }</span></code></span>
+<span class="codeline" id="line-486"><code><span class="comment">			//</span></code></span>
+<span class="codeline" id="line-487"><code><span class="comment">			// If two such (differently named) interfaces are compared,</span></code></span>
+<span class="codeline" id="line-488"><code><span class="comment">			// endless recursion occurs if the cycle is not detected.</span></code></span>
+<span class="codeline" id="line-489"><code><span class="comment">			//</span></code></span>
+<span class="codeline" id="line-490"><code><span class="comment">			// If x and y were compared before, they must be equal</span></code></span>
+<span class="codeline" id="line-491"><code><span class="comment">			// (if they were not, the recursion would have stopped);</span></code></span>
+<span class="codeline" id="line-492"><code><span class="comment">			// search the ifacePair stack for the same pair.</span></code></span>
+<span class="codeline" id="line-493"><code><span class="comment">			//</span></code></span>
+<span class="codeline" id="line-494"><code><span class="comment">			// This is a quadratic algorithm, but in practice these stacks</span></code></span>
+<span class="codeline" id="line-495"><code><span class="comment">			// are extremely short (bounded by the nesting depth of interface</span></code></span>
+<span class="codeline" id="line-496"><code><span class="comment">			// type declarations that recur via parameter types, an extremely</span></code></span>
+<span class="codeline" id="line-497"><code><span class="comment">			// rare occurrence). An alternative implementation might use a</span></code></span>
+<span class="codeline" id="line-498"><code><span class="comment">			// "visited" map, but that is probably less efficient overall.</span></code></span>
+<span class="codeline" id="line-499"><code>			<label for="r102" class="ident">q</label> := &amp;<a href="predicates.go.html#line-238" class="ident">ifacePair</a>{<label for="r98" class="ident">xi</label>, <label for="r99" class="ident">yi</label>, <label for="r86" class="ident">p</label>}</code></span>
+<span class="codeline" id="line-500"><code>			<span class="keyword">for</span> <label for="r86" class="ident">p</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-501"><code>				<span class="keyword">if</span> <label for="r86" class="ident">p</label>.<a href="predicates.go.html#line-243" class="ident">identical</a>(<label for="r102" class="ident">q</label>) {</code></span>
+<span class="codeline" id="line-502"><code>					<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-true" class="ident">true</a> <span class="comment">// same pair was compared before</span></code></span>
+<span class="codeline" id="line-503"><code>				}</code></span>
+<span class="codeline" id="line-504"><code>				<label for="r86" class="ident">p</label> = <label for="r86" class="ident">p</label>.<a href="predicates.go.html#line-240" class="ident">prev</a></code></span>
+<span class="codeline" id="line-505"><code>			}</code></span>
+<span class="codeline" id="line-506"><code>			<span class="comment">// The method set of x must be a subset of the method set</span></code></span>
+<span class="codeline" id="line-507"><code><span class="comment">			// of y or vice versa, and the common methods must unify.</span></code></span>
+<span class="codeline" id="line-508"><code>			<label for="r103" class="ident">xmethods</label> := <label for="r100" class="ident">xset</label>.<a href="typeset.go.html#line-30" class="ident">methods</a></code></span>
+<span class="codeline" id="line-509"><code>			<label for="r104" class="ident">ymethods</label> := <label for="r101" class="ident">yset</label>.<a href="typeset.go.html#line-30" class="ident">methods</a></code></span>
+<span class="codeline" id="line-510"><code>			<span class="comment">// The smaller method set must be the subset, if it exists.</span></code></span>
+<span class="codeline" id="line-511"><code>			<span class="keyword">if</span> <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r103" class="ident">xmethods</label>) &gt; <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r104" class="ident">ymethods</label>) {</code></span>
+<span class="codeline" id="line-512"><code>				<label for="r103" class="ident">xmethods</label>, <label for="r104" class="ident">ymethods</label> = <label for="r104" class="ident">ymethods</label>, <label for="r103" class="ident">xmethods</label></code></span>
+<span class="codeline" id="line-513"><code>			}</code></span>
+<span class="codeline" id="line-514"><code>			<span class="comment">// len(xmethods) &lt;= len(ymethods)</span></code></span>
+<span class="codeline" id="line-515"><code><span class="comment">			// Collect the ymethods in a map for quick lookup.</span></code></span>
+<span class="codeline" id="line-516"><code>			<label for="r105" class="ident">ymap</label> := <a href="../../../pkg/builtin.html#name-make" class="ident">make</a>(<span class="keyword">map</span>[<a href="../../../pkg/builtin.html#name-string" class="ident">string</a>]*<a href="object.go.html#line-389" class="ident">Func</a>, <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r104" class="ident">ymethods</label>))</code></span>
+<span class="codeline" id="line-517"><code>			<span class="keyword">for</span> <label for="r106" class="ident">_</label>, <label for="r107" class="ident">ym</label> := <span class="keyword">range</span> <label for="r104" class="ident">ymethods</label> {</code></span>
+<span class="codeline" id="line-518"><code>				<label for="r105" class="ident">ymap</label>[<label for="r107" class="ident">ym</label>.<a href="object.go.html#line-166" class="ident">Id</a>()] = <label for="r107" class="ident">ym</label></code></span>
+<span class="codeline" id="line-519"><code>			}</code></span>
+<span class="codeline" id="line-520"><code>			<span class="comment">// All xmethods must exist in ymethods and corresponding signatures must unify.</span></code></span>
+<span class="codeline" id="line-521"><code>			<span class="keyword">for</span> <label for="r108" class="ident">_</label>, <label for="r109" class="ident">xm</label> := <span class="keyword">range</span> <label for="r103" class="ident">xmethods</label> {</code></span>
+<span class="codeline" id="line-522"><code>				<span class="keyword">if</span> <label for="r110" class="ident">ym</label> := <label for="r105" class="ident">ymap</label>[<label for="r109" class="ident">xm</label>.<a href="object.go.html#line-166" class="ident">Id</a>()]; <label for="r110" class="ident">ym</label> == <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> || !<label for="r81" class="ident">u</label>.<label for="r82" class="ident">nify</label>(<label for="r109" class="ident">xm</label>.<a href="object.go.html#line-106" class="ident">typ</a>, <label for="r110" class="ident">ym</label>.<a href="object.go.html#line-106" class="ident">typ</a>, <a href="#line-123" class="ident">exact</a>, <label for="r86" class="ident">p</label>) {</code></span>
+<span class="codeline" id="line-523"><code>					<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-524"><code>				}</code></span>
+<span class="codeline" id="line-525"><code>			}</code></span>
+<span class="codeline" id="line-526"><code>			<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-527"><code>		}</code></span>
+<span class="codeline" id="line-528"><code></code></span>
+<span class="codeline" id="line-529"><code>		<span class="comment">// We don't have two interfaces. If we have one, make sure it's in xi.</span></code></span>
+<span class="codeline" id="line-530"><code>		<span class="keyword">if</span> <label for="r99" class="ident">yi</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-531"><code>			<label for="r98" class="ident">xi</label> = <label for="r99" class="ident">yi</label></code></span>
+<span class="codeline" id="line-532"><code>			<label for="r84" class="ident">y</label> = <label for="r83" class="ident">x</label></code></span>
+<span class="codeline" id="line-533"><code>		}</code></span>
+<span class="codeline" id="line-534"><code></code></span>
+<span class="codeline" id="line-535"><code>		<span class="comment">// If we have one interface, at a minimum each of the interface methods</span></code></span>
+<span class="codeline" id="line-536"><code><span class="comment">		// must be implemented and thus unify with a corresponding method from</span></code></span>
+<span class="codeline" id="line-537"><code><span class="comment">		// the non-interface type, otherwise unification fails.</span></code></span>
+<span class="codeline" id="line-538"><code>		<span class="keyword">if</span> <label for="r98" class="ident">xi</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-539"><code>			<span class="comment">// All xi methods must exist in y and corresponding signatures must unify.</span></code></span>
+<span class="codeline" id="line-540"><code>			<label for="r111" class="ident">xmethods</label> := <label for="r98" class="ident">xi</label>.<a href="interface.go.html#line-29" class="ident">typeSet</a>().<a href="typeset.go.html#line-30" class="ident">methods</a></code></span>
+<span class="codeline" id="line-541"><code>			<span class="keyword">for</span> <label for="r112" class="ident">_</label>, <label for="r113" class="ident">xm</label> := <span class="keyword">range</span> <label for="r111" class="ident">xmethods</label> {</code></span>
+<span class="codeline" id="line-542"><code>				<label for="r114" class="ident">obj</label>, <label for="r115" class="ident">_</label>, <label for="r116" class="ident">_</label> := <a href="lookup.go.html#line-44" class="ident">LookupFieldOrMethod</a>(<label for="r84" class="ident">y</label>, <a href="../../../pkg/builtin.html#name-false" class="ident">false</a>, <label for="r113" class="ident">xm</label>.<a href="object.go.html#line-104" class="ident">pkg</a>, <label for="r113" class="ident">xm</label>.<a href="object.go.html#line-105" class="ident">name</a>)</code></span>
+<span class="codeline" id="line-543"><code>				<span class="keyword">if</span> <label for="r117" class="ident">ym</label>, <label for="r118" class="ident">_</label> := <label for="r114" class="ident">obj</label>.(*<a href="object.go.html#line-389" class="ident">Func</a>); <label for="r117" class="ident">ym</label> == <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> || !<label for="r81" class="ident">u</label>.<label for="r82" class="ident">nify</label>(<label for="r113" class="ident">xm</label>.<a href="object.go.html#line-106" class="ident">typ</a>, <label for="r117" class="ident">ym</label>.<a href="object.go.html#line-106" class="ident">typ</a>, <a href="#line-123" class="ident">exact</a>, <label for="r86" class="ident">p</label>) {</code></span>
+<span class="codeline" id="line-544"><code>					<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-545"><code>				}</code></span>
+<span class="codeline" id="line-546"><code>			}</code></span>
+<span class="codeline" id="line-547"><code>			<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-548"><code>		}</code></span>
+<span class="codeline" id="line-549"><code>	}</code></span>
+<span class="codeline" id="line-550"><code></code></span>
+<span class="codeline" id="line-551"><code>	<span class="comment">// Unless we have exact unification, neither x nor y are interfaces now.</span></code></span>
+<span class="codeline" id="line-552"><code><span class="comment">	// Except for unbound type parameters (see below), x and y must be structurally</span></code></span>
+<span class="codeline" id="line-553"><code><span class="comment">	// equivalent to unify.</span></code></span>
+<span class="codeline" id="line-554"><code></code></span>
+<span class="codeline" id="line-555"><code>	<span class="comment">// If we get here and x or y is a type parameter, they are unbound</span></code></span>
+<span class="codeline" id="line-556"><code><span class="comment">	// (not recorded with the unifier).</span></code></span>
+<span class="codeline" id="line-557"><code><span class="comment">	// Ensure that if we have at least one type parameter, it is in x</span></code></span>
+<span class="codeline" id="line-558"><code><span class="comment">	// (the earlier swap checks for _recorded_ type parameters only).</span></code></span>
+<span class="codeline" id="line-559"><code><span class="comment">	// This ensures that the switch switches on the type parameter.</span></code></span>
+<span class="codeline" id="line-560"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-561"><code><span class="comment">	// TODO(gri) Factor out type parameter handling from the switch.</span></code></span>
+<span class="codeline" id="line-562"><code>	<span class="keyword">if</span> <a href="predicates.go.html#line-126" class="ident">isTypeParam</a>(<label for="r84" class="ident">y</label>) {</code></span>
+<span class="codeline" id="line-563"><code>		<span class="keyword">if</span> <a href="#line-66" class="ident">traceInference</a> {</code></span>
+<span class="codeline" id="line-564"><code>			<label for="r81" class="ident">u</label>.<a href="#line-147" class="ident">tracef</a>(<span class="lit-string">"%s ≡ %s\t// swap"</span>, <label for="r84" class="ident">y</label>, <label for="r83" class="ident">x</label>)</code></span>
+<span class="codeline" id="line-565"><code>		}</code></span>
+<span class="codeline" id="line-566"><code>		<label for="r83" class="ident">x</label>, <label for="r84" class="ident">y</label> = <label for="r84" class="ident">y</label>, <label for="r83" class="ident">x</label></code></span>
+<span class="codeline" id="line-567"><code>	}</code></span>
+<span class="codeline" id="line-568"><code></code></span>
+<span class="codeline" id="line-569"><code>	<span class="comment">// Type elements (array, slice, etc. elements) use emode for unification.</span></code></span>
+<span class="codeline" id="line-570"><code><span class="comment">	// Element types must match exactly if the types are used in an assignment.</span></code></span>
+<span class="codeline" id="line-571"><code>	<label for="r119" class="ident">emode</label> := <label for="r85" class="ident">mode</label></code></span>
+<span class="codeline" id="line-572"><code>	<span class="keyword">if</span> <label for="r85" class="ident">mode</label>&amp;<a href="#line-115" class="ident">assign</a> != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-573"><code>		<label for="r119" class="ident">emode</label> |= <a href="#line-123" class="ident">exact</a></code></span>
+<span class="codeline" id="line-574"><code>	}</code></span>
+<span class="codeline" id="line-575"><code></code></span>
+<span class="codeline" id="line-576"><code>	<span class="comment">// Continue with unaliased types but don't lose original alias names, if any (go.dev/issue/67628).</span></code></span>
+<span class="codeline" id="line-577"><code>	<label for="r120" class="ident">xorig</label>, <label for="r83" class="ident">x</label> := <label for="r83" class="ident">x</label>, <a href="alias.go.html#line-104" class="ident">Unalias</a>(<label for="r83" class="ident">x</label>)</code></span>
+<span class="codeline" id="line-578"><code>	<label for="r121" class="ident">yorig</label>, <label for="r84" class="ident">y</label> := <label for="r84" class="ident">y</label>, <a href="alias.go.html#line-104" class="ident">Unalias</a>(<label for="r84" class="ident">y</label>)</code></span>
+<span class="codeline" id="line-579"><code></code></span>
+<span class="codeline" id="line-580"><code>	<span class="keyword">switch</span> x := <label for="r83" class="ident">x</label>.(<span class="keyword">type</span>) {</code></span>
+<span class="codeline" id="line-581"><code>	<span class="keyword">case</span> *<a href="basic.go.html#line-69" class="ident">Basic</a>:</code></span>
+<span class="codeline" id="line-582"><code>		<span class="comment">// Basic types are singletons except for the rune and byte</span></code></span>
+<span class="codeline" id="line-583"><code><span class="comment">		// aliases, thus we cannot solely rely on the x == y check</span></code></span>
+<span class="codeline" id="line-584"><code><span class="comment">		// above. See also comment in TypeName.IsAlias.</span></code></span>
+<span class="codeline" id="line-585"><code>		<span class="keyword">if</span> <label for="r122" class="ident">y</label>, <label for="r123" class="ident">ok</label> := <label for="r84" class="ident">y</label>.(*<a href="basic.go.html#line-69" class="ident">Basic</a>); <label for="r123" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-586"><code>			<span class="keyword">return</span> <label for="r124" class="ident">x</label>.<a href="basic.go.html#line-70" class="ident">kind</a> == <label for="r122" class="ident">y</label>.<a href="basic.go.html#line-70" class="ident">kind</a></code></span>
+<span class="codeline" id="line-587"><code>		}</code></span>
+<span class="codeline" id="line-588"><code></code></span>
+<span class="codeline" id="line-589"><code>	<span class="keyword">case</span> *<a href="array.go.html#line-11" class="ident">Array</a>:</code></span>
+<span class="codeline" id="line-590"><code>		<span class="comment">// Two array types unify if they have the same array length</span></code></span>
+<span class="codeline" id="line-591"><code><span class="comment">		// and their element types unify.</span></code></span>
+<span class="codeline" id="line-592"><code>		<span class="keyword">if</span> <label for="r125" class="ident">y</label>, <label for="r126" class="ident">ok</label> := <label for="r84" class="ident">y</label>.(*<a href="array.go.html#line-11" class="ident">Array</a>); <label for="r126" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-593"><code>			<span class="comment">// If one or both array lengths are unknown (&lt; 0) due to some error,</span></code></span>
+<span class="codeline" id="line-594"><code><span class="comment">			// assume they are the same to avoid spurious follow-on errors.</span></code></span>
+<span class="codeline" id="line-595"><code>			<span class="keyword">return</span> (<label for="r127" class="ident">x</label>.<a href="array.go.html#line-12" class="ident">len</a> &lt; <span class="lit-number">0</span> || <label for="r125" class="ident">y</label>.<a href="array.go.html#line-12" class="ident">len</a> &lt; <span class="lit-number">0</span> || <label for="r127" class="ident">x</label>.<a href="array.go.html#line-12" class="ident">len</a> == <label for="r125" class="ident">y</label>.<a href="array.go.html#line-12" class="ident">len</a>) &amp;&amp; <label for="r81" class="ident">u</label>.<label for="r82" class="ident">nify</label>(<label for="r127" class="ident">x</label>.<a href="array.go.html#line-13" class="ident">elem</a>, <label for="r125" class="ident">y</label>.<a href="array.go.html#line-13" class="ident">elem</a>, <label for="r119" class="ident">emode</label>, <label for="r86" class="ident">p</label>)</code></span>
+<span class="codeline" id="line-596"><code>		}</code></span>
+<span class="codeline" id="line-597"><code></code></span>
+<span class="codeline" id="line-598"><code>	<span class="keyword">case</span> *<a href="slice.go.html#line-11" class="ident">Slice</a>:</code></span>
+<span class="codeline" id="line-599"><code>		<span class="comment">// Two slice types unify if their element types unify.</span></code></span>
+<span class="codeline" id="line-600"><code>		<span class="keyword">if</span> <label for="r128" class="ident">y</label>, <label for="r129" class="ident">ok</label> := <label for="r84" class="ident">y</label>.(*<a href="slice.go.html#line-11" class="ident">Slice</a>); <label for="r129" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-601"><code>			<span class="keyword">return</span> <label for="r81" class="ident">u</label>.<label for="r82" class="ident">nify</label>(<label for="r130" class="ident">x</label>.<a href="slice.go.html#line-12" class="ident">elem</a>, <label for="r128" class="ident">y</label>.<a href="slice.go.html#line-12" class="ident">elem</a>, <label for="r119" class="ident">emode</label>, <label for="r86" class="ident">p</label>)</code></span>
+<span class="codeline" id="line-602"><code>		}</code></span>
+<span class="codeline" id="line-603"><code></code></span>
+<span class="codeline" id="line-604"><code>	<span class="keyword">case</span> *<a href="struct.go.html#line-18" class="ident">Struct</a>:</code></span>
+<span class="codeline" id="line-605"><code>		<span class="comment">// Two struct types unify if they have the same sequence of fields,</span></code></span>
+<span class="codeline" id="line-606"><code><span class="comment">		// and if corresponding fields have the same names, their (field) types unify,</span></code></span>
+<span class="codeline" id="line-607"><code><span class="comment">		// and they have identical tags. Two embedded fields are considered to have the same</span></code></span>
+<span class="codeline" id="line-608"><code><span class="comment">		// name. Lower-case field names from different packages are always different.</span></code></span>
+<span class="codeline" id="line-609"><code>		<span class="keyword">if</span> <label for="r131" class="ident">y</label>, <label for="r132" class="ident">ok</label> := <label for="r84" class="ident">y</label>.(*<a href="struct.go.html#line-18" class="ident">Struct</a>); <label for="r132" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-610"><code>			<span class="keyword">if</span> <label for="r133" class="ident">x</label>.<a href="struct.go.html#line-43" class="ident">NumFields</a>() == <label for="r131" class="ident">y</label>.<a href="struct.go.html#line-43" class="ident">NumFields</a>() {</code></span>
+<span class="codeline" id="line-611"><code>				<span class="keyword">for</span> <label for="r134" class="ident">i</label>, <label for="r135" class="ident">f</label> := <span class="keyword">range</span> <label for="r133" class="ident">x</label>.<a href="struct.go.html#line-19" class="ident">fields</a> {</code></span>
+<span class="codeline" id="line-612"><code>					<label for="r136" class="ident">g</label> := <label for="r131" class="ident">y</label>.<a href="struct.go.html#line-19" class="ident">fields</a>[<label for="r134" class="ident">i</label>]</code></span>
+<span class="codeline" id="line-613"><code>					<span class="keyword">if</span> <label for="r135" class="ident">f</label>.<a href="object.go.html#line-337" class="ident">embedded</a> != <label for="r136" class="ident">g</label>.<a href="object.go.html#line-337" class="ident">embedded</a> ||</code></span>
+<span class="codeline" id="line-614"><code>						<label for="r133" class="ident">x</label>.<a href="struct.go.html#line-49" class="ident">Tag</a>(<label for="r134" class="ident">i</label>) != <label for="r131" class="ident">y</label>.<a href="struct.go.html#line-49" class="ident">Tag</a>(<label for="r134" class="ident">i</label>) ||</code></span>
+<span class="codeline" id="line-615"><code>						!<label for="r135" class="ident">f</label>.<a href="object.go.html#line-179" class="ident">sameId</a>(<label for="r136" class="ident">g</label>.<a href="object.go.html#line-104" class="ident">pkg</a>, <label for="r136" class="ident">g</label>.<a href="object.go.html#line-105" class="ident">name</a>, <a href="../../../pkg/builtin.html#name-false" class="ident">false</a>) ||</code></span>
+<span class="codeline" id="line-616"><code>						!<label for="r81" class="ident">u</label>.<label for="r82" class="ident">nify</label>(<label for="r135" class="ident">f</label>.<a href="object.go.html#line-106" class="ident">typ</a>, <label for="r136" class="ident">g</label>.<a href="object.go.html#line-106" class="ident">typ</a>, <label for="r119" class="ident">emode</label>, <label for="r86" class="ident">p</label>) {</code></span>
+<span class="codeline" id="line-617"><code>						<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-618"><code>					}</code></span>
+<span class="codeline" id="line-619"><code>				}</code></span>
+<span class="codeline" id="line-620"><code>				<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-621"><code>			}</code></span>
+<span class="codeline" id="line-622"><code>		}</code></span>
+<span class="codeline" id="line-623"><code></code></span>
+<span class="codeline" id="line-624"><code>	<span class="keyword">case</span> *<a href="pointer.go.html#line-11" class="ident">Pointer</a>:</code></span>
+<span class="codeline" id="line-625"><code>		<span class="comment">// Two pointer types unify if their base types unify.</span></code></span>
+<span class="codeline" id="line-626"><code>		<span class="keyword">if</span> <label for="r137" class="ident">y</label>, <label for="r138" class="ident">ok</label> := <label for="r84" class="ident">y</label>.(*<a href="pointer.go.html#line-11" class="ident">Pointer</a>); <label for="r138" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-627"><code>			<span class="keyword">return</span> <label for="r81" class="ident">u</label>.<label for="r82" class="ident">nify</label>(<label for="r139" class="ident">x</label>.<a href="pointer.go.html#line-12" class="ident">base</a>, <label for="r137" class="ident">y</label>.<a href="pointer.go.html#line-12" class="ident">base</a>, <label for="r119" class="ident">emode</label>, <label for="r86" class="ident">p</label>)</code></span>
+<span class="codeline" id="line-628"><code>		}</code></span>
+<span class="codeline" id="line-629"><code></code></span>
+<span class="codeline" id="line-630"><code>	<span class="keyword">case</span> *<a href="tuple.go.html#line-13" class="ident">Tuple</a>:</code></span>
+<span class="codeline" id="line-631"><code>		<span class="comment">// Two tuples types unify if they have the same number of elements</span></code></span>
+<span class="codeline" id="line-632"><code><span class="comment">		// and the types of corresponding elements unify.</span></code></span>
+<span class="codeline" id="line-633"><code>		<span class="keyword">if</span> <label for="r140" class="ident">y</label>, <label for="r141" class="ident">ok</label> := <label for="r84" class="ident">y</label>.(*<a href="tuple.go.html#line-13" class="ident">Tuple</a>); <label for="r141" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-634"><code>			<span class="keyword">if</span> <label for="r142" class="ident">x</label>.<a href="tuple.go.html#line-26" class="ident">Len</a>() == <label for="r140" class="ident">y</label>.<a href="tuple.go.html#line-26" class="ident">Len</a>() {</code></span>
+<span class="codeline" id="line-635"><code>				<span class="keyword">if</span> <label for="r142" class="ident">x</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-636"><code>					<span class="keyword">for</span> <label for="r143" class="ident">i</label>, <label for="r144" class="ident">v</label> := <span class="keyword">range</span> <label for="r142" class="ident">x</label>.<a href="tuple.go.html#line-14" class="ident">vars</a> {</code></span>
+<span class="codeline" id="line-637"><code>						<label for="r145" class="ident">w</label> := <label for="r140" class="ident">y</label>.<a href="tuple.go.html#line-14" class="ident">vars</a>[<label for="r143" class="ident">i</label>]</code></span>
+<span class="codeline" id="line-638"><code>						<span class="keyword">if</span> !<label for="r81" class="ident">u</label>.<label for="r82" class="ident">nify</label>(<label for="r144" class="ident">v</label>.<a href="object.go.html#line-106" class="ident">typ</a>, <label for="r145" class="ident">w</label>.<a href="object.go.html#line-106" class="ident">typ</a>, <label for="r85" class="ident">mode</label>, <label for="r86" class="ident">p</label>) {</code></span>
+<span class="codeline" id="line-639"><code>							<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-640"><code>						}</code></span>
+<span class="codeline" id="line-641"><code>					}</code></span>
+<span class="codeline" id="line-642"><code>				}</code></span>
+<span class="codeline" id="line-643"><code>				<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-644"><code>			}</code></span>
+<span class="codeline" id="line-645"><code>		}</code></span>
+<span class="codeline" id="line-646"><code></code></span>
+<span class="codeline" id="line-647"><code>	<span class="keyword">case</span> *<a href="signature.go.html#line-21" class="ident">Signature</a>:</code></span>
+<span class="codeline" id="line-648"><code>		<span class="comment">// Two function types unify if they have the same number of parameters</span></code></span>
+<span class="codeline" id="line-649"><code><span class="comment">		// and result values, corresponding parameter and result types unify,</span></code></span>
+<span class="codeline" id="line-650"><code><span class="comment">		// and either both functions are variadic or neither is.</span></code></span>
+<span class="codeline" id="line-651"><code><span class="comment">		// Parameter and result names are not required to match.</span></code></span>
+<span class="codeline" id="line-652"><code><span class="comment">		// TODO(gri) handle type parameters or document why we can ignore them.</span></code></span>
+<span class="codeline" id="line-653"><code>		<span class="keyword">if</span> <label for="r146" class="ident">y</label>, <label for="r147" class="ident">ok</label> := <label for="r84" class="ident">y</label>.(*<a href="signature.go.html#line-21" class="ident">Signature</a>); <label for="r147" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-654"><code>			<span class="keyword">return</span> <label for="r148" class="ident">x</label>.<a href="signature.go.html#line-32" class="ident">variadic</a> == <label for="r146" class="ident">y</label>.<a href="signature.go.html#line-32" class="ident">variadic</a> &amp;&amp;</code></span>
+<span class="codeline" id="line-655"><code>				<label for="r81" class="ident">u</label>.<label for="r82" class="ident">nify</label>(<label for="r148" class="ident">x</label>.<a href="signature.go.html#line-30" class="ident">params</a>, <label for="r146" class="ident">y</label>.<a href="signature.go.html#line-30" class="ident">params</a>, <label for="r119" class="ident">emode</label>, <label for="r86" class="ident">p</label>) &amp;&amp;</code></span>
+<span class="codeline" id="line-656"><code>				<label for="r81" class="ident">u</label>.<label for="r82" class="ident">nify</label>(<label for="r148" class="ident">x</label>.<a href="signature.go.html#line-31" class="ident">results</a>, <label for="r146" class="ident">y</label>.<a href="signature.go.html#line-31" class="ident">results</a>, <label for="r119" class="ident">emode</label>, <label for="r86" class="ident">p</label>)</code></span>
+<span class="codeline" id="line-657"><code>		}</code></span>
+<span class="codeline" id="line-658"><code></code></span>
+<span class="codeline" id="line-659"><code>	<span class="keyword">case</span> *<a href="interface.go.html#line-17" class="ident">Interface</a>:</code></span>
+<span class="codeline" id="line-660"><code>		<a href="errors.go.html#line-18" class="ident">assert</a>(!<label for="r81" class="ident">u</label>.<a href="#line-84" class="ident">enableInterfaceInference</a> || <label for="r85" class="ident">mode</label>&amp;<a href="#line-123" class="ident">exact</a> != <span class="lit-number">0</span>) <span class="comment">// handled before this switch</span></code></span>
+<span class="codeline" id="line-661"><code></code></span>
+<span class="codeline" id="line-662"><code>		<span class="comment">// Two interface types unify if they have the same set of methods with</span></code></span>
+<span class="codeline" id="line-663"><code><span class="comment">		// the same names, and corresponding function types unify.</span></code></span>
+<span class="codeline" id="line-664"><code><span class="comment">		// Lower-case method names from different packages are always different.</span></code></span>
+<span class="codeline" id="line-665"><code><span class="comment">		// The order of the methods is irrelevant.</span></code></span>
+<span class="codeline" id="line-666"><code>		<span class="keyword">if</span> <label for="r149" class="ident">y</label>, <label for="r150" class="ident">ok</label> := <label for="r84" class="ident">y</label>.(*<a href="interface.go.html#line-17" class="ident">Interface</a>); <label for="r150" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-667"><code>			<label for="r151" class="ident">xset</label> := <label for="r152" class="ident">x</label>.<a href="interface.go.html#line-29" class="ident">typeSet</a>()</code></span>
+<span class="codeline" id="line-668"><code>			<label for="r153" class="ident">yset</label> := <label for="r149" class="ident">y</label>.<a href="interface.go.html#line-29" class="ident">typeSet</a>()</code></span>
+<span class="codeline" id="line-669"><code>			<span class="keyword">if</span> <label for="r151" class="ident">xset</label>.<a href="typeset.go.html#line-32" class="ident">comparable</a> != <label for="r153" class="ident">yset</label>.<a href="typeset.go.html#line-32" class="ident">comparable</a> {</code></span>
+<span class="codeline" id="line-670"><code>				<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-671"><code>			}</code></span>
+<span class="codeline" id="line-672"><code>			<span class="keyword">if</span> !<label for="r151" class="ident">xset</label>.<a href="typeset.go.html#line-31" class="ident">terms</a>.<a href="termlist.go.html#line-126" class="ident">equal</a>(<label for="r153" class="ident">yset</label>.<a href="typeset.go.html#line-31" class="ident">terms</a>) {</code></span>
+<span class="codeline" id="line-673"><code>				<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-674"><code>			}</code></span>
+<span class="codeline" id="line-675"><code>			<label for="r154" class="ident">a</label> := <label for="r151" class="ident">xset</label>.<a href="typeset.go.html#line-30" class="ident">methods</a></code></span>
+<span class="codeline" id="line-676"><code>			<label for="r155" class="ident">b</label> := <label for="r153" class="ident">yset</label>.<a href="typeset.go.html#line-30" class="ident">methods</a></code></span>
+<span class="codeline" id="line-677"><code>			<span class="keyword">if</span> <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r154" class="ident">a</label>) == <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r155" class="ident">b</label>) {</code></span>
+<span class="codeline" id="line-678"><code>				<span class="comment">// Interface types are the only types where cycles can occur</span></code></span>
+<span class="codeline" id="line-679"><code><span class="comment">				// that are not "terminated" via named types; and such cycles</span></code></span>
+<span class="codeline" id="line-680"><code><span class="comment">				// can only be created via method parameter types that are</span></code></span>
+<span class="codeline" id="line-681"><code><span class="comment">				// anonymous interfaces (directly or indirectly) embedding</span></code></span>
+<span class="codeline" id="line-682"><code><span class="comment">				// the current interface. Example:</span></code></span>
+<span class="codeline" id="line-683"><code><span class="comment">				//</span></code></span>
+<span class="codeline" id="line-684"><code><span class="comment">				//    type T interface {</span></code></span>
+<span class="codeline" id="line-685"><code><span class="comment">				//        m() interface{T}</span></code></span>
+<span class="codeline" id="line-686"><code><span class="comment">				//    }</span></code></span>
+<span class="codeline" id="line-687"><code><span class="comment">				//</span></code></span>
+<span class="codeline" id="line-688"><code><span class="comment">				// If two such (differently named) interfaces are compared,</span></code></span>
+<span class="codeline" id="line-689"><code><span class="comment">				// endless recursion occurs if the cycle is not detected.</span></code></span>
+<span class="codeline" id="line-690"><code><span class="comment">				//</span></code></span>
+<span class="codeline" id="line-691"><code><span class="comment">				// If x and y were compared before, they must be equal</span></code></span>
+<span class="codeline" id="line-692"><code><span class="comment">				// (if they were not, the recursion would have stopped);</span></code></span>
+<span class="codeline" id="line-693"><code><span class="comment">				// search the ifacePair stack for the same pair.</span></code></span>
+<span class="codeline" id="line-694"><code><span class="comment">				//</span></code></span>
+<span class="codeline" id="line-695"><code><span class="comment">				// This is a quadratic algorithm, but in practice these stacks</span></code></span>
+<span class="codeline" id="line-696"><code><span class="comment">				// are extremely short (bounded by the nesting depth of interface</span></code></span>
+<span class="codeline" id="line-697"><code><span class="comment">				// type declarations that recur via parameter types, an extremely</span></code></span>
+<span class="codeline" id="line-698"><code><span class="comment">				// rare occurrence). An alternative implementation might use a</span></code></span>
+<span class="codeline" id="line-699"><code><span class="comment">				// "visited" map, but that is probably less efficient overall.</span></code></span>
+<span class="codeline" id="line-700"><code>				<label for="r156" class="ident">q</label> := &amp;<a href="predicates.go.html#line-238" class="ident">ifacePair</a>{<label for="r152" class="ident">x</label>, <label for="r149" class="ident">y</label>, <label for="r86" class="ident">p</label>}</code></span>
+<span class="codeline" id="line-701"><code>				<span class="keyword">for</span> <label for="r86" class="ident">p</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-702"><code>					<span class="keyword">if</span> <label for="r86" class="ident">p</label>.<a href="predicates.go.html#line-243" class="ident">identical</a>(<label for="r156" class="ident">q</label>) {</code></span>
+<span class="codeline" id="line-703"><code>						<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-true" class="ident">true</a> <span class="comment">// same pair was compared before</span></code></span>
+<span class="codeline" id="line-704"><code>					}</code></span>
+<span class="codeline" id="line-705"><code>					<label for="r86" class="ident">p</label> = <label for="r86" class="ident">p</label>.<a href="predicates.go.html#line-240" class="ident">prev</a></code></span>
+<span class="codeline" id="line-706"><code>				}</code></span>
+<span class="codeline" id="line-707"><code>				<span class="keyword">if</span> <a href="check.go.html#line-24" class="ident">debug</a> {</code></span>
+<span class="codeline" id="line-708"><code>					<a href="typeset.go.html#line-359" class="ident">assertSortedMethods</a>(<label for="r154" class="ident">a</label>)</code></span>
+<span class="codeline" id="line-709"><code>					<a href="typeset.go.html#line-359" class="ident">assertSortedMethods</a>(<label for="r155" class="ident">b</label>)</code></span>
+<span class="codeline" id="line-710"><code>				}</code></span>
+<span class="codeline" id="line-711"><code>				<span class="keyword">for</span> <label for="r157" class="ident">i</label>, <label for="r158" class="ident">f</label> := <span class="keyword">range</span> <label for="r154" class="ident">a</label> {</code></span>
+<span class="codeline" id="line-712"><code>					<label for="r159" class="ident">g</label> := <label for="r155" class="ident">b</label>[<label for="r157" class="ident">i</label>]</code></span>
+<span class="codeline" id="line-713"><code>					<span class="keyword">if</span> <label for="r158" class="ident">f</label>.<a href="object.go.html#line-166" class="ident">Id</a>() != <label for="r159" class="ident">g</label>.<a href="object.go.html#line-166" class="ident">Id</a>() || !<label for="r81" class="ident">u</label>.<label for="r82" class="ident">nify</label>(<label for="r158" class="ident">f</label>.<a href="object.go.html#line-106" class="ident">typ</a>, <label for="r159" class="ident">g</label>.<a href="object.go.html#line-106" class="ident">typ</a>, <a href="#line-123" class="ident">exact</a>, <label for="r156" class="ident">q</label>) {</code></span>
+<span class="codeline" id="line-714"><code>						<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-715"><code>					}</code></span>
+<span class="codeline" id="line-716"><code>				}</code></span>
+<span class="codeline" id="line-717"><code>				<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-718"><code>			}</code></span>
+<span class="codeline" id="line-719"><code>		}</code></span>
+<span class="codeline" id="line-720"><code></code></span>
+<span class="codeline" id="line-721"><code>	<span class="keyword">case</span> *<a href="map.go.html#line-11" class="ident">Map</a>:</code></span>
+<span class="codeline" id="line-722"><code>		<span class="comment">// Two map types unify if their key and value types unify.</span></code></span>
+<span class="codeline" id="line-723"><code>		<span class="keyword">if</span> <label for="r160" class="ident">y</label>, <label for="r161" class="ident">ok</label> := <label for="r84" class="ident">y</label>.(*<a href="map.go.html#line-11" class="ident">Map</a>); <label for="r161" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-724"><code>			<span class="keyword">return</span> <label for="r81" class="ident">u</label>.<label for="r82" class="ident">nify</label>(<label for="r162" class="ident">x</label>.<a href="map.go.html#line-12" class="ident">key</a>, <label for="r160" class="ident">y</label>.<a href="map.go.html#line-12" class="ident">key</a>, <label for="r119" class="ident">emode</label>, <label for="r86" class="ident">p</label>) &amp;&amp; <label for="r81" class="ident">u</label>.<label for="r82" class="ident">nify</label>(<label for="r162" class="ident">x</label>.<a href="map.go.html#line-12" class="ident">elem</a>, <label for="r160" class="ident">y</label>.<a href="map.go.html#line-12" class="ident">elem</a>, <label for="r119" class="ident">emode</label>, <label for="r86" class="ident">p</label>)</code></span>
+<span class="codeline" id="line-725"><code>		}</code></span>
+<span class="codeline" id="line-726"><code></code></span>
+<span class="codeline" id="line-727"><code>	<span class="keyword">case</span> *<a href="chan.go.html#line-11" class="ident">Chan</a>:</code></span>
+<span class="codeline" id="line-728"><code>		<span class="comment">// Two channel types unify if their value types unify</span></code></span>
+<span class="codeline" id="line-729"><code><span class="comment">		// and if they have the same direction.</span></code></span>
+<span class="codeline" id="line-730"><code><span class="comment">		// The channel direction is ignored for inexact unification.</span></code></span>
+<span class="codeline" id="line-731"><code>		<span class="keyword">if</span> <label for="r163" class="ident">y</label>, <label for="r164" class="ident">ok</label> := <label for="r84" class="ident">y</label>.(*<a href="chan.go.html#line-11" class="ident">Chan</a>); <label for="r164" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-732"><code>			<span class="keyword">return</span> (<label for="r85" class="ident">mode</label>&amp;<a href="#line-123" class="ident">exact</a> == <span class="lit-number">0</span> || <label for="r165" class="ident">x</label>.<a href="chan.go.html#line-12" class="ident">dir</a> == <label for="r163" class="ident">y</label>.<a href="chan.go.html#line-12" class="ident">dir</a>) &amp;&amp; <label for="r81" class="ident">u</label>.<label for="r82" class="ident">nify</label>(<label for="r165" class="ident">x</label>.<a href="chan.go.html#line-13" class="ident">elem</a>, <label for="r163" class="ident">y</label>.<a href="chan.go.html#line-13" class="ident">elem</a>, <label for="r119" class="ident">emode</label>, <label for="r86" class="ident">p</label>)</code></span>
+<span class="codeline" id="line-733"><code>		}</code></span>
+<span class="codeline" id="line-734"><code></code></span>
+<span class="codeline" id="line-735"><code>	<span class="keyword">case</span> *<a href="named.go.html#line-109" class="ident">Named</a>:</code></span>
+<span class="codeline" id="line-736"><code>		<span class="comment">// Two named types unify if their type names originate in the same type declaration.</span></code></span>
+<span class="codeline" id="line-737"><code><span class="comment">		// If they are instantiated, their type argument lists must unify.</span></code></span>
+<span class="codeline" id="line-738"><code>		<span class="keyword">if</span> <label for="r166" class="ident">y</label> := <a href="alias.go.html#line-137" class="ident">asNamed</a>(<label for="r84" class="ident">y</label>); <label for="r166" class="ident">y</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-739"><code>			<span class="comment">// Check type arguments before origins so they unify</span></code></span>
+<span class="codeline" id="line-740"><code><span class="comment">			// even if the origins don't match; for better error</span></code></span>
+<span class="codeline" id="line-741"><code><span class="comment">			// messages (see go.dev/issue/53692).</span></code></span>
+<span class="codeline" id="line-742"><code>			<label for="r167" class="ident">xargs</label> := <label for="r168" class="ident">x</label>.<a href="named.go.html#line-335" class="ident">TypeArgs</a>().<a href="typelists.go.html#line-51" class="ident">list</a>()</code></span>
+<span class="codeline" id="line-743"><code>			<label for="r169" class="ident">yargs</label> := <label for="r166" class="ident">y</label>.<a href="named.go.html#line-335" class="ident">TypeArgs</a>().<a href="typelists.go.html#line-51" class="ident">list</a>()</code></span>
+<span class="codeline" id="line-744"><code>			<span class="keyword">if</span> <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r167" class="ident">xargs</label>) != <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r169" class="ident">yargs</label>) {</code></span>
+<span class="codeline" id="line-745"><code>				<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-746"><code>			}</code></span>
+<span class="codeline" id="line-747"><code>			<span class="keyword">for</span> <label for="r170" class="ident">i</label>, <label for="r171" class="ident">xarg</label> := <span class="keyword">range</span> <label for="r167" class="ident">xargs</label> {</code></span>
+<span class="codeline" id="line-748"><code>				<span class="keyword">if</span> !<label for="r81" class="ident">u</label>.<label for="r82" class="ident">nify</label>(<label for="r171" class="ident">xarg</label>, <label for="r169" class="ident">yargs</label>[<label for="r170" class="ident">i</label>], <label for="r85" class="ident">mode</label>, <label for="r86" class="ident">p</label>) {</code></span>
+<span class="codeline" id="line-749"><code>					<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-750"><code>				}</code></span>
+<span class="codeline" id="line-751"><code>			}</code></span>
+<span class="codeline" id="line-752"><code>			<span class="keyword">return</span> <a href="predicates.go.html#line-506" class="ident">identicalOrigin</a>(<label for="r168" class="ident">x</label>, <label for="r166" class="ident">y</label>)</code></span>
+<span class="codeline" id="line-753"><code>		}</code></span>
+<span class="codeline" id="line-754"><code></code></span>
+<span class="codeline" id="line-755"><code>	<span class="keyword">case</span> *<a href="typeparam.go.html#line-25" class="ident">TypeParam</a>:</code></span>
+<span class="codeline" id="line-756"><code>		<span class="comment">// x must be an unbound type parameter (see comment above).</span></code></span>
+<span class="codeline" id="line-757"><code>		<span class="keyword">if</span> <a href="check.go.html#line-24" class="ident">debug</a> {</code></span>
+<span class="codeline" id="line-758"><code>			<a href="errors.go.html#line-18" class="ident">assert</a>(<label for="r81" class="ident">u</label>.<a href="#line-213" class="ident">asBoundTypeParam</a>(<label for="r172" class="ident">x</label>) == <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>)</code></span>
+<span class="codeline" id="line-759"><code>		}</code></span>
+<span class="codeline" id="line-760"><code>		<span class="comment">// By definition, a valid type argument must be in the type set of</span></code></span>
+<span class="codeline" id="line-761"><code><span class="comment">		// the respective type constraint. Therefore, the type argument's</span></code></span>
+<span class="codeline" id="line-762"><code><span class="comment">		// underlying type must be in the set of underlying types of that</span></code></span>
+<span class="codeline" id="line-763"><code><span class="comment">		// constraint. If there is a single such underlying type, it's the</span></code></span>
+<span class="codeline" id="line-764"><code><span class="comment">		// constraint's core type. It must match the type argument's under-</span></code></span>
+<span class="codeline" id="line-765"><code><span class="comment">		// lying type, irrespective of whether the actual type argument,</span></code></span>
+<span class="codeline" id="line-766"><code><span class="comment">		// which may be a defined type, is actually in the type set (that</span></code></span>
+<span class="codeline" id="line-767"><code><span class="comment">		// will be determined at instantiation time).</span></code></span>
+<span class="codeline" id="line-768"><code><span class="comment">		// Thus, if we have the core type of an unbound type parameter,</span></code></span>
+<span class="codeline" id="line-769"><code><span class="comment">		// we know the structure of the possible types satisfying such</span></code></span>
+<span class="codeline" id="line-770"><code><span class="comment">		// parameters. Use that core type for further unification</span></code></span>
+<span class="codeline" id="line-771"><code><span class="comment">		// (see go.dev/issue/50755 for a test case).</span></code></span>
+<span class="codeline" id="line-772"><code>		<span class="keyword">if</span> <a href="#line-57" class="ident">enableCoreTypeUnification</a> {</code></span>
+<span class="codeline" id="line-773"><code>			<span class="comment">// Because the core type is always an underlying type,</span></code></span>
+<span class="codeline" id="line-774"><code><span class="comment">			// unification will take care of matching against a</span></code></span>
+<span class="codeline" id="line-775"><code><span class="comment">			// defined or literal type automatically.</span></code></span>
+<span class="codeline" id="line-776"><code><span class="comment">			// If y is also an unbound type parameter, we will end</span></code></span>
+<span class="codeline" id="line-777"><code><span class="comment">			// up here again with x and y swapped, so we don't</span></code></span>
+<span class="codeline" id="line-778"><code><span class="comment">			// need to take care of that case separately.</span></code></span>
+<span class="codeline" id="line-779"><code>			<span class="keyword">if</span> <label for="r173" class="ident">cx</label> := <a href="under.go.html#line-52" class="ident">coreType</a>(<label for="r172" class="ident">x</label>); <label for="r173" class="ident">cx</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-780"><code>				<span class="keyword">if</span> <a href="#line-66" class="ident">traceInference</a> {</code></span>
+<span class="codeline" id="line-781"><code>					<label for="r81" class="ident">u</label>.<a href="#line-147" class="ident">tracef</a>(<span class="lit-string">"core %s ≡ %s"</span>, <label for="r120" class="ident">xorig</label>, <label for="r121" class="ident">yorig</label>)</code></span>
+<span class="codeline" id="line-782"><code>				}</code></span>
+<span class="codeline" id="line-783"><code>				<span class="comment">// If y is a defined type, it may not match against cx which</span></code></span>
+<span class="codeline" id="line-784"><code><span class="comment">				// is an underlying type (incl. int, string, etc.). Use assign</span></code></span>
+<span class="codeline" id="line-785"><code><span class="comment">				// mode here so that the unifier automatically takes under(y)</span></code></span>
+<span class="codeline" id="line-786"><code><span class="comment">				// if necessary.</span></code></span>
+<span class="codeline" id="line-787"><code>				<span class="keyword">return</span> <label for="r81" class="ident">u</label>.<label for="r82" class="ident">nify</label>(<label for="r173" class="ident">cx</label>, <label for="r121" class="ident">yorig</label>, <a href="#line-115" class="ident">assign</a>, <label for="r86" class="ident">p</label>)</code></span>
+<span class="codeline" id="line-788"><code>			}</code></span>
+<span class="codeline" id="line-789"><code>		}</code></span>
+<span class="codeline" id="line-790"><code>		<span class="comment">// x != y and there's nothing to do</span></code></span>
+<span class="codeline" id="line-791"><code></code></span>
+<span class="codeline" id="line-792"><code>	<span class="keyword">case</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>:</code></span>
+<span class="codeline" id="line-793"><code>		<span class="comment">// avoid a crash in case of nil type</span></code></span>
+<span class="codeline" id="line-794"><code></code></span>
+<span class="codeline" id="line-795"><code>	<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-796"><code>		<a href="../../../pkg/builtin.html#name-panic" class="ident">panic</a>(<a href="format.go.html#line-18" class="ident">sprintf</a>(<a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../pkg/builtin.html#name-true" class="ident">true</a>, <span class="lit-string">"u.nify(%s, %s, %d)"</span>, <label for="r120" class="ident">xorig</label>, <label for="r121" class="ident">yorig</label>, <label for="r85" class="ident">mode</label>))</code></span>
+<span class="codeline" id="line-797"><code>	}</code></span>
+<span class="codeline" id="line-798"><code></code></span>
+<span class="codeline" id="line-799"><code>	<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-800"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

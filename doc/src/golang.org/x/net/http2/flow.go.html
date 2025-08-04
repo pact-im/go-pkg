@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: flow.go in package golang.org/x/net/http2</title>
+<link href="../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	flow.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../pkg/golang.org/x/net/http2.html">golang.org/x/net/http2</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28]
+{background: #226; color: #ff8;}
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2014 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="comment">// Flow control</span></code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">package</span> http2</code></span>
+<span class="codeline" id="line-8"><code></code></span>
+<span class="codeline" id="line-9"><code><span class="comment">// inflowMinRefresh is the minimum number of bytes we'll send for a</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment">// flow control window update.</span></code></span>
+<span class="codeline" id="line-11"><code><span class="keyword">const</span> <a href="../../../../../pkg/golang.org/x/net/http2.html#name-inflowMinRefresh" class="ident">inflowMinRefresh</a> = <span class="lit-number">4</span> &lt;&lt; <span class="lit-number">10</span></code></span>
+<span class="codeline" id="line-12"><code></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">// inflow accounts for an inbound flow control window.</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">// It tracks both the latest window sent to the peer (used for enforcement)</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">// and the accumulated unsent window.</span></code></span>
+<span class="codeline" id="line-16"><code><span class="keyword">type</span> <a href="../../../../../pkg/golang.org/x/net/http2.html#name-inflow" class="ident">inflow</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-17"><code>	<a href="../../../../../use/golang.org/x/net/http2..inflow^8fbc7.avail^a8509.html" class="ident">avail</a>  <a href="../../../../../pkg/builtin.html#name-int32" class="ident">int32</a></code></span>
+<span class="codeline" id="line-18"><code>	<a href="../../../../../use/golang.org/x/net/http2..inflow^8fbc7.unsent^4a801.html" class="ident">unsent</a> <a href="../../../../../pkg/builtin.html#name-int32" class="ident">int32</a></code></span>
+<span class="codeline" id="line-19"><code>}</code></span>
+<span class="codeline" id="line-20"><code></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">// init sets the initial window.</span></code></span>
+<span class="codeline" id="line-22"><code><span class="keyword">func</span> (<label for="r0" class="ident">f</label> *<a href="#line-16" class="ident">inflow</a>) <label for="r1" class="ident"><a href="../../../../../use/golang.org/x/net/http2..inflow^8fbc7.init^bb540.html" class="ident">init</a></label>(<label for="r2" class="ident">n</label> <a href="../../../../../pkg/builtin.html#name-int32" class="ident">int32</a>) {</code></span>
+<span class="codeline" id="line-23"><code>	<label for="r0" class="ident">f</label>.<a href="#line-17" class="ident">avail</a> = <label for="r2" class="ident">n</label></code></span>
+<span class="codeline" id="line-24"><code>}</code></span>
+<span class="codeline" id="line-25"><code></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">// add adds n bytes to the window, with a maximum window size of max,</span></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">// indicating that the peer can now send us more data.</span></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">// For example, the user read from a {Request,Response} body and consumed</span></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">// some of the buffered data, so the peer can now send more.</span></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">// It returns the number of bytes to send in a WINDOW_UPDATE frame to the peer.</span></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">// Window updates are accumulated and sent when the unsent capacity</span></code></span>
+<span class="codeline" id="line-32"><code><span class="comment">// is at least inflowMinRefresh or will at least double the peer's available window.</span></code></span>
+<span class="codeline" id="line-33"><code><span class="keyword">func</span> (<label for="r3" class="ident">f</label> *<a href="#line-16" class="ident">inflow</a>) <label for="r4" class="ident"><a href="../../../../../use/golang.org/x/net/http2..inflow^8fbc7.add^7e9e5.html" class="ident">add</a></label>(<label for="r5" class="ident">n</label> <a href="../../../../../pkg/builtin.html#name-int" class="ident">int</a>) (<label for="r6" class="ident">connAdd</label> <a href="../../../../../pkg/builtin.html#name-int32" class="ident">int32</a>) {</code></span>
+<span class="codeline" id="line-34"><code>	<span class="keyword">if</span> <label for="r5" class="ident">n</label> &lt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-35"><code>		<a href="../../../../../pkg/builtin.html#name-panic" class="ident">panic</a>(<span class="lit-string">"negative update"</span>)</code></span>
+<span class="codeline" id="line-36"><code>	}</code></span>
+<span class="codeline" id="line-37"><code>	<label for="r7" class="ident">unsent</label> := <a href="../../../../../pkg/builtin.html#name-int64" class="ident">int64</a>(<label for="r3" class="ident">f</label>.<a href="#line-18" class="ident">unsent</a>) + <a href="../../../../../pkg/builtin.html#name-int64" class="ident">int64</a>(<label for="r5" class="ident">n</label>)</code></span>
+<span class="codeline" id="line-38"><code>	<span class="comment">// "A sender MUST NOT allow a flow-control window to exceed 2^31-1 octets."</span></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">	// RFC 7540 Section 6.9.1.</span></code></span>
+<span class="codeline" id="line-40"><code>	<span class="keyword">const</span> <label for="r8" class="ident">maxWindow</label> = <span class="lit-number">1</span>&lt;&lt;<span class="lit-number">31</span> - <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-41"><code>	<span class="keyword">if</span> <label for="r7" class="ident">unsent</label>+<a href="../../../../../pkg/builtin.html#name-int64" class="ident">int64</a>(<label for="r3" class="ident">f</label>.<a href="#line-17" class="ident">avail</a>) &gt; <label for="r8" class="ident">maxWindow</label> {</code></span>
+<span class="codeline" id="line-42"><code>		<a href="../../../../../pkg/builtin.html#name-panic" class="ident">panic</a>(<span class="lit-string">"flow control update exceeds maximum window size"</span>)</code></span>
+<span class="codeline" id="line-43"><code>	}</code></span>
+<span class="codeline" id="line-44"><code>	<label for="r3" class="ident">f</label>.<a href="#line-18" class="ident">unsent</a> = <a href="../../../../../pkg/builtin.html#name-int32" class="ident">int32</a>(<label for="r7" class="ident">unsent</label>)</code></span>
+<span class="codeline" id="line-45"><code>	<span class="keyword">if</span> <label for="r3" class="ident">f</label>.<a href="#line-18" class="ident">unsent</a> &lt; <a href="#line-11" class="ident">inflowMinRefresh</a> &amp;&amp; <label for="r3" class="ident">f</label>.<a href="#line-18" class="ident">unsent</a> &lt; <label for="r3" class="ident">f</label>.<a href="#line-17" class="ident">avail</a> {</code></span>
+<span class="codeline" id="line-46"><code>		<span class="comment">// If there aren't at least inflowMinRefresh bytes of window to send,</span></code></span>
+<span class="codeline" id="line-47"><code><span class="comment">		// and this update won't at least double the window, buffer the update for later.</span></code></span>
+<span class="codeline" id="line-48"><code>		<span class="keyword">return</span> <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-49"><code>	}</code></span>
+<span class="codeline" id="line-50"><code>	<label for="r3" class="ident">f</label>.<a href="#line-17" class="ident">avail</a> += <label for="r3" class="ident">f</label>.<a href="#line-18" class="ident">unsent</a></code></span>
+<span class="codeline" id="line-51"><code>	<label for="r3" class="ident">f</label>.<a href="#line-18" class="ident">unsent</a> = <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-52"><code>	<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-int32" class="ident">int32</a>(<label for="r7" class="ident">unsent</label>)</code></span>
+<span class="codeline" id="line-53"><code>}</code></span>
+<span class="codeline" id="line-54"><code></code></span>
+<span class="codeline" id="line-55"><code><span class="comment">// take attempts to take n bytes from the peer's flow control window.</span></code></span>
+<span class="codeline" id="line-56"><code><span class="comment">// It reports whether the window has available capacity.</span></code></span>
+<span class="codeline" id="line-57"><code><span class="keyword">func</span> (<label for="r9" class="ident">f</label> *<a href="#line-16" class="ident">inflow</a>) <label for="r10" class="ident"><a href="../../../../../use/golang.org/x/net/http2..inflow^8fbc7.take^d1905.html" class="ident">take</a></label>(<label for="r11" class="ident">n</label> <a href="../../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-58"><code>	<span class="keyword">if</span> <label for="r11" class="ident">n</label> &gt; <a href="../../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a>(<label for="r9" class="ident">f</label>.<a href="#line-17" class="ident">avail</a>) {</code></span>
+<span class="codeline" id="line-59"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-60"><code>	}</code></span>
+<span class="codeline" id="line-61"><code>	<label for="r9" class="ident">f</label>.<a href="#line-17" class="ident">avail</a> -= <a href="../../../../../pkg/builtin.html#name-int32" class="ident">int32</a>(<label for="r11" class="ident">n</label>)</code></span>
+<span class="codeline" id="line-62"><code>	<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-63"><code>}</code></span>
+<span class="codeline" id="line-64"><code></code></span>
+<span class="codeline" id="line-65"><code><span class="comment">// takeInflows attempts to take n bytes from two inflows,</span></code></span>
+<span class="codeline" id="line-66"><code><span class="comment">// typically connection-level and stream-level flows.</span></code></span>
+<span class="codeline" id="line-67"><code><span class="comment">// It reports whether both windows have available capacity.</span></code></span>
+<span class="codeline" id="line-68"><code><span class="keyword">func</span> <label for="r12" class="ident"><a href="../../../../../pkg/golang.org/x/net/http2.html#name-takeInflows" class="ident">takeInflows</a></label>(<label for="r13" class="ident">f1</label>, <label for="r14" class="ident">f2</label> *<a href="#line-16" class="ident">inflow</a>, <label for="r15" class="ident">n</label> <a href="../../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-69"><code>	<span class="keyword">if</span> <label for="r15" class="ident">n</label> &gt; <a href="../../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a>(<label for="r13" class="ident">f1</label>.<a href="#line-17" class="ident">avail</a>) || <label for="r15" class="ident">n</label> &gt; <a href="../../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a>(<label for="r14" class="ident">f2</label>.<a href="#line-17" class="ident">avail</a>) {</code></span>
+<span class="codeline" id="line-70"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-71"><code>	}</code></span>
+<span class="codeline" id="line-72"><code>	<label for="r13" class="ident">f1</label>.<a href="#line-17" class="ident">avail</a> -= <a href="../../../../../pkg/builtin.html#name-int32" class="ident">int32</a>(<label for="r15" class="ident">n</label>)</code></span>
+<span class="codeline" id="line-73"><code>	<label for="r14" class="ident">f2</label>.<a href="#line-17" class="ident">avail</a> -= <a href="../../../../../pkg/builtin.html#name-int32" class="ident">int32</a>(<label for="r15" class="ident">n</label>)</code></span>
+<span class="codeline" id="line-74"><code>	<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-75"><code>}</code></span>
+<span class="codeline" id="line-76"><code></code></span>
+<span class="codeline" id="line-77"><code><span class="comment">// outflow is the outbound flow control window's size.</span></code></span>
+<span class="codeline" id="line-78"><code><span class="keyword">type</span> <a href="../../../../../pkg/golang.org/x/net/http2.html#name-outflow" class="ident">outflow</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-79"><code>	_ <a href="http2.go.html#line-381" class="ident">incomparable</a></code></span>
+<span class="codeline" id="line-80"><code></code></span>
+<span class="codeline" id="line-81"><code>	<span class="comment">// n is the number of DATA bytes we're allowed to send.</span></code></span>
+<span class="codeline" id="line-82"><code><span class="comment">	// An outflow is kept both on a conn and a per-stream.</span></code></span>
+<span class="codeline" id="line-83"><code>	<a href="../../../../../use/golang.org/x/net/http2..outflow^26223.n^1b16b.html" class="ident">n</a> <a href="../../../../../pkg/builtin.html#name-int32" class="ident">int32</a></code></span>
+<span class="codeline" id="line-84"><code></code></span>
+<span class="codeline" id="line-85"><code>	<span class="comment">// conn points to the shared connection-level outflow that is</span></code></span>
+<span class="codeline" id="line-86"><code><span class="comment">	// shared by all streams on that conn. It is nil for the outflow</span></code></span>
+<span class="codeline" id="line-87"><code><span class="comment">	// that's on the conn directly.</span></code></span>
+<span class="codeline" id="line-88"><code>	<a href="../../../../../use/golang.org/x/net/http2..outflow^26223.conn^08041.html" class="ident">conn</a> *<a href="#line-78" class="ident">outflow</a></code></span>
+<span class="codeline" id="line-89"><code>}</code></span>
+<span class="codeline" id="line-90"><code></code></span>
+<span class="codeline" id="line-91"><code><span class="keyword">func</span> (<label for="r16" class="ident">f</label> *<a href="#line-78" class="ident">outflow</a>) <label for="r17" class="ident"><a href="../../../../../use/golang.org/x/net/http2..outflow^26223.setConnFlow^87ca8.html" class="ident">setConnFlow</a></label>(<label for="r18" class="ident">cf</label> *<a href="#line-78" class="ident">outflow</a>) { <label for="r16" class="ident">f</label>.<a href="#line-88" class="ident">conn</a> = <label for="r18" class="ident">cf</label> }</code></span>
+<span class="codeline" id="line-92"><code></code></span>
+<span class="codeline" id="line-93"><code><span class="keyword">func</span> (<label for="r19" class="ident">f</label> *<a href="#line-78" class="ident">outflow</a>) <label for="r20" class="ident"><a href="../../../../../use/golang.org/x/net/http2..outflow^26223.available^ddd98.html" class="ident">available</a></label>() <a href="../../../../../pkg/builtin.html#name-int32" class="ident">int32</a> {</code></span>
+<span class="codeline" id="line-94"><code>	<label for="r21" class="ident">n</label> := <label for="r19" class="ident">f</label>.<a href="#line-83" class="ident">n</a></code></span>
+<span class="codeline" id="line-95"><code>	<span class="keyword">if</span> <label for="r19" class="ident">f</label>.<a href="#line-88" class="ident">conn</a> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> &amp;&amp; <label for="r19" class="ident">f</label>.<a href="#line-88" class="ident">conn</a>.<a href="#line-83" class="ident">n</a> &lt; <label for="r21" class="ident">n</label> {</code></span>
+<span class="codeline" id="line-96"><code>		<label for="r21" class="ident">n</label> = <label for="r19" class="ident">f</label>.<a href="#line-88" class="ident">conn</a>.<a href="#line-83" class="ident">n</a></code></span>
+<span class="codeline" id="line-97"><code>	}</code></span>
+<span class="codeline" id="line-98"><code>	<span class="keyword">return</span> <label for="r21" class="ident">n</label></code></span>
+<span class="codeline" id="line-99"><code>}</code></span>
+<span class="codeline" id="line-100"><code></code></span>
+<span class="codeline" id="line-101"><code><span class="keyword">func</span> (<label for="r22" class="ident">f</label> *<a href="#line-78" class="ident">outflow</a>) <label for="r23" class="ident"><a href="../../../../../use/golang.org/x/net/http2..outflow^26223.take^d1905.html" class="ident">take</a></label>(<label for="r24" class="ident">n</label> <a href="../../../../../pkg/builtin.html#name-int32" class="ident">int32</a>) {</code></span>
+<span class="codeline" id="line-102"><code>	<span class="keyword">if</span> <label for="r24" class="ident">n</label> &gt; <label for="r22" class="ident">f</label>.<a href="#line-93" class="ident">available</a>() {</code></span>
+<span class="codeline" id="line-103"><code>		<a href="../../../../../pkg/builtin.html#name-panic" class="ident">panic</a>(<span class="lit-string">"internal error: took too much"</span>)</code></span>
+<span class="codeline" id="line-104"><code>	}</code></span>
+<span class="codeline" id="line-105"><code>	<label for="r22" class="ident">f</label>.<a href="#line-83" class="ident">n</a> -= <label for="r24" class="ident">n</label></code></span>
+<span class="codeline" id="line-106"><code>	<span class="keyword">if</span> <label for="r22" class="ident">f</label>.<a href="#line-88" class="ident">conn</a> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-107"><code>		<label for="r22" class="ident">f</label>.<a href="#line-88" class="ident">conn</a>.<a href="#line-83" class="ident">n</a> -= <label for="r24" class="ident">n</label></code></span>
+<span class="codeline" id="line-108"><code>	}</code></span>
+<span class="codeline" id="line-109"><code>}</code></span>
+<span class="codeline" id="line-110"><code></code></span>
+<span class="codeline" id="line-111"><code><span class="comment">// add adds n bytes (positive or negative) to the flow control window.</span></code></span>
+<span class="codeline" id="line-112"><code><span class="comment">// It returns false if the sum would exceed 2^31-1.</span></code></span>
+<span class="codeline" id="line-113"><code><span class="keyword">func</span> (<label for="r25" class="ident">f</label> *<a href="#line-78" class="ident">outflow</a>) <label for="r26" class="ident"><a href="../../../../../use/golang.org/x/net/http2..outflow^26223.add^7e9e5.html" class="ident">add</a></label>(<label for="r27" class="ident">n</label> <a href="../../../../../pkg/builtin.html#name-int32" class="ident">int32</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-114"><code>	<label for="r28" class="ident">sum</label> := <label for="r25" class="ident">f</label>.<a href="#line-83" class="ident">n</a> + <label for="r27" class="ident">n</label></code></span>
+<span class="codeline" id="line-115"><code>	<span class="keyword">if</span> (<label for="r28" class="ident">sum</label> &gt; <label for="r27" class="ident">n</label>) == (<label for="r25" class="ident">f</label>.<a href="#line-83" class="ident">n</a> &gt; <span class="lit-number">0</span>) {</code></span>
+<span class="codeline" id="line-116"><code>		<label for="r25" class="ident">f</label>.<a href="#line-83" class="ident">n</a> = <label for="r28" class="ident">sum</label></code></span>
+<span class="codeline" id="line-117"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-118"><code>	}</code></span>
+<span class="codeline" id="line-119"><code>	<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-120"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: stack.go in package github.com/aws/smithy-go/middleware</title>
+<link href="../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	stack.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../pkg/github.com/aws/smithy-go/middleware.html">github.com/aws/smithy-go/middleware</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30],
+input[id=r31]:checked ~pre label[for=r31],
+input[id=r32]:checked ~pre label[for=r32],
+input[id=r33]:checked ~pre label[for=r33],
+input[id=r34]:checked ~pre label[for=r34],
+input[id=r35]:checked ~pre label[for=r35],
+input[id=r36]:checked ~pre label[for=r36]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="r31" type="radio" name="g"/>
+<input id="r32" type="radio" name="g"/>
+<input id="r33" type="radio" name="g"/>
+<input id="r34" type="radio" name="g"/>
+<input id="r35" type="radio" name="g"/>
+<input id="r36" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="keyword">package</span> middleware</code></span>
+<span class="codeline" id="line-2"><code></code></span>
+<span class="codeline" id="line-3"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-4"><code>	<label for="i0"><span class="lit-string i0">"context"</span></label></code></span>
+<span class="codeline" id="line-5"><code>	<label for="i1"><span class="lit-string i1">"io"</span></label></code></span>
+<span class="codeline" id="line-6"><code>	<label for="i2"><span class="lit-string i2">"strings"</span></label></code></span>
+<span class="codeline" id="line-7"><code>)</code></span>
+<span class="codeline" id="line-8"><code></code></span>
+<span class="codeline" id="line-9"><code><span class="comment">// Stack provides protocol and transport agnostic set of middleware split into</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment">// distinct steps. Steps have specific transitions between them, that are</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment">// managed by the individual step.</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">// Steps are composed as middleware around the underlying handler in the</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">// following order:</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">//   Initialize -&gt; Serialize -&gt; Build -&gt; Finalize -&gt; Deserialize -&gt; Handler</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">// Any middleware within the chain may choose to stop and return an error or</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">// response. Since the middleware decorate the handler like a call stack, each</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">// middleware will receive the result of the next middleware in the chain.</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">// Middleware that does not need to react to an input, or result must forward</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">// along the input down the chain, or return the result back up the chain.</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">//   Initialize &lt;- Serialize -&gt; Build -&gt; Finalize &lt;- Deserialize &lt;- Handler</span></code></span>
+<span class="codeline" id="line-25"><code><span class="keyword">type</span> <a href="../../../../../pkg/github.com/aws/smithy-go/middleware.html#name-Stack" class="ident">Stack</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-26"><code>	<span class="comment">// Initialize prepares the input, and sets any default parameters as</span></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">	// needed, (e.g. idempotency token, and presigned URLs).</span></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">	// Takes Input Parameters, and returns result or error.</span></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">	// Receives result or error from Serialize step.</span></code></span>
+<span class="codeline" id="line-32"><code>	<a href="../../../../../use/github.com/aws/smithy-go/middleware..Stack.Initialize.html" class="ident">Initialize</a> *<a href="step_initialize.go.html#line-74" class="ident">InitializeStep</a></code></span>
+<span class="codeline" id="line-33"><code></code></span>
+<span class="codeline" id="line-34"><code>	<span class="comment">// Serialize serializes the prepared input into a data structure that can be consumed</span></code></span>
+<span class="codeline" id="line-35"><code><span class="comment">	// by the target transport's message, (e.g. REST-JSON serialization)</span></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">	// Converts Input Parameters into a Request, and returns the result or error.</span></code></span>
+<span class="codeline" id="line-38"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">	// Receives result or error from Build step.</span></code></span>
+<span class="codeline" id="line-40"><code>	<a href="../../../../../use/github.com/aws/smithy-go/middleware..Stack.Serialize.html" class="ident">Serialize</a> *<a href="step_serialize.go.html#line-77" class="ident">SerializeStep</a></code></span>
+<span class="codeline" id="line-41"><code></code></span>
+<span class="codeline" id="line-42"><code>	<span class="comment">// Build adds additional metadata to the serialized transport message</span></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">	// (e.g. HTTP's Content-Length header, or body checksum). Decorations and</span></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">	// modifications to the message should be copied to all message attempts.</span></code></span>
+<span class="codeline" id="line-45"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-46"><code><span class="comment">	// Takes Request, and returns result or error.</span></code></span>
+<span class="codeline" id="line-47"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-48"><code><span class="comment">	// Receives result or error from Finalize step.</span></code></span>
+<span class="codeline" id="line-49"><code>	<a href="../../../../../use/github.com/aws/smithy-go/middleware..Stack.Build.html" class="ident">Build</a> *<a href="step_build.go.html#line-74" class="ident">BuildStep</a></code></span>
+<span class="codeline" id="line-50"><code></code></span>
+<span class="codeline" id="line-51"><code>	<span class="comment">// Finalize performs final preparations needed before sending the message. The</span></code></span>
+<span class="codeline" id="line-52"><code><span class="comment">	// message should already be complete by this stage, and is only alternated</span></code></span>
+<span class="codeline" id="line-53"><code><span class="comment">	// to meet the expectations of the recipient (e.g. Retry and AWS SigV4</span></code></span>
+<span class="codeline" id="line-54"><code><span class="comment">	// request signing)</span></code></span>
+<span class="codeline" id="line-55"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-56"><code><span class="comment">	// Takes Request, and returns result or error.</span></code></span>
+<span class="codeline" id="line-57"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-58"><code><span class="comment">	// Receives result or error from Deserialize step.</span></code></span>
+<span class="codeline" id="line-59"><code>	<a href="../../../../../use/github.com/aws/smithy-go/middleware..Stack.Finalize.html" class="ident">Finalize</a> *<a href="step_finalize.go.html#line-74" class="ident">FinalizeStep</a></code></span>
+<span class="codeline" id="line-60"><code></code></span>
+<span class="codeline" id="line-61"><code>	<span class="comment">// Deserialize reacts to the handler's response returned by the recipient of the request</span></code></span>
+<span class="codeline" id="line-62"><code><span class="comment">	// message. Deserializes the response into a structured type or error above</span></code></span>
+<span class="codeline" id="line-63"><code><span class="comment">	// stacks can react to.</span></code></span>
+<span class="codeline" id="line-64"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-65"><code><span class="comment">	// Should only forward Request to underlying handler.</span></code></span>
+<span class="codeline" id="line-66"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-67"><code><span class="comment">	// Takes Request, and returns result or error.</span></code></span>
+<span class="codeline" id="line-68"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-69"><code><span class="comment">	// Receives raw response, or error from underlying handler.</span></code></span>
+<span class="codeline" id="line-70"><code>	<a href="../../../../../use/github.com/aws/smithy-go/middleware..Stack.Deserialize.html" class="ident">Deserialize</a> *<a href="step_deserialize.go.html#line-80" class="ident">DeserializeStep</a></code></span>
+<span class="codeline" id="line-71"><code></code></span>
+<span class="codeline" id="line-72"><code>	<a href="../../../../../use/github.com/aws/smithy-go/middleware..Stack.id^a5614.html" class="ident">id</a> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-73"><code>}</code></span>
+<span class="codeline" id="line-74"><code></code></span>
+<span class="codeline" id="line-75"><code><span class="comment">// NewStack returns an initialize empty stack.</span></code></span>
+<span class="codeline" id="line-76"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../../pkg/github.com/aws/smithy-go/middleware.html#name-NewStack" class="ident">NewStack</a></label>(<label for="r1" class="ident">id</label> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r2" class="ident">newRequestFn</label> <span class="keyword">func</span>() <span class="keyword">interface</span>{}) *<a href="#line-25" class="ident">Stack</a> {</code></span>
+<span class="codeline" id="line-77"><code>	<span class="keyword">return</span> &amp;<a href="#line-25" class="ident">Stack</a>{</code></span>
+<span class="codeline" id="line-78"><code>		<a href="#line-72" class="ident">id</a>:          <label for="r1" class="ident">id</label>,</code></span>
+<span class="codeline" id="line-79"><code>		<a href="#line-32" class="ident">Initialize</a>:  <a href="step_initialize.go.html#line-80" class="ident">NewInitializeStep</a>(),</code></span>
+<span class="codeline" id="line-80"><code>		<a href="#line-40" class="ident">Serialize</a>:   <a href="step_serialize.go.html#line-86" class="ident">NewSerializeStep</a>(<label for="r2" class="ident">newRequestFn</label>),</code></span>
+<span class="codeline" id="line-81"><code>		<a href="#line-49" class="ident">Build</a>:       <a href="step_build.go.html#line-80" class="ident">NewBuildStep</a>(),</code></span>
+<span class="codeline" id="line-82"><code>		<a href="#line-59" class="ident">Finalize</a>:    <a href="step_finalize.go.html#line-80" class="ident">NewFinalizeStep</a>(),</code></span>
+<span class="codeline" id="line-83"><code>		<a href="#line-70" class="ident">Deserialize</a>: <a href="step_deserialize.go.html#line-86" class="ident">NewDeserializeStep</a>(),</code></span>
+<span class="codeline" id="line-84"><code>	}</code></span>
+<span class="codeline" id="line-85"><code>}</code></span>
+<span class="codeline" id="line-86"><code></code></span>
+<span class="codeline" id="line-87"><code><span class="comment">// ID returns the unique ID for the stack as a middleware.</span></code></span>
+<span class="codeline" id="line-88"><code><span class="keyword">func</span> (<label for="r3" class="ident">s</label> *<a href="#line-25" class="ident">Stack</a>) <label for="r4" class="ident"><a href="../../../../../use/github.com/aws/smithy-go/middleware..Stack.ID^38439.html" class="ident">ID</a></label>() <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a> { <span class="keyword">return</span> <label for="r3" class="ident">s</label>.<a href="#line-72" class="ident">id</a> }</code></span>
+<span class="codeline" id="line-89"><code></code></span>
+<span class="codeline" id="line-90"><code><span class="comment">// HandleMiddleware invokes the middleware stack decorating the next handler.</span></code></span>
+<span class="codeline" id="line-91"><code><span class="comment">// Each step of stack will be invoked in order before calling the next step.</span></code></span>
+<span class="codeline" id="line-92"><code><span class="comment">// With the next handler call last.</span></code></span>
+<span class="codeline" id="line-93"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-94"><code><span class="comment">// The input value must be the input parameters of the operation being</span></code></span>
+<span class="codeline" id="line-95"><code><span class="comment">// performed.</span></code></span>
+<span class="codeline" id="line-96"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-97"><code><span class="comment">// Will return the result of the operation, or error.</span></code></span>
+<span class="codeline" id="line-98"><code><span class="keyword">func</span> (<label for="r5" class="ident">s</label> *<a href="#line-25" class="ident">Stack</a>) <label for="r6" class="ident"><a href="../../../../../use/github.com/aws/smithy-go/middleware..Stack.HandleMiddleware.html" class="ident">HandleMiddleware</a></label>(<label for="r7" class="ident">ctx</label> <a href="../../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../../context/context.go.html#line-71" class="ident">Context</a>, <label for="r8" class="ident">input</label> <span class="keyword">interface</span>{}, <label for="r9" class="ident">next</label> <a href="middleware.go.html#line-9" class="ident">Handler</a>) (</code></span>
+<span class="codeline" id="line-99"><code>	<label for="r10" class="ident">output</label> <span class="keyword">interface</span>{}, <label for="r11" class="ident">metadata</label> <a href="metadata.go.html#line-16" class="ident">Metadata</a>, <label for="r12" class="ident">err</label> <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>,</code></span>
+<span class="codeline" id="line-100"><code>) {</code></span>
+<span class="codeline" id="line-101"><code>	<label for="r13" class="ident">h</label> := <a href="middleware.go.html#line-62" class="ident">DecorateHandler</a>(<label for="r9" class="ident">next</label>,</code></span>
+<span class="codeline" id="line-102"><code>		<label for="r5" class="ident">s</label>.<a href="#line-32" class="ident">Initialize</a>,</code></span>
+<span class="codeline" id="line-103"><code>		<label for="r5" class="ident">s</label>.<a href="#line-40" class="ident">Serialize</a>,</code></span>
+<span class="codeline" id="line-104"><code>		<label for="r5" class="ident">s</label>.<a href="#line-49" class="ident">Build</a>,</code></span>
+<span class="codeline" id="line-105"><code>		<label for="r5" class="ident">s</label>.<a href="#line-59" class="ident">Finalize</a>,</code></span>
+<span class="codeline" id="line-106"><code>		<label for="r5" class="ident">s</label>.<a href="#line-70" class="ident">Deserialize</a>,</code></span>
+<span class="codeline" id="line-107"><code>	)</code></span>
+<span class="codeline" id="line-108"><code></code></span>
+<span class="codeline" id="line-109"><code>	<span class="keyword">return</span> <label for="r13" class="ident">h</label>.<a href="middleware.go.html#line-12" class="ident">Handle</a>(<label for="r7" class="ident">ctx</label>, <label for="r8" class="ident">input</label>)</code></span>
+<span class="codeline" id="line-110"><code>}</code></span>
+<span class="codeline" id="line-111"><code></code></span>
+<span class="codeline" id="line-112"><code><span class="comment">// List returns a list of all middleware in the stack by step.</span></code></span>
+<span class="codeline" id="line-113"><code><span class="keyword">func</span> (<label for="r14" class="ident">s</label> *<a href="#line-25" class="ident">Stack</a>) <label for="r15" class="ident"><a href="../../../../../use/github.com/aws/smithy-go/middleware..Stack.List.html" class="ident">List</a></label>() []<a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-114"><code>	<span class="keyword">var</span> <label for="r16" class="ident">l</label> []<a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-115"><code>	<label for="r16" class="ident">l</label> = <a href="../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r16" class="ident">l</label>, <label for="r14" class="ident">s</label>.<a href="#line-72" class="ident">id</a>)</code></span>
+<span class="codeline" id="line-116"><code></code></span>
+<span class="codeline" id="line-117"><code>	<label for="r16" class="ident">l</label> = <a href="../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r16" class="ident">l</label>, <label for="r14" class="ident">s</label>.<a href="#line-32" class="ident">Initialize</a>.<a href="step_initialize.go.html#line-89" class="ident">ID</a>())</code></span>
+<span class="codeline" id="line-118"><code>	<label for="r16" class="ident">l</label> = <a href="../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r16" class="ident">l</label>, <label for="r14" class="ident">s</label>.<a href="#line-32" class="ident">Initialize</a>.<a href="step_initialize.go.html#line-164" class="ident">List</a>()...)</code></span>
+<span class="codeline" id="line-119"><code></code></span>
+<span class="codeline" id="line-120"><code>	<label for="r16" class="ident">l</label> = <a href="../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r16" class="ident">l</label>, <label for="r14" class="ident">s</label>.<a href="#line-40" class="ident">Serialize</a>.<a href="step_serialize.go.html#line-96" class="ident">ID</a>())</code></span>
+<span class="codeline" id="line-121"><code>	<label for="r16" class="ident">l</label> = <a href="../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r16" class="ident">l</label>, <label for="r14" class="ident">s</label>.<a href="#line-40" class="ident">Serialize</a>.<a href="step_serialize.go.html#line-172" class="ident">List</a>()...)</code></span>
+<span class="codeline" id="line-122"><code></code></span>
+<span class="codeline" id="line-123"><code>	<label for="r16" class="ident">l</label> = <a href="../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r16" class="ident">l</label>, <label for="r14" class="ident">s</label>.<a href="#line-49" class="ident">Build</a>.<a href="step_build.go.html#line-89" class="ident">ID</a>())</code></span>
+<span class="codeline" id="line-124"><code>	<label for="r16" class="ident">l</label> = <a href="../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r16" class="ident">l</label>, <label for="r14" class="ident">s</label>.<a href="#line-49" class="ident">Build</a>.<a href="step_build.go.html#line-164" class="ident">List</a>()...)</code></span>
+<span class="codeline" id="line-125"><code></code></span>
+<span class="codeline" id="line-126"><code>	<label for="r16" class="ident">l</label> = <a href="../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r16" class="ident">l</label>, <label for="r14" class="ident">s</label>.<a href="#line-59" class="ident">Finalize</a>.<a href="step_finalize.go.html#line-89" class="ident">ID</a>())</code></span>
+<span class="codeline" id="line-127"><code>	<label for="r16" class="ident">l</label> = <a href="../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r16" class="ident">l</label>, <label for="r14" class="ident">s</label>.<a href="#line-59" class="ident">Finalize</a>.<a href="step_finalize.go.html#line-164" class="ident">List</a>()...)</code></span>
+<span class="codeline" id="line-128"><code></code></span>
+<span class="codeline" id="line-129"><code>	<label for="r16" class="ident">l</label> = <a href="../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r16" class="ident">l</label>, <label for="r14" class="ident">s</label>.<a href="#line-70" class="ident">Deserialize</a>.<a href="step_deserialize.go.html#line-95" class="ident">ID</a>())</code></span>
+<span class="codeline" id="line-130"><code>	<label for="r16" class="ident">l</label> = <a href="../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r16" class="ident">l</label>, <label for="r14" class="ident">s</label>.<a href="#line-70" class="ident">Deserialize</a>.<a href="step_deserialize.go.html#line-170" class="ident">List</a>()...)</code></span>
+<span class="codeline" id="line-131"><code></code></span>
+<span class="codeline" id="line-132"><code>	<span class="keyword">return</span> <label for="r16" class="ident">l</label></code></span>
+<span class="codeline" id="line-133"><code>}</code></span>
+<span class="codeline" id="line-134"><code></code></span>
+<span class="codeline" id="line-135"><code><span class="keyword">func</span> (<label for="r17" class="ident">s</label> *<a href="#line-25" class="ident">Stack</a>) <label for="r18" class="ident"><a href="../../../../../use/github.com/aws/smithy-go/middleware..Stack.String.html" class="ident">String</a></label>() <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-136"><code>	<span class="keyword">var</span> <label for="r19" class="ident">b</label> <a href="../../../../../pkg/strings.html" class="ident i2">strings</a>.<a href="../../../../strings/builder.go.html#line-17" class="ident">Builder</a></code></span>
+<span class="codeline" id="line-137"><code></code></span>
+<span class="codeline" id="line-138"><code>	<label for="r20" class="ident">w</label> := &amp;<a href="#line-183" class="ident">indentWriter</a>{<a href="#line-184" class="ident">w</a>: &amp;<label for="r19" class="ident">b</label>}</code></span>
+<span class="codeline" id="line-139"><code></code></span>
+<span class="codeline" id="line-140"><code>	<label for="r20" class="ident">w</label>.<a href="#line-201" class="ident">WriteLine</a>(<label for="r17" class="ident">s</label>.<a href="#line-72" class="ident">id</a>)</code></span>
+<span class="codeline" id="line-141"><code>	<label for="r20" class="ident">w</label>.<a href="#line-190" class="ident">Push</a>()</code></span>
+<span class="codeline" id="line-142"><code></code></span>
+<span class="codeline" id="line-143"><code>	<a href="#line-157" class="ident">writeStepItems</a>(<label for="r20" class="ident">w</label>, <label for="r17" class="ident">s</label>.<a href="#line-32" class="ident">Initialize</a>)</code></span>
+<span class="codeline" id="line-144"><code>	<a href="#line-157" class="ident">writeStepItems</a>(<label for="r20" class="ident">w</label>, <label for="r17" class="ident">s</label>.<a href="#line-40" class="ident">Serialize</a>)</code></span>
+<span class="codeline" id="line-145"><code>	<a href="#line-157" class="ident">writeStepItems</a>(<label for="r20" class="ident">w</label>, <label for="r17" class="ident">s</label>.<a href="#line-49" class="ident">Build</a>)</code></span>
+<span class="codeline" id="line-146"><code>	<a href="#line-157" class="ident">writeStepItems</a>(<label for="r20" class="ident">w</label>, <label for="r17" class="ident">s</label>.<a href="#line-59" class="ident">Finalize</a>)</code></span>
+<span class="codeline" id="line-147"><code>	<a href="#line-157" class="ident">writeStepItems</a>(<label for="r20" class="ident">w</label>, <label for="r17" class="ident">s</label>.<a href="#line-70" class="ident">Deserialize</a>)</code></span>
+<span class="codeline" id="line-148"><code></code></span>
+<span class="codeline" id="line-149"><code>	<span class="keyword">return</span> <label for="r19" class="ident">b</label>.<a href="../../../../strings/builder.go.html#line-40" class="ident">String</a>()</code></span>
+<span class="codeline" id="line-150"><code>}</code></span>
+<span class="codeline" id="line-151"><code></code></span>
+<span class="codeline" id="line-152"><code><span class="keyword">type</span> <a href="../../../../../pkg/github.com/aws/smithy-go/middleware.html#name-stackStepper" class="ident">stackStepper</a> <span class="keyword">interface</span> {</code></span>
+<span class="codeline" id="line-153"><code>	<a href="../../../../../imp/github.com/aws/smithy-go/middleware.stackStepper^3f3af.html#name-ID" class="ident">ID</a>() <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-154"><code>	<a href="../../../../../imp/github.com/aws/smithy-go/middleware.stackStepper^3f3af.html#name-List" class="ident">List</a>() []<a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-155"><code>}</code></span>
+<span class="codeline" id="line-156"><code></code></span>
+<span class="codeline" id="line-157"><code><span class="keyword">func</span> <label for="r21" class="ident"><a href="../../../../../pkg/github.com/aws/smithy-go/middleware.html#name-writeStepItems" class="ident">writeStepItems</a></label>(<label for="r22" class="ident">w</label> *<a href="#line-183" class="ident">indentWriter</a>, <label for="r23" class="ident">s</label> <a href="#line-152" class="ident">stackStepper</a>) {</code></span>
+<span class="codeline" id="line-158"><code>	<span class="keyword">type</span> <label for="r24" class="ident">lister</label> <span class="keyword">interface</span> {</code></span>
+<span class="codeline" id="line-159"><code>		<label for="r25" class="ident">List</label>() []<a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-160"><code>	}</code></span>
+<span class="codeline" id="line-161"><code></code></span>
+<span class="codeline" id="line-162"><code>	<label for="r22" class="ident">w</label>.<a href="#line-201" class="ident">WriteLine</a>(<label for="r23" class="ident">s</label>.<a href="#line-153" class="ident">ID</a>())</code></span>
+<span class="codeline" id="line-163"><code>	<label for="r22" class="ident">w</label>.<a href="#line-190" class="ident">Push</a>()</code></span>
+<span class="codeline" id="line-164"><code></code></span>
+<span class="codeline" id="line-165"><code>	<span class="keyword">defer</span> <label for="r22" class="ident">w</label>.<a href="#line-194" class="ident">Pop</a>()</code></span>
+<span class="codeline" id="line-166"><code></code></span>
+<span class="codeline" id="line-167"><code>	<span class="comment">// ignore stack to prevent circular iterations</span></code></span>
+<span class="codeline" id="line-168"><code>	<span class="keyword">if</span> <label for="r26" class="ident">_</label>, <label for="r27" class="ident">ok</label> := <label for="r23" class="ident">s</label>.(*<a href="#line-25" class="ident">Stack</a>); <label for="r27" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-169"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-170"><code>	}</code></span>
+<span class="codeline" id="line-171"><code></code></span>
+<span class="codeline" id="line-172"><code>	<span class="keyword">for</span> <label for="r28" class="ident">_</label>, <label for="r29" class="ident">id</label> := <span class="keyword">range</span> <label for="r23" class="ident">s</label>.<a href="#line-154" class="ident">List</a>() {</code></span>
+<span class="codeline" id="line-173"><code>		<label for="r22" class="ident">w</label>.<a href="#line-201" class="ident">WriteLine</a>(<label for="r29" class="ident">id</label>)</code></span>
+<span class="codeline" id="line-174"><code>	}</code></span>
+<span class="codeline" id="line-175"><code>}</code></span>
+<span class="codeline" id="line-176"><code></code></span>
+<span class="codeline" id="line-177"><code><span class="keyword">type</span> <a href="../../../../../pkg/github.com/aws/smithy-go/middleware.html#name-stringWriter" class="ident">stringWriter</a> <span class="keyword">interface</span> {</code></span>
+<span class="codeline" id="line-178"><code>	<a href="../../../../../pkg/io.html" class="ident i1">io</a>.<a href="../../../../io/io.go.html#line-99" class="ident">Writer</a></code></span>
+<span class="codeline" id="line-179"><code>	<a href="../../../../../imp/github.com/aws/smithy-go/middleware.stringWriter^170fe.html#name-WriteString" class="ident">WriteString</a>(<a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>) (<a href="../../../../../pkg/builtin.html#name-int" class="ident">int</a>, <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
+<span class="codeline" id="line-180"><code>	<a href="../../../../../imp/github.com/aws/smithy-go/middleware.stringWriter^170fe.html#name-WriteRune" class="ident">WriteRune</a>(<a href="../../../../../pkg/builtin.html#name-rune" class="ident">rune</a>) (<a href="../../../../../pkg/builtin.html#name-int" class="ident">int</a>, <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
+<span class="codeline" id="line-181"><code>}</code></span>
+<span class="codeline" id="line-182"><code></code></span>
+<span class="codeline" id="line-183"><code><span class="keyword">type</span> <a href="../../../../../pkg/github.com/aws/smithy-go/middleware.html#name-indentWriter" class="ident">indentWriter</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-184"><code>	<a href="../../../../../use/github.com/aws/smithy-go/middleware..indentWriter^90901.w^50e72.html" class="ident">w</a>     <a href="#line-177" class="ident">stringWriter</a></code></span>
+<span class="codeline" id="line-185"><code>	<a href="../../../../../use/github.com/aws/smithy-go/middleware..indentWriter^90901.depth^ded32.html" class="ident">depth</a> <a href="../../../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-186"><code>}</code></span>
+<span class="codeline" id="line-187"><code></code></span>
+<span class="codeline" id="line-188"><code><span class="keyword">const</span> <a href="../../../../../pkg/github.com/aws/smithy-go/middleware.html#name-indentDepth" class="ident">indentDepth</a> = <span class="lit-string">"\t\t\t\t\t\t\t\t\t\t"</span></code></span>
+<span class="codeline" id="line-189"><code></code></span>
+<span class="codeline" id="line-190"><code><span class="keyword">func</span> (<label for="r30" class="ident">w</label> *<a href="#line-183" class="ident">indentWriter</a>) <label for="r31" class="ident"><a href="../../../../../use/github.com/aws/smithy-go/middleware..indentWriter^90901.Push.html" class="ident">Push</a></label>() {</code></span>
+<span class="codeline" id="line-191"><code>	<label for="r30" class="ident">w</label>.<a href="#line-185" class="ident">depth</a>++</code></span>
+<span class="codeline" id="line-192"><code>}</code></span>
+<span class="codeline" id="line-193"><code></code></span>
+<span class="codeline" id="line-194"><code><span class="keyword">func</span> (<label for="r32" class="ident">w</label> *<a href="#line-183" class="ident">indentWriter</a>) <label for="r33" class="ident"><a href="../../../../../use/github.com/aws/smithy-go/middleware..indentWriter^90901.Pop.html" class="ident">Pop</a></label>() {</code></span>
+<span class="codeline" id="line-195"><code>	<label for="r32" class="ident">w</label>.<a href="#line-185" class="ident">depth</a>--</code></span>
+<span class="codeline" id="line-196"><code>	<span class="keyword">if</span> <label for="r32" class="ident">w</label>.<a href="#line-185" class="ident">depth</a> &lt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-197"><code>		<label for="r32" class="ident">w</label>.<a href="#line-185" class="ident">depth</a> = <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-198"><code>	}</code></span>
+<span class="codeline" id="line-199"><code>}</code></span>
+<span class="codeline" id="line-200"><code></code></span>
+<span class="codeline" id="line-201"><code><span class="keyword">func</span> (<label for="r34" class="ident">w</label> *<a href="#line-183" class="ident">indentWriter</a>) <label for="r35" class="ident"><a href="../../../../../use/github.com/aws/smithy-go/middleware..indentWriter^90901.WriteLine.html" class="ident">WriteLine</a></label>(<label for="r36" class="ident">v</label> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>) {</code></span>
+<span class="codeline" id="line-202"><code>	<label for="r34" class="ident">w</label>.<a href="#line-184" class="ident">w</a>.<a href="#line-179" class="ident">WriteString</a>(<a href="#line-188" class="ident">indentDepth</a>[:<label for="r34" class="ident">w</label>.<a href="#line-185" class="ident">depth</a>])</code></span>
+<span class="codeline" id="line-203"><code></code></span>
+<span class="codeline" id="line-204"><code>	<label for="r36" class="ident">v</label> = <a href="../../../../../pkg/strings.html" class="ident i2">strings</a>.<a href="../../../../strings/strings.go.html#line-1180" class="ident">ReplaceAll</a>(<label for="r36" class="ident">v</label>, <span class="lit-string">"\n"</span>, <span class="lit-string">"\\n"</span>)</code></span>
+<span class="codeline" id="line-205"><code>	<label for="r36" class="ident">v</label> = <a href="../../../../../pkg/strings.html" class="ident i2">strings</a>.<a href="../../../../strings/strings.go.html#line-1180" class="ident">ReplaceAll</a>(<label for="r36" class="ident">v</label>, <span class="lit-string">"\r"</span>, <span class="lit-string">"\\r"</span>)</code></span>
+<span class="codeline" id="line-206"><code></code></span>
+<span class="codeline" id="line-207"><code>	<label for="r34" class="ident">w</label>.<a href="#line-184" class="ident">w</a>.<a href="#line-179" class="ident">WriteString</a>(<label for="r36" class="ident">v</label>)</code></span>
+<span class="codeline" id="line-208"><code>	<label for="r34" class="ident">w</label>.<a href="#line-184" class="ident">w</a>.<a href="#line-180" class="ident">WriteRune</a>(<span class="lit-number">'\n'</span>)</code></span>
+<span class="codeline" id="line-209"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

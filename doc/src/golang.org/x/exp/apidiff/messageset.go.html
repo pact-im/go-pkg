@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: messageset.go in package golang.org/x/exp/apidiff</title>
+<link href="../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	messageset.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../pkg/golang.org/x/exp/apidiff.html">golang.org/x/exp/apidiff</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// TODO: show that two-non-empty dotjoin can happen, by using an anon struct as a field type</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// TODO: don't report removed/changed methods for both value and pointer method sets?</span></code></span>
+<span class="codeline" id="line-3"><code></code></span>
+<span class="codeline" id="line-4"><code><span class="keyword">package</span> apidiff</code></span>
+<span class="codeline" id="line-5"><code></code></span>
+<span class="codeline" id="line-6"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-7"><code>	<label for="i0"><span class="lit-string i0">"fmt"</span></label></code></span>
+<span class="codeline" id="line-8"><code>	<label for="i1"><span class="lit-string i1">"go/types"</span></label></code></span>
+<span class="codeline" id="line-9"><code>	<label for="i2"><span class="lit-string i2">"sort"</span></label></code></span>
+<span class="codeline" id="line-10"><code>	<label for="i3"><span class="lit-string i3">"strings"</span></label></code></span>
+<span class="codeline" id="line-11"><code>)</code></span>
+<span class="codeline" id="line-12"><code></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">// There can be at most one message for each object or part thereof.</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">// Parts include interface methods and struct fields.</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">// The part thing is necessary. Method (Func) objects have sufficient info, but field</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">// Vars do not: they just have a field name and a type, without the enclosing struct.</span></code></span>
+<span class="codeline" id="line-18"><code><span class="keyword">type</span> <a href="../../../../../pkg/golang.org/x/exp/apidiff.html#name-messageSet" class="ident">messageSet</a> <span class="keyword">map</span>[<a href="../../../../../pkg/go/types.html" class="ident i1">types</a>.<a href="../../../../go/types/object.go.html#line-29" class="ident">Object</a>]<span class="keyword">map</span>[<a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>]<a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-19"><code></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">// Add a message for obj and part, overwriting a previous message</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">// (shouldn't happen).</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">// obj is required but part can be empty.</span></code></span>
+<span class="codeline" id="line-23"><code><span class="keyword">func</span> (<label for="r0" class="ident">m</label> <a href="#line-18" class="ident">messageSet</a>) <label for="r1" class="ident"><a href="../../../../../use/golang.org/x/exp/apidiff..messageSet^e7f49.add^7e9e5.html" class="ident">add</a></label>(<label for="r2" class="ident">obj</label> <a href="../../../../../pkg/go/types.html" class="ident i1">types</a>.<a href="../../../../go/types/object.go.html#line-29" class="ident">Object</a>, <label for="r3" class="ident">part</label>, <label for="r4" class="ident">msg</label> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>) {</code></span>
+<span class="codeline" id="line-24"><code>	<label for="r5" class="ident">s</label> := <label for="r0" class="ident">m</label>[<label for="r2" class="ident">obj</label>]</code></span>
+<span class="codeline" id="line-25"><code>	<span class="keyword">if</span> <label for="r5" class="ident">s</label> == <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-26"><code>		<label for="r5" class="ident">s</label> = <span class="keyword">map</span>[<a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>]<a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>{}</code></span>
+<span class="codeline" id="line-27"><code>		<label for="r0" class="ident">m</label>[<label for="r2" class="ident">obj</label>] = <label for="r5" class="ident">s</label></code></span>
+<span class="codeline" id="line-28"><code>	}</code></span>
+<span class="codeline" id="line-29"><code>	<span class="keyword">if</span> <label for="r6" class="ident">f</label>, <label for="r7" class="ident">ok</label> := <label for="r5" class="ident">s</label>[<label for="r3" class="ident">part</label>]; <label for="r7" class="ident">ok</label> &amp;&amp; <label for="r6" class="ident">f</label> != <label for="r4" class="ident">msg</label> {</code></span>
+<span class="codeline" id="line-30"><code>		<a href="../../../../../pkg/fmt.html" class="ident i0">fmt</a>.<a href="../../../../fmt/print.go.html#line-232" class="ident">Printf</a>(<span class="lit-string">"! second, different message for obj %s, part %q\n"</span>, <label for="r2" class="ident">obj</label>, <label for="r3" class="ident">part</label>)</code></span>
+<span class="codeline" id="line-31"><code>		<a href="../../../../../pkg/fmt.html" class="ident i0">fmt</a>.<a href="../../../../fmt/print.go.html#line-232" class="ident">Printf</a>(<span class="lit-string">"  first:  %s\n"</span>, <label for="r6" class="ident">f</label>)</code></span>
+<span class="codeline" id="line-32"><code>		<a href="../../../../../pkg/fmt.html" class="ident i0">fmt</a>.<a href="../../../../fmt/print.go.html#line-232" class="ident">Printf</a>(<span class="lit-string">"  second: %s\n"</span>, <label for="r4" class="ident">msg</label>)</code></span>
+<span class="codeline" id="line-33"><code>	}</code></span>
+<span class="codeline" id="line-34"><code>	<label for="r5" class="ident">s</label>[<label for="r3" class="ident">part</label>] = <label for="r4" class="ident">msg</label></code></span>
+<span class="codeline" id="line-35"><code>}</code></span>
+<span class="codeline" id="line-36"><code></code></span>
+<span class="codeline" id="line-37"><code><span class="keyword">func</span> (<label for="r8" class="ident">m</label> <a href="#line-18" class="ident">messageSet</a>) <label for="r9" class="ident"><a href="../../../../../use/golang.org/x/exp/apidiff..messageSet^e7f49.collect^81824.html" class="ident">collect</a></label>() []<a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-38"><code>	<span class="keyword">var</span> <label for="r10" class="ident">s</label> []<a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-39"><code>	<span class="keyword">for</span> <label for="r11" class="ident">obj</label>, <label for="r12" class="ident">parts</label> := <span class="keyword">range</span> <label for="r8" class="ident">m</label> {</code></span>
+<span class="codeline" id="line-40"><code>		<span class="comment">// Format each object name relative to its own package.</span></code></span>
+<span class="codeline" id="line-41"><code>		<label for="r13" class="ident">objstring</label> := <a href="#line-57" class="ident">objectString</a>(<label for="r11" class="ident">obj</label>)</code></span>
+<span class="codeline" id="line-42"><code>		<span class="keyword">for</span> <label for="r14" class="ident">part</label>, <label for="r15" class="ident">msg</label> := <span class="keyword">range</span> <label for="r12" class="ident">parts</label> {</code></span>
+<span class="codeline" id="line-43"><code>			<span class="keyword">var</span> <label for="r16" class="ident">p</label> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-44"><code></code></span>
+<span class="codeline" id="line-45"><code>			<span class="keyword">if</span> <a href="../../../../../pkg/strings.html" class="ident i3">strings</a>.<a href="../../../../strings/strings.go.html#line-516" class="ident">HasPrefix</a>(<label for="r14" class="ident">part</label>, <span class="lit-string">","</span>) {</code></span>
+<span class="codeline" id="line-46"><code>				<label for="r16" class="ident">p</label> = <label for="r13" class="ident">objstring</label> + <label for="r14" class="ident">part</label></code></span>
+<span class="codeline" id="line-47"><code>			} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-48"><code>				<label for="r16" class="ident">p</label> = <a href="#line-71" class="ident">dotjoin</a>(<label for="r13" class="ident">objstring</label>, <label for="r14" class="ident">part</label>)</code></span>
+<span class="codeline" id="line-49"><code>			}</code></span>
+<span class="codeline" id="line-50"><code>			<label for="r10" class="ident">s</label> = <a href="../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r10" class="ident">s</label>, <label for="r16" class="ident">p</label>+<span class="lit-string">": "</span>+<label for="r15" class="ident">msg</label>)</code></span>
+<span class="codeline" id="line-51"><code>		}</code></span>
+<span class="codeline" id="line-52"><code>	}</code></span>
+<span class="codeline" id="line-53"><code>	<a href="../../../../../pkg/sort.html" class="ident i2">sort</a>.<a href="../../../../sort/sort.go.html#line-179" class="ident">Strings</a>(<label for="r10" class="ident">s</label>)</code></span>
+<span class="codeline" id="line-54"><code>	<span class="keyword">return</span> <label for="r10" class="ident">s</label></code></span>
+<span class="codeline" id="line-55"><code>}</code></span>
+<span class="codeline" id="line-56"><code></code></span>
+<span class="codeline" id="line-57"><code><span class="keyword">func</span> <label for="r17" class="ident"><a href="../../../../../pkg/golang.org/x/exp/apidiff.html#name-objectString" class="ident">objectString</a></label>(<label for="r18" class="ident">obj</label> <a href="../../../../../pkg/go/types.html" class="ident i1">types</a>.<a href="../../../../go/types/object.go.html#line-29" class="ident">Object</a>) <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-58"><code>	<span class="keyword">if</span> <label for="r19" class="ident">f</label>, <label for="r20" class="ident">ok</label> := <label for="r18" class="ident">obj</label>.(*<a href="../../../../../pkg/go/types.html" class="ident i1">types</a>.<a href="../../../../go/types/object.go.html#line-389" class="ident">Func</a>); <label for="r20" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-59"><code>		<label for="r21" class="ident">sig</label> := <label for="r19" class="ident">f</label>.<a href="../../../../go/types/object.go.html#line-158" class="ident">Type</a>().(*<a href="../../../../../pkg/go/types.html" class="ident i1">types</a>.<a href="../../../../go/types/signature.go.html#line-21" class="ident">Signature</a>)</code></span>
+<span class="codeline" id="line-60"><code>		<span class="keyword">if</span> <label for="r22" class="ident">recv</label> := <label for="r21" class="ident">sig</label>.<a href="../../../../go/types/signature.go.html#line-84" class="ident">Recv</a>(); <label for="r22" class="ident">recv</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-61"><code>			<label for="r23" class="ident">tn</label> := <a href="../../../../../pkg/go/types.html" class="ident i1">types</a>.<a href="../../../../go/types/typestring.go.html#line-50" class="ident">TypeString</a>(<label for="r22" class="ident">recv</label>.<a href="../../../../go/types/object.go.html#line-158" class="ident">Type</a>(), <a href="../../../../../pkg/go/types.html" class="ident i1">types</a>.<a href="../../../../go/types/typestring.go.html#line-35" class="ident">RelativeTo</a>(<label for="r18" class="ident">obj</label>.<a href="../../../../go/types/object.go.html#line-32" class="ident">Pkg</a>()))</code></span>
+<span class="codeline" id="line-62"><code>			<span class="keyword">if</span> <label for="r23" class="ident">tn</label>[<span class="lit-number">0</span>] == <span class="lit-number">'*'</span> {</code></span>
+<span class="codeline" id="line-63"><code>				<label for="r23" class="ident">tn</label> = <span class="lit-string">"("</span> + <label for="r23" class="ident">tn</label> + <span class="lit-string">")"</span></code></span>
+<span class="codeline" id="line-64"><code>			}</code></span>
+<span class="codeline" id="line-65"><code>			<span class="keyword">return</span> <a href="../../../../../pkg/fmt.html" class="ident i0">fmt</a>.<a href="../../../../fmt/print.go.html#line-237" class="ident">Sprintf</a>(<span class="lit-string">"%s.%s"</span>, <label for="r23" class="ident">tn</label>, <label for="r18" class="ident">obj</label>.<a href="../../../../go/types/object.go.html#line-33" class="ident">Name</a>())</code></span>
+<span class="codeline" id="line-66"><code>		}</code></span>
+<span class="codeline" id="line-67"><code>	}</code></span>
+<span class="codeline" id="line-68"><code>	<span class="keyword">return</span> <label for="r18" class="ident">obj</label>.<a href="../../../../go/types/object.go.html#line-33" class="ident">Name</a>()</code></span>
+<span class="codeline" id="line-69"><code>}</code></span>
+<span class="codeline" id="line-70"><code></code></span>
+<span class="codeline" id="line-71"><code><span class="keyword">func</span> <label for="r24" class="ident"><a href="../../../../../pkg/golang.org/x/exp/apidiff.html#name-dotjoin" class="ident">dotjoin</a></label>(<label for="r25" class="ident">s1</label>, <label for="r26" class="ident">s2</label> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-72"><code>	<span class="keyword">if</span> <label for="r25" class="ident">s1</label> == <span class="lit-string">""</span> {</code></span>
+<span class="codeline" id="line-73"><code>		<span class="keyword">return</span> <label for="r26" class="ident">s2</label></code></span>
+<span class="codeline" id="line-74"><code>	}</code></span>
+<span class="codeline" id="line-75"><code>	<span class="keyword">if</span> <label for="r26" class="ident">s2</label> == <span class="lit-string">""</span> {</code></span>
+<span class="codeline" id="line-76"><code>		<span class="keyword">return</span> <label for="r25" class="ident">s1</label></code></span>
+<span class="codeline" id="line-77"><code>	}</code></span>
+<span class="codeline" id="line-78"><code>	<span class="keyword">return</span> <label for="r25" class="ident">s1</label> + <span class="lit-string">"."</span> + <label for="r26" class="ident">s2</label></code></span>
+<span class="codeline" id="line-79"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

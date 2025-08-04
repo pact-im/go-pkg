@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: hpke.go in package crypto/internal/hpke</title>
+<link href="../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	hpke.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../pkg/crypto/internal/hpke.html">crypto/internal/hpke</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30],
+input[id=r31]:checked ~pre label[for=r31],
+input[id=r32]:checked ~pre label[for=r32],
+input[id=r33]:checked ~pre label[for=r33],
+input[id=r34]:checked ~pre label[for=r34],
+input[id=r35]:checked ~pre label[for=r35],
+input[id=r36]:checked ~pre label[for=r36],
+input[id=r37]:checked ~pre label[for=r37],
+input[id=r38]:checked ~pre label[for=r38],
+input[id=r39]:checked ~pre label[for=r39],
+input[id=r40]:checked ~pre label[for=r40],
+input[id=r41]:checked ~pre label[for=r41],
+input[id=r42]:checked ~pre label[for=r42],
+input[id=r43]:checked ~pre label[for=r43],
+input[id=r44]:checked ~pre label[for=r44],
+input[id=r45]:checked ~pre label[for=r45],
+input[id=r46]:checked ~pre label[for=r46],
+input[id=r47]:checked ~pre label[for=r47],
+input[id=r48]:checked ~pre label[for=r48],
+input[id=r49]:checked ~pre label[for=r49],
+input[id=r50]:checked ~pre label[for=r50],
+input[id=r51]:checked ~pre label[for=r51],
+input[id=r52]:checked ~pre label[for=r52],
+input[id=r53]:checked ~pre label[for=r53],
+input[id=r54]:checked ~pre label[for=r54],
+input[id=r55]:checked ~pre label[for=r55],
+input[id=r56]:checked ~pre label[for=r56],
+input[id=r57]:checked ~pre label[for=r57],
+input[id=r58]:checked ~pre label[for=r58],
+input[id=r59]:checked ~pre label[for=r59],
+input[id=r60]:checked ~pre label[for=r60],
+input[id=r61]:checked ~pre label[for=r61],
+input[id=r62]:checked ~pre label[for=r62],
+input[id=r63]:checked ~pre label[for=r63],
+input[id=r64]:checked ~pre label[for=r64],
+input[id=r65]:checked ~pre label[for=r65],
+input[id=r66]:checked ~pre label[for=r66],
+input[id=r67]:checked ~pre label[for=r67],
+input[id=r68]:checked ~pre label[for=r68],
+input[id=r69]:checked ~pre label[for=r69],
+input[id=r70]:checked ~pre label[for=r70],
+input[id=r71]:checked ~pre label[for=r71],
+input[id=r72]:checked ~pre label[for=r72],
+input[id=r73]:checked ~pre label[for=r73],
+input[id=r74]:checked ~pre label[for=r74],
+input[id=r75]:checked ~pre label[for=r75],
+input[id=r76]:checked ~pre label[for=r76],
+input[id=r77]:checked ~pre label[for=r77],
+input[id=r78]:checked ~pre label[for=r78],
+input[id=r79]:checked ~pre label[for=r79],
+input[id=r80]:checked ~pre label[for=r80],
+input[id=r81]:checked ~pre label[for=r81],
+input[id=r82]:checked ~pre label[for=r82],
+input[id=r83]:checked ~pre label[for=r83],
+input[id=r84]:checked ~pre label[for=r84],
+input[id=r85]:checked ~pre label[for=r85],
+input[id=r86]:checked ~pre label[for=r86],
+input[id=r87]:checked ~pre label[for=r87],
+input[id=r88]:checked ~pre label[for=r88],
+input[id=r89]:checked ~pre label[for=r89],
+input[id=r90]:checked ~pre label[for=r90],
+input[id=r91]:checked ~pre label[for=r91],
+input[id=r92]:checked ~pre label[for=r92],
+input[id=r93]:checked ~pre label[for=r93],
+input[id=r94]:checked ~pre label[for=r94],
+input[id=r95]:checked ~pre label[for=r95],
+input[id=r96]:checked ~pre label[for=r96],
+input[id=r97]:checked ~pre label[for=r97],
+input[id=r98]:checked ~pre label[for=r98],
+input[id=r99]:checked ~pre label[for=r99],
+input[id=r100]:checked ~pre label[for=r100],
+input[id=r101]:checked ~pre label[for=r101],
+input[id=r102]:checked ~pre label[for=r102],
+input[id=r103]:checked ~pre label[for=r103],
+input[id=r104]:checked ~pre label[for=r104],
+input[id=r105]:checked ~pre label[for=r105],
+input[id=r106]:checked ~pre label[for=r106],
+input[id=r107]:checked ~pre label[for=r107],
+input[id=r108]:checked ~pre label[for=r108],
+input[id=r109]:checked ~pre label[for=r109],
+input[id=r110]:checked ~pre label[for=r110],
+input[id=r111]:checked ~pre label[for=r111],
+input[id=r112]:checked ~pre label[for=r112],
+input[id=r113]:checked ~pre label[for=r113],
+input[id=r114]:checked ~pre label[for=r114],
+input[id=r115]:checked ~pre label[for=r115],
+input[id=r116]:checked ~pre label[for=r116],
+input[id=r117]:checked ~pre label[for=r117],
+input[id=r118]:checked ~pre label[for=r118],
+input[id=r119]:checked ~pre label[for=r119],
+input[id=r120]:checked ~pre label[for=r120],
+input[id=r121]:checked ~pre label[for=r121],
+input[id=r122]:checked ~pre label[for=r122],
+input[id=r123]:checked ~pre label[for=r123],
+input[id=r124]:checked ~pre label[for=r124],
+input[id=r125]:checked ~pre label[for=r125],
+input[id=r126]:checked ~pre label[for=r126],
+input[id=r127]:checked ~pre label[for=r127],
+input[id=r128]:checked ~pre label[for=r128]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3,
+input[id=i4]:checked ~pre .i4,
+input[id=i5]:checked ~pre .i5,
+input[id=i6]:checked ~pre .i6,
+input[id=i7]:checked ~pre .i7,
+input[id=i8]:checked ~pre .i8,
+input[id=i9]:checked ~pre .i9
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="r31" type="radio" name="g"/>
+<input id="r32" type="radio" name="g"/>
+<input id="r33" type="radio" name="g"/>
+<input id="r34" type="radio" name="g"/>
+<input id="r35" type="radio" name="g"/>
+<input id="r36" type="radio" name="g"/>
+<input id="r37" type="radio" name="g"/>
+<input id="r38" type="radio" name="g"/>
+<input id="r39" type="radio" name="g"/>
+<input id="r40" type="radio" name="g"/>
+<input id="r41" type="radio" name="g"/>
+<input id="r42" type="radio" name="g"/>
+<input id="r43" type="radio" name="g"/>
+<input id="r44" type="radio" name="g"/>
+<input id="r45" type="radio" name="g"/>
+<input id="r46" type="radio" name="g"/>
+<input id="r47" type="radio" name="g"/>
+<input id="r48" type="radio" name="g"/>
+<input id="r49" type="radio" name="g"/>
+<input id="r50" type="radio" name="g"/>
+<input id="r51" type="radio" name="g"/>
+<input id="r52" type="radio" name="g"/>
+<input id="r53" type="radio" name="g"/>
+<input id="r54" type="radio" name="g"/>
+<input id="r55" type="radio" name="g"/>
+<input id="r56" type="radio" name="g"/>
+<input id="r57" type="radio" name="g"/>
+<input id="r58" type="radio" name="g"/>
+<input id="r59" type="radio" name="g"/>
+<input id="r60" type="radio" name="g"/>
+<input id="r61" type="radio" name="g"/>
+<input id="r62" type="radio" name="g"/>
+<input id="r63" type="radio" name="g"/>
+<input id="r64" type="radio" name="g"/>
+<input id="r65" type="radio" name="g"/>
+<input id="r66" type="radio" name="g"/>
+<input id="r67" type="radio" name="g"/>
+<input id="r68" type="radio" name="g"/>
+<input id="r69" type="radio" name="g"/>
+<input id="r70" type="radio" name="g"/>
+<input id="r71" type="radio" name="g"/>
+<input id="r72" type="radio" name="g"/>
+<input id="r73" type="radio" name="g"/>
+<input id="r74" type="radio" name="g"/>
+<input id="r75" type="radio" name="g"/>
+<input id="r76" type="radio" name="g"/>
+<input id="r77" type="radio" name="g"/>
+<input id="r78" type="radio" name="g"/>
+<input id="r79" type="radio" name="g"/>
+<input id="r80" type="radio" name="g"/>
+<input id="r81" type="radio" name="g"/>
+<input id="r82" type="radio" name="g"/>
+<input id="r83" type="radio" name="g"/>
+<input id="r84" type="radio" name="g"/>
+<input id="r85" type="radio" name="g"/>
+<input id="r86" type="radio" name="g"/>
+<input id="r87" type="radio" name="g"/>
+<input id="r88" type="radio" name="g"/>
+<input id="r89" type="radio" name="g"/>
+<input id="r90" type="radio" name="g"/>
+<input id="r91" type="radio" name="g"/>
+<input id="r92" type="radio" name="g"/>
+<input id="r93" type="radio" name="g"/>
+<input id="r94" type="radio" name="g"/>
+<input id="r95" type="radio" name="g"/>
+<input id="r96" type="radio" name="g"/>
+<input id="r97" type="radio" name="g"/>
+<input id="r98" type="radio" name="g"/>
+<input id="r99" type="radio" name="g"/>
+<input id="r100" type="radio" name="g"/>
+<input id="r101" type="radio" name="g"/>
+<input id="r102" type="radio" name="g"/>
+<input id="r103" type="radio" name="g"/>
+<input id="r104" type="radio" name="g"/>
+<input id="r105" type="radio" name="g"/>
+<input id="r106" type="radio" name="g"/>
+<input id="r107" type="radio" name="g"/>
+<input id="r108" type="radio" name="g"/>
+<input id="r109" type="radio" name="g"/>
+<input id="r110" type="radio" name="g"/>
+<input id="r111" type="radio" name="g"/>
+<input id="r112" type="radio" name="g"/>
+<input id="r113" type="radio" name="g"/>
+<input id="r114" type="radio" name="g"/>
+<input id="r115" type="radio" name="g"/>
+<input id="r116" type="radio" name="g"/>
+<input id="r117" type="radio" name="g"/>
+<input id="r118" type="radio" name="g"/>
+<input id="r119" type="radio" name="g"/>
+<input id="r120" type="radio" name="g"/>
+<input id="r121" type="radio" name="g"/>
+<input id="r122" type="radio" name="g"/>
+<input id="r123" type="radio" name="g"/>
+<input id="r124" type="radio" name="g"/>
+<input id="r125" type="radio" name="g"/>
+<input id="r126" type="radio" name="g"/>
+<input id="r127" type="radio" name="g"/>
+<input id="r128" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+<input id="i4" type="radio" name="i"/>
+<input id="i5" type="radio" name="i"/>
+<input id="i6" type="radio" name="i"/>
+<input id="i7" type="radio" name="i"/>
+<input id="i8" type="radio" name="i"/>
+<input id="i9" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2024 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> hpke</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-8"><code>	<label for="i0"><span class="lit-string i0">"crypto"</span></label></code></span>
+<span class="codeline" id="line-9"><code>	<label for="i1"><span class="lit-string i1">"crypto/aes"</span></label></code></span>
+<span class="codeline" id="line-10"><code>	<label for="i2"><span class="lit-string i2">"crypto/cipher"</span></label></code></span>
+<span class="codeline" id="line-11"><code>	<label for="i3"><span class="lit-string i3">"crypto/ecdh"</span></label></code></span>
+<span class="codeline" id="line-12"><code>	<label for="i4"><span class="lit-string i4">"crypto/internal/fips140/hkdf"</span></label></code></span>
+<span class="codeline" id="line-13"><code>	<label for="i5"><span class="lit-string i5">"crypto/rand"</span></label></code></span>
+<span class="codeline" id="line-14"><code>	<label for="i6"><span class="lit-string i6">"errors"</span></label></code></span>
+<span class="codeline" id="line-15"><code>	<label for="i7"><span class="lit-string i7">"internal/byteorder"</span></label></code></span>
+<span class="codeline" id="line-16"><code>	<label for="i8"><span class="lit-string i8">"math/bits"</span></label></code></span>
+<span class="codeline" id="line-17"><code></code></span>
+<span class="codeline" id="line-18"><code>	<label for="i9"><span class="lit-string i9">"golang.org/x/crypto/chacha20poly1305"</span></label></code></span>
+<span class="codeline" id="line-19"><code>)</code></span>
+<span class="codeline" id="line-20"><code></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">// testingOnlyGenerateKey is only used during testing, to provide</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">// a fixed test key to use when checking the RFC 9180 vectors.</span></code></span>
+<span class="codeline" id="line-23"><code><span class="keyword">var</span> <a href="../../../../pkg/crypto/internal/hpke.html#name-testingOnlyGenerateKey" class="ident">testingOnlyGenerateKey</a> <span class="keyword">func</span>() (*<a href="../../../../pkg/crypto/ecdh.html" class="ident i3">ecdh</a>.<a href="../../ecdh/ecdh.go.html#line-100" class="ident">PrivateKey</a>, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
+<span class="codeline" id="line-24"><code></code></span>
+<span class="codeline" id="line-25"><code><span class="keyword">type</span> <a href="../../../../pkg/crypto/internal/hpke.html#name-hkdfKDF" class="ident">hkdfKDF</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-26"><code>	<a href="../../../../use/crypto/internal/hpke..hkdfKDF^982ec.hash^d04b9.html" class="ident">hash</a> <a href="../../../../pkg/crypto.html" class="ident i0">crypto</a>.<a href="../../crypto.go.html#line-16" class="ident">Hash</a></code></span>
+<span class="codeline" id="line-27"><code>}</code></span>
+<span class="codeline" id="line-28"><code></code></span>
+<span class="codeline" id="line-29"><code><span class="keyword">func</span> (<label for="r0" class="ident">kdf</label> *<a href="#line-25" class="ident">hkdfKDF</a>) <label for="r1" class="ident"><a href="../../../../use/crypto/internal/hpke..hkdfKDF^982ec.LabeledExtract.html" class="ident">LabeledExtract</a></label>(<label for="r2" class="ident">sid</label> []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r3" class="ident">salt</label> []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r4" class="ident">label</label> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r5" class="ident">inputKey</label> []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a> {</code></span>
+<span class="codeline" id="line-30"><code>	<label for="r6" class="ident">labeledIKM</label> := <a href="../../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <span class="lit-number">0</span>, <span class="lit-number">7</span>+<a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r2" class="ident">sid</label>)+<a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r4" class="ident">label</label>)+<a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r5" class="ident">inputKey</label>))</code></span>
+<span class="codeline" id="line-31"><code>	<label for="r6" class="ident">labeledIKM</label> = <a href="../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r6" class="ident">labeledIKM</label>, []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>(<span class="lit-string">"HPKE-v1"</span>)...)</code></span>
+<span class="codeline" id="line-32"><code>	<label for="r6" class="ident">labeledIKM</label> = <a href="../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r6" class="ident">labeledIKM</label>, <label for="r2" class="ident">sid</label>...)</code></span>
+<span class="codeline" id="line-33"><code>	<label for="r6" class="ident">labeledIKM</label> = <a href="../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r6" class="ident">labeledIKM</label>, <label for="r4" class="ident">label</label>...)</code></span>
+<span class="codeline" id="line-34"><code>	<label for="r6" class="ident">labeledIKM</label> = <a href="../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r6" class="ident">labeledIKM</label>, <label for="r5" class="ident">inputKey</label>...)</code></span>
+<span class="codeline" id="line-35"><code>	<span class="keyword">return</span> <a href="../../../../pkg/crypto/internal/fips140/hkdf.html" class="ident i4">hkdf</a>.<a href="../fips140/hkdf/hkdf.go.html#line-12" class="ident">Extract</a>(<label for="r0" class="ident">kdf</label>.<a href="#line-26" class="ident">hash</a>.<a href="../../crypto.go.html#line-127" class="ident">New</a>, <label for="r6" class="ident">labeledIKM</label>, <label for="r3" class="ident">salt</label>)</code></span>
+<span class="codeline" id="line-36"><code>}</code></span>
+<span class="codeline" id="line-37"><code></code></span>
+<span class="codeline" id="line-38"><code><span class="keyword">func</span> (<label for="r7" class="ident">kdf</label> *<a href="#line-25" class="ident">hkdfKDF</a>) <label for="r8" class="ident"><a href="../../../../use/crypto/internal/hpke..hkdfKDF^982ec.LabeledExpand.html" class="ident">LabeledExpand</a></label>(<label for="r9" class="ident">suiteID</label> []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r10" class="ident">randomKey</label> []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r11" class="ident">label</label> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r12" class="ident">info</label> []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r13" class="ident">length</label> <a href="../../../../pkg/builtin.html#name-uint16" class="ident">uint16</a>) []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a> {</code></span>
+<span class="codeline" id="line-39"><code>	<label for="r14" class="ident">labeledInfo</label> := <a href="../../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <span class="lit-number">0</span>, <span class="lit-number">2</span>+<span class="lit-number">7</span>+<a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r9" class="ident">suiteID</label>)+<a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r11" class="ident">label</label>)+<a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r12" class="ident">info</label>))</code></span>
+<span class="codeline" id="line-40"><code>	<label for="r14" class="ident">labeledInfo</label> = <a href="../../../../pkg/internal/byteorder.html" class="ident i7">byteorder</a>.<a href="../../../internal/byteorder/byteorder.go.html#line-91" class="ident">BEAppendUint16</a>(<label for="r14" class="ident">labeledInfo</label>, <label for="r13" class="ident">length</label>)</code></span>
+<span class="codeline" id="line-41"><code>	<label for="r14" class="ident">labeledInfo</label> = <a href="../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r14" class="ident">labeledInfo</label>, []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>(<span class="lit-string">"HPKE-v1"</span>)...)</code></span>
+<span class="codeline" id="line-42"><code>	<label for="r14" class="ident">labeledInfo</label> = <a href="../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r14" class="ident">labeledInfo</label>, <label for="r9" class="ident">suiteID</label>...)</code></span>
+<span class="codeline" id="line-43"><code>	<label for="r14" class="ident">labeledInfo</label> = <a href="../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r14" class="ident">labeledInfo</label>, <label for="r11" class="ident">label</label>...)</code></span>
+<span class="codeline" id="line-44"><code>	<label for="r14" class="ident">labeledInfo</label> = <a href="../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r14" class="ident">labeledInfo</label>, <label for="r12" class="ident">info</label>...)</code></span>
+<span class="codeline" id="line-45"><code>	<span class="keyword">return</span> <a href="../../../../pkg/crypto/internal/fips140/hkdf.html" class="ident i4">hkdf</a>.<a href="../fips140/hkdf/hkdf.go.html#line-26" class="ident">Expand</a>(<label for="r7" class="ident">kdf</label>.<a href="#line-26" class="ident">hash</a>.<a href="../../crypto.go.html#line-127" class="ident">New</a>, <label for="r10" class="ident">randomKey</label>, <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>(<label for="r14" class="ident">labeledInfo</label>), <a href="../../../../pkg/builtin.html#name-int" class="ident">int</a>(<label for="r13" class="ident">length</label>))</code></span>
+<span class="codeline" id="line-46"><code>}</code></span>
+<span class="codeline" id="line-47"><code></code></span>
+<span class="codeline" id="line-48"><code><span class="comment">// dhKEM implements the KEM specified in RFC 9180, Section 4.1.</span></code></span>
+<span class="codeline" id="line-49"><code><span class="keyword">type</span> <a href="../../../../pkg/crypto/internal/hpke.html#name-dhKEM" class="ident">dhKEM</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-50"><code>	<a href="../../../../use/crypto/internal/hpke..dhKEM^1a40c.dh^39447.html" class="ident">dh</a>  <a href="../../../../pkg/crypto/ecdh.html" class="ident i3">ecdh</a>.<a href="../../ecdh/ecdh.go.html#line-18" class="ident">Curve</a></code></span>
+<span class="codeline" id="line-51"><code>	<a href="../../../../use/crypto/internal/hpke..dhKEM^1a40c.kdf^22cd1.html" class="ident">kdf</a> <a href="#line-25" class="ident">hkdfKDF</a></code></span>
+<span class="codeline" id="line-52"><code></code></span>
+<span class="codeline" id="line-53"><code>	<a href="../../../../use/crypto/internal/hpke..dhKEM^1a40c.suiteID^646bf.html" class="ident">suiteID</a> []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
+<span class="codeline" id="line-54"><code>	<a href="../../../../use/crypto/internal/hpke..dhKEM^1a40c.nSecret^a94d9.html" class="ident">nSecret</a> <a href="../../../../pkg/builtin.html#name-uint16" class="ident">uint16</a></code></span>
+<span class="codeline" id="line-55"><code>}</code></span>
+<span class="codeline" id="line-56"><code></code></span>
+<span class="codeline" id="line-57"><code><span class="keyword">type</span> <a href="../../../../pkg/crypto/internal/hpke.html#name-KemID" class="ident">KemID</a> <a href="../../../../pkg/builtin.html#name-uint16" class="ident">uint16</a></code></span>
+<span class="codeline" id="line-58"><code></code></span>
+<span class="codeline" id="line-59"><code><span class="keyword">const</span> <a href="../../../../pkg/crypto/internal/hpke.html#name-DHKEM_X25519_HKDF_SHA256" class="ident">DHKEM_X25519_HKDF_SHA256</a> = <span class="lit-number">0x0020</span></code></span>
+<span class="codeline" id="line-60"><code></code></span>
+<span class="codeline" id="line-61"><code><span class="keyword">var</span> <a href="../../../../pkg/crypto/internal/hpke.html#name-SupportedKEMs" class="ident">SupportedKEMs</a> = <span class="keyword">map</span>[<a href="../../../../pkg/builtin.html#name-uint16" class="ident">uint16</a>]<span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-62"><code>	curve   <a href="../../../../pkg/crypto/ecdh.html" class="ident i3">ecdh</a>.<a href="../../ecdh/ecdh.go.html#line-18" class="ident">Curve</a></code></span>
+<span class="codeline" id="line-63"><code>	hash    <a href="../../../../pkg/crypto.html" class="ident i0">crypto</a>.<a href="../../crypto.go.html#line-16" class="ident">Hash</a></code></span>
+<span class="codeline" id="line-64"><code>	nSecret <a href="../../../../pkg/builtin.html#name-uint16" class="ident">uint16</a></code></span>
+<span class="codeline" id="line-65"><code>}{</code></span>
+<span class="codeline" id="line-66"><code>	<span class="comment">// RFC 9180 Section 7.1</span></code></span>
+<span class="codeline" id="line-67"><code>	<a href="#line-59" class="ident">DHKEM_X25519_HKDF_SHA256</a>: {<a href="../../../../pkg/crypto/ecdh.html" class="ident i3">ecdh</a>.<a href="../../ecdh/x25519.go.html#line-27" class="ident">X25519</a>(), <a href="../../../../pkg/crypto.html" class="ident i0">crypto</a>.<a href="../../crypto.go.html#line-73" class="ident">SHA256</a>, <span class="lit-number">32</span>},</code></span>
+<span class="codeline" id="line-68"><code>}</code></span>
+<span class="codeline" id="line-69"><code></code></span>
+<span class="codeline" id="line-70"><code><span class="keyword">func</span> <label for="r15" class="ident"><a href="../../../../pkg/crypto/internal/hpke.html#name-newDHKem" class="ident">newDHKem</a></label>(<label for="r16" class="ident">kemID</label> <a href="../../../../pkg/builtin.html#name-uint16" class="ident">uint16</a>) (*<a href="#line-49" class="ident">dhKEM</a>, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-71"><code>	<label for="r17" class="ident">suite</label>, <label for="r18" class="ident">ok</label> := <a href="#line-61" class="ident">SupportedKEMs</a>[<label for="r16" class="ident">kemID</label>]</code></span>
+<span class="codeline" id="line-72"><code>	<span class="keyword">if</span> !<label for="r18" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-73"><code>		<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../../pkg/errors.html" class="ident i6">errors</a>.<a href="../../../errors/errors.go.html#line-64" class="ident">New</a>(<span class="lit-string">"unsupported suite ID"</span>)</code></span>
+<span class="codeline" id="line-74"><code>	}</code></span>
+<span class="codeline" id="line-75"><code>	<span class="keyword">return</span> &amp;<a href="#line-49" class="ident">dhKEM</a>{</code></span>
+<span class="codeline" id="line-76"><code>		<a href="#line-50" class="ident">dh</a>:      <label for="r17" class="ident">suite</label>.<a href="#line-62" class="ident">curve</a>,</code></span>
+<span class="codeline" id="line-77"><code>		<a href="#line-51" class="ident">kdf</a>:     <a href="#line-25" class="ident">hkdfKDF</a>{<label for="r17" class="ident">suite</label>.<a href="#line-63" class="ident">hash</a>},</code></span>
+<span class="codeline" id="line-78"><code>		<a href="#line-53" class="ident">suiteID</a>: <a href="../../../../pkg/internal/byteorder.html" class="ident i7">byteorder</a>.<a href="../../../internal/byteorder/byteorder.go.html#line-91" class="ident">BEAppendUint16</a>([]<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>(<span class="lit-string">"KEM"</span>), <label for="r16" class="ident">kemID</label>),</code></span>
+<span class="codeline" id="line-79"><code>		<a href="#line-54" class="ident">nSecret</a>: <label for="r17" class="ident">suite</label>.<a href="#line-64" class="ident">nSecret</a>,</code></span>
+<span class="codeline" id="line-80"><code>	}, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-81"><code>}</code></span>
+<span class="codeline" id="line-82"><code></code></span>
+<span class="codeline" id="line-83"><code><span class="keyword">func</span> (<label for="r19" class="ident">dh</label> *<a href="#line-49" class="ident">dhKEM</a>) <label for="r20" class="ident"><a href="../../../../use/crypto/internal/hpke..dhKEM^1a40c.ExtractAndExpand.html" class="ident">ExtractAndExpand</a></label>(<label for="r21" class="ident">dhKey</label>, <label for="r22" class="ident">kemContext</label> []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a> {</code></span>
+<span class="codeline" id="line-84"><code>	<label for="r23" class="ident">eaePRK</label> := <label for="r19" class="ident">dh</label>.<a href="#line-51" class="ident">kdf</a>.<a href="#line-29" class="ident">LabeledExtract</a>(<label for="r19" class="ident">dh</label>.<a href="#line-53" class="ident">suiteID</a>[:], <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <span class="lit-string">"eae_prk"</span>, <label for="r21" class="ident">dhKey</label>)</code></span>
+<span class="codeline" id="line-85"><code>	<span class="keyword">return</span> <label for="r19" class="ident">dh</label>.<a href="#line-51" class="ident">kdf</a>.<a href="#line-38" class="ident">LabeledExpand</a>(<label for="r19" class="ident">dh</label>.<a href="#line-53" class="ident">suiteID</a>[:], <label for="r23" class="ident">eaePRK</label>, <span class="lit-string">"shared_secret"</span>, <label for="r22" class="ident">kemContext</label>, <label for="r19" class="ident">dh</label>.<a href="#line-54" class="ident">nSecret</a>)</code></span>
+<span class="codeline" id="line-86"><code>}</code></span>
+<span class="codeline" id="line-87"><code></code></span>
+<span class="codeline" id="line-88"><code><span class="keyword">func</span> (<label for="r24" class="ident">dh</label> *<a href="#line-49" class="ident">dhKEM</a>) <label for="r25" class="ident"><a href="../../../../use/crypto/internal/hpke..dhKEM^1a40c.Encap.html" class="ident">Encap</a></label>(<label for="r26" class="ident">pubRecipient</label> *<a href="../../../../pkg/crypto/ecdh.html" class="ident i3">ecdh</a>.<a href="../../ecdh/ecdh.go.html#line-60" class="ident">PublicKey</a>) (<label for="r27" class="ident">sharedSecret</label> []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r28" class="ident">encapPub</label> []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r29" class="ident">err</label> <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-89"><code>	<span class="keyword">var</span> <label for="r30" class="ident">privEph</label> *<a href="../../../../pkg/crypto/ecdh.html" class="ident i3">ecdh</a>.<a href="../../ecdh/ecdh.go.html#line-100" class="ident">PrivateKey</a></code></span>
+<span class="codeline" id="line-90"><code>	<span class="keyword">if</span> <a href="#line-23" class="ident">testingOnlyGenerateKey</a> != <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-91"><code>		<label for="r30" class="ident">privEph</label>, <label for="r29" class="ident">err</label> = <a href="#line-23" class="ident">testingOnlyGenerateKey</a>()</code></span>
+<span class="codeline" id="line-92"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-93"><code>		<label for="r30" class="ident">privEph</label>, <label for="r29" class="ident">err</label> = <label for="r24" class="ident">dh</label>.<a href="#line-50" class="ident">dh</a>.<a href="../../ecdh/ecdh.go.html#line-24" class="ident">GenerateKey</a>(<a href="../../../../pkg/crypto/rand.html" class="ident i5">rand</a>.<a href="../../rand/rand.go.html#line-31" class="ident">Reader</a>)</code></span>
+<span class="codeline" id="line-94"><code>	}</code></span>
+<span class="codeline" id="line-95"><code>	<span class="keyword">if</span> <label for="r29" class="ident">err</label> != <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-96"><code>		<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r29" class="ident">err</label></code></span>
+<span class="codeline" id="line-97"><code>	}</code></span>
+<span class="codeline" id="line-98"><code>	<label for="r31" class="ident">dhVal</label>, <label for="r29" class="ident">err</label> := <label for="r30" class="ident">privEph</label>.<a href="../../ecdh/ecdh.go.html#line-119" class="ident">ECDH</a>(<label for="r26" class="ident">pubRecipient</label>)</code></span>
+<span class="codeline" id="line-99"><code>	<span class="keyword">if</span> <label for="r29" class="ident">err</label> != <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-100"><code>		<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r29" class="ident">err</label></code></span>
+<span class="codeline" id="line-101"><code>	}</code></span>
+<span class="codeline" id="line-102"><code>	<label for="r32" class="ident">encPubEph</label> := <label for="r30" class="ident">privEph</label>.<a href="../../ecdh/ecdh.go.html#line-154" class="ident">PublicKey</a>().<a href="../../ecdh/ecdh.go.html#line-68" class="ident">Bytes</a>()</code></span>
+<span class="codeline" id="line-103"><code></code></span>
+<span class="codeline" id="line-104"><code>	<label for="r33" class="ident">encPubRecip</label> := <label for="r26" class="ident">pubRecipient</label>.<a href="../../ecdh/ecdh.go.html#line-68" class="ident">Bytes</a>()</code></span>
+<span class="codeline" id="line-105"><code>	<label for="r34" class="ident">kemContext</label> := <a href="../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r32" class="ident">encPubEph</label>, <label for="r33" class="ident">encPubRecip</label>...)</code></span>
+<span class="codeline" id="line-106"><code></code></span>
+<span class="codeline" id="line-107"><code>	<span class="keyword">return</span> <label for="r24" class="ident">dh</label>.<a href="#line-83" class="ident">ExtractAndExpand</a>(<label for="r31" class="ident">dhVal</label>, <label for="r34" class="ident">kemContext</label>), <label for="r32" class="ident">encPubEph</label>, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-108"><code>}</code></span>
+<span class="codeline" id="line-109"><code></code></span>
+<span class="codeline" id="line-110"><code><span class="keyword">func</span> (<label for="r35" class="ident">dh</label> *<a href="#line-49" class="ident">dhKEM</a>) <label for="r36" class="ident"><a href="../../../../use/crypto/internal/hpke..dhKEM^1a40c.Decap.html" class="ident">Decap</a></label>(<label for="r37" class="ident">encPubEph</label> []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r38" class="ident">secRecipient</label> *<a href="../../../../pkg/crypto/ecdh.html" class="ident i3">ecdh</a>.<a href="../../ecdh/ecdh.go.html#line-100" class="ident">PrivateKey</a>) ([]<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-111"><code>	<label for="r39" class="ident">pubEph</label>, <label for="r40" class="ident">err</label> := <label for="r35" class="ident">dh</label>.<a href="#line-50" class="ident">dh</a>.<a href="../../ecdh/ecdh.go.html#line-45" class="ident">NewPublicKey</a>(<label for="r37" class="ident">encPubEph</label>)</code></span>
+<span class="codeline" id="line-112"><code>	<span class="keyword">if</span> <label for="r40" class="ident">err</label> != <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-113"><code>		<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r40" class="ident">err</label></code></span>
+<span class="codeline" id="line-114"><code>	}</code></span>
+<span class="codeline" id="line-115"><code>	<label for="r41" class="ident">dhVal</label>, <label for="r40" class="ident">err</label> := <label for="r38" class="ident">secRecipient</label>.<a href="../../ecdh/ecdh.go.html#line-119" class="ident">ECDH</a>(<label for="r39" class="ident">pubEph</label>)</code></span>
+<span class="codeline" id="line-116"><code>	<span class="keyword">if</span> <label for="r40" class="ident">err</label> != <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-117"><code>		<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r40" class="ident">err</label></code></span>
+<span class="codeline" id="line-118"><code>	}</code></span>
+<span class="codeline" id="line-119"><code>	<label for="r42" class="ident">kemContext</label> := <a href="../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r37" class="ident">encPubEph</label>, <label for="r38" class="ident">secRecipient</label>.<a href="../../ecdh/ecdh.go.html#line-154" class="ident">PublicKey</a>().<a href="../../ecdh/ecdh.go.html#line-68" class="ident">Bytes</a>()...)</code></span>
+<span class="codeline" id="line-120"><code></code></span>
+<span class="codeline" id="line-121"><code>	<span class="keyword">return</span> <label for="r35" class="ident">dh</label>.<a href="#line-83" class="ident">ExtractAndExpand</a>(<label for="r41" class="ident">dhVal</label>, <label for="r42" class="ident">kemContext</label>), <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-122"><code>}</code></span>
+<span class="codeline" id="line-123"><code></code></span>
+<span class="codeline" id="line-124"><code><span class="keyword">type</span> <a href="../../../../pkg/crypto/internal/hpke.html#name-context" class="ident">context</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-125"><code>	<a href="../../../../use/crypto/internal/hpke..context^ea779.aead^9a70f.html" class="ident">aead</a> <a href="../../../../pkg/crypto/cipher.html" class="ident i2">cipher</a>.<a href="../../cipher/cipher.go.html#line-66" class="ident">AEAD</a></code></span>
+<span class="codeline" id="line-126"><code></code></span>
+<span class="codeline" id="line-127"><code>	<a href="../../../../use/crypto/internal/hpke..context^ea779.sharedSecret^2fa30.html" class="ident">sharedSecret</a> []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
+<span class="codeline" id="line-128"><code></code></span>
+<span class="codeline" id="line-129"><code>	<a href="../../../../use/crypto/internal/hpke..context^ea779.suiteID^646bf.html" class="ident">suiteID</a> []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
+<span class="codeline" id="line-130"><code></code></span>
+<span class="codeline" id="line-131"><code>	<a href="../../../../use/crypto/internal/hpke..context^ea779.key^2c70e.html" class="ident">key</a>            []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
+<span class="codeline" id="line-132"><code>	<a href="../../../../use/crypto/internal/hpke..context^ea779.baseNonce^72805.html" class="ident">baseNonce</a>      []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
+<span class="codeline" id="line-133"><code>	<a href="../../../../use/crypto/internal/hpke..context^ea779.exporterSecret^c630c.html" class="ident">exporterSecret</a> []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
+<span class="codeline" id="line-134"><code></code></span>
+<span class="codeline" id="line-135"><code>	<a href="../../../../use/crypto/internal/hpke..context^ea779.seqNum^fca47.html" class="ident">seqNum</a> <a href="#line-315" class="ident">uint128</a></code></span>
+<span class="codeline" id="line-136"><code>}</code></span>
+<span class="codeline" id="line-137"><code></code></span>
+<span class="codeline" id="line-138"><code><span class="keyword">type</span> <a href="../../../../pkg/crypto/internal/hpke.html#name-Sender" class="ident">Sender</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-139"><code>	*<a href="#line-124" class="ident">context</a></code></span>
+<span class="codeline" id="line-140"><code>}</code></span>
+<span class="codeline" id="line-141"><code></code></span>
+<span class="codeline" id="line-142"><code><span class="keyword">type</span> <a href="../../../../pkg/crypto/internal/hpke.html#name-Receipient" class="ident">Receipient</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-143"><code>	*<a href="#line-124" class="ident">context</a></code></span>
+<span class="codeline" id="line-144"><code>}</code></span>
+<span class="codeline" id="line-145"><code></code></span>
+<span class="codeline" id="line-146"><code><span class="keyword">var</span> <a href="../../../../pkg/crypto/internal/hpke.html#name-aesGCMNew" class="ident">aesGCMNew</a> = <span class="keyword">func</span>(<label for="r43" class="ident">key</label> []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) (<a href="../../../../pkg/crypto/cipher.html" class="ident i2">cipher</a>.<a href="../../cipher/cipher.go.html#line-66" class="ident">AEAD</a>, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-147"><code>	<label for="r44" class="ident">block</label>, <label for="r45" class="ident">err</label> := <a href="../../../../pkg/crypto/aes.html" class="ident i1">aes</a>.<a href="../../aes/aes.go.html#line-36" class="ident">NewCipher</a>(<label for="r43" class="ident">key</label>)</code></span>
+<span class="codeline" id="line-148"><code>	<span class="keyword">if</span> <label for="r45" class="ident">err</label> != <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-149"><code>		<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r45" class="ident">err</label></code></span>
+<span class="codeline" id="line-150"><code>	}</code></span>
+<span class="codeline" id="line-151"><code>	<span class="keyword">return</span> <a href="../../../../pkg/crypto/cipher.html" class="ident i2">cipher</a>.<a href="../../cipher/gcm.go.html#line-30" class="ident">NewGCM</a>(<label for="r44" class="ident">block</label>)</code></span>
+<span class="codeline" id="line-152"><code>}</code></span>
+<span class="codeline" id="line-153"><code></code></span>
+<span class="codeline" id="line-154"><code><span class="keyword">type</span> <a href="../../../../pkg/crypto/internal/hpke.html#name-AEADID" class="ident">AEADID</a> <a href="../../../../pkg/builtin.html#name-uint16" class="ident">uint16</a></code></span>
+<span class="codeline" id="line-155"><code></code></span>
+<span class="codeline" id="line-156"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-157"><code>	<a href="../../../../pkg/crypto/internal/hpke.html#name-AEAD_AES_128_GCM" class="ident">AEAD_AES_128_GCM</a>      = <span class="lit-number">0x0001</span></code></span>
+<span class="codeline" id="line-158"><code>	<a href="../../../../pkg/crypto/internal/hpke.html#name-AEAD_AES_256_GCM" class="ident">AEAD_AES_256_GCM</a>      = <span class="lit-number">0x0002</span></code></span>
+<span class="codeline" id="line-159"><code>	<a href="../../../../pkg/crypto/internal/hpke.html#name-AEAD_ChaCha20Poly1305" class="ident">AEAD_ChaCha20Poly1305</a> = <span class="lit-number">0x0003</span></code></span>
+<span class="codeline" id="line-160"><code>)</code></span>
+<span class="codeline" id="line-161"><code></code></span>
+<span class="codeline" id="line-162"><code><span class="keyword">var</span> <a href="../../../../pkg/crypto/internal/hpke.html#name-SupportedAEADs" class="ident">SupportedAEADs</a> = <span class="keyword">map</span>[<a href="../../../../pkg/builtin.html#name-uint16" class="ident">uint16</a>]<span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-163"><code>	keySize   <a href="../../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-164"><code>	nonceSize <a href="../../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-165"><code>	aead      <span class="keyword">func</span>([]<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) (<a href="../../../../pkg/crypto/cipher.html" class="ident i2">cipher</a>.<a href="../../cipher/cipher.go.html#line-66" class="ident">AEAD</a>, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
+<span class="codeline" id="line-166"><code>}{</code></span>
+<span class="codeline" id="line-167"><code>	<span class="comment">// RFC 9180, Section 7.3</span></code></span>
+<span class="codeline" id="line-168"><code>	<a href="#line-157" class="ident">AEAD_AES_128_GCM</a>:      {<a href="#line-163" class="ident">keySize</a>: <span class="lit-number">16</span>, <a href="#line-164" class="ident">nonceSize</a>: <span class="lit-number">12</span>, <a href="#line-165" class="ident">aead</a>: <a href="#line-146" class="ident">aesGCMNew</a>},</code></span>
+<span class="codeline" id="line-169"><code>	<a href="#line-158" class="ident">AEAD_AES_256_GCM</a>:      {<a href="#line-163" class="ident">keySize</a>: <span class="lit-number">32</span>, <a href="#line-164" class="ident">nonceSize</a>: <span class="lit-number">12</span>, <a href="#line-165" class="ident">aead</a>: <a href="#line-146" class="ident">aesGCMNew</a>},</code></span>
+<span class="codeline" id="line-170"><code>	<a href="#line-159" class="ident">AEAD_ChaCha20Poly1305</a>: {<a href="#line-163" class="ident">keySize</a>: <a href="../../../../pkg/vendor/golang.org/x/crypto/chacha20poly1305.html" class="ident i0">chacha20poly1305</a>.<a href="../../../vendor/golang.org/x/crypto/chacha20poly1305/chacha20poly1305.go.html#line-17" class="ident">KeySize</a>, <a href="#line-164" class="ident">nonceSize</a>: <a href="../../../../pkg/vendor/golang.org/x/crypto/chacha20poly1305.html" class="ident i0">chacha20poly1305</a>.<a href="../../../vendor/golang.org/x/crypto/chacha20poly1305/chacha20poly1305.go.html#line-24" class="ident">NonceSize</a>, <a href="#line-165" class="ident">aead</a>: <a href="../../../../pkg/vendor/golang.org/x/crypto/chacha20poly1305.html" class="ident i0">chacha20poly1305</a>.<a href="../../../vendor/golang.org/x/crypto/chacha20poly1305/chacha20poly1305.go.html#line-40" class="ident">New</a>},</code></span>
+<span class="codeline" id="line-171"><code>}</code></span>
+<span class="codeline" id="line-172"><code></code></span>
+<span class="codeline" id="line-173"><code><span class="keyword">type</span> <a href="../../../../pkg/crypto/internal/hpke.html#name-KDFID" class="ident">KDFID</a> <a href="../../../../pkg/builtin.html#name-uint16" class="ident">uint16</a></code></span>
+<span class="codeline" id="line-174"><code></code></span>
+<span class="codeline" id="line-175"><code><span class="keyword">const</span> <a href="../../../../pkg/crypto/internal/hpke.html#name-KDF_HKDF_SHA256" class="ident">KDF_HKDF_SHA256</a> = <span class="lit-number">0x0001</span></code></span>
+<span class="codeline" id="line-176"><code></code></span>
+<span class="codeline" id="line-177"><code><span class="keyword">var</span> <a href="../../../../pkg/crypto/internal/hpke.html#name-SupportedKDFs" class="ident">SupportedKDFs</a> = <span class="keyword">map</span>[<a href="../../../../pkg/builtin.html#name-uint16" class="ident">uint16</a>]<span class="keyword">func</span>() *<a href="#line-25" class="ident">hkdfKDF</a>{</code></span>
+<span class="codeline" id="line-178"><code>	<span class="comment">// RFC 9180, Section 7.2</span></code></span>
+<span class="codeline" id="line-179"><code>	<a href="#line-175" class="ident">KDF_HKDF_SHA256</a>: <span class="keyword">func</span>() *<a href="#line-25" class="ident">hkdfKDF</a> { <span class="keyword">return</span> &amp;<a href="#line-25" class="ident">hkdfKDF</a>{<a href="../../../../pkg/crypto.html" class="ident i0">crypto</a>.<a href="../../crypto.go.html#line-73" class="ident">SHA256</a>} },</code></span>
+<span class="codeline" id="line-180"><code>}</code></span>
+<span class="codeline" id="line-181"><code></code></span>
+<span class="codeline" id="line-182"><code><span class="keyword">func</span> <label for="r46" class="ident"><a href="../../../../pkg/crypto/internal/hpke.html#name-newContext" class="ident">newContext</a></label>(<label for="r47" class="ident">sharedSecret</label> []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r48" class="ident">kemID</label>, <label for="r49" class="ident">kdfID</label>, <label for="r50" class="ident">aeadID</label> <a href="../../../../pkg/builtin.html#name-uint16" class="ident">uint16</a>, <label for="r51" class="ident">info</label> []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) (*<a href="#line-124" class="ident">context</a>, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-183"><code>	<label for="r52" class="ident">sid</label> := <a href="#line-290" class="ident">suiteID</a>(<label for="r48" class="ident">kemID</label>, <label for="r49" class="ident">kdfID</label>, <label for="r50" class="ident">aeadID</label>)</code></span>
+<span class="codeline" id="line-184"><code></code></span>
+<span class="codeline" id="line-185"><code>	<label for="r53" class="ident">kdfInit</label>, <label for="r54" class="ident">ok</label> := <a href="#line-177" class="ident">SupportedKDFs</a>[<label for="r49" class="ident">kdfID</label>]</code></span>
+<span class="codeline" id="line-186"><code>	<span class="keyword">if</span> !<label for="r54" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-187"><code>		<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../../pkg/errors.html" class="ident i6">errors</a>.<a href="../../../errors/errors.go.html#line-64" class="ident">New</a>(<span class="lit-string">"unsupported KDF id"</span>)</code></span>
+<span class="codeline" id="line-188"><code>	}</code></span>
+<span class="codeline" id="line-189"><code>	<label for="r55" class="ident">kdf</label> := <label for="r53" class="ident">kdfInit</label>()</code></span>
+<span class="codeline" id="line-190"><code></code></span>
+<span class="codeline" id="line-191"><code>	<label for="r56" class="ident">aeadInfo</label>, <label for="r54" class="ident">ok</label> := <a href="#line-162" class="ident">SupportedAEADs</a>[<label for="r50" class="ident">aeadID</label>]</code></span>
+<span class="codeline" id="line-192"><code>	<span class="keyword">if</span> !<label for="r54" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-193"><code>		<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../../pkg/errors.html" class="ident i6">errors</a>.<a href="../../../errors/errors.go.html#line-64" class="ident">New</a>(<span class="lit-string">"unsupported AEAD id"</span>)</code></span>
+<span class="codeline" id="line-194"><code>	}</code></span>
+<span class="codeline" id="line-195"><code></code></span>
+<span class="codeline" id="line-196"><code>	<label for="r57" class="ident">pskIDHash</label> := <label for="r55" class="ident">kdf</label>.<a href="#line-29" class="ident">LabeledExtract</a>(<label for="r52" class="ident">sid</label>, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <span class="lit-string">"psk_id_hash"</span>, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a>)</code></span>
+<span class="codeline" id="line-197"><code>	<label for="r58" class="ident">infoHash</label> := <label for="r55" class="ident">kdf</label>.<a href="#line-29" class="ident">LabeledExtract</a>(<label for="r52" class="ident">sid</label>, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <span class="lit-string">"info_hash"</span>, <label for="r51" class="ident">info</label>)</code></span>
+<span class="codeline" id="line-198"><code>	<label for="r59" class="ident">ksContext</label> := <a href="../../../../pkg/builtin.html#name-append" class="ident">append</a>([]<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>{<span class="lit-number">0</span>}, <label for="r57" class="ident">pskIDHash</label>...)</code></span>
+<span class="codeline" id="line-199"><code>	<label for="r59" class="ident">ksContext</label> = <a href="../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r59" class="ident">ksContext</label>, <label for="r58" class="ident">infoHash</label>...)</code></span>
+<span class="codeline" id="line-200"><code></code></span>
+<span class="codeline" id="line-201"><code>	<label for="r60" class="ident">secret</label> := <label for="r55" class="ident">kdf</label>.<a href="#line-29" class="ident">LabeledExtract</a>(<label for="r52" class="ident">sid</label>, <label for="r47" class="ident">sharedSecret</label>, <span class="lit-string">"secret"</span>, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a>)</code></span>
+<span class="codeline" id="line-202"><code></code></span>
+<span class="codeline" id="line-203"><code>	<label for="r61" class="ident">key</label> := <label for="r55" class="ident">kdf</label>.<a href="#line-38" class="ident">LabeledExpand</a>(<label for="r52" class="ident">sid</label>, <label for="r60" class="ident">secret</label>, <span class="lit-string">"key"</span>, <label for="r59" class="ident">ksContext</label>, <a href="../../../../pkg/builtin.html#name-uint16" class="ident">uint16</a>(<label for="r56" class="ident">aeadInfo</label>.<a href="#line-163" class="ident">keySize</a>) <span class="comment">/* Nk - key size for AEAD */</span>)</code></span>
+<span class="codeline" id="line-204"><code>	<label for="r62" class="ident">baseNonce</label> := <label for="r55" class="ident">kdf</label>.<a href="#line-38" class="ident">LabeledExpand</a>(<label for="r52" class="ident">sid</label>, <label for="r60" class="ident">secret</label>, <span class="lit-string">"base_nonce"</span>, <label for="r59" class="ident">ksContext</label>, <a href="../../../../pkg/builtin.html#name-uint16" class="ident">uint16</a>(<label for="r56" class="ident">aeadInfo</label>.<a href="#line-164" class="ident">nonceSize</a>) <span class="comment">/* Nn - nonce size for AEAD */</span>)</code></span>
+<span class="codeline" id="line-205"><code>	<label for="r63" class="ident">exporterSecret</label> := <label for="r55" class="ident">kdf</label>.<a href="#line-38" class="ident">LabeledExpand</a>(<label for="r52" class="ident">sid</label>, <label for="r60" class="ident">secret</label>, <span class="lit-string">"exp"</span>, <label for="r59" class="ident">ksContext</label>, <a href="../../../../pkg/builtin.html#name-uint16" class="ident">uint16</a>(<label for="r55" class="ident">kdf</label>.<a href="#line-26" class="ident">hash</a>.<a href="../../crypto.go.html#line-116" class="ident">Size</a>()) <span class="comment">/* Nh - hash output size of the kdf*/</span>)</code></span>
+<span class="codeline" id="line-206"><code></code></span>
+<span class="codeline" id="line-207"><code>	<label for="r64" class="ident">aead</label>, <label for="r65" class="ident">err</label> := <label for="r56" class="ident">aeadInfo</label>.<a href="#line-165" class="ident">aead</a>(<label for="r61" class="ident">key</label>)</code></span>
+<span class="codeline" id="line-208"><code>	<span class="keyword">if</span> <label for="r65" class="ident">err</label> != <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-209"><code>		<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r65" class="ident">err</label></code></span>
+<span class="codeline" id="line-210"><code>	}</code></span>
+<span class="codeline" id="line-211"><code></code></span>
+<span class="codeline" id="line-212"><code>	<span class="keyword">return</span> &amp;<a href="#line-124" class="ident">context</a>{</code></span>
+<span class="codeline" id="line-213"><code>		<a href="#line-125" class="ident">aead</a>:           <label for="r64" class="ident">aead</label>,</code></span>
+<span class="codeline" id="line-214"><code>		<a href="#line-127" class="ident">sharedSecret</a>:   <label for="r47" class="ident">sharedSecret</label>,</code></span>
+<span class="codeline" id="line-215"><code>		<a href="#line-129" class="ident">suiteID</a>:        <label for="r52" class="ident">sid</label>,</code></span>
+<span class="codeline" id="line-216"><code>		<a href="#line-131" class="ident">key</a>:            <label for="r61" class="ident">key</label>,</code></span>
+<span class="codeline" id="line-217"><code>		<a href="#line-132" class="ident">baseNonce</a>:      <label for="r62" class="ident">baseNonce</label>,</code></span>
+<span class="codeline" id="line-218"><code>		<a href="#line-133" class="ident">exporterSecret</a>: <label for="r63" class="ident">exporterSecret</label>,</code></span>
+<span class="codeline" id="line-219"><code>	}, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-220"><code>}</code></span>
+<span class="codeline" id="line-221"><code></code></span>
+<span class="codeline" id="line-222"><code><span class="keyword">func</span> <label for="r66" class="ident"><a href="../../../../pkg/crypto/internal/hpke.html#name-SetupSender" class="ident">SetupSender</a></label>(<label for="r67" class="ident">kemID</label>, <label for="r68" class="ident">kdfID</label>, <label for="r69" class="ident">aeadID</label> <a href="../../../../pkg/builtin.html#name-uint16" class="ident">uint16</a>, <label for="r70" class="ident">pub</label> *<a href="../../../../pkg/crypto/ecdh.html" class="ident i3">ecdh</a>.<a href="../../ecdh/ecdh.go.html#line-60" class="ident">PublicKey</a>, <label for="r71" class="ident">info</label> []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) ([]<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, *<a href="#line-138" class="ident">Sender</a>, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-223"><code>	<label for="r72" class="ident">kem</label>, <label for="r73" class="ident">err</label> := <a href="#line-70" class="ident">newDHKem</a>(<label for="r67" class="ident">kemID</label>)</code></span>
+<span class="codeline" id="line-224"><code>	<span class="keyword">if</span> <label for="r73" class="ident">err</label> != <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-225"><code>		<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r73" class="ident">err</label></code></span>
+<span class="codeline" id="line-226"><code>	}</code></span>
+<span class="codeline" id="line-227"><code>	<label for="r74" class="ident">sharedSecret</label>, <label for="r75" class="ident">encapsulatedKey</label>, <label for="r73" class="ident">err</label> := <label for="r72" class="ident">kem</label>.<a href="#line-88" class="ident">Encap</a>(<label for="r70" class="ident">pub</label>)</code></span>
+<span class="codeline" id="line-228"><code>	<span class="keyword">if</span> <label for="r73" class="ident">err</label> != <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-229"><code>		<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r73" class="ident">err</label></code></span>
+<span class="codeline" id="line-230"><code>	}</code></span>
+<span class="codeline" id="line-231"><code></code></span>
+<span class="codeline" id="line-232"><code>	<label for="r76" class="ident">context</label>, <label for="r73" class="ident">err</label> := <a href="#line-182" class="ident">newContext</a>(<label for="r74" class="ident">sharedSecret</label>, <label for="r67" class="ident">kemID</label>, <label for="r68" class="ident">kdfID</label>, <label for="r69" class="ident">aeadID</label>, <label for="r71" class="ident">info</label>)</code></span>
+<span class="codeline" id="line-233"><code>	<span class="keyword">if</span> <label for="r73" class="ident">err</label> != <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-234"><code>		<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r73" class="ident">err</label></code></span>
+<span class="codeline" id="line-235"><code>	}</code></span>
+<span class="codeline" id="line-236"><code></code></span>
+<span class="codeline" id="line-237"><code>	<span class="keyword">return</span> <label for="r75" class="ident">encapsulatedKey</label>, &amp;<a href="#line-138" class="ident">Sender</a>{<label for="r76" class="ident">context</label>}, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-238"><code>}</code></span>
+<span class="codeline" id="line-239"><code></code></span>
+<span class="codeline" id="line-240"><code><span class="keyword">func</span> <label for="r77" class="ident"><a href="../../../../pkg/crypto/internal/hpke.html#name-SetupReceipient" class="ident">SetupReceipient</a></label>(<label for="r78" class="ident">kemID</label>, <label for="r79" class="ident">kdfID</label>, <label for="r80" class="ident">aeadID</label> <a href="../../../../pkg/builtin.html#name-uint16" class="ident">uint16</a>, <label for="r81" class="ident">priv</label> *<a href="../../../../pkg/crypto/ecdh.html" class="ident i3">ecdh</a>.<a href="../../ecdh/ecdh.go.html#line-100" class="ident">PrivateKey</a>, <label for="r82" class="ident">info</label>, <label for="r83" class="ident">encPubEph</label> []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) (*<a href="#line-142" class="ident">Receipient</a>, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-241"><code>	<label for="r84" class="ident">kem</label>, <label for="r85" class="ident">err</label> := <a href="#line-70" class="ident">newDHKem</a>(<label for="r78" class="ident">kemID</label>)</code></span>
+<span class="codeline" id="line-242"><code>	<span class="keyword">if</span> <label for="r85" class="ident">err</label> != <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-243"><code>		<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r85" class="ident">err</label></code></span>
+<span class="codeline" id="line-244"><code>	}</code></span>
+<span class="codeline" id="line-245"><code>	<label for="r86" class="ident">sharedSecret</label>, <label for="r85" class="ident">err</label> := <label for="r84" class="ident">kem</label>.<a href="#line-110" class="ident">Decap</a>(<label for="r83" class="ident">encPubEph</label>, <label for="r81" class="ident">priv</label>)</code></span>
+<span class="codeline" id="line-246"><code>	<span class="keyword">if</span> <label for="r85" class="ident">err</label> != <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-247"><code>		<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r85" class="ident">err</label></code></span>
+<span class="codeline" id="line-248"><code>	}</code></span>
+<span class="codeline" id="line-249"><code></code></span>
+<span class="codeline" id="line-250"><code>	<label for="r87" class="ident">context</label>, <label for="r85" class="ident">err</label> := <a href="#line-182" class="ident">newContext</a>(<label for="r86" class="ident">sharedSecret</label>, <label for="r78" class="ident">kemID</label>, <label for="r79" class="ident">kdfID</label>, <label for="r80" class="ident">aeadID</label>, <label for="r82" class="ident">info</label>)</code></span>
+<span class="codeline" id="line-251"><code>	<span class="keyword">if</span> <label for="r85" class="ident">err</label> != <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-252"><code>		<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r85" class="ident">err</label></code></span>
+<span class="codeline" id="line-253"><code>	}</code></span>
+<span class="codeline" id="line-254"><code></code></span>
+<span class="codeline" id="line-255"><code>	<span class="keyword">return</span> &amp;<a href="#line-142" class="ident">Receipient</a>{<label for="r87" class="ident">context</label>}, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-256"><code>}</code></span>
+<span class="codeline" id="line-257"><code></code></span>
+<span class="codeline" id="line-258"><code><span class="keyword">func</span> (<label for="r88" class="ident">ctx</label> *<a href="#line-124" class="ident">context</a>) <label for="r89" class="ident"><a href="../../../../use/crypto/internal/hpke..context^ea779.nextNonce^65026.html" class="ident">nextNonce</a></label>() []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a> {</code></span>
+<span class="codeline" id="line-259"><code>	<label for="r90" class="ident">nonce</label> := <label for="r88" class="ident">ctx</label>.<a href="#line-135" class="ident">seqNum</a>.<a href="#line-328" class="ident">bytes</a>()[<span class="lit-number">16</span>-<label for="r88" class="ident">ctx</label>.<a href="#line-125" class="ident">aead</a>.<a href="../../cipher/cipher.go.html#line-69" class="ident">NonceSize</a>():]</code></span>
+<span class="codeline" id="line-260"><code>	<span class="keyword">for</span> <label for="r91" class="ident">i</label> := <span class="keyword">range</span> <label for="r88" class="ident">ctx</label>.<a href="#line-132" class="ident">baseNonce</a> {</code></span>
+<span class="codeline" id="line-261"><code>		<label for="r90" class="ident">nonce</label>[<label for="r91" class="ident">i</label>] ^= <label for="r88" class="ident">ctx</label>.<a href="#line-132" class="ident">baseNonce</a>[<label for="r91" class="ident">i</label>]</code></span>
+<span class="codeline" id="line-262"><code>	}</code></span>
+<span class="codeline" id="line-263"><code>	<span class="keyword">return</span> <label for="r90" class="ident">nonce</label></code></span>
+<span class="codeline" id="line-264"><code>}</code></span>
+<span class="codeline" id="line-265"><code></code></span>
+<span class="codeline" id="line-266"><code><span class="keyword">func</span> (<label for="r92" class="ident">ctx</label> *<a href="#line-124" class="ident">context</a>) <label for="r93" class="ident"><a href="../../../../use/crypto/internal/hpke..context^ea779.incrementNonce^536c6.html" class="ident">incrementNonce</a></label>() {</code></span>
+<span class="codeline" id="line-267"><code>	<span class="comment">// Message limit is, according to the RFC, 2^95+1, which</span></code></span>
+<span class="codeline" id="line-268"><code><span class="comment">	// is somewhat confusing, but we do as we're told.</span></code></span>
+<span class="codeline" id="line-269"><code>	<span class="keyword">if</span> <label for="r92" class="ident">ctx</label>.<a href="#line-135" class="ident">seqNum</a>.<a href="#line-324" class="ident">bitLen</a>() &gt;= (<label for="r92" class="ident">ctx</label>.<a href="#line-125" class="ident">aead</a>.<a href="../../cipher/cipher.go.html#line-69" class="ident">NonceSize</a>()*<span class="lit-number">8</span>)-<span class="lit-number">1</span> {</code></span>
+<span class="codeline" id="line-270"><code>		<a href="../../../../pkg/builtin.html#name-panic" class="ident">panic</a>(<span class="lit-string">"message limit reached"</span>)</code></span>
+<span class="codeline" id="line-271"><code>	}</code></span>
+<span class="codeline" id="line-272"><code>	<label for="r92" class="ident">ctx</label>.<a href="#line-135" class="ident">seqNum</a> = <label for="r92" class="ident">ctx</label>.<a href="#line-135" class="ident">seqNum</a>.<a href="#line-319" class="ident">addOne</a>()</code></span>
+<span class="codeline" id="line-273"><code>}</code></span>
+<span class="codeline" id="line-274"><code></code></span>
+<span class="codeline" id="line-275"><code><span class="keyword">func</span> (<label for="r94" class="ident">s</label> *<a href="#line-138" class="ident">Sender</a>) <label for="r95" class="ident"><a href="../../../../use/crypto/internal/hpke..Sender.Seal.html" class="ident">Seal</a></label>(<label for="r96" class="ident">aad</label>, <label for="r97" class="ident">plaintext</label> []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) ([]<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-276"><code>	<label for="r98" class="ident">ciphertext</label> := <label for="r94" class="ident">s</label>.<a href="#line-125" class="ident">aead</a>.<a href="../../cipher/cipher.go.html#line-83" class="ident">Seal</a>(<a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r94" class="ident">s</label>.<a href="#line-258" class="ident">nextNonce</a>(), <label for="r97" class="ident">plaintext</label>, <label for="r96" class="ident">aad</label>)</code></span>
+<span class="codeline" id="line-277"><code>	<label for="r94" class="ident">s</label>.<a href="#line-266" class="ident">incrementNonce</a>()</code></span>
+<span class="codeline" id="line-278"><code>	<span class="keyword">return</span> <label for="r98" class="ident">ciphertext</label>, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-279"><code>}</code></span>
+<span class="codeline" id="line-280"><code></code></span>
+<span class="codeline" id="line-281"><code><span class="keyword">func</span> (<label for="r99" class="ident">r</label> *<a href="#line-142" class="ident">Receipient</a>) <label for="r100" class="ident"><a href="../../../../use/crypto/internal/hpke..Receipient.Open.html" class="ident">Open</a></label>(<label for="r101" class="ident">aad</label>, <label for="r102" class="ident">ciphertext</label> []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) ([]<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-282"><code>	<label for="r103" class="ident">plaintext</label>, <label for="r104" class="ident">err</label> := <label for="r99" class="ident">r</label>.<a href="#line-125" class="ident">aead</a>.<a href="../../cipher/cipher.go.html#line-97" class="ident">Open</a>(<a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r99" class="ident">r</label>.<a href="#line-258" class="ident">nextNonce</a>(), <label for="r102" class="ident">ciphertext</label>, <label for="r101" class="ident">aad</label>)</code></span>
+<span class="codeline" id="line-283"><code>	<span class="keyword">if</span> <label for="r104" class="ident">err</label> != <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-284"><code>		<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r104" class="ident">err</label></code></span>
+<span class="codeline" id="line-285"><code>	}</code></span>
+<span class="codeline" id="line-286"><code>	<label for="r99" class="ident">r</label>.<a href="#line-266" class="ident">incrementNonce</a>()</code></span>
+<span class="codeline" id="line-287"><code>	<span class="keyword">return</span> <label for="r103" class="ident">plaintext</label>, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-288"><code>}</code></span>
+<span class="codeline" id="line-289"><code></code></span>
+<span class="codeline" id="line-290"><code><span class="keyword">func</span> <label for="r105" class="ident"><a href="../../../../pkg/crypto/internal/hpke.html#name-suiteID" class="ident">suiteID</a></label>(<label for="r106" class="ident">kemID</label>, <label for="r107" class="ident">kdfID</label>, <label for="r108" class="ident">aeadID</label> <a href="../../../../pkg/builtin.html#name-uint16" class="ident">uint16</a>) []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a> {</code></span>
+<span class="codeline" id="line-291"><code>	<label for="r109" class="ident">suiteID</label> := <a href="../../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <span class="lit-number">0</span>, <span class="lit-number">4</span>+<span class="lit-number">2</span>+<span class="lit-number">2</span>+<span class="lit-number">2</span>)</code></span>
+<span class="codeline" id="line-292"><code>	<label for="r109" class="ident">suiteID</label> = <a href="../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r109" class="ident">suiteID</label>, []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>(<span class="lit-string">"HPKE"</span>)...)</code></span>
+<span class="codeline" id="line-293"><code>	<label for="r109" class="ident">suiteID</label> = <a href="../../../../pkg/internal/byteorder.html" class="ident i7">byteorder</a>.<a href="../../../internal/byteorder/byteorder.go.html#line-91" class="ident">BEAppendUint16</a>(<label for="r109" class="ident">suiteID</label>, <label for="r106" class="ident">kemID</label>)</code></span>
+<span class="codeline" id="line-294"><code>	<label for="r109" class="ident">suiteID</label> = <a href="../../../../pkg/internal/byteorder.html" class="ident i7">byteorder</a>.<a href="../../../internal/byteorder/byteorder.go.html#line-91" class="ident">BEAppendUint16</a>(<label for="r109" class="ident">suiteID</label>, <label for="r107" class="ident">kdfID</label>)</code></span>
+<span class="codeline" id="line-295"><code>	<label for="r109" class="ident">suiteID</label> = <a href="../../../../pkg/internal/byteorder.html" class="ident i7">byteorder</a>.<a href="../../../internal/byteorder/byteorder.go.html#line-91" class="ident">BEAppendUint16</a>(<label for="r109" class="ident">suiteID</label>, <label for="r108" class="ident">aeadID</label>)</code></span>
+<span class="codeline" id="line-296"><code>	<span class="keyword">return</span> <label for="r109" class="ident">suiteID</label></code></span>
+<span class="codeline" id="line-297"><code>}</code></span>
+<span class="codeline" id="line-298"><code></code></span>
+<span class="codeline" id="line-299"><code><span class="keyword">func</span> <label for="r110" class="ident"><a href="../../../../pkg/crypto/internal/hpke.html#name-ParseHPKEPublicKey" class="ident">ParseHPKEPublicKey</a></label>(<label for="r111" class="ident">kemID</label> <a href="../../../../pkg/builtin.html#name-uint16" class="ident">uint16</a>, <label for="r112" class="ident">bytes</label> []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) (*<a href="../../../../pkg/crypto/ecdh.html" class="ident i3">ecdh</a>.<a href="../../ecdh/ecdh.go.html#line-60" class="ident">PublicKey</a>, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-300"><code>	<label for="r113" class="ident">kemInfo</label>, <label for="r114" class="ident">ok</label> := <a href="#line-61" class="ident">SupportedKEMs</a>[<label for="r111" class="ident">kemID</label>]</code></span>
+<span class="codeline" id="line-301"><code>	<span class="keyword">if</span> !<label for="r114" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-302"><code>		<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../../pkg/errors.html" class="ident i6">errors</a>.<a href="../../../errors/errors.go.html#line-64" class="ident">New</a>(<span class="lit-string">"unsupported KEM id"</span>)</code></span>
+<span class="codeline" id="line-303"><code>	}</code></span>
+<span class="codeline" id="line-304"><code>	<span class="keyword">return</span> <label for="r113" class="ident">kemInfo</label>.<a href="#line-62" class="ident">curve</a>.<a href="../../ecdh/ecdh.go.html#line-45" class="ident">NewPublicKey</a>(<label for="r112" class="ident">bytes</label>)</code></span>
+<span class="codeline" id="line-305"><code>}</code></span>
+<span class="codeline" id="line-306"><code></code></span>
+<span class="codeline" id="line-307"><code><span class="keyword">func</span> <label for="r115" class="ident"><a href="../../../../pkg/crypto/internal/hpke.html#name-ParseHPKEPrivateKey" class="ident">ParseHPKEPrivateKey</a></label>(<label for="r116" class="ident">kemID</label> <a href="../../../../pkg/builtin.html#name-uint16" class="ident">uint16</a>, <label for="r117" class="ident">bytes</label> []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) (*<a href="../../../../pkg/crypto/ecdh.html" class="ident i3">ecdh</a>.<a href="../../ecdh/ecdh.go.html#line-100" class="ident">PrivateKey</a>, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-308"><code>	<label for="r118" class="ident">kemInfo</label>, <label for="r119" class="ident">ok</label> := <a href="#line-61" class="ident">SupportedKEMs</a>[<label for="r116" class="ident">kemID</label>]</code></span>
+<span class="codeline" id="line-309"><code>	<span class="keyword">if</span> !<label for="r119" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-310"><code>		<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../../pkg/errors.html" class="ident i6">errors</a>.<a href="../../../errors/errors.go.html#line-64" class="ident">New</a>(<span class="lit-string">"unsupported KEM id"</span>)</code></span>
+<span class="codeline" id="line-311"><code>	}</code></span>
+<span class="codeline" id="line-312"><code>	<span class="keyword">return</span> <label for="r118" class="ident">kemInfo</label>.<a href="#line-62" class="ident">curve</a>.<a href="../../ecdh/ecdh.go.html#line-35" class="ident">NewPrivateKey</a>(<label for="r117" class="ident">bytes</label>)</code></span>
+<span class="codeline" id="line-313"><code>}</code></span>
+<span class="codeline" id="line-314"><code></code></span>
+<span class="codeline" id="line-315"><code><span class="keyword">type</span> <a href="../../../../pkg/crypto/internal/hpke.html#name-uint128" class="ident">uint128</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-316"><code>	<a href="../../../../use/crypto/internal/hpke..uint128^d085c.hi^8f434.html" class="ident">hi</a>, <a href="../../../../use/crypto/internal/hpke..uint128^d085c.lo^9294a.html" class="ident">lo</a> <a href="../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a></code></span>
+<span class="codeline" id="line-317"><code>}</code></span>
+<span class="codeline" id="line-318"><code></code></span>
+<span class="codeline" id="line-319"><code><span class="keyword">func</span> (<label for="r120" class="ident">u</label> <a href="#line-315" class="ident">uint128</a>) <label for="r121" class="ident"><a href="../../../../use/crypto/internal/hpke..uint128^d085c.addOne^43fdf.html" class="ident">addOne</a></label>() <a href="#line-315" class="ident">uint128</a> {</code></span>
+<span class="codeline" id="line-320"><code>	<label for="r122" class="ident">lo</label>, <label for="r123" class="ident">carry</label> := <a href="../../../../pkg/math/bits.html" class="ident i8">bits</a>.<a href="../../../math/bits/bits.go.html#line-386" class="ident">Add64</a>(<label for="r120" class="ident">u</label>.<a href="#line-316" class="ident">lo</a>, <span class="lit-number">1</span>, <span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-321"><code>	<span class="keyword">return</span> <a href="#line-315" class="ident">uint128</a>{<label for="r120" class="ident">u</label>.<a href="#line-316" class="ident">hi</a> + <label for="r123" class="ident">carry</label>, <label for="r122" class="ident">lo</label>}</code></span>
+<span class="codeline" id="line-322"><code>}</code></span>
+<span class="codeline" id="line-323"><code></code></span>
+<span class="codeline" id="line-324"><code><span class="keyword">func</span> (<label for="r124" class="ident">u</label> <a href="#line-315" class="ident">uint128</a>) <label for="r125" class="ident"><a href="../../../../use/crypto/internal/hpke..uint128^d085c.bitLen^c9c1b.html" class="ident">bitLen</a></label>() <a href="../../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-325"><code>	<span class="keyword">return</span> <a href="../../../../pkg/math/bits.html" class="ident i8">bits</a>.<a href="../../../math/bits/bits.go.html#line-337" class="ident">Len64</a>(<label for="r124" class="ident">u</label>.<a href="#line-316" class="ident">hi</a>) + <a href="../../../../pkg/math/bits.html" class="ident i8">bits</a>.<a href="../../../math/bits/bits.go.html#line-337" class="ident">Len64</a>(<label for="r124" class="ident">u</label>.<a href="#line-316" class="ident">lo</a>)</code></span>
+<span class="codeline" id="line-326"><code>}</code></span>
+<span class="codeline" id="line-327"><code></code></span>
+<span class="codeline" id="line-328"><code><span class="keyword">func</span> (<label for="r126" class="ident">u</label> <a href="#line-315" class="ident">uint128</a>) <label for="r127" class="ident"><a href="../../../../use/crypto/internal/hpke..uint128^d085c.bytes^27708.html" class="ident">bytes</a></label>() []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a> {</code></span>
+<span class="codeline" id="line-329"><code>	<label for="r128" class="ident">b</label> := <a href="../../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <span class="lit-number">16</span>)</code></span>
+<span class="codeline" id="line-330"><code>	<a href="../../../../pkg/internal/byteorder.html" class="ident i7">byteorder</a>.<a href="../../../internal/byteorder/byteorder.go.html#line-126" class="ident">BEPutUint64</a>(<label for="r128" class="ident">b</label>[<span class="lit-number">0</span>:], <label for="r126" class="ident">u</label>.<a href="#line-316" class="ident">hi</a>)</code></span>
+<span class="codeline" id="line-331"><code>	<a href="../../../../pkg/internal/byteorder.html" class="ident i7">byteorder</a>.<a href="../../../internal/byteorder/byteorder.go.html#line-126" class="ident">BEPutUint64</a>(<label for="r128" class="ident">b</label>[<span class="lit-number">8</span>:], <label for="r126" class="ident">u</label>.<a href="#line-316" class="ident">lo</a>)</code></span>
+<span class="codeline" id="line-332"><code>	<span class="keyword">return</span> <label for="r128" class="ident">b</label></code></span>
+<span class="codeline" id="line-333"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>
