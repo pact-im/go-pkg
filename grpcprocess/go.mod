@@ -4,7 +4,7 @@ go 1.24.0
 
 require (
 	go.pact.im/x/process v0.0.6
-	go.uber.org/goleak v1.2.1
+	go.uber.org/goleak v1.3.0
 	google.golang.org/grpc v1.53.0
 )
 
