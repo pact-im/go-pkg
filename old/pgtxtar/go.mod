@@ -5,7 +5,7 @@ go 1.24.0
 require (
 	github.com/go-pg/migrations/v8 v8.1.0
 	go.uber.org/multierr v1.9.0
-	golang.org/x/tools v0.22.0
+	golang.org/x/tools v0.36.0
 )
 
 require (
@@ -23,8 +23,8 @@ require (
 	github.com/vmihailenco/tagparser v0.1.2 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
-	golang.org/x/crypto v0.24.0 // indirect
-	golang.org/x/sys v0.21.0 // indirect
+	golang.org/x/crypto v0.41.0 // indirect
+	golang.org/x/sys v0.35.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	mellium.im/sasl v0.3.1 // indirect
 )
