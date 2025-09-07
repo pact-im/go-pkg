@@ -3,7 +3,7 @@ module go.pact.im/x/crypt
 go 1.24.0
 
 require (
-	go.pact.im/x/option v0.0.9
+	go.pact.im/x/option v0.0.10
 	go.pact.im/x/phcformat v0.0.9
 	golang.org/x/crypto v0.41.0
 )
