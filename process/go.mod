@@ -3,7 +3,7 @@ module go.pact.im/x/process
 go 1.24.0
 
 require (
-	go.pact.im/x/task v0.0.9
+	go.pact.im/x/task v0.0.10
 	go.uber.org/atomic v1.10.0
 )
 

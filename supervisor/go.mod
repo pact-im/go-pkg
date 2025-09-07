@@ -12,6 +12,6 @@ require (
 
 require (
 	github.com/google/go-cmp v0.6.0 // indirect
-	go.pact.im/x/task v0.0.9 // indirect
+	go.pact.im/x/task v0.0.10 // indirect
 	go.uber.org/multierr v1.9.0 // indirect
 )
