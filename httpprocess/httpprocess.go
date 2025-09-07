@@ -1,4 +1,4 @@
-// Package grpcprocess provides [process.Runnable] wrapper for [http.Server].
+// Package httpprocess provides [process.Runnable] wrapper for [http.Server].
 package httpprocess
 
 import (
