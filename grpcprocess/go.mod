@@ -14,7 +14,7 @@ require (
 	github.com/stretchr/testify v1.9.0 // indirect
 	go.pact.im/x/clock v0.0.7 // indirect
 	go.pact.im/x/syncx v0.0.6 // indirect
-	go.pact.im/x/task v0.0.6 // indirect
+	go.pact.im/x/task v0.0.7 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/multierr v1.9.0 // indirect
 	golang.org/x/net v0.26.0 // indirect
