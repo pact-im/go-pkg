@@ -8,7 +8,7 @@ require (
 )
 
 require (
-	go.pact.im/x/task v0.0.8 // indirect
+	go.pact.im/x/task v0.0.9 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/multierr v1.9.0 // indirect
 )
