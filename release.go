@@ -197,7 +197,10 @@ func topoSortModules(modules map[string]*Module) ([]*Module, error) {
 }
 
 func updateDependency(modDir, dep, version string) error {
-	return run("go", "-C", modDir, "get", "--", dep+"@"+version)
+	if err := run("go", "-C", modDir, "get", "--", dep+"@"+version); err != nil {
+		return err
+	}
+	return run("go", "-C", modDir, "mod", "tidy")
 }
 
 func stageGoModChange(modDir string) error {
