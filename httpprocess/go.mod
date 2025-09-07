@@ -3,7 +3,7 @@ module go.pact.im/x/httpprocess
 go 1.24.0
 
 require (
-	go.pact.im/x/httptrack v0.0.9
+	go.pact.im/x/httptrack v0.0.10
 	go.pact.im/x/process v0.0.10
 )
 
