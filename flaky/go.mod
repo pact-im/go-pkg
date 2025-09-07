@@ -9,7 +9,4 @@ require (
 	gotest.tools/v3 v3.4.0
 )
 
-require (
-	github.com/golang/mock v1.6.0 // indirect
-	github.com/google/go-cmp v0.6.0 // indirect
-)
+require github.com/google/go-cmp v0.6.0 // indirect
