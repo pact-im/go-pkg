@@ -3,7 +3,7 @@ module go.pact.im/x/supervisor
 go 1.24.0
 
 require (
-	go.pact.im/x/clock v0.0.7
+	go.pact.im/x/clock v0.0.8
 	go.pact.im/x/process v0.0.7
 	go.pact.im/x/syncx v0.0.7
 	go.uber.org/atomic v1.10.0
