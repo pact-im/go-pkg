@@ -122,6 +122,7 @@ func discoverModules() (map[string]*Module, error) {
 	}
 
 	result := make(map[string]*Module)
+outer:
 	for _, use := range work.Use {
 		modDir := use.DiskPath
 		if !filepath.IsLocal(modDir) {
@@ -143,8 +144,10 @@ func discoverModules() (map[string]*Module, error) {
 
 		var deps []string
 		for _, req := range modInfo.Require {
+			// We use packages with fake versions for integration
+			// tests. These should never be published.
 			if req.Version == fakeVersion {
-				continue
+				continue outer
 			}
 			deps = append(deps, req.Path)
 		}
