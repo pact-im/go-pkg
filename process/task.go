@@ -61,7 +61,8 @@ import (
 //	  },
 //	)
 //
-// Alternatively, use [go.pact.im/x/grpcprocess] package for gRPC.
+// Alternatively, use [go.pact.im/x/httpprocess] package for HTTP and
+// [go.pact.im/x/grpcprocess] for gRPC.
 func Leaf(runInForeground, gracefulStop func(ctx context.Context) error) Runnable {
 	return &leafRunnable{runInForeground, gracefulStop}
 }

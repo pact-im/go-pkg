@@ -15,6 +15,8 @@ import (
 func Server(srv *grpc.Server, lis net.Listener) process.Runnable {
 	return process.Leaf(
 		func(_ context.Context) error {
+			// TODO: consider injecting base context into gRPC’s
+			// internal/transport/http2_server.go NewServerTransport.
 			return srv.Serve(lis)
 		},
 		func(ctx context.Context) error {
