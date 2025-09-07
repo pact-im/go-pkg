@@ -1,3 +1,4 @@
+// Deprecated: do not use.
 module go.pact.im/x/awsenv
 
 go 1.24.0
