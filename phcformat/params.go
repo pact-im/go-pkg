@@ -1,7 +1,7 @@
 package phcformat
 
 import (
-	"bytes"
+	"iter"
 	"strings"
 )
 
@@ -28,6 +28,25 @@ func IterParams(s string) ParamsIterator {
 	return it.Next()
 }
 
+// Iter returns an iterator over the remaining key=value parameter pairs.
+//
+// It yields (name, value) pairs parsed from the input string, stopping when all
+// parameters have been consumed or a parsing error occurs (e.g. missing '=' or
+// trailing comma).
+//
+// When iteration ends, the ParamsIterator will contain unparsed trailing data in
+// the After field. This allows the caller to inspect whether a parsing error
+// occurred and what data remains.
+func (it *ParamsIterator) Iter() iter.Seq2[string, string] {
+	return func(yield func(string, string) bool) {
+		for ; it.Valid; *it = it.Next() {
+			if !yield(it.Name, it.Value) {
+				return
+			}
+		}
+	}
+}
+
 // Next advances to the next parameter in the sequence.
 func (it ParamsIterator) Next() ParamsIterator {
 	it.Name, it.Value, it.After, it.Valid = nextParam(it.After)
@@ -42,7 +61,7 @@ func nextParam(s string) (name, value, after string, ok bool) {
 	}
 	name, s = s[:i], s[i+1:]
 
-	j := bytes.IndexByte([]byte(s), ',')
+	j := strings.IndexByte(s, ',')
 	if j < 0 {
 		return name, s, "", true
 	}

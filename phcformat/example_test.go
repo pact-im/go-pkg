@@ -12,8 +12,8 @@ import (
 func ExampleIterParams() {
 	params := option.Value("a=b,c=d")
 	it := phcformat.IterParams(option.UnwrapOrZero(params))
-	for ; it.Valid; it = it.Next() {
-		fmt.Println(it.Name, it.Value)
+	for name, value := range it.Iter() {
+		fmt.Println(name, value)
 	}
 	if it.After != "" {
 		panic("parse error")
