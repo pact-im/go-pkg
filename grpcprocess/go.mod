@@ -3,7 +3,7 @@ module go.pact.im/x/grpcprocess
 go 1.24.0
 
 require (
-	go.pact.im/x/process v0.0.8
+	go.pact.im/x/process v0.0.9
 	go.uber.org/goleak v1.3.0
 	google.golang.org/grpc v1.53.0
 )
