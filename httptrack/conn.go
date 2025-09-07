@@ -34,7 +34,7 @@ func (c *ConnTracker) Track(_ net.Conn, state http.ConnState) {
 }
 
 // Wait blocks until all tracked HTTP connections have completed. It should be
-// called after [http.Server.Close] has returned.
+// called after [http.Server.Serve] has returned.
 func (c *ConnTracker) Wait() {
 	c.wg.Wait()
 }

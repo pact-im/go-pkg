@@ -39,11 +39,13 @@ func Compose(hooks ...Tracker) TrackerFunc {
 
 // Wrap configures an [http.Server] to use the given [Tracker] via server’s
 // ConnState hook. If ConnState is already set, it is preserved and runs before
-// the provided [Tracker].
-func Wrap(s *http.Server, h Tracker) {
-	if s.ConnState != nil {
-		s.ConnState = Compose(TrackerFunc(s.ConnState), h)
+// the provided [Tracker], and Wrap returns the old value.
+func Wrap(s *http.Server, h Tracker) TrackerFunc {
+	oldConnState := TrackerFunc(s.ConnState)
+	if oldConnState != nil {
+		s.ConnState = Compose(oldConnState, h)
 	} else {
 		s.ConnState = h.Track
 	}
+	return oldConnState
 }
