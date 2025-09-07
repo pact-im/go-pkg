@@ -12,7 +12,7 @@ require (
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/stretchr/testify v1.9.0 // indirect
-	go.pact.im/x/clock v0.0.6 // indirect
+	go.pact.im/x/clock v0.0.7 // indirect
 	go.pact.im/x/syncx v0.0.6 // indirect
 	go.pact.im/x/task v0.0.6 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
