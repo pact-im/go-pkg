@@ -7,8 +7,6 @@ import (
 	"testing"
 
 	"gotest.tools/v3/assert"
-
-	"go.pact.im/x/syncx"
 )
 
 // errNotFound is an error that map table implementation return when an element
@@ -17,7 +15,7 @@ var errNotFound = errors.New("process: map table element was not found")
 
 // mapTable is a Table implementation that uses builtin map type.
 type mapTable[K comparable, V any] struct {
-	m syncx.Map[K, V]
+	m typedMap[K, V]
 }
 
 // Get implements the Table interface.

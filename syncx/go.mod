@@ -1,3 +1,4 @@
+// Deprecated: do not use.
 module go.pact.im/x/syncx
 
 go 1.24.0

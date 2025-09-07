@@ -11,7 +11,6 @@ import (
 
 	"go.pact.im/x/clock"
 	"go.pact.im/x/process"
-	"go.pact.im/x/syncx"
 )
 
 // Supervisor is responsible for starting, stopping, and monitoring its child
@@ -23,10 +22,10 @@ type Supervisor[K comparable, P process.Runnable] struct {
 	// processes is a map of managed processes. It is used to track process
 	// state and allows returning an ErrProcessExists error to guarantee
 	// that at most one processes is active per key.
-	processes syncx.Map[K, *managedProcess[P]]
+	processes typedMap[K, *managedProcess[P]]
 
 	// runLock ensures that at most one Run method is executing at a time.
-	runLock syncx.Lock
+	runLock chanLock
 
 	// startMu guards startProcess and startProcessForKey calls when
 	// Supervisor is not running. It also allows waiting for the ongoing
@@ -79,7 +78,7 @@ func NewSupervisor[K comparable, P process.Runnable](t Table[K, P], o Options) *
 	return &Supervisor[K, P]{
 		clock:   o.Clock,
 		table:   t,
-		runLock: syncx.NewLock(),
+		runLock: newChanLock(),
 	}
 }
 
