@@ -112,10 +112,7 @@ func (l *Listener) Done() <-chan struct{} {
 //
 // Dial blocks until the server side connection is accepted by a call to Accept,
 // or until the Listener is closed or the provided context is canceled.
-//
-// The second and third string parameters are ignored. They exist for
-// convenience to match [net.Dialer.DialContext] function signature.
-func (l *Listener) Dial(ctx context.Context, _, _ string) (net.Conn, error) {
+func (l *Listener) Dial(ctx context.Context) (net.Conn, error) {
 	clientConn, serverConn := net.Pipe()
 	select {
 	case l.conn <- serverConn:
