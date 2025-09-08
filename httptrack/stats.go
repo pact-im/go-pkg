@@ -165,7 +165,7 @@ func (s *StatsTracker) Connections() map[net.Conn]http.ConnState {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	// Note that we return the original map instead of a cloned map. That
-	// is, as a side effect of this method, the internal map is shrinked.
+	// is, as a side effect of this method, the internal map is shrunk.
 	// See https://go.dev/issue/20135 and https://antonz.org/go-map-shrink
 	var conns map[net.Conn]http.ConnState
 	s.conns, conns = maps.Clone(s.conns), s.conns
