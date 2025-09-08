@@ -1,15 +1,14 @@
 // Package task provides an alternative to errgroup package with builtin context
 // cancellation support.
 //
-// This packages uses go.uber.org/multierr to combine errors from failed tasks.
+// This packages uses [errors.Join] to combine errors from failed tasks.
 package task
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
-
-	"go.uber.org/multierr"
 )
 
 // Task is a function that performs some work in foreground.
@@ -54,7 +53,7 @@ func Sequential(cond CancelCondition, tasks ...Task) Task {
 			}
 		}
 
-		return multierr.Combine(errs...)
+		return errors.Join(errs...)
 	}
 }
 
@@ -87,6 +86,6 @@ func Parallel(cond CancelCondition, tasks ...Task) Task {
 		}
 		wg.Wait()
 
-		return multierr.Combine(errs...)
+		return errors.Join(errs...)
 	}
 }
