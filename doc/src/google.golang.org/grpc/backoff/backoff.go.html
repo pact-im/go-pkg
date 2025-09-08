@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: backoff.go in package google.golang.org/grpc/backoff</title>
+<link href="../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	backoff.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../pkg/google.golang.org/grpc/backoff.html">google.golang.org/grpc/backoff</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0
+{background: brown; color: #eed;}
+</style><input id="i0" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">/*</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment"> * Copyright 2019 gRPC authors.</span></code></span>
+<span class="codeline" id="line-4"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-5"><code><span class="comment"> * Licensed under the Apache License, Version 2.0 (the "License");</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment"> * you may not use this file except in compliance with the License.</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment"> * You may obtain a copy of the License at</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment"> *     http://www.apache.org/licenses/LICENSE-2.0</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment"> * Unless required by applicable law or agreed to in writing, software</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment"> * distributed under the License is distributed on an "AS IS" BASIS,</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment"> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment"> * See the License for the specific language governing permissions and</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment"> * limitations under the License.</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment"> */</span></code></span>
+<span class="codeline" id="line-18"><code></code></span>
+<div class="anchor" id="doc"><span class="codeline" id="line-19"><code><span class="comment">// Package backoff provides configuration options for backoff.</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">// More details can be found at:</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">// https://github.com/grpc/grpc/blob/master/doc/connection-backoff.md.</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">// All APIs in this package are experimental.</span></code></span></div><span class="codeline" id="line-25"><code><span class="keyword">package</span> backoff</code></span>
+<span class="codeline" id="line-26"><code></code></span>
+<span class="codeline" id="line-27"><code><span class="keyword">import</span> <label for="i0"><span class="lit-string i0">"time"</span></label></code></span>
+<span class="codeline" id="line-28"><code></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">// Config defines the configuration options for backoff.</span></code></span>
+<span class="codeline" id="line-30"><code><span class="keyword">type</span> <a href="../../../../pkg/google.golang.org/grpc/backoff.html#name-Config" class="ident">Config</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-31"><code>	<span class="comment">// BaseDelay is the amount of time to backoff after the first failure.</span></code></span>
+<span class="codeline" id="line-32"><code>	<a href="../../../../use/google.golang.org/grpc/backoff..Config.BaseDelay.html" class="ident">BaseDelay</a> <a href="../../../../pkg/time.html" class="ident i0">time</a>.<a href="../../../time/time.go.html#line-911" class="ident">Duration</a></code></span>
+<span class="codeline" id="line-33"><code>	<span class="comment">// Multiplier is the factor with which to multiply backoffs after a</span></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">	// failed retry. Should ideally be greater than 1.</span></code></span>
+<span class="codeline" id="line-35"><code>	<a href="../../../../use/google.golang.org/grpc/backoff..Config.Multiplier.html" class="ident">Multiplier</a> <a href="../../../../pkg/builtin.html#name-float64" class="ident">float64</a></code></span>
+<span class="codeline" id="line-36"><code>	<span class="comment">// Jitter is the factor with which backoffs are randomized.</span></code></span>
+<span class="codeline" id="line-37"><code>	<a href="../../../../use/google.golang.org/grpc/backoff..Config.Jitter.html" class="ident">Jitter</a> <a href="../../../../pkg/builtin.html#name-float64" class="ident">float64</a></code></span>
+<span class="codeline" id="line-38"><code>	<span class="comment">// MaxDelay is the upper bound of backoff delay.</span></code></span>
+<span class="codeline" id="line-39"><code>	<a href="../../../../use/google.golang.org/grpc/backoff..Config.MaxDelay.html" class="ident">MaxDelay</a> <a href="../../../../pkg/time.html" class="ident i0">time</a>.<a href="../../../time/time.go.html#line-911" class="ident">Duration</a></code></span>
+<span class="codeline" id="line-40"><code>}</code></span>
+<span class="codeline" id="line-41"><code></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">// DefaultConfig is a backoff configuration with the default values specfied</span></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">// at https://github.com/grpc/grpc/blob/master/doc/connection-backoff.md.</span></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-45"><code><span class="comment">// This should be useful for callers who want to configure backoff with</span></code></span>
+<span class="codeline" id="line-46"><code><span class="comment">// non-default values only for a subset of the options.</span></code></span>
+<span class="codeline" id="line-47"><code><span class="keyword">var</span> <a href="../../../../pkg/google.golang.org/grpc/backoff.html#name-DefaultConfig" class="ident">DefaultConfig</a> = <a href="#line-30" class="ident">Config</a>{</code></span>
+<span class="codeline" id="line-48"><code>	<a href="#line-32" class="ident">BaseDelay</a>:  <span class="lit-number">1.0</span> * <a href="../../../../pkg/time.html" class="ident i0">time</a>.<a href="../../../time/time.go.html#line-934" class="ident">Second</a>,</code></span>
+<span class="codeline" id="line-49"><code>	<a href="#line-35" class="ident">Multiplier</a>: <span class="lit-number">1.6</span>,</code></span>
+<span class="codeline" id="line-50"><code>	<a href="#line-37" class="ident">Jitter</a>:     <span class="lit-number">0.2</span>,</code></span>
+<span class="codeline" id="line-51"><code>	<a href="#line-39" class="ident">MaxDelay</a>:   <span class="lit-number">120</span> * <a href="../../../../pkg/time.html" class="ident i0">time</a>.<a href="../../../time/time.go.html#line-934" class="ident">Second</a>,</code></span>
+<span class="codeline" id="line-52"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

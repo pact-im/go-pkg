@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: mcleanup.go in package runtime</title>
+<link href="../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	mcleanup.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../pkg/runtime.html">runtime</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2024 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> runtime</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-8"><code>	<label for="i0"><span class="lit-string i0">"internal/abi"</span></label></code></span>
+<span class="codeline" id="line-9"><code>	<label for="i1"><span class="lit-string i1">"unsafe"</span></label></code></span>
+<span class="codeline" id="line-10"><code>)</code></span>
+<span class="codeline" id="line-11"><code></code></span>
+<span class="codeline" id="line-12"><code><span class="comment">// AddCleanup attaches a cleanup function to ptr. Some time after ptr is no longer</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">// reachable, the runtime will call cleanup(arg) in a separate goroutine.</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">// A typical use is that ptr is an object wrapping an underlying resource (e.g.,</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">// a File object wrapping an OS file descriptor), arg is the underlying resource</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">// (e.g., the OS file descriptor), and the cleanup function releases the underlying</span></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">// resource (e.g., by calling the close system call).</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">// There are few constraints on ptr. In particular, multiple cleanups may be</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">// attached to the same pointer, or to different pointers within the same</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">// allocation.</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">// If ptr is reachable from cleanup or arg, ptr will never be collected</span></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">// and the cleanup will never run. As a protection against simple cases of this,</span></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">// AddCleanup panics if arg is equal to ptr.</span></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">// There is no specified order in which cleanups will run.</span></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">// In particular, if several objects point to each other and all become</span></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">// unreachable at the same time, their cleanups all become eligible to run</span></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">// and can run in any order. This is true even if the objects form a cycle.</span></code></span>
+<span class="codeline" id="line-32"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-33"><code><span class="comment">// Cleanups run concurrently with any user-created goroutines.</span></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">// Cleanups may also run concurrently with one another (unlike finalizers).</span></code></span>
+<span class="codeline" id="line-35"><code><span class="comment">// If a cleanup function must run for a long time, it should create a new goroutine</span></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">// to avoid blocking the execution of other cleanups.</span></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-38"><code><span class="comment">// If ptr has both a cleanup and a finalizer, the cleanup will only run once</span></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">// it has been finalized and becomes unreachable without an associated finalizer.</span></code></span>
+<span class="codeline" id="line-40"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-41"><code><span class="comment">// The cleanup(arg) call is not always guaranteed to run; in particular it is not</span></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">// guaranteed to run before program exit.</span></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">// Cleanups are not guaranteed to run if the size of T is zero bytes, because</span></code></span>
+<span class="codeline" id="line-45"><code><span class="comment">// it may share same address with other zero-size objects in memory. See</span></code></span>
+<span class="codeline" id="line-46"><code><span class="comment">// https://go.dev/ref/spec#Size_and_alignment_guarantees.</span></code></span>
+<span class="codeline" id="line-47"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-48"><code><span class="comment">// It is not guaranteed that a cleanup will run for objects allocated</span></code></span>
+<span class="codeline" id="line-49"><code><span class="comment">// in initializers for package-level variables. Such objects may be</span></code></span>
+<span class="codeline" id="line-50"><code><span class="comment">// linker-allocated, not heap-allocated.</span></code></span>
+<span class="codeline" id="line-51"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-52"><code><span class="comment">// Note that because cleanups may execute arbitrarily far into the future</span></code></span>
+<span class="codeline" id="line-53"><code><span class="comment">// after an object is no longer referenced, the runtime is allowed to perform</span></code></span>
+<span class="codeline" id="line-54"><code><span class="comment">// a space-saving optimization that batches objects together in a single</span></code></span>
+<span class="codeline" id="line-55"><code><span class="comment">// allocation slot. The cleanup for an unreferenced object in such an</span></code></span>
+<span class="codeline" id="line-56"><code><span class="comment">// allocation may never run if it always exists in the same batch as a</span></code></span>
+<span class="codeline" id="line-57"><code><span class="comment">// referenced object. Typically, this batching only happens for tiny</span></code></span>
+<span class="codeline" id="line-58"><code><span class="comment">// (on the order of 16 bytes or less) and pointer-free objects.</span></code></span>
+<span class="codeline" id="line-59"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-60"><code><span class="comment">// A cleanup may run as soon as an object becomes unreachable.</span></code></span>
+<span class="codeline" id="line-61"><code><span class="comment">// In order to use cleanups correctly, the program must ensure that</span></code></span>
+<span class="codeline" id="line-62"><code><span class="comment">// the object is reachable until it is safe to run its cleanup.</span></code></span>
+<span class="codeline" id="line-63"><code><span class="comment">// Objects stored in global variables, or that can be found by tracing</span></code></span>
+<span class="codeline" id="line-64"><code><span class="comment">// pointers from a global variable, are reachable. A function argument or</span></code></span>
+<span class="codeline" id="line-65"><code><span class="comment">// receiver may become unreachable at the last point where the function</span></code></span>
+<span class="codeline" id="line-66"><code><span class="comment">// mentions it. To ensure a cleanup does not get called prematurely,</span></code></span>
+<span class="codeline" id="line-67"><code><span class="comment">// pass the object to the [KeepAlive] function after the last point</span></code></span>
+<span class="codeline" id="line-68"><code><span class="comment">// where the object must remain reachable.</span></code></span>
+<span class="codeline" id="line-69"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../pkg/runtime.html#name-AddCleanup" class="ident">AddCleanup</a></label>[<label for="r1" class="ident">T</label>, <label for="r2" class="ident">S</label> <a href="../../pkg/builtin.html#name-any" class="ident">any</a>](<label for="r3" class="ident">ptr</label> *<label for="r1" class="ident">T</label>, <label for="r4" class="ident">cleanup</label> <span class="keyword">func</span>(<label for="r2" class="ident">S</label>), <label for="r5" class="ident">arg</label> <label for="r2" class="ident">S</label>) <a href="#line-124" class="ident">Cleanup</a> {</code></span>
+<span class="codeline" id="line-70"><code>	<span class="comment">// Explicitly force ptr to escape to the heap.</span></code></span>
+<span class="codeline" id="line-71"><code>	<label for="r3" class="ident">ptr</label> = <a href="../../pkg/internal/abi.html" class="ident i0">abi</a>.<a href="../internal/abi/escape.go.html#line-28" class="ident">Escape</a>(<label for="r3" class="ident">ptr</label>)</code></span>
+<span class="codeline" id="line-72"><code></code></span>
+<span class="codeline" id="line-73"><code>	<span class="comment">// The pointer to the object must be valid.</span></code></span>
+<span class="codeline" id="line-74"><code>	<span class="keyword">if</span> <label for="r3" class="ident">ptr</label> == <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-75"><code>		<a href="../../pkg/builtin.html#name-panic" class="ident">panic</a>(<span class="lit-string">"runtime.AddCleanup: ptr is nil"</span>)</code></span>
+<span class="codeline" id="line-76"><code>	}</code></span>
+<span class="codeline" id="line-77"><code>	<label for="r6" class="ident">usptr</label> := <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>(<a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r3" class="ident">ptr</label>))</code></span>
+<span class="codeline" id="line-78"><code></code></span>
+<span class="codeline" id="line-79"><code>	<span class="comment">// Check that arg is not equal to ptr.</span></code></span>
+<span class="codeline" id="line-80"><code>	<span class="keyword">if</span> <label for="r7" class="ident">kind</label> := <a href="../../pkg/internal/abi.html" class="ident i0">abi</a>.<a href="../internal/abi/type.go.html#line-178" class="ident">TypeOf</a>(<label for="r5" class="ident">arg</label>).<a href="../internal/abi/type.go.html#line-197" class="ident">Kind</a>(); <label for="r7" class="ident">kind</label> == <a href="../../pkg/internal/abi.html" class="ident i0">abi</a>.<a href="../internal/abi/type.go.html#line-74" class="ident">Pointer</a> || <label for="r7" class="ident">kind</label> == <a href="../../pkg/internal/abi.html" class="ident i0">abi</a>.<a href="../internal/abi/type.go.html#line-78" class="ident">UnsafePointer</a> {</code></span>
+<span class="codeline" id="line-81"><code>		<span class="keyword">if</span> <a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r3" class="ident">ptr</label>) == *((*<a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>)(<a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(&amp;<label for="r5" class="ident">arg</label>))) {</code></span>
+<span class="codeline" id="line-82"><code>			<a href="../../pkg/builtin.html#name-panic" class="ident">panic</a>(<span class="lit-string">"runtime.AddCleanup: ptr is equal to arg, cleanup will never run"</span>)</code></span>
+<span class="codeline" id="line-83"><code>		}</code></span>
+<span class="codeline" id="line-84"><code>	}</code></span>
+<span class="codeline" id="line-85"><code>	<span class="keyword">if</span> <a href="arena.go.html#line-919" class="ident">inUserArenaChunk</a>(<label for="r6" class="ident">usptr</label>) {</code></span>
+<span class="codeline" id="line-86"><code>		<span class="comment">// Arena-allocated objects are not eligible for cleanup.</span></code></span>
+<span class="codeline" id="line-87"><code>		<a href="../../pkg/builtin.html#name-panic" class="ident">panic</a>(<span class="lit-string">"runtime.AddCleanup: ptr is arena-allocated"</span>)</code></span>
+<span class="codeline" id="line-88"><code>	}</code></span>
+<span class="codeline" id="line-89"><code>	<span class="keyword">if</span> <a href="runtime1.go.html#line-309" class="ident">debug</a>.<a href="runtime1.go.html#line-341" class="ident">sbrk</a> != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-90"><code>		<span class="comment">// debug.sbrk never frees memory, so no cleanup will ever run</span></code></span>
+<span class="codeline" id="line-91"><code><span class="comment">		// (and we don't have the data structures to record them).</span></code></span>
+<span class="codeline" id="line-92"><code><span class="comment">		// Return a noop cleanup.</span></code></span>
+<span class="codeline" id="line-93"><code>		<span class="keyword">return</span> <a href="#line-124" class="ident">Cleanup</a>{}</code></span>
+<span class="codeline" id="line-94"><code>	}</code></span>
+<span class="codeline" id="line-95"><code></code></span>
+<span class="codeline" id="line-96"><code>	<label for="r8" class="ident">fn</label> := <span class="keyword">func</span>() {</code></span>
+<span class="codeline" id="line-97"><code>		<label for="r4" class="ident">cleanup</label>(<label for="r5" class="ident">arg</label>)</code></span>
+<span class="codeline" id="line-98"><code>	}</code></span>
+<span class="codeline" id="line-99"><code>	<span class="comment">// Closure must escape.</span></code></span>
+<span class="codeline" id="line-100"><code>	<label for="r9" class="ident">fv</label> := *(**<a href="runtime2.go.html#line-174" class="ident">funcval</a>)(<a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(&amp;<label for="r8" class="ident">fn</label>))</code></span>
+<span class="codeline" id="line-101"><code>	<label for="r9" class="ident">fv</label> = <a href="../../pkg/internal/abi.html" class="ident i0">abi</a>.<a href="../internal/abi/escape.go.html#line-28" class="ident">Escape</a>(<label for="r9" class="ident">fv</label>)</code></span>
+<span class="codeline" id="line-102"><code></code></span>
+<span class="codeline" id="line-103"><code>	<span class="comment">// Find the containing object.</span></code></span>
+<span class="codeline" id="line-104"><code>	<label for="r10" class="ident">base</label>, <label for="r11" class="ident">_</label>, <label for="r12" class="ident">_</label> := <a href="mbitmap.go.html#line-1271" class="ident">findObject</a>(<label for="r6" class="ident">usptr</label>, <span class="lit-number">0</span>, <span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-105"><code>	<span class="keyword">if</span> <label for="r10" class="ident">base</label> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-106"><code>		<span class="keyword">if</span> <a href="mfinal.go.html#line-297" class="ident">isGoPointerWithoutSpan</a>(<a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r3" class="ident">ptr</label>)) {</code></span>
+<span class="codeline" id="line-107"><code>			<span class="comment">// Cleanup is a noop.</span></code></span>
+<span class="codeline" id="line-108"><code>			<span class="keyword">return</span> <a href="#line-124" class="ident">Cleanup</a>{}</code></span>
+<span class="codeline" id="line-109"><code>		}</code></span>
+<span class="codeline" id="line-110"><code>		<a href="../../pkg/builtin.html#name-panic" class="ident">panic</a>(<span class="lit-string">"runtime.AddCleanup: ptr not in allocated block"</span>)</code></span>
+<span class="codeline" id="line-111"><code>	}</code></span>
+<span class="codeline" id="line-112"><code></code></span>
+<span class="codeline" id="line-113"><code>	<span class="comment">// Ensure we have a finalizer processing goroutine running.</span></code></span>
+<span class="codeline" id="line-114"><code>	<a href="mfinal.go.html#line-163" class="ident">createfing</a>()</code></span>
+<span class="codeline" id="line-115"><code></code></span>
+<span class="codeline" id="line-116"><code>	<label for="r13" class="ident">id</label> := <a href="mheap.go.html#line-2040" class="ident">addCleanup</a>(<a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r3" class="ident">ptr</label>), <label for="r9" class="ident">fv</label>)</code></span>
+<span class="codeline" id="line-117"><code>	<span class="keyword">return</span> <a href="#line-124" class="ident">Cleanup</a>{</code></span>
+<span class="codeline" id="line-118"><code>		<a href="#line-126" class="ident">id</a>:  <label for="r13" class="ident">id</label>,</code></span>
+<span class="codeline" id="line-119"><code>		<a href="#line-128" class="ident">ptr</a>: <label for="r6" class="ident">usptr</label>,</code></span>
+<span class="codeline" id="line-120"><code>	}</code></span>
+<span class="codeline" id="line-121"><code>}</code></span>
+<span class="codeline" id="line-122"><code></code></span>
+<span class="codeline" id="line-123"><code><span class="comment">// Cleanup is a handle to a cleanup call for a specific object.</span></code></span>
+<span class="codeline" id="line-124"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-Cleanup" class="ident">Cleanup</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-125"><code>	<span class="comment">// id is the unique identifier for the cleanup within the arena.</span></code></span>
+<span class="codeline" id="line-126"><code>	<a href="../../use/runtime..Cleanup.id^a5614.html" class="ident">id</a> <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a></code></span>
+<span class="codeline" id="line-127"><code>	<span class="comment">// ptr contains the pointer to the object.</span></code></span>
+<span class="codeline" id="line-128"><code>	<a href="../../use/runtime..Cleanup.ptr^83dbe.html" class="ident">ptr</a> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a></code></span>
+<span class="codeline" id="line-129"><code>}</code></span>
+<span class="codeline" id="line-130"><code></code></span>
+<span class="codeline" id="line-131"><code><span class="comment">// Stop cancels the cleanup call. Stop will have no effect if the cleanup call</span></code></span>
+<span class="codeline" id="line-132"><code><span class="comment">// has already been queued for execution (because ptr became unreachable).</span></code></span>
+<span class="codeline" id="line-133"><code><span class="comment">// To guarantee that Stop removes the cleanup function, the caller must ensure</span></code></span>
+<span class="codeline" id="line-134"><code><span class="comment">// that the pointer that was passed to AddCleanup is reachable across the call to Stop.</span></code></span>
+<span class="codeline" id="line-135"><code><span class="keyword">func</span> (<label for="r14" class="ident">c</label> <a href="#line-124" class="ident">Cleanup</a>) <label for="r15" class="ident"><a href="../../use/runtime..Cleanup.Stop.html" class="ident">Stop</a></label>() {</code></span>
+<span class="codeline" id="line-136"><code>	<span class="keyword">if</span> <label for="r14" class="ident">c</label>.<a href="#line-126" class="ident">id</a> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-137"><code>		<span class="comment">// id is set to zero when the cleanup is a noop.</span></code></span>
+<span class="codeline" id="line-138"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-139"><code>	}</code></span>
+<span class="codeline" id="line-140"><code></code></span>
+<span class="codeline" id="line-141"><code>	<span class="comment">// The following block removes the Special record of type cleanup for the object c.ptr.</span></code></span>
+<span class="codeline" id="line-142"><code>	<label for="r16" class="ident">span</label> := <a href="mheap.go.html#line-722" class="ident">spanOfHeap</a>(<a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>(<a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r14" class="ident">c</label>.<a href="#line-128" class="ident">ptr</a>)))</code></span>
+<span class="codeline" id="line-143"><code>	<span class="keyword">if</span> <label for="r16" class="ident">span</label> == <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-144"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-145"><code>	}</code></span>
+<span class="codeline" id="line-146"><code>	<span class="comment">// Ensure that the span is swept.</span></code></span>
+<span class="codeline" id="line-147"><code><span class="comment">	// Sweeping accesses the specials list w/o locks, so we have</span></code></span>
+<span class="codeline" id="line-148"><code><span class="comment">	// to synchronize with it. And it's just much safer.</span></code></span>
+<span class="codeline" id="line-149"><code>	<label for="r17" class="ident">mp</label> := <a href="runtime1.go.html#line-605" class="ident">acquirem</a>()</code></span>
+<span class="codeline" id="line-150"><code>	<label for="r16" class="ident">span</label>.<a href="mgcsweep.go.html#line-457" class="ident">ensureSwept</a>()</code></span>
+<span class="codeline" id="line-151"><code></code></span>
+<span class="codeline" id="line-152"><code>	<label for="r18" class="ident">offset</label> := <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>(<a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r14" class="ident">c</label>.<a href="#line-128" class="ident">ptr</a>)) - <label for="r16" class="ident">span</label>.<a href="mheap.go.html#line-498" class="ident">base</a>()</code></span>
+<span class="codeline" id="line-153"><code></code></span>
+<span class="codeline" id="line-154"><code>	<span class="keyword">var</span> <label for="r19" class="ident">found</label> *<a href="mheap.go.html#line-1842" class="ident">special</a></code></span>
+<span class="codeline" id="line-155"><code>	<a href="lock_spinbit.go.html#line-149" class="ident">lock</a>(&amp;<label for="r16" class="ident">span</label>.<a href="mheap.go.html#line-492" class="ident">speciallock</a>)</code></span>
+<span class="codeline" id="line-156"><code></code></span>
+<span class="codeline" id="line-157"><code>	<label for="r20" class="ident">iter</label>, <label for="r21" class="ident">exists</label> := <label for="r16" class="ident">span</label>.<a href="mheap.go.html#line-1943" class="ident">specialFindSplicePoint</a>(<label for="r18" class="ident">offset</label>, <a href="mheap.go.html#line-1839" class="ident">_KindSpecialCleanup</a>)</code></span>
+<span class="codeline" id="line-158"><code>	<span class="keyword">if</span> <label for="r21" class="ident">exists</label> {</code></span>
+<span class="codeline" id="line-159"><code>		<span class="keyword">for</span> {</code></span>
+<span class="codeline" id="line-160"><code>			<label for="r22" class="ident">s</label> := *<label for="r20" class="ident">iter</label></code></span>
+<span class="codeline" id="line-161"><code>			<span class="keyword">if</span> <label for="r22" class="ident">s</label> == <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-162"><code>				<span class="comment">// Reached the end of the linked list. Stop searching at this point.</span></code></span>
+<span class="codeline" id="line-163"><code>				<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-164"><code>			}</code></span>
+<span class="codeline" id="line-165"><code>			<span class="keyword">if</span> <label for="r18" class="ident">offset</label> == <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>(<label for="r22" class="ident">s</label>.<a href="mheap.go.html#line-1845" class="ident">offset</a>) &amp;&amp; <a href="mheap.go.html#line-1839" class="ident">_KindSpecialCleanup</a> == <label for="r22" class="ident">s</label>.<a href="mheap.go.html#line-1846" class="ident">kind</a> &amp;&amp;</code></span>
+<span class="codeline" id="line-166"><code>				(*<a href="mheap.go.html#line-2028" class="ident">specialCleanup</a>)(<a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r22" class="ident">s</label>)).<a href="mheap.go.html#line-2033" class="ident">id</a> == <label for="r14" class="ident">c</label>.<a href="#line-126" class="ident">id</a> {</code></span>
+<span class="codeline" id="line-167"><code>				<span class="comment">// The special is a cleanup and contains a matching cleanup id.</span></code></span>
+<span class="codeline" id="line-168"><code>				*<label for="r20" class="ident">iter</label> = <label for="r22" class="ident">s</label>.<a href="mheap.go.html#line-1844" class="ident">next</a></code></span>
+<span class="codeline" id="line-169"><code>				<label for="r19" class="ident">found</label> = <label for="r22" class="ident">s</label></code></span>
+<span class="codeline" id="line-170"><code>				<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-171"><code>			}</code></span>
+<span class="codeline" id="line-172"><code>			<span class="keyword">if</span> <label for="r18" class="ident">offset</label> &lt; <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>(<label for="r22" class="ident">s</label>.<a href="mheap.go.html#line-1845" class="ident">offset</a>) || (<label for="r18" class="ident">offset</label> == <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>(<label for="r22" class="ident">s</label>.<a href="mheap.go.html#line-1845" class="ident">offset</a>) &amp;&amp; <a href="mheap.go.html#line-1839" class="ident">_KindSpecialCleanup</a> &lt; <label for="r22" class="ident">s</label>.<a href="mheap.go.html#line-1846" class="ident">kind</a>) {</code></span>
+<span class="codeline" id="line-173"><code>				<span class="comment">// The special is outside the region specified for that kind of</span></code></span>
+<span class="codeline" id="line-174"><code><span class="comment">				// special. The specials are sorted by kind.</span></code></span>
+<span class="codeline" id="line-175"><code>				<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-176"><code>			}</code></span>
+<span class="codeline" id="line-177"><code>			<span class="comment">// Try the next special.</span></code></span>
+<span class="codeline" id="line-178"><code>			<label for="r20" class="ident">iter</label> = &amp;<label for="r22" class="ident">s</label>.<a href="mheap.go.html#line-1844" class="ident">next</a></code></span>
+<span class="codeline" id="line-179"><code>		}</code></span>
+<span class="codeline" id="line-180"><code>	}</code></span>
+<span class="codeline" id="line-181"><code>	<span class="keyword">if</span> <label for="r16" class="ident">span</label>.<a href="mheap.go.html#line-493" class="ident">specials</a> == <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-182"><code>		<a href="mheap.go.html#line-1858" class="ident">spanHasNoSpecials</a>(<label for="r16" class="ident">span</label>)</code></span>
+<span class="codeline" id="line-183"><code>	}</code></span>
+<span class="codeline" id="line-184"><code>	<a href="lock_spinbit.go.html#line-252" class="ident">unlock</a>(&amp;<label for="r16" class="ident">span</label>.<a href="mheap.go.html#line-492" class="ident">speciallock</a>)</code></span>
+<span class="codeline" id="line-185"><code>	<a href="runtime1.go.html#line-612" class="ident">releasem</a>(<label for="r17" class="ident">mp</label>)</code></span>
+<span class="codeline" id="line-186"><code></code></span>
+<span class="codeline" id="line-187"><code>	<span class="keyword">if</span> <label for="r19" class="ident">found</label> == <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-188"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-189"><code>	}</code></span>
+<span class="codeline" id="line-190"><code>	<a href="lock_spinbit.go.html#line-149" class="ident">lock</a>(&amp;<a href="mheap.go.html#line-243" class="ident">mheap_</a>.<a href="mheap.go.html#line-212" class="ident">speciallock</a>)</code></span>
+<span class="codeline" id="line-191"><code>	<a href="mheap.go.html#line-243" class="ident">mheap_</a>.<a href="mheap.go.html#line-207" class="ident">specialCleanupAlloc</a>.<a href="mfixalloc.go.html#line-104" class="ident">free</a>(<a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r19" class="ident">found</label>))</code></span>
+<span class="codeline" id="line-192"><code>	<a href="lock_spinbit.go.html#line-252" class="ident">unlock</a>(&amp;<a href="mheap.go.html#line-243" class="ident">mheap_</a>.<a href="mheap.go.html#line-212" class="ident">speciallock</a>)</code></span>
+<span class="codeline" id="line-193"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

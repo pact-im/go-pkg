@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: pretty.go in package google.golang.org/grpc/internal/pretty</title>
+<link href="../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	pretty.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../pkg/google.golang.org/grpc/internal/pretty.html">google.golang.org/grpc/internal/pretty</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3,
+input[id=i4]:checked ~pre .i4,
+input[id=i5]:checked ~pre .i5,
+input[id=i6]:checked ~pre .i6
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+<input id="i4" type="radio" name="i"/>
+<input id="i5" type="radio" name="i"/>
+<input id="i6" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">/*</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment"> * Copyright 2021 gRPC authors.</span></code></span>
+<span class="codeline" id="line-4"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-5"><code><span class="comment"> * Licensed under the Apache License, Version 2.0 (the "License");</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment"> * you may not use this file except in compliance with the License.</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment"> * You may obtain a copy of the License at</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment"> *     http://www.apache.org/licenses/LICENSE-2.0</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment"> * Unless required by applicable law or agreed to in writing, software</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment"> * distributed under the License is distributed on an "AS IS" BASIS,</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment"> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment"> * See the License for the specific language governing permissions and</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment"> * limitations under the License.</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment"> */</span></code></span>
+<span class="codeline" id="line-18"><code></code></span>
+<div class="anchor" id="doc"><span class="codeline" id="line-19"><code><span class="comment">// Package pretty defines helper functions to pretty-print structs for logging.</span></code></span></div><span class="codeline" id="line-20"><code><span class="keyword">package</span> pretty</code></span>
+<span class="codeline" id="line-21"><code></code></span>
+<span class="codeline" id="line-22"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-23"><code>	<label for="i0"><span class="lit-string i0">"bytes"</span></label></code></span>
+<span class="codeline" id="line-24"><code>	<label for="i1"><span class="lit-string i1">"encoding/json"</span></label></code></span>
+<span class="codeline" id="line-25"><code>	<label for="i2"><span class="lit-string i2">"fmt"</span></label></code></span>
+<span class="codeline" id="line-26"><code></code></span>
+<span class="codeline" id="line-27"><code>	<label for="i3"><span class="lit-string i3">"github.com/golang/protobuf/jsonpb"</span></label></code></span>
+<span class="codeline" id="line-28"><code>	<a href="../../../../../pkg/github.com/golang/protobuf/proto.html" class="ident i4">protov1</a> <label for="i4"><span class="lit-string i4">"github.com/golang/protobuf/proto"</span></label></code></span>
+<span class="codeline" id="line-29"><code>	<label for="i5"><span class="lit-string i5">"google.golang.org/protobuf/encoding/protojson"</span></label></code></span>
+<span class="codeline" id="line-30"><code>	<a href="../../../../../pkg/google.golang.org/protobuf/proto.html" class="ident i6">protov2</a> <label for="i6"><span class="lit-string i6">"google.golang.org/protobuf/proto"</span></label></code></span>
+<span class="codeline" id="line-31"><code>)</code></span>
+<span class="codeline" id="line-32"><code></code></span>
+<span class="codeline" id="line-33"><code><span class="keyword">const</span> <a href="../../../../../pkg/google.golang.org/grpc/internal/pretty.html#name-jsonIndent" class="ident">jsonIndent</a> = <span class="lit-string">"  "</span></code></span>
+<span class="codeline" id="line-34"><code></code></span>
+<span class="codeline" id="line-35"><code><span class="comment">// ToJSON marshals the input into a json string.</span></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">// If marshal fails, it falls back to fmt.Sprintf("%+v").</span></code></span>
+<span class="codeline" id="line-38"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../../pkg/google.golang.org/grpc/internal/pretty.html#name-ToJSON" class="ident">ToJSON</a></label>(<label for="r1" class="ident">e</label> <span class="keyword">interface</span>{}) <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-39"><code>	<span class="keyword">switch</span> ee := <label for="r1" class="ident">e</label>.(<span class="keyword">type</span>) {</code></span>
+<span class="codeline" id="line-40"><code>	<span class="keyword">case</span> <a href="../../../../../pkg/github.com/golang/protobuf/proto.html" class="ident i4">protov1</a>.<a href="../../../../github.com/golang/protobuf/proto/proto.go.html#line-50" class="ident">Message</a>:</code></span>
+<span class="codeline" id="line-41"><code>		<label for="r2" class="ident">mm</label> := <a href="../../../../../pkg/github.com/golang/protobuf/jsonpb.html" class="ident i3">jsonpb</a>.<a href="../../../../github.com/golang/protobuf/jsonpb/encode.go.html#line-30" class="ident">Marshaler</a>{<a href="../../../../github.com/golang/protobuf/jsonpb/encode.go.html#line-46" class="ident">Indent</a>: <a href="#line-33" class="ident">jsonIndent</a>}</code></span>
+<span class="codeline" id="line-42"><code>		<label for="r3" class="ident">ret</label>, <label for="r4" class="ident">err</label> := <label for="r2" class="ident">mm</label>.<a href="../../../../github.com/golang/protobuf/jsonpb/encode.go.html#line-77" class="ident">MarshalToString</a>(<label for="r5" class="ident">ee</label>)</code></span>
+<span class="codeline" id="line-43"><code>		<span class="keyword">if</span> <label for="r4" class="ident">err</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-44"><code>			<span class="comment">// This may fail for proto.Anys, e.g. for xDS v2, LDS, the v2</span></code></span>
+<span class="codeline" id="line-45"><code><span class="comment">			// messages are not imported, and this will fail because the message</span></code></span>
+<span class="codeline" id="line-46"><code><span class="comment">			// is not found.</span></code></span>
+<span class="codeline" id="line-47"><code>			<span class="keyword">return</span> <a href="../../../../../pkg/fmt.html" class="ident i2">fmt</a>.<a href="../../../../fmt/print.go.html#line-237" class="ident">Sprintf</a>(<span class="lit-string">"%+v"</span>, <label for="r5" class="ident">ee</label>)</code></span>
+<span class="codeline" id="line-48"><code>		}</code></span>
+<span class="codeline" id="line-49"><code>		<span class="keyword">return</span> <label for="r3" class="ident">ret</label></code></span>
+<span class="codeline" id="line-50"><code>	<span class="keyword">case</span> <a href="../../../../../pkg/google.golang.org/protobuf/proto.html" class="ident i6">protov2</a>.<a href="../../../protobuf/proto/proto.go.html#line-24" class="ident">Message</a>:</code></span>
+<span class="codeline" id="line-51"><code>		<label for="r6" class="ident">mm</label> := <a href="../../../../../pkg/google.golang.org/protobuf/encoding/protojson.html" class="ident i5">protojson</a>.<a href="../../../protobuf/encoding/protojson/encode.go.html#line-42" class="ident">MarshalOptions</a>{</code></span>
+<span class="codeline" id="line-52"><code>			<a href="../../../protobuf/encoding/protojson/encode.go.html#line-48" class="ident">Multiline</a>: <a href="../../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-53"><code>			<a href="../../../protobuf/encoding/protojson/encode.go.html#line-54" class="ident">Indent</a>:    <a href="#line-33" class="ident">jsonIndent</a>,</code></span>
+<span class="codeline" id="line-54"><code>		}</code></span>
+<span class="codeline" id="line-55"><code>		<label for="r7" class="ident">ret</label>, <label for="r8" class="ident">err</label> := <label for="r6" class="ident">mm</label>.<a href="../../../protobuf/encoding/protojson/encode.go.html#line-108" class="ident">Marshal</a>(<label for="r9" class="ident">ee</label>)</code></span>
+<span class="codeline" id="line-56"><code>		<span class="keyword">if</span> <label for="r8" class="ident">err</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-57"><code>			<span class="comment">// This may fail for proto.Anys, e.g. for xDS v2, LDS, the v2</span></code></span>
+<span class="codeline" id="line-58"><code><span class="comment">			// messages are not imported, and this will fail because the message</span></code></span>
+<span class="codeline" id="line-59"><code><span class="comment">			// is not found.</span></code></span>
+<span class="codeline" id="line-60"><code>			<span class="keyword">return</span> <a href="../../../../../pkg/fmt.html" class="ident i2">fmt</a>.<a href="../../../../fmt/print.go.html#line-237" class="ident">Sprintf</a>(<span class="lit-string">"%+v"</span>, <label for="r9" class="ident">ee</label>)</code></span>
+<span class="codeline" id="line-61"><code>		}</code></span>
+<span class="codeline" id="line-62"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>(<label for="r7" class="ident">ret</label>)</code></span>
+<span class="codeline" id="line-63"><code>	<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-64"><code>		<label for="r10" class="ident">ret</label>, <label for="r11" class="ident">err</label> := <a href="../../../../../pkg/encoding/json.html" class="ident i1">json</a>.<a href="../../../../encoding/json/encode.go.html#line-187" class="ident">MarshalIndent</a>(<label for="r12" class="ident">ee</label>, <span class="lit-string">""</span>, <a href="#line-33" class="ident">jsonIndent</a>)</code></span>
+<span class="codeline" id="line-65"><code>		<span class="keyword">if</span> <label for="r11" class="ident">err</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-66"><code>			<span class="keyword">return</span> <a href="../../../../../pkg/fmt.html" class="ident i2">fmt</a>.<a href="../../../../fmt/print.go.html#line-237" class="ident">Sprintf</a>(<span class="lit-string">"%+v"</span>, <label for="r12" class="ident">ee</label>)</code></span>
+<span class="codeline" id="line-67"><code>		}</code></span>
+<span class="codeline" id="line-68"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>(<label for="r10" class="ident">ret</label>)</code></span>
+<span class="codeline" id="line-69"><code>	}</code></span>
+<span class="codeline" id="line-70"><code>}</code></span>
+<span class="codeline" id="line-71"><code></code></span>
+<span class="codeline" id="line-72"><code><span class="comment">// FormatJSON formats the input json bytes with indentation.</span></code></span>
+<span class="codeline" id="line-73"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-74"><code><span class="comment">// If Indent fails, it returns the unchanged input as string.</span></code></span>
+<span class="codeline" id="line-75"><code><span class="keyword">func</span> <label for="r13" class="ident"><a href="../../../../../pkg/google.golang.org/grpc/internal/pretty.html#name-FormatJSON" class="ident">FormatJSON</a></label>(<label for="r14" class="ident">b</label> []<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-76"><code>	<span class="keyword">var</span> <label for="r15" class="ident">out</label> <a href="../../../../../pkg/bytes.html" class="ident i0">bytes</a>.<a href="../../../../bytes/buffer.go.html#line-20" class="ident">Buffer</a></code></span>
+<span class="codeline" id="line-77"><code>	<label for="r16" class="ident">err</label> := <a href="../../../../../pkg/encoding/json.html" class="ident i1">json</a>.<a href="../../../../encoding/json/indent.go.html#line-118" class="ident">Indent</a>(&amp;<label for="r15" class="ident">out</label>, <label for="r14" class="ident">b</label>, <span class="lit-string">""</span>, <a href="#line-33" class="ident">jsonIndent</a>)</code></span>
+<span class="codeline" id="line-78"><code>	<span class="keyword">if</span> <label for="r16" class="ident">err</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-79"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>(<label for="r14" class="ident">b</label>)</code></span>
+<span class="codeline" id="line-80"><code>	}</code></span>
+<span class="codeline" id="line-81"><code>	<span class="keyword">return</span> <label for="r15" class="ident">out</label>.<a href="../../../../bytes/buffer.go.html#line-66" class="ident">String</a>()</code></span>
+<span class="codeline" id="line-82"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

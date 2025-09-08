@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: impl.go in package crypto/internal/impl</title>
+<link href="../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	impl.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../pkg/crypto/internal/impl.html">crypto/internal/impl</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2024 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<div class="anchor" id="doc"><span class="codeline" id="line-5"><code><span class="comment">// Package impl is a registry of alternative implementations of cryptographic</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment">// primitives, to allow selecting them for testing.</span></code></span></div><span class="codeline" id="line-7"><code><span class="keyword">package</span> impl</code></span>
+<span class="codeline" id="line-8"><code></code></span>
+<span class="codeline" id="line-9"><code><span class="keyword">import</span> <label for="i0"><span class="lit-string i0">"strings"</span></label></code></span>
+<span class="codeline" id="line-10"><code></code></span>
+<span class="codeline" id="line-11"><code><span class="keyword">type</span> <a href="../../../../pkg/crypto/internal/impl.html#name-implementation" class="ident">implementation</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-12"><code>	<a href="../../../../use/crypto/internal/impl..implementation^da310.Package.html" class="ident">Package</a>   <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-13"><code>	<a href="../../../../use/crypto/internal/impl..implementation^da310.Name.html" class="ident">Name</a>      <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-14"><code>	<a href="../../../../use/crypto/internal/impl..implementation^da310.Available.html" class="ident">Available</a> <a href="../../../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-15"><code>	<a href="../../../../use/crypto/internal/impl..implementation^da310.Toggle.html" class="ident">Toggle</a>    *<a href="../../../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-16"><code>}</code></span>
+<span class="codeline" id="line-17"><code></code></span>
+<span class="codeline" id="line-18"><code><span class="keyword">var</span> <a href="../../../../pkg/crypto/internal/impl.html#name-allImplementations" class="ident">allImplementations</a> []<a href="#line-11" class="ident">implementation</a></code></span>
+<span class="codeline" id="line-19"><code></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">// Register records an alternative implementation of a cryptographic primitive.</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">// The implementation might be available or not based on CPU support. If</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">// available is false, the implementation is unavailable and can't be tested on</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">// this machine. If available is true, it can be set to false to disable the</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">// implementation. If all alternative implementations but one are disabled, the</span></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">// remaining one must be used (i.e. disabling one implementation must not</span></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">// implicitly disable any other). Each package has an implicit base</span></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">// implementation that is selected when all alternatives are unavailable or</span></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">// disabled. pkg must be the package name, not path (e.g. "aes" not "crypto/aes").</span></code></span>
+<span class="codeline" id="line-29"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../pkg/crypto/internal/impl.html#name-Register" class="ident">Register</a></label>(<label for="r1" class="ident">pkg</label>, <label for="r2" class="ident">name</label> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r3" class="ident">available</label> *<a href="../../../../pkg/builtin.html#name-bool" class="ident">bool</a>) {</code></span>
+<span class="codeline" id="line-30"><code>	<span class="keyword">if</span> <a href="../../../../pkg/strings.html" class="ident i0">strings</a>.<a href="../../../strings/strings.go.html#line-62" class="ident">Contains</a>(<label for="r1" class="ident">pkg</label>, <span class="lit-string">"/"</span>) {</code></span>
+<span class="codeline" id="line-31"><code>		<a href="../../../../pkg/builtin.html#name-panic" class="ident">panic</a>(<span class="lit-string">"impl: package name must not contain slashes"</span>)</code></span>
+<span class="codeline" id="line-32"><code>	}</code></span>
+<span class="codeline" id="line-33"><code>	<a href="#line-18" class="ident">allImplementations</a> = <a href="../../../../pkg/builtin.html#name-append" class="ident">append</a>(<a href="#line-18" class="ident">allImplementations</a>, <a href="#line-11" class="ident">implementation</a>{</code></span>
+<span class="codeline" id="line-34"><code>		<a href="#line-12" class="ident">Package</a>:   <label for="r1" class="ident">pkg</label>,</code></span>
+<span class="codeline" id="line-35"><code>		<a href="#line-13" class="ident">Name</a>:      <label for="r2" class="ident">name</label>,</code></span>
+<span class="codeline" id="line-36"><code>		<a href="#line-14" class="ident">Available</a>: *<label for="r3" class="ident">available</label>,</code></span>
+<span class="codeline" id="line-37"><code>		<a href="#line-15" class="ident">Toggle</a>:    <label for="r3" class="ident">available</label>,</code></span>
+<span class="codeline" id="line-38"><code>	})</code></span>
+<span class="codeline" id="line-39"><code>}</code></span>
+<span class="codeline" id="line-40"><code></code></span>
+<span class="codeline" id="line-41"><code><span class="comment">// List returns the names of all alternative implementations registered for the</span></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">// given package, whether available or not. The implicit base implementation is</span></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">// not included.</span></code></span>
+<span class="codeline" id="line-44"><code><span class="keyword">func</span> <label for="r4" class="ident"><a href="../../../../pkg/crypto/internal/impl.html#name-List" class="ident">List</a></label>(<label for="r5" class="ident">pkg</label> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>) []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-45"><code>	<span class="keyword">var</span> <label for="r6" class="ident">names</label> []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-46"><code>	<span class="keyword">for</span> <label for="r7" class="ident">_</label>, <label for="r8" class="ident">i</label> := <span class="keyword">range</span> <a href="#line-18" class="ident">allImplementations</a> {</code></span>
+<span class="codeline" id="line-47"><code>		<span class="keyword">if</span> <label for="r8" class="ident">i</label>.<a href="#line-12" class="ident">Package</a> == <label for="r5" class="ident">pkg</label> {</code></span>
+<span class="codeline" id="line-48"><code>			<label for="r6" class="ident">names</label> = <a href="../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r6" class="ident">names</label>, <label for="r8" class="ident">i</label>.<a href="#line-13" class="ident">Name</a>)</code></span>
+<span class="codeline" id="line-49"><code>		}</code></span>
+<span class="codeline" id="line-50"><code>	}</code></span>
+<span class="codeline" id="line-51"><code>	<span class="keyword">return</span> <label for="r6" class="ident">names</label></code></span>
+<span class="codeline" id="line-52"><code>}</code></span>
+<span class="codeline" id="line-53"><code></code></span>
+<span class="codeline" id="line-54"><code><span class="keyword">func</span> <label for="r9" class="ident"><a href="../../../../pkg/crypto/internal/impl.html#name-available" class="ident">available</a></label>(<label for="r10" class="ident">pkg</label>, <label for="r11" class="ident">name</label> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-55"><code>	<span class="keyword">for</span> <label for="r12" class="ident">_</label>, <label for="r13" class="ident">i</label> := <span class="keyword">range</span> <a href="#line-18" class="ident">allImplementations</a> {</code></span>
+<span class="codeline" id="line-56"><code>		<span class="keyword">if</span> <label for="r13" class="ident">i</label>.<a href="#line-12" class="ident">Package</a> == <label for="r10" class="ident">pkg</label> &amp;&amp; <label for="r13" class="ident">i</label>.<a href="#line-13" class="ident">Name</a> == <label for="r11" class="ident">name</label> {</code></span>
+<span class="codeline" id="line-57"><code>			<span class="keyword">return</span> <label for="r13" class="ident">i</label>.<a href="#line-14" class="ident">Available</a></code></span>
+<span class="codeline" id="line-58"><code>		}</code></span>
+<span class="codeline" id="line-59"><code>	}</code></span>
+<span class="codeline" id="line-60"><code>	<a href="../../../../pkg/builtin.html#name-panic" class="ident">panic</a>(<span class="lit-string">"unknown implementation"</span>)</code></span>
+<span class="codeline" id="line-61"><code>}</code></span>
+<span class="codeline" id="line-62"><code></code></span>
+<span class="codeline" id="line-63"><code><span class="comment">// Select disables all implementations for the given package except the one</span></code></span>
+<span class="codeline" id="line-64"><code><span class="comment">// with the given name. If name is empty, the base implementation is selected.</span></code></span>
+<span class="codeline" id="line-65"><code><span class="comment">// It returns whether the selected implementation is available.</span></code></span>
+<span class="codeline" id="line-66"><code><span class="keyword">func</span> <label for="r14" class="ident"><a href="../../../../pkg/crypto/internal/impl.html#name-Select" class="ident">Select</a></label>(<label for="r15" class="ident">pkg</label>, <label for="r16" class="ident">name</label> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-67"><code>	<span class="keyword">if</span> <label for="r16" class="ident">name</label> == <span class="lit-string">""</span> {</code></span>
+<span class="codeline" id="line-68"><code>		<span class="keyword">for</span> <label for="r17" class="ident">_</label>, <label for="r18" class="ident">i</label> := <span class="keyword">range</span> <a href="#line-18" class="ident">allImplementations</a> {</code></span>
+<span class="codeline" id="line-69"><code>			<span class="keyword">if</span> <label for="r18" class="ident">i</label>.<a href="#line-12" class="ident">Package</a> == <label for="r15" class="ident">pkg</label> {</code></span>
+<span class="codeline" id="line-70"><code>				*<label for="r18" class="ident">i</label>.<a href="#line-15" class="ident">Toggle</a> = <a href="../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-71"><code>			}</code></span>
+<span class="codeline" id="line-72"><code>		}</code></span>
+<span class="codeline" id="line-73"><code>		<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-74"><code>	}</code></span>
+<span class="codeline" id="line-75"><code>	<span class="keyword">if</span> !<a href="#line-54" class="ident">available</a>(<label for="r15" class="ident">pkg</label>, <label for="r16" class="ident">name</label>) {</code></span>
+<span class="codeline" id="line-76"><code>		<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-77"><code>	}</code></span>
+<span class="codeline" id="line-78"><code>	<span class="keyword">for</span> <label for="r19" class="ident">_</label>, <label for="r20" class="ident">i</label> := <span class="keyword">range</span> <a href="#line-18" class="ident">allImplementations</a> {</code></span>
+<span class="codeline" id="line-79"><code>		<span class="keyword">if</span> <label for="r20" class="ident">i</label>.<a href="#line-12" class="ident">Package</a> == <label for="r15" class="ident">pkg</label> {</code></span>
+<span class="codeline" id="line-80"><code>			*<label for="r20" class="ident">i</label>.<a href="#line-15" class="ident">Toggle</a> = <label for="r20" class="ident">i</label>.<a href="#line-13" class="ident">Name</a> == <label for="r16" class="ident">name</label></code></span>
+<span class="codeline" id="line-81"><code>		}</code></span>
+<span class="codeline" id="line-82"><code>	}</code></span>
+<span class="codeline" id="line-83"><code>	<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-84"><code>}</code></span>
+<span class="codeline" id="line-85"><code></code></span>
+<span class="codeline" id="line-86"><code><span class="keyword">func</span> <label for="r21" class="ident"><a href="../../../../pkg/crypto/internal/impl.html#name-Reset" class="ident">Reset</a></label>(<label for="r22" class="ident">pkg</label> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>) {</code></span>
+<span class="codeline" id="line-87"><code>	<span class="keyword">for</span> <label for="r23" class="ident">_</label>, <label for="r24" class="ident">i</label> := <span class="keyword">range</span> <a href="#line-18" class="ident">allImplementations</a> {</code></span>
+<span class="codeline" id="line-88"><code>		<span class="keyword">if</span> <label for="r24" class="ident">i</label>.<a href="#line-12" class="ident">Package</a> == <label for="r22" class="ident">pkg</label> {</code></span>
+<span class="codeline" id="line-89"><code>			*<label for="r24" class="ident">i</label>.<a href="#line-15" class="ident">Toggle</a> = <label for="r24" class="ident">i</label>.<a href="#line-14" class="ident">Available</a></code></span>
+<span class="codeline" id="line-90"><code>			<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-91"><code>		}</code></span>
+<span class="codeline" id="line-92"><code>	}</code></span>
+<span class="codeline" id="line-93"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

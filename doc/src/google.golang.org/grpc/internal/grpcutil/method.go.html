@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: method.go in package google.golang.org/grpc/internal/grpcutil</title>
+<link href="../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	method.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../pkg/google.golang.org/grpc/internal/grpcutil.html">google.golang.org/grpc/internal/grpcutil</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">/*</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment"> * Copyright 2018 gRPC authors.</span></code></span>
+<span class="codeline" id="line-4"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-5"><code><span class="comment"> * Licensed under the Apache License, Version 2.0 (the "License");</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment"> * you may not use this file except in compliance with the License.</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment"> * You may obtain a copy of the License at</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment"> *     http://www.apache.org/licenses/LICENSE-2.0</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment"> * Unless required by applicable law or agreed to in writing, software</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment"> * distributed under the License is distributed on an "AS IS" BASIS,</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment"> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment"> * See the License for the specific language governing permissions and</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment"> * limitations under the License.</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment"> */</span></code></span>
+<span class="codeline" id="line-18"><code></code></span>
+<span class="codeline" id="line-19"><code><span class="keyword">package</span> grpcutil</code></span>
+<span class="codeline" id="line-20"><code></code></span>
+<span class="codeline" id="line-21"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-22"><code>	<label for="i0"><span class="lit-string i0">"errors"</span></label></code></span>
+<span class="codeline" id="line-23"><code>	<label for="i1"><span class="lit-string i1">"strings"</span></label></code></span>
+<span class="codeline" id="line-24"><code>)</code></span>
+<span class="codeline" id="line-25"><code></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">// ParseMethod splits service and method from the input. It expects format</span></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">// "/service/method".</span></code></span>
+<span class="codeline" id="line-28"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../../pkg/google.golang.org/grpc/internal/grpcutil.html#name-ParseMethod" class="ident">ParseMethod</a></label>(<label for="r1" class="ident">methodName</label> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>) (<label for="r2" class="ident">service</label>, <label for="r3" class="ident">method</label> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r4" class="ident">_</label> <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-29"><code>	<span class="keyword">if</span> !<a href="../../../../../pkg/strings.html" class="ident i1">strings</a>.<a href="../../../../strings/strings.go.html#line-516" class="ident">HasPrefix</a>(<label for="r1" class="ident">methodName</label>, <span class="lit-string">"/"</span>) {</code></span>
+<span class="codeline" id="line-30"><code>		<span class="keyword">return</span> <span class="lit-string">""</span>, <span class="lit-string">""</span>, <a href="../../../../../pkg/errors.html" class="ident i0">errors</a>.<a href="../../../../errors/errors.go.html#line-64" class="ident">New</a>(<span class="lit-string">"invalid method name: should start with /"</span>)</code></span>
+<span class="codeline" id="line-31"><code>	}</code></span>
+<span class="codeline" id="line-32"><code>	<label for="r1" class="ident">methodName</label> = <label for="r1" class="ident">methodName</label>[<span class="lit-number">1</span>:]</code></span>
+<span class="codeline" id="line-33"><code></code></span>
+<span class="codeline" id="line-34"><code>	<label for="r5" class="ident">pos</label> := <a href="../../../../../pkg/strings.html" class="ident i1">strings</a>.<a href="../../../../strings/strings.go.html#line-82" class="ident">LastIndex</a>(<label for="r1" class="ident">methodName</label>, <span class="lit-string">"/"</span>)</code></span>
+<span class="codeline" id="line-35"><code>	<span class="keyword">if</span> <label for="r5" class="ident">pos</label> &lt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-36"><code>		<span class="keyword">return</span> <span class="lit-string">""</span>, <span class="lit-string">""</span>, <a href="../../../../../pkg/errors.html" class="ident i0">errors</a>.<a href="../../../../errors/errors.go.html#line-64" class="ident">New</a>(<span class="lit-string">"invalid method name: suffix /method is missing"</span>)</code></span>
+<span class="codeline" id="line-37"><code>	}</code></span>
+<span class="codeline" id="line-38"><code>	<span class="keyword">return</span> <label for="r1" class="ident">methodName</label>[:<label for="r5" class="ident">pos</label>], <label for="r1" class="ident">methodName</label>[<label for="r5" class="ident">pos</label>+<span class="lit-number">1</span>:], <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-39"><code>}</code></span>
+<span class="codeline" id="line-40"><code></code></span>
+<span class="codeline" id="line-41"><code><span class="comment">// baseContentType is the base content-type for gRPC.  This is a valid</span></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">// content-type on it's own, but can also include a content-subtype such as</span></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">// "proto" as a suffix after "+" or ";".  See</span></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">// https://github.com/grpc/grpc/blob/master/doc/PROTOCOL-HTTP2.md#requests</span></code></span>
+<span class="codeline" id="line-45"><code><span class="comment">// for more details.</span></code></span>
+<span class="codeline" id="line-46"><code><span class="keyword">const</span> <a href="../../../../../pkg/google.golang.org/grpc/internal/grpcutil.html#name-baseContentType" class="ident">baseContentType</a> = <span class="lit-string">"application/grpc"</span></code></span>
+<span class="codeline" id="line-47"><code></code></span>
+<span class="codeline" id="line-48"><code><span class="comment">// ContentSubtype returns the content-subtype for the given content-type.  The</span></code></span>
+<span class="codeline" id="line-49"><code><span class="comment">// given content-type must be a valid content-type that starts with</span></code></span>
+<span class="codeline" id="line-50"><code><span class="comment">// "application/grpc". A content-subtype will follow "application/grpc" after a</span></code></span>
+<span class="codeline" id="line-51"><code><span class="comment">// "+" or ";". See</span></code></span>
+<span class="codeline" id="line-52"><code><span class="comment">// https://github.com/grpc/grpc/blob/master/doc/PROTOCOL-HTTP2.md#requests for</span></code></span>
+<span class="codeline" id="line-53"><code><span class="comment">// more details.</span></code></span>
+<span class="codeline" id="line-54"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-55"><code><span class="comment">// If contentType is not a valid content-type for gRPC, the boolean</span></code></span>
+<span class="codeline" id="line-56"><code><span class="comment">// will be false, otherwise true. If content-type == "application/grpc",</span></code></span>
+<span class="codeline" id="line-57"><code><span class="comment">// "application/grpc+", or "application/grpc;", the boolean will be true,</span></code></span>
+<span class="codeline" id="line-58"><code><span class="comment">// but no content-subtype will be returned.</span></code></span>
+<span class="codeline" id="line-59"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-60"><code><span class="comment">// contentType is assumed to be lowercase already.</span></code></span>
+<span class="codeline" id="line-61"><code><span class="keyword">func</span> <label for="r6" class="ident"><a href="../../../../../pkg/google.golang.org/grpc/internal/grpcutil.html#name-ContentSubtype" class="ident">ContentSubtype</a></label>(<label for="r7" class="ident">contentType</label> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>) (<a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>, <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a>) {</code></span>
+<span class="codeline" id="line-62"><code>	<span class="keyword">if</span> <label for="r7" class="ident">contentType</label> == <a href="#line-46" class="ident">baseContentType</a> {</code></span>
+<span class="codeline" id="line-63"><code>		<span class="keyword">return</span> <span class="lit-string">""</span>, <a href="../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-64"><code>	}</code></span>
+<span class="codeline" id="line-65"><code>	<span class="keyword">if</span> !<a href="../../../../../pkg/strings.html" class="ident i1">strings</a>.<a href="../../../../strings/strings.go.html#line-516" class="ident">HasPrefix</a>(<label for="r7" class="ident">contentType</label>, <a href="#line-46" class="ident">baseContentType</a>) {</code></span>
+<span class="codeline" id="line-66"><code>		<span class="keyword">return</span> <span class="lit-string">""</span>, <a href="../../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-67"><code>	}</code></span>
+<span class="codeline" id="line-68"><code>	<span class="comment">// guaranteed since != baseContentType and has baseContentType prefix</span></code></span>
+<span class="codeline" id="line-69"><code>	<span class="keyword">switch</span> <label for="r7" class="ident">contentType</label>[<a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<a href="#line-46" class="ident">baseContentType</a>)] {</code></span>
+<span class="codeline" id="line-70"><code>	<span class="keyword">case</span> <span class="lit-number">'+'</span>, <span class="lit-number">';'</span>:</code></span>
+<span class="codeline" id="line-71"><code>		<span class="comment">// this will return true for "application/grpc+" or "application/grpc;"</span></code></span>
+<span class="codeline" id="line-72"><code><span class="comment">		// which the previous validContentType function tested to be valid, so we</span></code></span>
+<span class="codeline" id="line-73"><code><span class="comment">		// just say that no content-subtype is specified in this case</span></code></span>
+<span class="codeline" id="line-74"><code>		<span class="keyword">return</span> <label for="r7" class="ident">contentType</label>[<a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<a href="#line-46" class="ident">baseContentType</a>)+<span class="lit-number">1</span>:], <a href="../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-75"><code>	<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-76"><code>		<span class="keyword">return</span> <span class="lit-string">""</span>, <a href="../../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-77"><code>	}</code></span>
+<span class="codeline" id="line-78"><code>}</code></span>
+<span class="codeline" id="line-79"><code></code></span>
+<span class="codeline" id="line-80"><code><span class="comment">// ContentType builds full content type with the given sub-type.</span></code></span>
+<span class="codeline" id="line-81"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-82"><code><span class="comment">// contentSubtype is assumed to be lowercase</span></code></span>
+<span class="codeline" id="line-83"><code><span class="keyword">func</span> <label for="r8" class="ident"><a href="../../../../../pkg/google.golang.org/grpc/internal/grpcutil.html#name-ContentType" class="ident">ContentType</a></label>(<label for="r9" class="ident">contentSubtype</label> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-84"><code>	<span class="keyword">if</span> <label for="r9" class="ident">contentSubtype</label> == <span class="lit-string">""</span> {</code></span>
+<span class="codeline" id="line-85"><code>		<span class="keyword">return</span> <a href="#line-46" class="ident">baseContentType</a></code></span>
+<span class="codeline" id="line-86"><code>	}</code></span>
+<span class="codeline" id="line-87"><code>	<span class="keyword">return</span> <a href="#line-46" class="ident">baseContentType</a> + <span class="lit-string">"+"</span> + <label for="r9" class="ident">contentSubtype</label></code></span>
+<span class="codeline" id="line-88"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

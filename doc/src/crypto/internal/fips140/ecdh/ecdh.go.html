@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: ecdh.go in package crypto/internal/fips140/ecdh</title>
+<link href="../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	ecdh.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../pkg/crypto/internal/fips140/ecdh.html">crypto/internal/fips140/ecdh</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30],
+input[id=r31]:checked ~pre label[for=r31],
+input[id=r32]:checked ~pre label[for=r32],
+input[id=r33]:checked ~pre label[for=r33],
+input[id=r34]:checked ~pre label[for=r34],
+input[id=r35]:checked ~pre label[for=r35],
+input[id=r36]:checked ~pre label[for=r36],
+input[id=r37]:checked ~pre label[for=r37],
+input[id=r38]:checked ~pre label[for=r38],
+input[id=r39]:checked ~pre label[for=r39],
+input[id=r40]:checked ~pre label[for=r40],
+input[id=r41]:checked ~pre label[for=r41],
+input[id=r42]:checked ~pre label[for=r42],
+input[id=r43]:checked ~pre label[for=r43],
+input[id=r44]:checked ~pre label[for=r44],
+input[id=r45]:checked ~pre label[for=r45],
+input[id=r46]:checked ~pre label[for=r46],
+input[id=r47]:checked ~pre label[for=r47],
+input[id=r48]:checked ~pre label[for=r48],
+input[id=r49]:checked ~pre label[for=r49],
+input[id=r50]:checked ~pre label[for=r50],
+input[id=r51]:checked ~pre label[for=r51],
+input[id=r52]:checked ~pre label[for=r52],
+input[id=r53]:checked ~pre label[for=r53],
+input[id=r54]:checked ~pre label[for=r54],
+input[id=r55]:checked ~pre label[for=r55],
+input[id=r56]:checked ~pre label[for=r56],
+input[id=r57]:checked ~pre label[for=r57],
+input[id=r58]:checked ~pre label[for=r58],
+input[id=r59]:checked ~pre label[for=r59],
+input[id=r60]:checked ~pre label[for=r60],
+input[id=r61]:checked ~pre label[for=r61],
+input[id=r62]:checked ~pre label[for=r62],
+input[id=r63]:checked ~pre label[for=r63],
+input[id=r64]:checked ~pre label[for=r64],
+input[id=r65]:checked ~pre label[for=r65]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3,
+input[id=i4]:checked ~pre .i4,
+input[id=i5]:checked ~pre .i5,
+input[id=i6]:checked ~pre .i6,
+input[id=i7]:checked ~pre .i7
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="r31" type="radio" name="g"/>
+<input id="r32" type="radio" name="g"/>
+<input id="r33" type="radio" name="g"/>
+<input id="r34" type="radio" name="g"/>
+<input id="r35" type="radio" name="g"/>
+<input id="r36" type="radio" name="g"/>
+<input id="r37" type="radio" name="g"/>
+<input id="r38" type="radio" name="g"/>
+<input id="r39" type="radio" name="g"/>
+<input id="r40" type="radio" name="g"/>
+<input id="r41" type="radio" name="g"/>
+<input id="r42" type="radio" name="g"/>
+<input id="r43" type="radio" name="g"/>
+<input id="r44" type="radio" name="g"/>
+<input id="r45" type="radio" name="g"/>
+<input id="r46" type="radio" name="g"/>
+<input id="r47" type="radio" name="g"/>
+<input id="r48" type="radio" name="g"/>
+<input id="r49" type="radio" name="g"/>
+<input id="r50" type="radio" name="g"/>
+<input id="r51" type="radio" name="g"/>
+<input id="r52" type="radio" name="g"/>
+<input id="r53" type="radio" name="g"/>
+<input id="r54" type="radio" name="g"/>
+<input id="r55" type="radio" name="g"/>
+<input id="r56" type="radio" name="g"/>
+<input id="r57" type="radio" name="g"/>
+<input id="r58" type="radio" name="g"/>
+<input id="r59" type="radio" name="g"/>
+<input id="r60" type="radio" name="g"/>
+<input id="r61" type="radio" name="g"/>
+<input id="r62" type="radio" name="g"/>
+<input id="r63" type="radio" name="g"/>
+<input id="r64" type="radio" name="g"/>
+<input id="r65" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+<input id="i4" type="radio" name="i"/>
+<input id="i5" type="radio" name="i"/>
+<input id="i6" type="radio" name="i"/>
+<input id="i7" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2024 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> ecdh</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-8"><code>	<label for="i0"><span class="lit-string i0">"bytes"</span></label></code></span>
+<span class="codeline" id="line-9"><code>	<label for="i1"><span class="lit-string i1">"crypto/internal/fips140"</span></label></code></span>
+<span class="codeline" id="line-10"><code>	<label for="i2"><span class="lit-string i2">"crypto/internal/fips140/drbg"</span></label></code></span>
+<span class="codeline" id="line-11"><code>	<label for="i3"><span class="lit-string i3">"crypto/internal/fips140/nistec"</span></label></code></span>
+<span class="codeline" id="line-12"><code>	<label for="i4"><span class="lit-string i4">"crypto/internal/fips140deps/byteorder"</span></label></code></span>
+<span class="codeline" id="line-13"><code>	<label for="i5"><span class="lit-string i5">"errors"</span></label></code></span>
+<span class="codeline" id="line-14"><code>	<label for="i6"><span class="lit-string i6">"io"</span></label></code></span>
+<span class="codeline" id="line-15"><code>	<label for="i7"><span class="lit-string i7">"math/bits"</span></label></code></span>
+<span class="codeline" id="line-16"><code>)</code></span>
+<span class="codeline" id="line-17"><code></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">// PrivateKey and PublicKey are not generic to make it possible to use them</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">// in other types without instantiating them with a specific point type.</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">// They are tied to one of the Curve types below through the curveID field.</span></code></span>
+<span class="codeline" id="line-21"><code></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">// All this is duplicated from crypto/internal/fips/ecdsa, but the standards are</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">// different and FIPS 140 does not allow reusing keys across them.</span></code></span>
+<span class="codeline" id="line-24"><code></code></span>
+<span class="codeline" id="line-25"><code><span class="keyword">type</span> <a href="../../../../../pkg/crypto/internal/fips140/ecdh.html#name-PrivateKey" class="ident">PrivateKey</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-26"><code>	<a href="../../../../../use/crypto/internal/fips140/ecdh..PrivateKey.pub^0017d.html" class="ident">pub</a> <a href="#line-38" class="ident">PublicKey</a></code></span>
+<span class="codeline" id="line-27"><code>	<a href="../../../../../use/crypto/internal/fips140/ecdh..PrivateKey.d^18ac3.html" class="ident">d</a>   []<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a> <span class="comment">// bigmod.(*Nat).Bytes output (fixed length)</span></code></span>
+<span class="codeline" id="line-28"><code>}</code></span>
+<span class="codeline" id="line-29"><code></code></span>
+<span class="codeline" id="line-30"><code><span class="keyword">func</span> (<label for="r0" class="ident">priv</label> *<a href="#line-25" class="ident">PrivateKey</a>) <label for="r1" class="ident"><a href="../../../../../use/crypto/internal/fips140/ecdh..PrivateKey.Bytes.html" class="ident">Bytes</a></label>() []<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a> {</code></span>
+<span class="codeline" id="line-31"><code>	<span class="keyword">return</span> <label for="r0" class="ident">priv</label>.<a href="#line-27" class="ident">d</a></code></span>
+<span class="codeline" id="line-32"><code>}</code></span>
+<span class="codeline" id="line-33"><code></code></span>
+<span class="codeline" id="line-34"><code><span class="keyword">func</span> (<label for="r2" class="ident">priv</label> *<a href="#line-25" class="ident">PrivateKey</a>) <label for="r3" class="ident"><a href="../../../../../use/crypto/internal/fips140/ecdh..PrivateKey.PublicKey.html" class="ident">PublicKey</a></label>() *<a href="#line-38" class="ident">PublicKey</a> {</code></span>
+<span class="codeline" id="line-35"><code>	<span class="keyword">return</span> &amp;<label for="r2" class="ident">priv</label>.<a href="#line-26" class="ident">pub</a></code></span>
+<span class="codeline" id="line-36"><code>}</code></span>
+<span class="codeline" id="line-37"><code></code></span>
+<span class="codeline" id="line-38"><code><span class="keyword">type</span> <a href="../../../../../pkg/crypto/internal/fips140/ecdh.html#name-PublicKey" class="ident">PublicKey</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-39"><code>	<a href="../../../../../use/crypto/internal/fips140/ecdh..PublicKey.curve^80c10.html" class="ident">curve</a> <a href="#line-47" class="ident">curveID</a></code></span>
+<span class="codeline" id="line-40"><code>	<a href="../../../../../use/crypto/internal/fips140/ecdh..PublicKey.q^8e35c.html" class="ident">q</a>     []<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a> <span class="comment">// uncompressed nistec Point.Bytes output</span></code></span>
+<span class="codeline" id="line-41"><code>}</code></span>
+<span class="codeline" id="line-42"><code></code></span>
+<span class="codeline" id="line-43"><code><span class="keyword">func</span> (<label for="r4" class="ident">pub</label> *<a href="#line-38" class="ident">PublicKey</a>) <label for="r5" class="ident"><a href="../../../../../use/crypto/internal/fips140/ecdh..PublicKey.Bytes.html" class="ident">Bytes</a></label>() []<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a> {</code></span>
+<span class="codeline" id="line-44"><code>	<span class="keyword">return</span> <label for="r4" class="ident">pub</label>.<a href="#line-40" class="ident">q</a></code></span>
+<span class="codeline" id="line-45"><code>}</code></span>
+<span class="codeline" id="line-46"><code></code></span>
+<span class="codeline" id="line-47"><code><span class="keyword">type</span> <a href="../../../../../pkg/crypto/internal/fips140/ecdh.html#name-curveID" class="ident">curveID</a> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-48"><code></code></span>
+<span class="codeline" id="line-49"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-50"><code>	<a href="../../../../../pkg/crypto/internal/fips140/ecdh.html#name-p224" class="ident">p224</a> <a href="#line-47" class="ident">curveID</a> = <span class="lit-string">"P-224"</span></code></span>
+<span class="codeline" id="line-51"><code>	<a href="../../../../../pkg/crypto/internal/fips140/ecdh.html#name-p256" class="ident">p256</a> <a href="#line-47" class="ident">curveID</a> = <span class="lit-string">"P-256"</span></code></span>
+<span class="codeline" id="line-52"><code>	<a href="../../../../../pkg/crypto/internal/fips140/ecdh.html#name-p384" class="ident">p384</a> <a href="#line-47" class="ident">curveID</a> = <span class="lit-string">"P-384"</span></code></span>
+<span class="codeline" id="line-53"><code>	<a href="../../../../../pkg/crypto/internal/fips140/ecdh.html#name-p521" class="ident">p521</a> <a href="#line-47" class="ident">curveID</a> = <span class="lit-string">"P-521"</span></code></span>
+<span class="codeline" id="line-54"><code>)</code></span>
+<span class="codeline" id="line-55"><code></code></span>
+<span class="codeline" id="line-56"><code><span class="keyword">type</span> <a href="../../../../../pkg/crypto/internal/fips140/ecdh.html#name-Curve" class="ident">Curve</a>[<label for="r6" class="ident">P</label> <a href="#line-63" class="ident">Point</a>[<label for="r6" class="ident">P</label>]] <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-57"><code>	<a href="../../../../../use/crypto/internal/fips140/ecdh..Curve.curve^80c10.html" class="ident">curve</a>    <a href="#line-47" class="ident">curveID</a></code></span>
+<span class="codeline" id="line-58"><code>	<a href="../../../../../use/crypto/internal/fips140/ecdh..Curve.newPoint^5530d.html" class="ident">newPoint</a> <span class="keyword">func</span>() <label for="r6" class="ident">P</label></code></span>
+<span class="codeline" id="line-59"><code>	<a href="../../../../../use/crypto/internal/fips140/ecdh..Curve.N.html" class="ident">N</a>        []<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
+<span class="codeline" id="line-60"><code>}</code></span>
+<span class="codeline" id="line-61"><code></code></span>
+<span class="codeline" id="line-62"><code><span class="comment">// Point is a generic constraint for the [nistec] Point types.</span></code></span>
+<span class="codeline" id="line-63"><code><span class="keyword">type</span> <a href="../../../../../pkg/crypto/internal/fips140/ecdh.html#name-Point" class="ident">Point</a>[<label for="r7" class="ident">P</label> <a href="../../../../../pkg/builtin.html#name-any" class="ident">any</a>] <span class="keyword">interface</span> {</code></span>
+<span class="codeline" id="line-64"><code>	*<a href="../../../../../pkg/crypto/internal/fips140/nistec.html" class="ident i3">nistec</a>.<a href="../nistec/p224.go.html#line-21" class="ident">P224Point</a> | *<a href="../../../../../pkg/crypto/internal/fips140/nistec.html" class="ident i3">nistec</a>.<a href="../nistec/p256_asm.go.html#line-41" class="ident">P256Point</a> | *<a href="../../../../../pkg/crypto/internal/fips140/nistec.html" class="ident i3">nistec</a>.<a href="../nistec/p384.go.html#line-21" class="ident">P384Point</a> | *<a href="../../../../../pkg/crypto/internal/fips140/nistec.html" class="ident i3">nistec</a>.<a href="../nistec/p521.go.html#line-21" class="ident">P521Point</a></code></span>
+<span class="codeline" id="line-65"><code>	<a href="../../../../../imp/crypto/internal/fips140/ecdh.Point.html#name-Bytes" class="ident">Bytes</a>() []<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
+<span class="codeline" id="line-66"><code>	<a href="../../../../../imp/crypto/internal/fips140/ecdh.Point.html#name-BytesX" class="ident">BytesX</a>() ([]<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
+<span class="codeline" id="line-67"><code>	<a href="../../../../../imp/crypto/internal/fips140/ecdh.Point.html#name-SetBytes" class="ident">SetBytes</a>([]<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) (<label for="r7" class="ident">P</label>, <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
+<span class="codeline" id="line-68"><code>	<a href="../../../../../imp/crypto/internal/fips140/ecdh.Point.html#name-ScalarMult" class="ident">ScalarMult</a>(<label for="r7" class="ident">P</label>, []<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) (<label for="r7" class="ident">P</label>, <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
+<span class="codeline" id="line-69"><code>	<a href="../../../../../imp/crypto/internal/fips140/ecdh.Point.html#name-ScalarBaseMult" class="ident">ScalarBaseMult</a>([]<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) (<label for="r7" class="ident">P</label>, <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
+<span class="codeline" id="line-70"><code>}</code></span>
+<span class="codeline" id="line-71"><code></code></span>
+<span class="codeline" id="line-72"><code><span class="keyword">func</span> <label for="r8" class="ident"><a href="../../../../../pkg/crypto/internal/fips140/ecdh.html#name-P224" class="ident">P224</a></label>() *<a href="#line-56" class="ident">Curve</a>[*<a href="../../../../../pkg/crypto/internal/fips140/nistec.html" class="ident i3">nistec</a>.<a href="../nistec/p224.go.html#line-21" class="ident">P224Point</a>] {</code></span>
+<span class="codeline" id="line-73"><code>	<span class="keyword">return</span> &amp;<a href="#line-56" class="ident">Curve</a>[*<a href="../../../../../pkg/crypto/internal/fips140/nistec.html" class="ident i3">nistec</a>.<a href="../nistec/p224.go.html#line-21" class="ident">P224Point</a>]{</code></span>
+<span class="codeline" id="line-74"><code>		<a href="#line-57" class="ident">curve</a>:    <a href="#line-50" class="ident">p224</a>,</code></span>
+<span class="codeline" id="line-75"><code>		<a href="#line-58" class="ident">newPoint</a>: <a href="../../../../../pkg/crypto/internal/fips140/nistec.html" class="ident i3">nistec</a>.<a href="../nistec/p224.go.html#line-28" class="ident">NewP224Point</a>,</code></span>
+<span class="codeline" id="line-76"><code>		<a href="#line-59" class="ident">N</a>:        <a href="#line-80" class="ident">p224Order</a>,</code></span>
+<span class="codeline" id="line-77"><code>	}</code></span>
+<span class="codeline" id="line-78"><code>}</code></span>
+<span class="codeline" id="line-79"><code></code></span>
+<span class="codeline" id="line-80"><code><span class="keyword">var</span> <a href="../../../../../pkg/crypto/internal/fips140/ecdh.html#name-p224Order" class="ident">p224Order</a> = []<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>{</code></span>
+<span class="codeline" id="line-81"><code>	<span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>,</code></span>
+<span class="codeline" id="line-82"><code>	<span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0x16</span>, <span class="lit-number">0xa2</span>,</code></span>
+<span class="codeline" id="line-83"><code>	<span class="lit-number">0xe0</span>, <span class="lit-number">0xb8</span>, <span class="lit-number">0xf0</span>, <span class="lit-number">0x3e</span>, <span class="lit-number">0x13</span>, <span class="lit-number">0xdd</span>, <span class="lit-number">0x29</span>, <span class="lit-number">0x45</span>,</code></span>
+<span class="codeline" id="line-84"><code>	<span class="lit-number">0x5c</span>, <span class="lit-number">0x5c</span>, <span class="lit-number">0x2a</span>, <span class="lit-number">0x3d</span>,</code></span>
+<span class="codeline" id="line-85"><code>}</code></span>
+<span class="codeline" id="line-86"><code></code></span>
+<span class="codeline" id="line-87"><code><span class="keyword">func</span> <label for="r9" class="ident"><a href="../../../../../pkg/crypto/internal/fips140/ecdh.html#name-P256" class="ident">P256</a></label>() *<a href="#line-56" class="ident">Curve</a>[*<a href="../../../../../pkg/crypto/internal/fips140/nistec.html" class="ident i3">nistec</a>.<a href="../nistec/p256_asm.go.html#line-41" class="ident">P256Point</a>] {</code></span>
+<span class="codeline" id="line-88"><code>	<span class="keyword">return</span> &amp;<a href="#line-56" class="ident">Curve</a>[*<a href="../../../../../pkg/crypto/internal/fips140/nistec.html" class="ident i3">nistec</a>.<a href="../nistec/p256_asm.go.html#line-41" class="ident">P256Point</a>]{</code></span>
+<span class="codeline" id="line-89"><code>		<a href="#line-57" class="ident">curve</a>:    <a href="#line-51" class="ident">p256</a>,</code></span>
+<span class="codeline" id="line-90"><code>		<a href="#line-58" class="ident">newPoint</a>: <a href="../../../../../pkg/crypto/internal/fips140/nistec.html" class="ident i3">nistec</a>.<a href="../nistec/p256_asm.go.html#line-48" class="ident">NewP256Point</a>,</code></span>
+<span class="codeline" id="line-91"><code>		<a href="#line-59" class="ident">N</a>:        <a href="#line-95" class="ident">p256Order</a>,</code></span>
+<span class="codeline" id="line-92"><code>	}</code></span>
+<span class="codeline" id="line-93"><code>}</code></span>
+<span class="codeline" id="line-94"><code></code></span>
+<span class="codeline" id="line-95"><code><span class="keyword">var</span> <a href="../../../../../pkg/crypto/internal/fips140/ecdh.html#name-p256Order" class="ident">p256Order</a> = []<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>{</code></span>
+<span class="codeline" id="line-96"><code>	<span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0x00</span>, <span class="lit-number">0x00</span>, <span class="lit-number">0x00</span>, <span class="lit-number">0x00</span>,</code></span>
+<span class="codeline" id="line-97"><code>	<span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>,</code></span>
+<span class="codeline" id="line-98"><code>	<span class="lit-number">0xbc</span>, <span class="lit-number">0xe6</span>, <span class="lit-number">0xfa</span>, <span class="lit-number">0xad</span>, <span class="lit-number">0xa7</span>, <span class="lit-number">0x17</span>, <span class="lit-number">0x9e</span>, <span class="lit-number">0x84</span>,</code></span>
+<span class="codeline" id="line-99"><code>	<span class="lit-number">0xf3</span>, <span class="lit-number">0xb9</span>, <span class="lit-number">0xca</span>, <span class="lit-number">0xc2</span>, <span class="lit-number">0xfc</span>, <span class="lit-number">0x63</span>, <span class="lit-number">0x25</span>, <span class="lit-number">0x51</span>,</code></span>
+<span class="codeline" id="line-100"><code>}</code></span>
+<span class="codeline" id="line-101"><code></code></span>
+<span class="codeline" id="line-102"><code><span class="keyword">func</span> <label for="r10" class="ident"><a href="../../../../../pkg/crypto/internal/fips140/ecdh.html#name-P384" class="ident">P384</a></label>() *<a href="#line-56" class="ident">Curve</a>[*<a href="../../../../../pkg/crypto/internal/fips140/nistec.html" class="ident i3">nistec</a>.<a href="../nistec/p384.go.html#line-21" class="ident">P384Point</a>] {</code></span>
+<span class="codeline" id="line-103"><code>	<span class="keyword">return</span> &amp;<a href="#line-56" class="ident">Curve</a>[*<a href="../../../../../pkg/crypto/internal/fips140/nistec.html" class="ident i3">nistec</a>.<a href="../nistec/p384.go.html#line-21" class="ident">P384Point</a>]{</code></span>
+<span class="codeline" id="line-104"><code>		<a href="#line-57" class="ident">curve</a>:    <a href="#line-52" class="ident">p384</a>,</code></span>
+<span class="codeline" id="line-105"><code>		<a href="#line-58" class="ident">newPoint</a>: <a href="../../../../../pkg/crypto/internal/fips140/nistec.html" class="ident i3">nistec</a>.<a href="../nistec/p384.go.html#line-28" class="ident">NewP384Point</a>,</code></span>
+<span class="codeline" id="line-106"><code>		<a href="#line-59" class="ident">N</a>:        <a href="#line-110" class="ident">p384Order</a>,</code></span>
+<span class="codeline" id="line-107"><code>	}</code></span>
+<span class="codeline" id="line-108"><code>}</code></span>
+<span class="codeline" id="line-109"><code></code></span>
+<span class="codeline" id="line-110"><code><span class="keyword">var</span> <a href="../../../../../pkg/crypto/internal/fips140/ecdh.html#name-p384Order" class="ident">p384Order</a> = []<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>{</code></span>
+<span class="codeline" id="line-111"><code>	<span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>,</code></span>
+<span class="codeline" id="line-112"><code>	<span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>,</code></span>
+<span class="codeline" id="line-113"><code>	<span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>,</code></span>
+<span class="codeline" id="line-114"><code>	<span class="lit-number">0xc7</span>, <span class="lit-number">0x63</span>, <span class="lit-number">0x4d</span>, <span class="lit-number">0x81</span>, <span class="lit-number">0xf4</span>, <span class="lit-number">0x37</span>, <span class="lit-number">0x2d</span>, <span class="lit-number">0xdf</span>,</code></span>
+<span class="codeline" id="line-115"><code>	<span class="lit-number">0x58</span>, <span class="lit-number">0x1a</span>, <span class="lit-number">0x0d</span>, <span class="lit-number">0xb2</span>, <span class="lit-number">0x48</span>, <span class="lit-number">0xb0</span>, <span class="lit-number">0xa7</span>, <span class="lit-number">0x7a</span>,</code></span>
+<span class="codeline" id="line-116"><code>	<span class="lit-number">0xec</span>, <span class="lit-number">0xec</span>, <span class="lit-number">0x19</span>, <span class="lit-number">0x6a</span>, <span class="lit-number">0xcc</span>, <span class="lit-number">0xc5</span>, <span class="lit-number">0x29</span>, <span class="lit-number">0x73</span>,</code></span>
+<span class="codeline" id="line-117"><code>}</code></span>
+<span class="codeline" id="line-118"><code></code></span>
+<span class="codeline" id="line-119"><code><span class="keyword">func</span> <label for="r11" class="ident"><a href="../../../../../pkg/crypto/internal/fips140/ecdh.html#name-P521" class="ident">P521</a></label>() *<a href="#line-56" class="ident">Curve</a>[*<a href="../../../../../pkg/crypto/internal/fips140/nistec.html" class="ident i3">nistec</a>.<a href="../nistec/p521.go.html#line-21" class="ident">P521Point</a>] {</code></span>
+<span class="codeline" id="line-120"><code>	<span class="keyword">return</span> &amp;<a href="#line-56" class="ident">Curve</a>[*<a href="../../../../../pkg/crypto/internal/fips140/nistec.html" class="ident i3">nistec</a>.<a href="../nistec/p521.go.html#line-21" class="ident">P521Point</a>]{</code></span>
+<span class="codeline" id="line-121"><code>		<a href="#line-57" class="ident">curve</a>:    <a href="#line-53" class="ident">p521</a>,</code></span>
+<span class="codeline" id="line-122"><code>		<a href="#line-58" class="ident">newPoint</a>: <a href="../../../../../pkg/crypto/internal/fips140/nistec.html" class="ident i3">nistec</a>.<a href="../nistec/p521.go.html#line-28" class="ident">NewP521Point</a>,</code></span>
+<span class="codeline" id="line-123"><code>		<a href="#line-59" class="ident">N</a>:        <a href="#line-127" class="ident">p521Order</a>,</code></span>
+<span class="codeline" id="line-124"><code>	}</code></span>
+<span class="codeline" id="line-125"><code>}</code></span>
+<span class="codeline" id="line-126"><code></code></span>
+<span class="codeline" id="line-127"><code><span class="keyword">var</span> <a href="../../../../../pkg/crypto/internal/fips140/ecdh.html#name-p521Order" class="ident">p521Order</a> = []<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>{<span class="lit-number">0x01</span>, <span class="lit-number">0xff</span>,</code></span>
+<span class="codeline" id="line-128"><code>	<span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>,</code></span>
+<span class="codeline" id="line-129"><code>	<span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>,</code></span>
+<span class="codeline" id="line-130"><code>	<span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>,</code></span>
+<span class="codeline" id="line-131"><code>	<span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0xff</span>, <span class="lit-number">0xfa</span>,</code></span>
+<span class="codeline" id="line-132"><code>	<span class="lit-number">0x51</span>, <span class="lit-number">0x86</span>, <span class="lit-number">0x87</span>, <span class="lit-number">0x83</span>, <span class="lit-number">0xbf</span>, <span class="lit-number">0x2f</span>, <span class="lit-number">0x96</span>, <span class="lit-number">0x6b</span>,</code></span>
+<span class="codeline" id="line-133"><code>	<span class="lit-number">0x7f</span>, <span class="lit-number">0xcc</span>, <span class="lit-number">0x01</span>, <span class="lit-number">0x48</span>, <span class="lit-number">0xf7</span>, <span class="lit-number">0x09</span>, <span class="lit-number">0xa5</span>, <span class="lit-number">0xd0</span>,</code></span>
+<span class="codeline" id="line-134"><code>	<span class="lit-number">0x3b</span>, <span class="lit-number">0xb5</span>, <span class="lit-number">0xc9</span>, <span class="lit-number">0xb8</span>, <span class="lit-number">0x89</span>, <span class="lit-number">0x9c</span>, <span class="lit-number">0x47</span>, <span class="lit-number">0xae</span>,</code></span>
+<span class="codeline" id="line-135"><code>	<span class="lit-number">0xbb</span>, <span class="lit-number">0x6f</span>, <span class="lit-number">0xb7</span>, <span class="lit-number">0x1e</span>, <span class="lit-number">0x91</span>, <span class="lit-number">0x38</span>, <span class="lit-number">0x64</span>, <span class="lit-number">0x09</span>,</code></span>
+<span class="codeline" id="line-136"><code>}</code></span>
+<span class="codeline" id="line-137"><code></code></span>
+<span class="codeline" id="line-138"><code><span class="comment">// GenerateKey generates a new ECDSA private key pair for the specified curve.</span></code></span>
+<span class="codeline" id="line-139"><code><span class="keyword">func</span> <label for="r12" class="ident"><a href="../../../../../pkg/crypto/internal/fips140/ecdh.html#name-GenerateKey" class="ident">GenerateKey</a></label>[<label for="r13" class="ident">P</label> <a href="#line-63" class="ident">Point</a>[<label for="r13" class="ident">P</label>]](<label for="r14" class="ident">c</label> *<a href="#line-56" class="ident">Curve</a>[<label for="r13" class="ident">P</label>], <label for="r15" class="ident">rand</label> <a href="../../../../../pkg/io.html" class="ident i6">io</a>.<a href="../../../../io/io.go.html#line-86" class="ident">Reader</a>) (*<a href="#line-25" class="ident">PrivateKey</a>, <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-140"><code>	<a href="../../../../../pkg/crypto/internal/fips140.html" class="ident i1">fips140</a>.<a href="../indicator.go.html#line-52" class="ident">RecordApproved</a>()</code></span>
+<span class="codeline" id="line-141"><code>	<span class="comment">// This procedure is equivalent to Key Pair Generation by Testing</span></code></span>
+<span class="codeline" id="line-142"><code><span class="comment">	// Candidates, specified in NIST SP 800-56A Rev. 3, Section 5.6.1.2.2.</span></code></span>
+<span class="codeline" id="line-143"><code></code></span>
+<span class="codeline" id="line-144"><code>	<span class="keyword">for</span> {</code></span>
+<span class="codeline" id="line-145"><code>		<label for="r16" class="ident">key</label> := <a href="../../../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r14" class="ident">c</label>.<a href="#line-59" class="ident">N</a>))</code></span>
+<span class="codeline" id="line-146"><code>		<span class="keyword">if</span> <label for="r17" class="ident">err</label> := <a href="../../../../../pkg/crypto/internal/fips140/drbg.html" class="ident i2">drbg</a>.<a href="../drbg/rand.go.html#line-73" class="ident">ReadWithReader</a>(<label for="r15" class="ident">rand</label>, <label for="r16" class="ident">key</label>); <label for="r17" class="ident">err</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-147"><code>			<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r17" class="ident">err</label></code></span>
+<span class="codeline" id="line-148"><code>		}</code></span>
+<span class="codeline" id="line-149"><code>		<span class="comment">// In tests, rand will return all zeros and NewPrivateKey will reject</span></code></span>
+<span class="codeline" id="line-150"><code><span class="comment">		// the zero key as it generates the identity as a public key. This also</span></code></span>
+<span class="codeline" id="line-151"><code><span class="comment">		// makes this function consistent with crypto/elliptic.GenerateKey.</span></code></span>
+<span class="codeline" id="line-152"><code>		<label for="r16" class="ident">key</label>[<span class="lit-number">1</span>] ^= <span class="lit-number">0x42</span></code></span>
+<span class="codeline" id="line-153"><code></code></span>
+<span class="codeline" id="line-154"><code>		<span class="comment">// Mask off any excess bits if the size of the underlying field is not a</span></code></span>
+<span class="codeline" id="line-155"><code><span class="comment">		// whole number of bytes, which is only the case for P-521.</span></code></span>
+<span class="codeline" id="line-156"><code>		<span class="keyword">if</span> <label for="r14" class="ident">c</label>.<a href="#line-57" class="ident">curve</a> == <a href="#line-53" class="ident">p521</a> &amp;&amp; <label for="r14" class="ident">c</label>.<a href="#line-59" class="ident">N</a>[<span class="lit-number">0</span>]&amp;<span class="lit-number">0b1111_1110</span> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-157"><code>			<label for="r16" class="ident">key</label>[<span class="lit-number">0</span>] &amp;= <span class="lit-number">0b0000_0001</span></code></span>
+<span class="codeline" id="line-158"><code>		}</code></span>
+<span class="codeline" id="line-159"><code></code></span>
+<span class="codeline" id="line-160"><code>		<label for="r18" class="ident">privateKey</label>, <label for="r19" class="ident">err</label> := <a href="#line-168" class="ident">NewPrivateKey</a>(<label for="r14" class="ident">c</label>, <label for="r16" class="ident">key</label>)</code></span>
+<span class="codeline" id="line-161"><code>		<span class="keyword">if</span> <label for="r19" class="ident">err</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-162"><code>			<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-163"><code>		}</code></span>
+<span class="codeline" id="line-164"><code>		<span class="keyword">return</span> <label for="r18" class="ident">privateKey</label>, <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-165"><code>	}</code></span>
+<span class="codeline" id="line-166"><code>}</code></span>
+<span class="codeline" id="line-167"><code></code></span>
+<span class="codeline" id="line-168"><code><span class="keyword">func</span> <label for="r20" class="ident"><a href="../../../../../pkg/crypto/internal/fips140/ecdh.html#name-NewPrivateKey" class="ident">NewPrivateKey</a></label>[<label for="r21" class="ident">P</label> <a href="#line-63" class="ident">Point</a>[<label for="r21" class="ident">P</label>]](<label for="r22" class="ident">c</label> *<a href="#line-56" class="ident">Curve</a>[<label for="r21" class="ident">P</label>], <label for="r23" class="ident">key</label> []<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) (*<a href="#line-25" class="ident">PrivateKey</a>, <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-169"><code>	<span class="comment">// SP 800-56A Rev. 3, Section 5.6.1.2.2 checks that c &lt;= n – 2 and then</span></code></span>
+<span class="codeline" id="line-170"><code><span class="comment">	// returns d = c + 1. Note that it follows that 0 &lt; d &lt; n. Equivalently,</span></code></span>
+<span class="codeline" id="line-171"><code><span class="comment">	// we check that 0 &lt; d &lt; n, and return d.</span></code></span>
+<span class="codeline" id="line-172"><code>	<span class="keyword">if</span> <a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r23" class="ident">key</label>) != <a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r22" class="ident">c</label>.<a href="#line-59" class="ident">N</a>) || <a href="#line-274" class="ident">isZero</a>(<label for="r23" class="ident">key</label>) || !<a href="#line-284" class="ident">isLess</a>(<label for="r23" class="ident">key</label>, <label for="r22" class="ident">c</label>.<a href="#line-59" class="ident">N</a>) {</code></span>
+<span class="codeline" id="line-173"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../../../pkg/errors.html" class="ident i5">errors</a>.<a href="../../../../errors/errors.go.html#line-64" class="ident">New</a>(<span class="lit-string">"crypto/ecdh: invalid private key"</span>)</code></span>
+<span class="codeline" id="line-174"><code>	}</code></span>
+<span class="codeline" id="line-175"><code></code></span>
+<span class="codeline" id="line-176"><code>	<label for="r24" class="ident">p</label>, <label for="r25" class="ident">err</label> := <label for="r22" class="ident">c</label>.<a href="#line-58" class="ident">newPoint</a>().<a href="#line-69" class="ident">ScalarBaseMult</a>(<label for="r23" class="ident">key</label>)</code></span>
+<span class="codeline" id="line-177"><code>	<span class="keyword">if</span> <label for="r25" class="ident">err</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-178"><code>		<span class="comment">// This is unreachable because the only error condition of</span></code></span>
+<span class="codeline" id="line-179"><code><span class="comment">		// ScalarBaseMult is if the input is not the right size.</span></code></span>
+<span class="codeline" id="line-180"><code>		<a href="../../../../../pkg/builtin.html#name-panic" class="ident">panic</a>(<span class="lit-string">"crypto/ecdh: internal error: nistec ScalarBaseMult failed for a fixed-size input"</span>)</code></span>
+<span class="codeline" id="line-181"><code>	}</code></span>
+<span class="codeline" id="line-182"><code></code></span>
+<span class="codeline" id="line-183"><code>	<label for="r26" class="ident">publicKey</label> := <label for="r24" class="ident">p</label>.<a href="#line-65" class="ident">Bytes</a>()</code></span>
+<span class="codeline" id="line-184"><code>	<span class="keyword">if</span> <a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r26" class="ident">publicKey</label>) == <span class="lit-number">1</span> {</code></span>
+<span class="codeline" id="line-185"><code>		<span class="comment">// The encoding of the identity is a single 0x00 byte. This is</span></code></span>
+<span class="codeline" id="line-186"><code><span class="comment">		// unreachable because the only scalar that generates the identity is</span></code></span>
+<span class="codeline" id="line-187"><code><span class="comment">		// zero, which is rejected above.</span></code></span>
+<span class="codeline" id="line-188"><code>		<a href="../../../../../pkg/builtin.html#name-panic" class="ident">panic</a>(<span class="lit-string">"crypto/ecdh: internal error: public key is the identity element"</span>)</code></span>
+<span class="codeline" id="line-189"><code>	}</code></span>
+<span class="codeline" id="line-190"><code></code></span>
+<span class="codeline" id="line-191"><code>	<span class="comment">// A "Pairwise Consistency Test" makes no sense if we just generated the</span></code></span>
+<span class="codeline" id="line-192"><code><span class="comment">	// public key from an ephemeral private key. Moreover, there is no way to</span></code></span>
+<span class="codeline" id="line-193"><code><span class="comment">	// check it aside from redoing the exact same computation again. SP 800-56A</span></code></span>
+<span class="codeline" id="line-194"><code><span class="comment">	// Rev. 3, Section 5.6.2.1.4 acknowledges that, and doesn't require it.</span></code></span>
+<span class="codeline" id="line-195"><code><span class="comment">	// However, ISO 19790:2012, Section 7.10.3.3 has a blanket requirement for a</span></code></span>
+<span class="codeline" id="line-196"><code><span class="comment">	// PCT for all generated keys (AS10.35) and FIPS 140-3 IG 10.3.A, Additional</span></code></span>
+<span class="codeline" id="line-197"><code><span class="comment">	// Comment 1 goes out of its way to say that "the PCT shall be performed</span></code></span>
+<span class="codeline" id="line-198"><code><span class="comment">	// consistent [...], even if the underlying standard does not require a</span></code></span>
+<span class="codeline" id="line-199"><code><span class="comment">	// PCT". So we do it. And make ECDH nearly 50% slower (only) in FIPS mode.</span></code></span>
+<span class="codeline" id="line-200"><code>	<span class="keyword">if</span> <label for="r27" class="ident">err</label> := <a href="../../../../../pkg/crypto/internal/fips140.html" class="ident i1">fips140</a>.<a href="../cast.go.html#line-69" class="ident">PCT</a>(<span class="lit-string">"ECDH PCT"</span>, <span class="keyword">func</span>() <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-201"><code>		<label for="r28" class="ident">p1</label>, <label for="r29" class="ident">err</label> := <label for="r22" class="ident">c</label>.<a href="#line-58" class="ident">newPoint</a>().<a href="#line-69" class="ident">ScalarBaseMult</a>(<label for="r23" class="ident">key</label>)</code></span>
+<span class="codeline" id="line-202"><code>		<span class="keyword">if</span> <label for="r29" class="ident">err</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-203"><code>			<span class="keyword">return</span> <label for="r29" class="ident">err</label></code></span>
+<span class="codeline" id="line-204"><code>		}</code></span>
+<span class="codeline" id="line-205"><code>		<span class="keyword">if</span> !<a href="../../../../../pkg/bytes.html" class="ident i0">bytes</a>.<a href="../../../../bytes/bytes.go.html#line-20" class="ident">Equal</a>(<label for="r28" class="ident">p1</label>.<a href="#line-65" class="ident">Bytes</a>(), <label for="r26" class="ident">publicKey</label>) {</code></span>
+<span class="codeline" id="line-206"><code>			<span class="keyword">return</span> <a href="../../../../../pkg/errors.html" class="ident i5">errors</a>.<a href="../../../../errors/errors.go.html#line-64" class="ident">New</a>(<span class="lit-string">"crypto/ecdh: public key does not match private key"</span>)</code></span>
+<span class="codeline" id="line-207"><code>		}</code></span>
+<span class="codeline" id="line-208"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-209"><code>	}); <label for="r27" class="ident">err</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-210"><code>		<a href="../../../../../pkg/builtin.html#name-panic" class="ident">panic</a>(<label for="r27" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-211"><code>	}</code></span>
+<span class="codeline" id="line-212"><code></code></span>
+<span class="codeline" id="line-213"><code>	<label for="r30" class="ident">k</label> := &amp;<a href="#line-25" class="ident">PrivateKey</a>{<a href="#line-27" class="ident">d</a>: <a href="../../../../../pkg/bytes.html" class="ident i0">bytes</a>.<a href="../../../../bytes/bytes.go.html#line-1408" class="ident">Clone</a>(<label for="r23" class="ident">key</label>), <a href="#line-26" class="ident">pub</a>: <a href="#line-38" class="ident">PublicKey</a>{<a href="#line-39" class="ident">curve</a>: <label for="r22" class="ident">c</label>.<a href="#line-57" class="ident">curve</a>, <a href="#line-40" class="ident">q</a>: <label for="r26" class="ident">publicKey</label>}}</code></span>
+<span class="codeline" id="line-214"><code>	<span class="keyword">return</span> <label for="r30" class="ident">k</label>, <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-215"><code>}</code></span>
+<span class="codeline" id="line-216"><code></code></span>
+<span class="codeline" id="line-217"><code><span class="keyword">func</span> <label for="r31" class="ident"><a href="../../../../../pkg/crypto/internal/fips140/ecdh.html#name-NewPublicKey" class="ident">NewPublicKey</a></label>[<label for="r32" class="ident">P</label> <a href="#line-63" class="ident">Point</a>[<label for="r32" class="ident">P</label>]](<label for="r33" class="ident">c</label> *<a href="#line-56" class="ident">Curve</a>[<label for="r32" class="ident">P</label>], <label for="r34" class="ident">key</label> []<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) (*<a href="#line-38" class="ident">PublicKey</a>, <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-218"><code>	<span class="comment">// Reject the point at infinity and compressed encodings.</span></code></span>
+<span class="codeline" id="line-219"><code>	<span class="keyword">if</span> <a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r34" class="ident">key</label>) == <span class="lit-number">0</span> || <label for="r34" class="ident">key</label>[<span class="lit-number">0</span>] != <span class="lit-number">4</span> {</code></span>
+<span class="codeline" id="line-220"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../../../pkg/errors.html" class="ident i5">errors</a>.<a href="../../../../errors/errors.go.html#line-64" class="ident">New</a>(<span class="lit-string">"crypto/ecdh: invalid public key"</span>)</code></span>
+<span class="codeline" id="line-221"><code>	}</code></span>
+<span class="codeline" id="line-222"><code></code></span>
+<span class="codeline" id="line-223"><code>	<span class="comment">// SetBytes checks that x and y are in the interval [0, p - 1], and that</span></code></span>
+<span class="codeline" id="line-224"><code><span class="comment">	// the point is on the curve. Along with the rejection of the point at</span></code></span>
+<span class="codeline" id="line-225"><code><span class="comment">	// infinity (the identity element) above, this fulfills the requirements</span></code></span>
+<span class="codeline" id="line-226"><code><span class="comment">	// of NIST SP 800-56A Rev. 3, Section 5.6.2.3.4.</span></code></span>
+<span class="codeline" id="line-227"><code>	<span class="keyword">if</span> <label for="r35" class="ident">_</label>, <label for="r36" class="ident">err</label> := <label for="r33" class="ident">c</label>.<a href="#line-58" class="ident">newPoint</a>().<a href="#line-67" class="ident">SetBytes</a>(<label for="r34" class="ident">key</label>); <label for="r36" class="ident">err</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-228"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r36" class="ident">err</label></code></span>
+<span class="codeline" id="line-229"><code>	}</code></span>
+<span class="codeline" id="line-230"><code></code></span>
+<span class="codeline" id="line-231"><code>	<span class="keyword">return</span> &amp;<a href="#line-38" class="ident">PublicKey</a>{<a href="#line-39" class="ident">curve</a>: <label for="r33" class="ident">c</label>.<a href="#line-57" class="ident">curve</a>, <a href="#line-40" class="ident">q</a>: <a href="../../../../../pkg/bytes.html" class="ident i0">bytes</a>.<a href="../../../../bytes/bytes.go.html#line-1408" class="ident">Clone</a>(<label for="r34" class="ident">key</label>)}, <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-232"><code>}</code></span>
+<span class="codeline" id="line-233"><code></code></span>
+<span class="codeline" id="line-234"><code><span class="keyword">func</span> <label for="r37" class="ident"><a href="../../../../../pkg/crypto/internal/fips140/ecdh.html#name-ECDH" class="ident">ECDH</a></label>[<label for="r38" class="ident">P</label> <a href="#line-63" class="ident">Point</a>[<label for="r38" class="ident">P</label>]](<label for="r39" class="ident">c</label> *<a href="#line-56" class="ident">Curve</a>[<label for="r38" class="ident">P</label>], <label for="r40" class="ident">k</label> *<a href="#line-25" class="ident">PrivateKey</a>, <label for="r41" class="ident">peer</label> *<a href="#line-38" class="ident">PublicKey</a>) ([]<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-235"><code>	<a href="cast.go.html#line-15" class="ident">fipsSelfTest</a>()</code></span>
+<span class="codeline" id="line-236"><code>	<a href="../../../../../pkg/crypto/internal/fips140.html" class="ident i1">fips140</a>.<a href="../indicator.go.html#line-52" class="ident">RecordApproved</a>()</code></span>
+<span class="codeline" id="line-237"><code>	<span class="keyword">return</span> <a href="#line-240" class="ident">ecdh</a>(<label for="r39" class="ident">c</label>, <label for="r40" class="ident">k</label>, <label for="r41" class="ident">peer</label>)</code></span>
+<span class="codeline" id="line-238"><code>}</code></span>
+<span class="codeline" id="line-239"><code></code></span>
+<span class="codeline" id="line-240"><code><span class="keyword">func</span> <label for="r42" class="ident"><a href="../../../../../pkg/crypto/internal/fips140/ecdh.html#name-ecdh" class="ident">ecdh</a></label>[<label for="r43" class="ident">P</label> <a href="#line-63" class="ident">Point</a>[<label for="r43" class="ident">P</label>]](<label for="r44" class="ident">c</label> *<a href="#line-56" class="ident">Curve</a>[<label for="r43" class="ident">P</label>], <label for="r45" class="ident">k</label> *<a href="#line-25" class="ident">PrivateKey</a>, <label for="r46" class="ident">peer</label> *<a href="#line-38" class="ident">PublicKey</a>) ([]<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-241"><code>	<span class="keyword">if</span> <label for="r44" class="ident">c</label>.<a href="#line-57" class="ident">curve</a> != <label for="r45" class="ident">k</label>.<a href="#line-26" class="ident">pub</a>.<a href="#line-39" class="ident">curve</a> {</code></span>
+<span class="codeline" id="line-242"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../../../pkg/errors.html" class="ident i5">errors</a>.<a href="../../../../errors/errors.go.html#line-64" class="ident">New</a>(<span class="lit-string">"crypto/ecdh: mismatched curves"</span>)</code></span>
+<span class="codeline" id="line-243"><code>	}</code></span>
+<span class="codeline" id="line-244"><code>	<span class="keyword">if</span> <label for="r45" class="ident">k</label>.<a href="#line-26" class="ident">pub</a>.<a href="#line-39" class="ident">curve</a> != <label for="r46" class="ident">peer</label>.<a href="#line-39" class="ident">curve</a> {</code></span>
+<span class="codeline" id="line-245"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../../../pkg/errors.html" class="ident i5">errors</a>.<a href="../../../../errors/errors.go.html#line-64" class="ident">New</a>(<span class="lit-string">"crypto/ecdh: mismatched curves"</span>)</code></span>
+<span class="codeline" id="line-246"><code>	}</code></span>
+<span class="codeline" id="line-247"><code></code></span>
+<span class="codeline" id="line-248"><code>	<span class="comment">// This applies the Shared Secret Computation of the Ephemeral Unified Model</span></code></span>
+<span class="codeline" id="line-249"><code><span class="comment">	// scheme specified in NIST SP 800-56A Rev. 3, Section 6.1.2.2.</span></code></span>
+<span class="codeline" id="line-250"><code></code></span>
+<span class="codeline" id="line-251"><code>	<span class="comment">// Per Section 5.6.2.3.4, Step 1, reject the identity element (0x00).</span></code></span>
+<span class="codeline" id="line-252"><code>	<span class="keyword">if</span> <a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r45" class="ident">k</label>.<a href="#line-26" class="ident">pub</a>.<a href="#line-40" class="ident">q</a>) == <span class="lit-number">1</span> {</code></span>
+<span class="codeline" id="line-253"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../../../pkg/errors.html" class="ident i5">errors</a>.<a href="../../../../errors/errors.go.html#line-64" class="ident">New</a>(<span class="lit-string">"crypto/ecdh: public key is the identity element"</span>)</code></span>
+<span class="codeline" id="line-254"><code>	}</code></span>
+<span class="codeline" id="line-255"><code></code></span>
+<span class="codeline" id="line-256"><code>	<span class="comment">// SetBytes checks that (x, y) are reduced modulo p, and that they are on</span></code></span>
+<span class="codeline" id="line-257"><code><span class="comment">	// the curve, performing Steps 2-3 of Section 5.6.2.3.4.</span></code></span>
+<span class="codeline" id="line-258"><code>	<label for="r47" class="ident">p</label>, <label for="r48" class="ident">err</label> := <label for="r44" class="ident">c</label>.<a href="#line-58" class="ident">newPoint</a>().<a href="#line-67" class="ident">SetBytes</a>(<label for="r46" class="ident">peer</label>.<a href="#line-40" class="ident">q</a>)</code></span>
+<span class="codeline" id="line-259"><code>	<span class="keyword">if</span> <label for="r48" class="ident">err</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-260"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r48" class="ident">err</label></code></span>
+<span class="codeline" id="line-261"><code>	}</code></span>
+<span class="codeline" id="line-262"><code></code></span>
+<span class="codeline" id="line-263"><code>	<span class="comment">// Compute P according to Section 5.7.1.2.</span></code></span>
+<span class="codeline" id="line-264"><code>	<span class="keyword">if</span> <label for="r49" class="ident">_</label>, <label for="r50" class="ident">err</label> := <label for="r47" class="ident">p</label>.<a href="#line-68" class="ident">ScalarMult</a>(<label for="r47" class="ident">p</label>, <label for="r45" class="ident">k</label>.<a href="#line-27" class="ident">d</a>); <label for="r50" class="ident">err</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-265"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r50" class="ident">err</label></code></span>
+<span class="codeline" id="line-266"><code>	}</code></span>
+<span class="codeline" id="line-267"><code></code></span>
+<span class="codeline" id="line-268"><code>	<span class="comment">// BytesX checks that the result is not the identity element, and returns the</span></code></span>
+<span class="codeline" id="line-269"><code><span class="comment">	// x-coordinate of the result, performing Steps 2-5 of Section 5.7.1.2.</span></code></span>
+<span class="codeline" id="line-270"><code>	<span class="keyword">return</span> <label for="r47" class="ident">p</label>.<a href="#line-66" class="ident">BytesX</a>()</code></span>
+<span class="codeline" id="line-271"><code>}</code></span>
+<span class="codeline" id="line-272"><code></code></span>
+<span class="codeline" id="line-273"><code><span class="comment">// isZero reports whether x is all zeroes in constant time.</span></code></span>
+<span class="codeline" id="line-274"><code><span class="keyword">func</span> <label for="r51" class="ident"><a href="../../../../../pkg/crypto/internal/fips140/ecdh.html#name-isZero" class="ident">isZero</a></label>(<label for="r52" class="ident">x</label> []<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-275"><code>	<span class="keyword">var</span> <label for="r53" class="ident">acc</label> <a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
+<span class="codeline" id="line-276"><code>	<span class="keyword">for</span> <label for="r54" class="ident">_</label>, <label for="r55" class="ident">b</label> := <span class="keyword">range</span> <label for="r52" class="ident">x</label> {</code></span>
+<span class="codeline" id="line-277"><code>		<label for="r53" class="ident">acc</label> |= <label for="r55" class="ident">b</label></code></span>
+<span class="codeline" id="line-278"><code>	}</code></span>
+<span class="codeline" id="line-279"><code>	<span class="keyword">return</span> <label for="r53" class="ident">acc</label> == <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-280"><code>}</code></span>
+<span class="codeline" id="line-281"><code></code></span>
+<span class="codeline" id="line-282"><code><span class="comment">// isLess reports whether a &lt; b, where a and b are big-endian buffers of the</span></code></span>
+<span class="codeline" id="line-283"><code><span class="comment">// same length and shorter than 72 bytes.</span></code></span>
+<span class="codeline" id="line-284"><code><span class="keyword">func</span> <label for="r56" class="ident"><a href="../../../../../pkg/crypto/internal/fips140/ecdh.html#name-isLess" class="ident">isLess</a></label>(<label for="r57" class="ident">a</label>, <label for="r58" class="ident">b</label> []<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-285"><code>	<span class="keyword">if</span> <a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r57" class="ident">a</label>) != <a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r58" class="ident">b</label>) {</code></span>
+<span class="codeline" id="line-286"><code>		<a href="../../../../../pkg/builtin.html#name-panic" class="ident">panic</a>(<span class="lit-string">"crypto/ecdh: internal error: mismatched isLess inputs"</span>)</code></span>
+<span class="codeline" id="line-287"><code>	}</code></span>
+<span class="codeline" id="line-288"><code></code></span>
+<span class="codeline" id="line-289"><code>	<span class="comment">// Copy the values into a fixed-size preallocated little-endian buffer.</span></code></span>
+<span class="codeline" id="line-290"><code><span class="comment">	// 72 bytes is enough for every scalar in this package, and having a fixed</span></code></span>
+<span class="codeline" id="line-291"><code><span class="comment">	// size lets us avoid heap allocations.</span></code></span>
+<span class="codeline" id="line-292"><code>	<span class="keyword">if</span> <a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r57" class="ident">a</label>) &gt; <span class="lit-number">72</span> {</code></span>
+<span class="codeline" id="line-293"><code>		<a href="../../../../../pkg/builtin.html#name-panic" class="ident">panic</a>(<span class="lit-string">"crypto/ecdh: internal error: isLess input too large"</span>)</code></span>
+<span class="codeline" id="line-294"><code>	}</code></span>
+<span class="codeline" id="line-295"><code>	<label for="r59" class="ident">bufA</label>, <label for="r60" class="ident">bufB</label> := <a href="../../../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <span class="lit-number">72</span>), <a href="../../../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <span class="lit-number">72</span>)</code></span>
+<span class="codeline" id="line-296"><code>	<span class="keyword">for</span> <label for="r61" class="ident">i</label> := <span class="keyword">range</span> <label for="r57" class="ident">a</label> {</code></span>
+<span class="codeline" id="line-297"><code>		<label for="r59" class="ident">bufA</label>[<label for="r61" class="ident">i</label>], <label for="r60" class="ident">bufB</label>[<label for="r61" class="ident">i</label>] = <label for="r57" class="ident">a</label>[<a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r57" class="ident">a</label>)-<label for="r61" class="ident">i</label>-<span class="lit-number">1</span>], <label for="r58" class="ident">b</label>[<a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r58" class="ident">b</label>)-<label for="r61" class="ident">i</label>-<span class="lit-number">1</span>]</code></span>
+<span class="codeline" id="line-298"><code>	}</code></span>
+<span class="codeline" id="line-299"><code></code></span>
+<span class="codeline" id="line-300"><code>	<span class="comment">// Perform a subtraction with borrow.</span></code></span>
+<span class="codeline" id="line-301"><code>	<span class="keyword">var</span> <label for="r62" class="ident">borrow</label> <a href="../../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a></code></span>
+<span class="codeline" id="line-302"><code>	<span class="keyword">for</span> <label for="r63" class="ident">i</label> := <span class="lit-number">0</span>; <label for="r63" class="ident">i</label> &lt; <a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r59" class="ident">bufA</label>); <label for="r63" class="ident">i</label> += <span class="lit-number">8</span> {</code></span>
+<span class="codeline" id="line-303"><code>		<label for="r64" class="ident">limbA</label>, <label for="r65" class="ident">limbB</label> := <a href="../../../../../pkg/crypto/internal/fips140deps/byteorder.html" class="ident i4">byteorder</a>.<a href="../../fips140deps/byteorder/byteorder.go.html#line-23" class="ident">LEUint64</a>(<label for="r59" class="ident">bufA</label>[<label for="r63" class="ident">i</label>:]), <a href="../../../../../pkg/crypto/internal/fips140deps/byteorder.html" class="ident i4">byteorder</a>.<a href="../../fips140deps/byteorder/byteorder.go.html#line-23" class="ident">LEUint64</a>(<label for="r60" class="ident">bufB</label>[<label for="r63" class="ident">i</label>:])</code></span>
+<span class="codeline" id="line-304"><code>		_, <label for="r62" class="ident">borrow</label> = <a href="../../../../../pkg/math/bits.html" class="ident i7">bits</a>.<a href="../../../../math/bits/bits.go.html#line-431" class="ident">Sub64</a>(<label for="r64" class="ident">limbA</label>, <label for="r65" class="ident">limbB</label>, <label for="r62" class="ident">borrow</label>)</code></span>
+<span class="codeline" id="line-305"><code>	}</code></span>
+<span class="codeline" id="line-306"><code></code></span>
+<span class="codeline" id="line-307"><code>	<span class="comment">// If there is a borrow at the end of the operation, then a &lt; b.</span></code></span>
+<span class="codeline" id="line-308"><code>	<span class="keyword">return</span> <label for="r62" class="ident">borrow</label> == <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-309"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

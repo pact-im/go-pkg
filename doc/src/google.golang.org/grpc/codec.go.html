@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: codec.go in package google.golang.org/grpc</title>
+<link href="../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	codec.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../pkg/google.golang.org/grpc.html">google.golang.org/grpc</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1
+{background: brown; color: #eed;}
+</style><input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">/*</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment"> * Copyright 2014 gRPC authors.</span></code></span>
+<span class="codeline" id="line-4"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-5"><code><span class="comment"> * Licensed under the Apache License, Version 2.0 (the "License");</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment"> * you may not use this file except in compliance with the License.</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment"> * You may obtain a copy of the License at</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment"> *     http://www.apache.org/licenses/LICENSE-2.0</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment"> * Unless required by applicable law or agreed to in writing, software</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment"> * distributed under the License is distributed on an "AS IS" BASIS,</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment"> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment"> * See the License for the specific language governing permissions and</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment"> * limitations under the License.</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment"> */</span></code></span>
+<span class="codeline" id="line-18"><code></code></span>
+<span class="codeline" id="line-19"><code><span class="keyword">package</span> grpc</code></span>
+<span class="codeline" id="line-20"><code></code></span>
+<span class="codeline" id="line-21"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-22"><code>	<label for="i0"><span class="lit-string i0">"google.golang.org/grpc/encoding"</span></label></code></span>
+<span class="codeline" id="line-23"><code>	<a href="../../../pkg/google.golang.org/grpc/encoding/proto.html" class="ident i1">_</a> <label for="i1"><span class="lit-string i1">"google.golang.org/grpc/encoding/proto"</span></label> <span class="comment">// to register the Codec for "proto"</span></code></span>
+<span class="codeline" id="line-24"><code>)</code></span>
+<span class="codeline" id="line-25"><code></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">// baseCodec contains the functionality of both Codec and encoding.Codec, but</span></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">// omits the name/string, which vary between the two and are not needed for</span></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">// anything besides the registry in the encoding package.</span></code></span>
+<span class="codeline" id="line-29"><code><span class="keyword">type</span> <a href="../../../pkg/google.golang.org/grpc.html#name-baseCodec" class="ident">baseCodec</a> <span class="keyword">interface</span> {</code></span>
+<span class="codeline" id="line-30"><code>	<a href="../../../imp/google.golang.org/grpc.baseCodec^2e4c8.html#name-Marshal" class="ident">Marshal</a>(v <span class="keyword">interface</span>{}) ([]<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
+<span class="codeline" id="line-31"><code>	<a href="../../../imp/google.golang.org/grpc.baseCodec^2e4c8.html#name-Unmarshal" class="ident">Unmarshal</a>(data []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>, v <span class="keyword">interface</span>{}) <a href="../../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-32"><code>}</code></span>
+<span class="codeline" id="line-33"><code></code></span>
+<span class="codeline" id="line-34"><code><span class="keyword">var</span> _ <a href="#line-29" class="ident">baseCodec</a> = <a href="#line-42" class="ident">Codec</a>(<a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>)</code></span>
+<span class="codeline" id="line-35"><code><span class="keyword">var</span> _ <a href="#line-29" class="ident">baseCodec</a> = <a href="../../../pkg/google.golang.org/grpc/encoding.html" class="ident i0">encoding</a>.<a href="encoding/encoding.go.html#line-91" class="ident">Codec</a>(<a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>)</code></span>
+<span class="codeline" id="line-36"><code></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">// Codec defines the interface gRPC uses to encode and decode messages.</span></code></span>
+<span class="codeline" id="line-38"><code><span class="comment">// Note that implementations of this interface must be thread safe;</span></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">// a Codec's methods can be called from concurrent goroutines.</span></code></span>
+<span class="codeline" id="line-40"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-41"><code><span class="comment">// Deprecated: use encoding.Codec instead.</span></code></span>
+<span class="codeline" id="line-42"><code><span class="keyword">type</span> <a href="../../../pkg/google.golang.org/grpc.html#name-Codec" class="ident">Codec</a> <span class="keyword">interface</span> {</code></span>
+<span class="codeline" id="line-43"><code>	<span class="comment">// Marshal returns the wire format of v.</span></code></span>
+<span class="codeline" id="line-44"><code>	<a href="../../../imp/google.golang.org/grpc.Codec.html#name-Marshal" class="ident">Marshal</a>(v <span class="keyword">interface</span>{}) ([]<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
+<span class="codeline" id="line-45"><code>	<span class="comment">// Unmarshal parses the wire format into v.</span></code></span>
+<span class="codeline" id="line-46"><code>	<a href="../../../imp/google.golang.org/grpc.Codec.html#name-Unmarshal" class="ident">Unmarshal</a>(data []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>, v <span class="keyword">interface</span>{}) <a href="../../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-47"><code>	<span class="comment">// String returns the name of the Codec implementation.  This is unused by</span></code></span>
+<span class="codeline" id="line-48"><code><span class="comment">	// gRPC.</span></code></span>
+<span class="codeline" id="line-49"><code>	<a href="../../../imp/google.golang.org/grpc.Codec.html#name-String" class="ident">String</a>() <a href="../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-50"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

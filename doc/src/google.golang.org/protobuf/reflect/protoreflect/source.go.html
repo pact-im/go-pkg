@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: source.go in package google.golang.org/protobuf/reflect/protoreflect</title>
+<link href="../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	source.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../pkg/google.golang.org/protobuf/reflect/protoreflect.html">google.golang.org/protobuf/reflect/protoreflect</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2019 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> protoreflect</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-8"><code>	<label for="i0"><span class="lit-string i0">"strconv"</span></label></code></span>
+<span class="codeline" id="line-9"><code>)</code></span>
+<span class="codeline" id="line-10"><code></code></span>
+<span class="codeline" id="line-11"><code><span class="comment">// SourceLocations is a list of source locations.</span></code></span>
+<span class="codeline" id="line-12"><code><span class="keyword">type</span> <a href="../../../../../pkg/google.golang.org/protobuf/reflect/protoreflect.html#name-SourceLocations" class="ident">SourceLocations</a> <span class="keyword">interface</span> {</code></span>
+<span class="codeline" id="line-13"><code>	<span class="comment">// Len reports the number of source locations in the proto file.</span></code></span>
+<span class="codeline" id="line-14"><code>	<a href="../../../../../imp/google.golang.org/protobuf/reflect/protoreflect.SourceLocations.html#name-Len" class="ident">Len</a>() <a href="../../../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-15"><code>	<span class="comment">// Get returns the ith SourceLocation. It panics if out of bounds.</span></code></span>
+<span class="codeline" id="line-16"><code>	<a href="../../../../../imp/google.golang.org/protobuf/reflect/protoreflect.SourceLocations.html#name-Get" class="ident">Get</a>(<a href="../../../../../pkg/builtin.html#name-int" class="ident">int</a>) <a href="#line-36" class="ident">SourceLocation</a></code></span>
+<span class="codeline" id="line-17"><code></code></span>
+<span class="codeline" id="line-18"><code>	<span class="comment">// ByPath returns the SourceLocation for the given path,</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">	// returning the first location if multiple exist for the same path.</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">	// If multiple locations exist for the same path,</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">	// then SourceLocation.Next index can be used to identify the</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">	// index of the next SourceLocation.</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">	// If no location exists for this path, it returns the zero value.</span></code></span>
+<span class="codeline" id="line-24"><code>	<a href="../../../../../imp/google.golang.org/protobuf/reflect/protoreflect.SourceLocations.html#name-ByPath" class="ident">ByPath</a>(path <a href="#line-68" class="ident">SourcePath</a>) <a href="#line-36" class="ident">SourceLocation</a></code></span>
+<span class="codeline" id="line-25"><code></code></span>
+<span class="codeline" id="line-26"><code>	<span class="comment">// ByDescriptor returns the SourceLocation for the given descriptor,</span></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">	// returning the first location if multiple exist for the same path.</span></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">	// If no location exists for this descriptor, it returns the zero value.</span></code></span>
+<span class="codeline" id="line-29"><code>	<a href="../../../../../imp/google.golang.org/protobuf/reflect/protoreflect.SourceLocations.html#name-ByDescriptor" class="ident">ByDescriptor</a>(desc <a href="type.go.html#line-21" class="ident">Descriptor</a>) <a href="#line-36" class="ident">SourceLocation</a></code></span>
+<span class="codeline" id="line-30"><code></code></span>
+<span class="codeline" id="line-31"><code>	<a href="proto.go.html#line-141" class="ident">doNotImplement</a></code></span>
+<span class="codeline" id="line-32"><code>}</code></span>
+<span class="codeline" id="line-33"><code></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">// SourceLocation describes a source location and</span></code></span>
+<span class="codeline" id="line-35"><code><span class="comment">// corresponds with the google.protobuf.SourceCodeInfo.Location message.</span></code></span>
+<span class="codeline" id="line-36"><code><span class="keyword">type</span> <a href="../../../../../pkg/google.golang.org/protobuf/reflect/protoreflect.html#name-SourceLocation" class="ident">SourceLocation</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-37"><code>	<span class="comment">// Path is the path to the declaration from the root file descriptor.</span></code></span>
+<span class="codeline" id="line-38"><code><span class="comment">	// The contents of this slice must not be mutated.</span></code></span>
+<span class="codeline" id="line-39"><code>	<a href="../../../../../use/google.golang.org/protobuf/reflect/protoreflect..SourceLocation.Path.html" class="ident">Path</a> <a href="#line-68" class="ident">SourcePath</a></code></span>
+<span class="codeline" id="line-40"><code></code></span>
+<span class="codeline" id="line-41"><code>	<span class="comment">// StartLine and StartColumn are the zero-indexed starting location</span></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">	// in the source file for the declaration.</span></code></span>
+<span class="codeline" id="line-43"><code>	<a href="../../../../../use/google.golang.org/protobuf/reflect/protoreflect..SourceLocation.StartLine.html" class="ident">StartLine</a>, <a href="../../../../../use/google.golang.org/protobuf/reflect/protoreflect..SourceLocation.StartColumn.html" class="ident">StartColumn</a> <a href="../../../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-44"><code>	<span class="comment">// EndLine and EndColumn are the zero-indexed ending location</span></code></span>
+<span class="codeline" id="line-45"><code><span class="comment">	// in the source file for the declaration.</span></code></span>
+<span class="codeline" id="line-46"><code><span class="comment">	// In the descriptor.proto, the end line may be omitted if it is identical</span></code></span>
+<span class="codeline" id="line-47"><code><span class="comment">	// to the start line. Here, it is always populated.</span></code></span>
+<span class="codeline" id="line-48"><code>	<a href="../../../../../use/google.golang.org/protobuf/reflect/protoreflect..SourceLocation.EndLine.html" class="ident">EndLine</a>, <a href="../../../../../use/google.golang.org/protobuf/reflect/protoreflect..SourceLocation.EndColumn.html" class="ident">EndColumn</a> <a href="../../../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-49"><code></code></span>
+<span class="codeline" id="line-50"><code>	<span class="comment">// LeadingDetachedComments are the leading detached comments</span></code></span>
+<span class="codeline" id="line-51"><code><span class="comment">	// for the declaration. The contents of this slice must not be mutated.</span></code></span>
+<span class="codeline" id="line-52"><code>	<a href="../../../../../use/google.golang.org/protobuf/reflect/protoreflect..SourceLocation.LeadingDetachedComments.html" class="ident">LeadingDetachedComments</a> []<a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-53"><code>	<span class="comment">// LeadingComments is the leading attached comment for the declaration.</span></code></span>
+<span class="codeline" id="line-54"><code>	<a href="../../../../../use/google.golang.org/protobuf/reflect/protoreflect..SourceLocation.LeadingComments.html" class="ident">LeadingComments</a> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-55"><code>	<span class="comment">// TrailingComments is the trailing attached comment for the declaration.</span></code></span>
+<span class="codeline" id="line-56"><code>	<a href="../../../../../use/google.golang.org/protobuf/reflect/protoreflect..SourceLocation.TrailingComments.html" class="ident">TrailingComments</a> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-57"><code></code></span>
+<span class="codeline" id="line-58"><code>	<span class="comment">// Next is an index into SourceLocations for the next source location that</span></code></span>
+<span class="codeline" id="line-59"><code><span class="comment">	// has the same Path. It is zero if there is no next location.</span></code></span>
+<span class="codeline" id="line-60"><code>	<a href="../../../../../use/google.golang.org/protobuf/reflect/protoreflect..SourceLocation.Next.html" class="ident">Next</a> <a href="../../../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-61"><code>}</code></span>
+<span class="codeline" id="line-62"><code></code></span>
+<span class="codeline" id="line-63"><code><span class="comment">// SourcePath identifies part of a file descriptor for a source location.</span></code></span>
+<span class="codeline" id="line-64"><code><span class="comment">// The SourcePath is a sequence of either field numbers or indexes into</span></code></span>
+<span class="codeline" id="line-65"><code><span class="comment">// a repeated field that form a path starting from the root file descriptor.</span></code></span>
+<span class="codeline" id="line-66"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-67"><code><span class="comment">// See google.protobuf.SourceCodeInfo.Location.path.</span></code></span>
+<span class="codeline" id="line-68"><code><span class="keyword">type</span> <a href="../../../../../pkg/google.golang.org/protobuf/reflect/protoreflect.html#name-SourcePath" class="ident">SourcePath</a> []<a href="../../../../../pkg/builtin.html#name-int32" class="ident">int32</a></code></span>
+<span class="codeline" id="line-69"><code></code></span>
+<span class="codeline" id="line-70"><code><span class="comment">// Equal reports whether p1 equals p2.</span></code></span>
+<span class="codeline" id="line-71"><code><span class="keyword">func</span> (<label for="r0" class="ident">p1</label> <a href="#line-68" class="ident">SourcePath</a>) <label for="r1" class="ident"><a href="../../../../../use/google.golang.org/protobuf/reflect/protoreflect..SourcePath.Equal.html" class="ident">Equal</a></label>(<label for="r2" class="ident">p2</label> <a href="#line-68" class="ident">SourcePath</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-72"><code>	<span class="keyword">if</span> <a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r0" class="ident">p1</label>) != <a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r2" class="ident">p2</label>) {</code></span>
+<span class="codeline" id="line-73"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-74"><code>	}</code></span>
+<span class="codeline" id="line-75"><code>	<span class="keyword">for</span> <label for="r3" class="ident">i</label> := <span class="keyword">range</span> <label for="r0" class="ident">p1</label> {</code></span>
+<span class="codeline" id="line-76"><code>		<span class="keyword">if</span> <label for="r0" class="ident">p1</label>[<label for="r3" class="ident">i</label>] != <label for="r2" class="ident">p2</label>[<label for="r3" class="ident">i</label>] {</code></span>
+<span class="codeline" id="line-77"><code>			<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-78"><code>		}</code></span>
+<span class="codeline" id="line-79"><code>	}</code></span>
+<span class="codeline" id="line-80"><code>	<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-81"><code>}</code></span>
+<span class="codeline" id="line-82"><code></code></span>
+<span class="codeline" id="line-83"><code><span class="comment">// String formats the path in a humanly readable manner.</span></code></span>
+<span class="codeline" id="line-84"><code><span class="comment">// The output is guaranteed to be deterministic,</span></code></span>
+<span class="codeline" id="line-85"><code><span class="comment">// making it suitable for use as a key into a Go map.</span></code></span>
+<span class="codeline" id="line-86"><code><span class="comment">// It is not guaranteed to be stable as the exact output could change</span></code></span>
+<span class="codeline" id="line-87"><code><span class="comment">// in a future version of this module.</span></code></span>
+<span class="codeline" id="line-88"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-89"><code><span class="comment">// Example output:</span></code></span>
+<span class="codeline" id="line-90"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-91"><code><span class="comment">//	.message_type[6].nested_type[15].field[3]</span></code></span>
+<span class="codeline" id="line-92"><code><span class="keyword">func</span> (<label for="r4" class="ident">p</label> <a href="#line-68" class="ident">SourcePath</a>) <label for="r5" class="ident"><a href="../../../../../use/google.golang.org/protobuf/reflect/protoreflect..SourcePath.String.html" class="ident">String</a></label>() <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-93"><code>	<label for="r6" class="ident">b</label> := <label for="r4" class="ident">p</label>.<a href="source_gen.go.html#line-9" class="ident">appendFileDescriptorProto</a>(<a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>)</code></span>
+<span class="codeline" id="line-94"><code>	<span class="keyword">for</span> <label for="r7" class="ident">_</label>, <label for="r8" class="ident">i</label> := <span class="keyword">range</span> <label for="r4" class="ident">p</label> {</code></span>
+<span class="codeline" id="line-95"><code>		<label for="r6" class="ident">b</label> = <a href="../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r6" class="ident">b</label>, <span class="lit-number">'.'</span>)</code></span>
+<span class="codeline" id="line-96"><code>		<label for="r6" class="ident">b</label> = <a href="../../../../../pkg/strconv.html" class="ident i0">strconv</a>.<a href="../../../../strconv/itoa.go.html#line-40" class="ident">AppendInt</a>(<label for="r6" class="ident">b</label>, <a href="../../../../../pkg/builtin.html#name-int64" class="ident">int64</a>(<label for="r8" class="ident">i</label>), <span class="lit-number">10</span>)</code></span>
+<span class="codeline" id="line-97"><code>	}</code></span>
+<span class="codeline" id="line-98"><code>	<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>(<label for="r6" class="ident">b</label>)</code></span>
+<span class="codeline" id="line-99"><code>}</code></span>
+<span class="codeline" id="line-100"><code></code></span>
+<span class="codeline" id="line-101"><code><span class="keyword">type</span> <a href="../../../../../pkg/google.golang.org/protobuf/reflect/protoreflect.html#name-appendFunc" class="ident">appendFunc</a> <span class="keyword">func</span>(*<a href="#line-68" class="ident">SourcePath</a>, []<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) []<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
+<span class="codeline" id="line-102"><code></code></span>
+<span class="codeline" id="line-103"><code><span class="keyword">func</span> (<label for="r9" class="ident">p</label> *<a href="#line-68" class="ident">SourcePath</a>) <label for="r10" class="ident"><a href="../../../../../use/google.golang.org/protobuf/reflect/protoreflect..SourcePath.appendSingularField^19dc6.html" class="ident">appendSingularField</a></label>(<label for="r11" class="ident">b</label> []<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r12" class="ident">name</label> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r13" class="ident">f</label> <a href="#line-101" class="ident">appendFunc</a>) []<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a> {</code></span>
+<span class="codeline" id="line-104"><code>	<span class="keyword">if</span> <a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(*<label for="r9" class="ident">p</label>) == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-105"><code>		<span class="keyword">return</span> <label for="r11" class="ident">b</label></code></span>
+<span class="codeline" id="line-106"><code>	}</code></span>
+<span class="codeline" id="line-107"><code>	<label for="r11" class="ident">b</label> = <a href="../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r11" class="ident">b</label>, <span class="lit-number">'.'</span>)</code></span>
+<span class="codeline" id="line-108"><code>	<label for="r11" class="ident">b</label> = <a href="../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r11" class="ident">b</label>, <label for="r12" class="ident">name</label>...)</code></span>
+<span class="codeline" id="line-109"><code>	*<label for="r9" class="ident">p</label> = (*<label for="r9" class="ident">p</label>)[<span class="lit-number">1</span>:]</code></span>
+<span class="codeline" id="line-110"><code>	<span class="keyword">if</span> <label for="r13" class="ident">f</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-111"><code>		<label for="r11" class="ident">b</label> = <label for="r13" class="ident">f</label>(<label for="r9" class="ident">p</label>, <label for="r11" class="ident">b</label>)</code></span>
+<span class="codeline" id="line-112"><code>	}</code></span>
+<span class="codeline" id="line-113"><code>	<span class="keyword">return</span> <label for="r11" class="ident">b</label></code></span>
+<span class="codeline" id="line-114"><code>}</code></span>
+<span class="codeline" id="line-115"><code></code></span>
+<span class="codeline" id="line-116"><code><span class="keyword">func</span> (<label for="r14" class="ident">p</label> *<a href="#line-68" class="ident">SourcePath</a>) <label for="r15" class="ident"><a href="../../../../../use/google.golang.org/protobuf/reflect/protoreflect..SourcePath.appendRepeatedField^db5ff.html" class="ident">appendRepeatedField</a></label>(<label for="r16" class="ident">b</label> []<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r17" class="ident">name</label> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r18" class="ident">f</label> <a href="#line-101" class="ident">appendFunc</a>) []<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a> {</code></span>
+<span class="codeline" id="line-117"><code>	<label for="r16" class="ident">b</label> = <label for="r14" class="ident">p</label>.<a href="#line-103" class="ident">appendSingularField</a>(<label for="r16" class="ident">b</label>, <label for="r17" class="ident">name</label>, <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>)</code></span>
+<span class="codeline" id="line-118"><code>	<span class="keyword">if</span> <a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(*<label for="r14" class="ident">p</label>) == <span class="lit-number">0</span> || (*<label for="r14" class="ident">p</label>)[<span class="lit-number">0</span>] &lt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-119"><code>		<span class="keyword">return</span> <label for="r16" class="ident">b</label></code></span>
+<span class="codeline" id="line-120"><code>	}</code></span>
+<span class="codeline" id="line-121"><code>	<label for="r16" class="ident">b</label> = <a href="../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r16" class="ident">b</label>, <span class="lit-number">'['</span>)</code></span>
+<span class="codeline" id="line-122"><code>	<label for="r16" class="ident">b</label> = <a href="../../../../../pkg/strconv.html" class="ident i0">strconv</a>.<a href="../../../../strconv/itoa.go.html#line-50" class="ident">AppendUint</a>(<label for="r16" class="ident">b</label>, <a href="../../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>((*<label for="r14" class="ident">p</label>)[<span class="lit-number">0</span>]), <span class="lit-number">10</span>)</code></span>
+<span class="codeline" id="line-123"><code>	<label for="r16" class="ident">b</label> = <a href="../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r16" class="ident">b</label>, <span class="lit-number">']'</span>)</code></span>
+<span class="codeline" id="line-124"><code>	*<label for="r14" class="ident">p</label> = (*<label for="r14" class="ident">p</label>)[<span class="lit-number">1</span>:]</code></span>
+<span class="codeline" id="line-125"><code>	<span class="keyword">if</span> <label for="r18" class="ident">f</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-126"><code>		<label for="r16" class="ident">b</label> = <label for="r18" class="ident">f</label>(<label for="r14" class="ident">p</label>, <label for="r16" class="ident">b</label>)</code></span>
+<span class="codeline" id="line-127"><code>	}</code></span>
+<span class="codeline" id="line-128"><code>	<span class="keyword">return</span> <label for="r16" class="ident">b</label></code></span>
+<span class="codeline" id="line-129"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

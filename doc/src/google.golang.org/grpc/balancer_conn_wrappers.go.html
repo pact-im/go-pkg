@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: balancer_conn_wrappers.go in package google.golang.org/grpc</title>
+<link href="../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	balancer_conn_wrappers.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../pkg/google.golang.org/grpc.html">google.golang.org/grpc</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30],
+input[id=r31]:checked ~pre label[for=r31],
+input[id=r32]:checked ~pre label[for=r32],
+input[id=r33]:checked ~pre label[for=r33],
+input[id=r34]:checked ~pre label[for=r34],
+input[id=r35]:checked ~pre label[for=r35],
+input[id=r36]:checked ~pre label[for=r36],
+input[id=r37]:checked ~pre label[for=r37],
+input[id=r38]:checked ~pre label[for=r38],
+input[id=r39]:checked ~pre label[for=r39],
+input[id=r40]:checked ~pre label[for=r40],
+input[id=r41]:checked ~pre label[for=r41],
+input[id=r42]:checked ~pre label[for=r42],
+input[id=r43]:checked ~pre label[for=r43],
+input[id=r44]:checked ~pre label[for=r44],
+input[id=r45]:checked ~pre label[for=r45],
+input[id=r46]:checked ~pre label[for=r46],
+input[id=r47]:checked ~pre label[for=r47],
+input[id=r48]:checked ~pre label[for=r48],
+input[id=r49]:checked ~pre label[for=r49],
+input[id=r50]:checked ~pre label[for=r50],
+input[id=r51]:checked ~pre label[for=r51],
+input[id=r52]:checked ~pre label[for=r52],
+input[id=r53]:checked ~pre label[for=r53],
+input[id=r54]:checked ~pre label[for=r54],
+input[id=r55]:checked ~pre label[for=r55],
+input[id=r56]:checked ~pre label[for=r56],
+input[id=r57]:checked ~pre label[for=r57],
+input[id=r58]:checked ~pre label[for=r58],
+input[id=r59]:checked ~pre label[for=r59],
+input[id=r60]:checked ~pre label[for=r60],
+input[id=r61]:checked ~pre label[for=r61],
+input[id=r62]:checked ~pre label[for=r62],
+input[id=r63]:checked ~pre label[for=r63],
+input[id=r64]:checked ~pre label[for=r64],
+input[id=r65]:checked ~pre label[for=r65],
+input[id=r66]:checked ~pre label[for=r66],
+input[id=r67]:checked ~pre label[for=r67],
+input[id=r68]:checked ~pre label[for=r68],
+input[id=r69]:checked ~pre label[for=r69],
+input[id=r70]:checked ~pre label[for=r70],
+input[id=r71]:checked ~pre label[for=r71],
+input[id=r72]:checked ~pre label[for=r72],
+input[id=r73]:checked ~pre label[for=r73],
+input[id=r74]:checked ~pre label[for=r74],
+input[id=r75]:checked ~pre label[for=r75],
+input[id=r76]:checked ~pre label[for=r76],
+input[id=r77]:checked ~pre label[for=r77],
+input[id=r78]:checked ~pre label[for=r78],
+input[id=r79]:checked ~pre label[for=r79],
+input[id=r80]:checked ~pre label[for=r80],
+input[id=r81]:checked ~pre label[for=r81],
+input[id=r82]:checked ~pre label[for=r82],
+input[id=r83]:checked ~pre label[for=r83],
+input[id=r84]:checked ~pre label[for=r84],
+input[id=r85]:checked ~pre label[for=r85],
+input[id=r86]:checked ~pre label[for=r86],
+input[id=r87]:checked ~pre label[for=r87],
+input[id=r88]:checked ~pre label[for=r88],
+input[id=r89]:checked ~pre label[for=r89],
+input[id=r90]:checked ~pre label[for=r90],
+input[id=r91]:checked ~pre label[for=r91],
+input[id=r92]:checked ~pre label[for=r92],
+input[id=r93]:checked ~pre label[for=r93],
+input[id=r94]:checked ~pre label[for=r94],
+input[id=r95]:checked ~pre label[for=r95],
+input[id=r96]:checked ~pre label[for=r96],
+input[id=r97]:checked ~pre label[for=r97],
+input[id=r98]:checked ~pre label[for=r98],
+input[id=r99]:checked ~pre label[for=r99],
+input[id=r100]:checked ~pre label[for=r100],
+input[id=r101]:checked ~pre label[for=r101],
+input[id=r102]:checked ~pre label[for=r102],
+input[id=r103]:checked ~pre label[for=r103],
+input[id=r104]:checked ~pre label[for=r104],
+input[id=r105]:checked ~pre label[for=r105],
+input[id=r106]:checked ~pre label[for=r106],
+input[id=r107]:checked ~pre label[for=r107],
+input[id=r108]:checked ~pre label[for=r108],
+input[id=r109]:checked ~pre label[for=r109],
+input[id=r110]:checked ~pre label[for=r110],
+input[id=r111]:checked ~pre label[for=r111],
+input[id=r112]:checked ~pre label[for=r112],
+input[id=r113]:checked ~pre label[for=r113],
+input[id=r114]:checked ~pre label[for=r114],
+input[id=r115]:checked ~pre label[for=r115],
+input[id=r116]:checked ~pre label[for=r116],
+input[id=r117]:checked ~pre label[for=r117]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3,
+input[id=i4]:checked ~pre .i4,
+input[id=i5]:checked ~pre .i5,
+input[id=i6]:checked ~pre .i6,
+input[id=i7]:checked ~pre .i7,
+input[id=i8]:checked ~pre .i8,
+input[id=i9]:checked ~pre .i9,
+input[id=i10]:checked ~pre .i10,
+input[id=i11]:checked ~pre .i11,
+input[id=i12]:checked ~pre .i12
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="r31" type="radio" name="g"/>
+<input id="r32" type="radio" name="g"/>
+<input id="r33" type="radio" name="g"/>
+<input id="r34" type="radio" name="g"/>
+<input id="r35" type="radio" name="g"/>
+<input id="r36" type="radio" name="g"/>
+<input id="r37" type="radio" name="g"/>
+<input id="r38" type="radio" name="g"/>
+<input id="r39" type="radio" name="g"/>
+<input id="r40" type="radio" name="g"/>
+<input id="r41" type="radio" name="g"/>
+<input id="r42" type="radio" name="g"/>
+<input id="r43" type="radio" name="g"/>
+<input id="r44" type="radio" name="g"/>
+<input id="r45" type="radio" name="g"/>
+<input id="r46" type="radio" name="g"/>
+<input id="r47" type="radio" name="g"/>
+<input id="r48" type="radio" name="g"/>
+<input id="r49" type="radio" name="g"/>
+<input id="r50" type="radio" name="g"/>
+<input id="r51" type="radio" name="g"/>
+<input id="r52" type="radio" name="g"/>
+<input id="r53" type="radio" name="g"/>
+<input id="r54" type="radio" name="g"/>
+<input id="r55" type="radio" name="g"/>
+<input id="r56" type="radio" name="g"/>
+<input id="r57" type="radio" name="g"/>
+<input id="r58" type="radio" name="g"/>
+<input id="r59" type="radio" name="g"/>
+<input id="r60" type="radio" name="g"/>
+<input id="r61" type="radio" name="g"/>
+<input id="r62" type="radio" name="g"/>
+<input id="r63" type="radio" name="g"/>
+<input id="r64" type="radio" name="g"/>
+<input id="r65" type="radio" name="g"/>
+<input id="r66" type="radio" name="g"/>
+<input id="r67" type="radio" name="g"/>
+<input id="r68" type="radio" name="g"/>
+<input id="r69" type="radio" name="g"/>
+<input id="r70" type="radio" name="g"/>
+<input id="r71" type="radio" name="g"/>
+<input id="r72" type="radio" name="g"/>
+<input id="r73" type="radio" name="g"/>
+<input id="r74" type="radio" name="g"/>
+<input id="r75" type="radio" name="g"/>
+<input id="r76" type="radio" name="g"/>
+<input id="r77" type="radio" name="g"/>
+<input id="r78" type="radio" name="g"/>
+<input id="r79" type="radio" name="g"/>
+<input id="r80" type="radio" name="g"/>
+<input id="r81" type="radio" name="g"/>
+<input id="r82" type="radio" name="g"/>
+<input id="r83" type="radio" name="g"/>
+<input id="r84" type="radio" name="g"/>
+<input id="r85" type="radio" name="g"/>
+<input id="r86" type="radio" name="g"/>
+<input id="r87" type="radio" name="g"/>
+<input id="r88" type="radio" name="g"/>
+<input id="r89" type="radio" name="g"/>
+<input id="r90" type="radio" name="g"/>
+<input id="r91" type="radio" name="g"/>
+<input id="r92" type="radio" name="g"/>
+<input id="r93" type="radio" name="g"/>
+<input id="r94" type="radio" name="g"/>
+<input id="r95" type="radio" name="g"/>
+<input id="r96" type="radio" name="g"/>
+<input id="r97" type="radio" name="g"/>
+<input id="r98" type="radio" name="g"/>
+<input id="r99" type="radio" name="g"/>
+<input id="r100" type="radio" name="g"/>
+<input id="r101" type="radio" name="g"/>
+<input id="r102" type="radio" name="g"/>
+<input id="r103" type="radio" name="g"/>
+<input id="r104" type="radio" name="g"/>
+<input id="r105" type="radio" name="g"/>
+<input id="r106" type="radio" name="g"/>
+<input id="r107" type="radio" name="g"/>
+<input id="r108" type="radio" name="g"/>
+<input id="r109" type="radio" name="g"/>
+<input id="r110" type="radio" name="g"/>
+<input id="r111" type="radio" name="g"/>
+<input id="r112" type="radio" name="g"/>
+<input id="r113" type="radio" name="g"/>
+<input id="r114" type="radio" name="g"/>
+<input id="r115" type="radio" name="g"/>
+<input id="r116" type="radio" name="g"/>
+<input id="r117" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+<input id="i4" type="radio" name="i"/>
+<input id="i5" type="radio" name="i"/>
+<input id="i6" type="radio" name="i"/>
+<input id="i7" type="radio" name="i"/>
+<input id="i8" type="radio" name="i"/>
+<input id="i9" type="radio" name="i"/>
+<input id="i10" type="radio" name="i"/>
+<input id="i11" type="radio" name="i"/>
+<input id="i12" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">/*</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment"> * Copyright 2017 gRPC authors.</span></code></span>
+<span class="codeline" id="line-4"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-5"><code><span class="comment"> * Licensed under the Apache License, Version 2.0 (the "License");</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment"> * you may not use this file except in compliance with the License.</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment"> * You may obtain a copy of the License at</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment"> *     http://www.apache.org/licenses/LICENSE-2.0</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment"> * Unless required by applicable law or agreed to in writing, software</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment"> * distributed under the License is distributed on an "AS IS" BASIS,</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment"> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment"> * See the License for the specific language governing permissions and</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment"> * limitations under the License.</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment"> */</span></code></span>
+<span class="codeline" id="line-18"><code></code></span>
+<span class="codeline" id="line-19"><code><span class="keyword">package</span> grpc</code></span>
+<span class="codeline" id="line-20"><code></code></span>
+<span class="codeline" id="line-21"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-22"><code>	<label for="i0"><span class="lit-string i0">"context"</span></label></code></span>
+<span class="codeline" id="line-23"><code>	<label for="i1"><span class="lit-string i1">"fmt"</span></label></code></span>
+<span class="codeline" id="line-24"><code>	<label for="i2"><span class="lit-string i2">"strings"</span></label></code></span>
+<span class="codeline" id="line-25"><code>	<label for="i3"><span class="lit-string i3">"sync"</span></label></code></span>
+<span class="codeline" id="line-26"><code></code></span>
+<span class="codeline" id="line-27"><code>	<label for="i4"><span class="lit-string i4">"google.golang.org/grpc/balancer"</span></label></code></span>
+<span class="codeline" id="line-28"><code>	<label for="i5"><span class="lit-string i5">"google.golang.org/grpc/codes"</span></label></code></span>
+<span class="codeline" id="line-29"><code>	<label for="i6"><span class="lit-string i6">"google.golang.org/grpc/connectivity"</span></label></code></span>
+<span class="codeline" id="line-30"><code>	<label for="i7"><span class="lit-string i7">"google.golang.org/grpc/internal/balancer/gracefulswitch"</span></label></code></span>
+<span class="codeline" id="line-31"><code>	<label for="i8"><span class="lit-string i8">"google.golang.org/grpc/internal/buffer"</span></label></code></span>
+<span class="codeline" id="line-32"><code>	<label for="i9"><span class="lit-string i9">"google.golang.org/grpc/internal/channelz"</span></label></code></span>
+<span class="codeline" id="line-33"><code>	<label for="i10"><span class="lit-string i10">"google.golang.org/grpc/internal/grpcsync"</span></label></code></span>
+<span class="codeline" id="line-34"><code>	<label for="i11"><span class="lit-string i11">"google.golang.org/grpc/resolver"</span></label></code></span>
+<span class="codeline" id="line-35"><code>	<label for="i12"><span class="lit-string i12">"google.golang.org/grpc/status"</span></label></code></span>
+<span class="codeline" id="line-36"><code>)</code></span>
+<span class="codeline" id="line-37"><code></code></span>
+<span class="codeline" id="line-38"><code><span class="comment">// ccBalancerWrapper sits between the ClientConn and the Balancer.</span></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-40"><code><span class="comment">// ccBalancerWrapper implements methods corresponding to the ones on the</span></code></span>
+<span class="codeline" id="line-41"><code><span class="comment">// balancer.Balancer interface. The ClientConn is free to call these methods</span></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">// concurrently and the ccBalancerWrapper ensures that calls from the ClientConn</span></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">// to the Balancer happen synchronously and in order.</span></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-45"><code><span class="comment">// ccBalancerWrapper also implements the balancer.ClientConn interface and is</span></code></span>
+<span class="codeline" id="line-46"><code><span class="comment">// passed to the Balancer implementations. It invokes unexported methods on the</span></code></span>
+<span class="codeline" id="line-47"><code><span class="comment">// ClientConn to handle these calls from the Balancer.</span></code></span>
+<span class="codeline" id="line-48"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-49"><code><span class="comment">// It uses the gracefulswitch.Balancer internally to ensure that balancer</span></code></span>
+<span class="codeline" id="line-50"><code><span class="comment">// switches happen in a graceful manner.</span></code></span>
+<span class="codeline" id="line-51"><code><span class="keyword">type</span> <a href="../../../pkg/google.golang.org/grpc.html#name-ccBalancerWrapper" class="ident">ccBalancerWrapper</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-52"><code>	<a href="../../../use/google.golang.org/grpc..ccBalancerWrapper^53aca.cc^355b1.html" class="ident">cc</a> *<a href="clientconn.go.html#line-467" class="ident">ClientConn</a></code></span>
+<span class="codeline" id="line-53"><code></code></span>
+<span class="codeline" id="line-54"><code>	<span class="comment">// Since these fields are accessed only from handleXxx() methods which are</span></code></span>
+<span class="codeline" id="line-55"><code><span class="comment">	// synchronized by the watcher goroutine, we do not need a mutex to protect</span></code></span>
+<span class="codeline" id="line-56"><code><span class="comment">	// these fields.</span></code></span>
+<span class="codeline" id="line-57"><code>	<a href="../../../use/google.golang.org/grpc..ccBalancerWrapper^53aca.balancer^f4da2.html" class="ident">balancer</a>        *<a href="../../../pkg/google.golang.org/grpc/internal/balancer/gracefulswitch.html" class="ident i7">gracefulswitch</a>.<a href="internal/balancer/gracefulswitch/gracefulswitch.go.html#line-46" class="ident">Balancer</a></code></span>
+<span class="codeline" id="line-58"><code>	<a href="../../../use/google.golang.org/grpc..ccBalancerWrapper^53aca.curBalancerName^73f9d.html" class="ident">curBalancerName</a> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-59"><code></code></span>
+<span class="codeline" id="line-60"><code>	<a href="../../../use/google.golang.org/grpc..ccBalancerWrapper^53aca.updateCh^8c746.html" class="ident">updateCh</a> *<a href="../../../pkg/google.golang.org/grpc/internal/buffer.html" class="ident i8">buffer</a>.<a href="internal/buffer/unbounded.go.html#line-36" class="ident">Unbounded</a> <span class="comment">// Updates written on this channel are processed by watcher().</span></code></span>
+<span class="codeline" id="line-61"><code>	<a href="../../../use/google.golang.org/grpc..ccBalancerWrapper^53aca.resultCh^a3424.html" class="ident">resultCh</a> *<a href="../../../pkg/google.golang.org/grpc/internal/buffer.html" class="ident i8">buffer</a>.<a href="internal/buffer/unbounded.go.html#line-36" class="ident">Unbounded</a> <span class="comment">// Results of calls to UpdateClientConnState() are pushed here.</span></code></span>
+<span class="codeline" id="line-62"><code>	<a href="../../../use/google.golang.org/grpc..ccBalancerWrapper^53aca.closed^c3eef.html" class="ident">closed</a>   *<a href="../../../pkg/google.golang.org/grpc/internal/grpcsync.html" class="ident i10">grpcsync</a>.<a href="internal/grpcsync/event.go.html#line-29" class="ident">Event</a>   <span class="comment">// Indicates if close has been called.</span></code></span>
+<span class="codeline" id="line-63"><code>	<a href="../../../use/google.golang.org/grpc..ccBalancerWrapper^53aca.done^a4c3e.html" class="ident">done</a>     *<a href="../../../pkg/google.golang.org/grpc/internal/grpcsync.html" class="ident i10">grpcsync</a>.<a href="internal/grpcsync/event.go.html#line-29" class="ident">Event</a>   <span class="comment">// Indicates if close has completed its work.</span></code></span>
+<span class="codeline" id="line-64"><code>}</code></span>
+<span class="codeline" id="line-65"><code></code></span>
+<span class="codeline" id="line-66"><code><span class="comment">// newCCBalancerWrapper creates a new balancer wrapper. The underlying balancer</span></code></span>
+<span class="codeline" id="line-67"><code><span class="comment">// is not created until the switchTo() method is invoked.</span></code></span>
+<span class="codeline" id="line-68"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../pkg/google.golang.org/grpc.html#name-newCCBalancerWrapper" class="ident">newCCBalancerWrapper</a></label>(<label for="r1" class="ident">cc</label> *<a href="clientconn.go.html#line-467" class="ident">ClientConn</a>, <label for="r2" class="ident">bopts</label> <a href="../../../pkg/google.golang.org/grpc/balancer.html" class="ident i4">balancer</a>.<a href="balancer/balancer.go.html#line-182" class="ident">BuildOptions</a>) *<a href="#line-51" class="ident">ccBalancerWrapper</a> {</code></span>
+<span class="codeline" id="line-69"><code>	<label for="r3" class="ident">ccb</label> := &amp;<a href="#line-51" class="ident">ccBalancerWrapper</a>{</code></span>
+<span class="codeline" id="line-70"><code>		<a href="#line-52" class="ident">cc</a>:       <label for="r1" class="ident">cc</label>,</code></span>
+<span class="codeline" id="line-71"><code>		<a href="#line-60" class="ident">updateCh</a>: <a href="../../../pkg/google.golang.org/grpc/internal/buffer.html" class="ident i8">buffer</a>.<a href="internal/buffer/unbounded.go.html#line-43" class="ident">NewUnbounded</a>(),</code></span>
+<span class="codeline" id="line-72"><code>		<a href="#line-61" class="ident">resultCh</a>: <a href="../../../pkg/google.golang.org/grpc/internal/buffer.html" class="ident i8">buffer</a>.<a href="internal/buffer/unbounded.go.html#line-43" class="ident">NewUnbounded</a>(),</code></span>
+<span class="codeline" id="line-73"><code>		<a href="#line-62" class="ident">closed</a>:   <a href="../../../pkg/google.golang.org/grpc/internal/grpcsync.html" class="ident i10">grpcsync</a>.<a href="internal/grpcsync/event.go.html#line-59" class="ident">NewEvent</a>(),</code></span>
+<span class="codeline" id="line-74"><code>		<a href="#line-63" class="ident">done</a>:     <a href="../../../pkg/google.golang.org/grpc/internal/grpcsync.html" class="ident i10">grpcsync</a>.<a href="internal/grpcsync/event.go.html#line-59" class="ident">NewEvent</a>(),</code></span>
+<span class="codeline" id="line-75"><code>	}</code></span>
+<span class="codeline" id="line-76"><code>	<span class="keyword">go</span> <label for="r3" class="ident">ccb</label>.<a href="#line-113" class="ident">watcher</a>()</code></span>
+<span class="codeline" id="line-77"><code>	<label for="r3" class="ident">ccb</label>.<a href="#line-57" class="ident">balancer</a> = <a href="../../../pkg/google.golang.org/grpc/internal/balancer/gracefulswitch.html" class="ident i7">gracefulswitch</a>.<a href="internal/balancer/gracefulswitch/gracefulswitch.go.html#line-37" class="ident">NewBalancer</a>(<label for="r3" class="ident">ccb</label>, <label for="r2" class="ident">bopts</label>)</code></span>
+<span class="codeline" id="line-78"><code>	<span class="keyword">return</span> <label for="r3" class="ident">ccb</label></code></span>
+<span class="codeline" id="line-79"><code>}</code></span>
+<span class="codeline" id="line-80"><code></code></span>
+<span class="codeline" id="line-81"><code><span class="comment">// The following xxxUpdate structs wrap the arguments received as part of the</span></code></span>
+<span class="codeline" id="line-82"><code><span class="comment">// corresponding update. The watcher goroutine uses the 'type' of the update to</span></code></span>
+<span class="codeline" id="line-83"><code><span class="comment">// invoke the appropriate handler routine to handle the update.</span></code></span>
+<span class="codeline" id="line-84"><code></code></span>
+<span class="codeline" id="line-85"><code><span class="keyword">type</span> <a href="../../../pkg/google.golang.org/grpc.html#name-ccStateUpdate" class="ident">ccStateUpdate</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-86"><code>	<a href="../../../use/google.golang.org/grpc..ccStateUpdate^77798.ccs^8d291.html" class="ident">ccs</a> *<a href="../../../pkg/google.golang.org/grpc/balancer.html" class="ident i4">balancer</a>.<a href="balancer/balancer.go.html#line-377" class="ident">ClientConnState</a></code></span>
+<span class="codeline" id="line-87"><code>}</code></span>
+<span class="codeline" id="line-88"><code></code></span>
+<span class="codeline" id="line-89"><code><span class="keyword">type</span> <a href="../../../pkg/google.golang.org/grpc.html#name-scStateUpdate" class="ident">scStateUpdate</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-90"><code>	<a href="../../../use/google.golang.org/grpc..scStateUpdate^3fb15.sc^e0b9a.html" class="ident">sc</a>    <a href="../../../pkg/google.golang.org/grpc/balancer.html" class="ident i4">balancer</a>.<a href="balancer/balancer.go.html#line-99" class="ident">SubConn</a></code></span>
+<span class="codeline" id="line-91"><code>	<a href="../../../use/google.golang.org/grpc..scStateUpdate^3fb15.state^4ba69.html" class="ident">state</a> <a href="../../../pkg/google.golang.org/grpc/connectivity.html" class="ident i6">connectivity</a>.<a href="connectivity/connectivity.go.html#line-31" class="ident">State</a></code></span>
+<span class="codeline" id="line-92"><code>	<a href="../../../use/google.golang.org/grpc..scStateUpdate^3fb15.err^d9eb2.html" class="ident">err</a>   <a href="../../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-93"><code>}</code></span>
+<span class="codeline" id="line-94"><code></code></span>
+<span class="codeline" id="line-95"><code><span class="keyword">type</span> <a href="../../../pkg/google.golang.org/grpc.html#name-exitIdleUpdate" class="ident">exitIdleUpdate</a> <span class="keyword">struct</span>{}</code></span>
+<span class="codeline" id="line-96"><code></code></span>
+<span class="codeline" id="line-97"><code><span class="keyword">type</span> <a href="../../../pkg/google.golang.org/grpc.html#name-resolverErrorUpdate" class="ident">resolverErrorUpdate</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-98"><code>	<a href="../../../use/google.golang.org/grpc..resolverErrorUpdate^a2f37.err^d9eb2.html" class="ident">err</a> <a href="../../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-99"><code>}</code></span>
+<span class="codeline" id="line-100"><code></code></span>
+<span class="codeline" id="line-101"><code><span class="keyword">type</span> <a href="../../../pkg/google.golang.org/grpc.html#name-switchToUpdate" class="ident">switchToUpdate</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-102"><code>	<a href="../../../use/google.golang.org/grpc..switchToUpdate^338ea.name^82a35.html" class="ident">name</a> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-103"><code>}</code></span>
+<span class="codeline" id="line-104"><code></code></span>
+<span class="codeline" id="line-105"><code><span class="keyword">type</span> <a href="../../../pkg/google.golang.org/grpc.html#name-subConnUpdate" class="ident">subConnUpdate</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-106"><code>	<a href="../../../use/google.golang.org/grpc..subConnUpdate^7c67b.acbw^9d403.html" class="ident">acbw</a> *<a href="#line-364" class="ident">acBalancerWrapper</a></code></span>
+<span class="codeline" id="line-107"><code>}</code></span>
+<span class="codeline" id="line-108"><code></code></span>
+<span class="codeline" id="line-109"><code><span class="comment">// watcher is a long-running goroutine which reads updates from a channel and</span></code></span>
+<span class="codeline" id="line-110"><code><span class="comment">// invokes corresponding methods on the underlying balancer. It ensures that</span></code></span>
+<span class="codeline" id="line-111"><code><span class="comment">// these methods are invoked in a synchronous fashion. It also ensures that</span></code></span>
+<span class="codeline" id="line-112"><code><span class="comment">// these methods are invoked in the order in which the updates were received.</span></code></span>
+<span class="codeline" id="line-113"><code><span class="keyword">func</span> (<label for="r4" class="ident">ccb</label> *<a href="#line-51" class="ident">ccBalancerWrapper</a>) <label for="r5" class="ident"><a href="../../../use/google.golang.org/grpc..ccBalancerWrapper^53aca.watcher^0e7f3.html" class="ident">watcher</a></label>() {</code></span>
+<span class="codeline" id="line-114"><code>	<span class="keyword">for</span> {</code></span>
+<span class="codeline" id="line-115"><code>		<a href="../../runtime/select.go.html#line-122"><span class="keyword">select</span></a> {</code></span>
+<span class="codeline" id="line-116"><code>		<span class="keyword">case</span> <label for="r6" class="ident">u</label> := <a href="../../runtime/chan.go.html#line-505">&lt;-</a><label for="r4" class="ident">ccb</label>.<a href="#line-60" class="ident">updateCh</a>.<a href="internal/buffer/unbounded.go.html#line-83" class="ident">Get</a>():</code></span>
+<span class="codeline" id="line-117"><code>			<label for="r4" class="ident">ccb</label>.<a href="#line-60" class="ident">updateCh</a>.<a href="internal/buffer/unbounded.go.html#line-65" class="ident">Load</a>()</code></span>
+<span class="codeline" id="line-118"><code>			<span class="keyword">if</span> <label for="r4" class="ident">ccb</label>.<a href="#line-62" class="ident">closed</a>.<a href="internal/grpcsync/event.go.html#line-54" class="ident">HasFired</a>() {</code></span>
+<span class="codeline" id="line-119"><code>				<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-120"><code>			}</code></span>
+<span class="codeline" id="line-121"><code>			<span class="keyword">switch</span> update := <label for="r6" class="ident">u</label>.(<span class="keyword">type</span>) {</code></span>
+<span class="codeline" id="line-122"><code>			<span class="keyword">case</span> *<a href="#line-85" class="ident">ccStateUpdate</a>:</code></span>
+<span class="codeline" id="line-123"><code>				<label for="r4" class="ident">ccb</label>.<a href="#line-180" class="ident">handleClientConnStateChange</a>(<label for="r7" class="ident">update</label>.<a href="#line-86" class="ident">ccs</a>)</code></span>
+<span class="codeline" id="line-124"><code>			<span class="keyword">case</span> *<a href="#line-89" class="ident">scStateUpdate</a>:</code></span>
+<span class="codeline" id="line-125"><code>				<label for="r4" class="ident">ccb</label>.<a href="#line-217" class="ident">handleSubConnStateChange</a>(<label for="r8" class="ident">update</label>)</code></span>
+<span class="codeline" id="line-126"><code>			<span class="keyword">case</span> *<a href="#line-95" class="ident">exitIdleUpdate</a>:</code></span>
+<span class="codeline" id="line-127"><code>				<label for="r4" class="ident">ccb</label>.<a href="#line-225" class="ident">handleExitIdle</a>()</code></span>
+<span class="codeline" id="line-128"><code>			<span class="keyword">case</span> *<a href="#line-97" class="ident">resolverErrorUpdate</a>:</code></span>
+<span class="codeline" id="line-129"><code>				<label for="r4" class="ident">ccb</label>.<a href="#line-236" class="ident">handleResolverError</a>(<label for="r9" class="ident">update</label>.<a href="#line-98" class="ident">err</a>)</code></span>
+<span class="codeline" id="line-130"><code>			<span class="keyword">case</span> *<a href="#line-101" class="ident">switchToUpdate</a>:</code></span>
+<span class="codeline" id="line-131"><code>				<label for="r4" class="ident">ccb</label>.<a href="#line-258" class="ident">handleSwitchTo</a>(<label for="r10" class="ident">update</label>.<a href="#line-102" class="ident">name</a>)</code></span>
+<span class="codeline" id="line-132"><code>			<span class="keyword">case</span> *<a href="#line-105" class="ident">subConnUpdate</a>:</code></span>
+<span class="codeline" id="line-133"><code>				<label for="r4" class="ident">ccb</label>.<a href="#line-288" class="ident">handleRemoveSubConn</a>(<label for="r11" class="ident">update</label>.<a href="#line-106" class="ident">acbw</a>)</code></span>
+<span class="codeline" id="line-134"><code>			<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-135"><code>				<a href="server.go.html#line-87" class="ident">logger</a>.<a href="grpclog/loggerv2.go.html#line-52" class="ident">Errorf</a>(<span class="lit-string">"ccBalancerWrapper.watcher: unknown update %+v, type %T"</span>, <label for="r12" class="ident">update</label>, <label for="r12" class="ident">update</label>)</code></span>
+<span class="codeline" id="line-136"><code>			}</code></span>
+<span class="codeline" id="line-137"><code>		<span class="keyword">case</span> <a href="../../runtime/chan.go.html#line-505">&lt;-</a><label for="r4" class="ident">ccb</label>.<a href="#line-62" class="ident">closed</a>.<a href="internal/grpcsync/event.go.html#line-49" class="ident">Done</a>():</code></span>
+<span class="codeline" id="line-138"><code>		}</code></span>
+<span class="codeline" id="line-139"><code></code></span>
+<span class="codeline" id="line-140"><code>		<span class="keyword">if</span> <label for="r4" class="ident">ccb</label>.<a href="#line-62" class="ident">closed</a>.<a href="internal/grpcsync/event.go.html#line-54" class="ident">HasFired</a>() {</code></span>
+<span class="codeline" id="line-141"><code>			<label for="r4" class="ident">ccb</label>.<a href="#line-297" class="ident">handleClose</a>()</code></span>
+<span class="codeline" id="line-142"><code>			<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-143"><code>		}</code></span>
+<span class="codeline" id="line-144"><code>	}</code></span>
+<span class="codeline" id="line-145"><code>}</code></span>
+<span class="codeline" id="line-146"><code></code></span>
+<span class="codeline" id="line-147"><code><span class="comment">// updateClientConnState is invoked by grpc to push a ClientConnState update to</span></code></span>
+<span class="codeline" id="line-148"><code><span class="comment">// the underlying balancer.</span></code></span>
+<span class="codeline" id="line-149"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-150"><code><span class="comment">// Unlike other methods invoked by grpc to push updates to the underlying</span></code></span>
+<span class="codeline" id="line-151"><code><span class="comment">// balancer, this method cannot simply push the update onto the update channel</span></code></span>
+<span class="codeline" id="line-152"><code><span class="comment">// and return. It needs to return the error returned by the underlying balancer</span></code></span>
+<span class="codeline" id="line-153"><code><span class="comment">// back to grpc which propagates that to the resolver.</span></code></span>
+<span class="codeline" id="line-154"><code><span class="keyword">func</span> (<label for="r13" class="ident">ccb</label> *<a href="#line-51" class="ident">ccBalancerWrapper</a>) <label for="r14" class="ident"><a href="../../../use/google.golang.org/grpc..ccBalancerWrapper^53aca.updateClientConnState^3acfe.html" class="ident">updateClientConnState</a></label>(<label for="r15" class="ident">ccs</label> *<a href="../../../pkg/google.golang.org/grpc/balancer.html" class="ident i4">balancer</a>.<a href="balancer/balancer.go.html#line-377" class="ident">ClientConnState</a>) <a href="../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-155"><code>	<label for="r13" class="ident">ccb</label>.<a href="#line-60" class="ident">updateCh</a>.<a href="internal/buffer/unbounded.go.html#line-48" class="ident">Put</a>(&amp;<a href="#line-85" class="ident">ccStateUpdate</a>{<a href="#line-86" class="ident">ccs</a>: <label for="r15" class="ident">ccs</label>})</code></span>
+<span class="codeline" id="line-156"><code></code></span>
+<span class="codeline" id="line-157"><code>	<span class="keyword">var</span> <label for="r16" class="ident">res</label> <span class="keyword">interface</span>{}</code></span>
+<span class="codeline" id="line-158"><code>	<a href="../../runtime/select.go.html#line-122"><span class="keyword">select</span></a> {</code></span>
+<span class="codeline" id="line-159"><code>	<span class="keyword">case</span> <label for="r16" class="ident">res</label> = <a href="../../runtime/chan.go.html#line-505">&lt;-</a><label for="r13" class="ident">ccb</label>.<a href="#line-61" class="ident">resultCh</a>.<a href="internal/buffer/unbounded.go.html#line-83" class="ident">Get</a>():</code></span>
+<span class="codeline" id="line-160"><code>		<label for="r13" class="ident">ccb</label>.<a href="#line-61" class="ident">resultCh</a>.<a href="internal/buffer/unbounded.go.html#line-65" class="ident">Load</a>()</code></span>
+<span class="codeline" id="line-161"><code>	<span class="keyword">case</span> <a href="../../runtime/chan.go.html#line-505">&lt;-</a><label for="r13" class="ident">ccb</label>.<a href="#line-62" class="ident">closed</a>.<a href="internal/grpcsync/event.go.html#line-49" class="ident">Done</a>():</code></span>
+<span class="codeline" id="line-162"><code>		<span class="comment">// Return early if the balancer wrapper is closed while we are waiting for</span></code></span>
+<span class="codeline" id="line-163"><code><span class="comment">		// the underlying balancer to process a ClientConnState update.</span></code></span>
+<span class="codeline" id="line-164"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-165"><code>	}</code></span>
+<span class="codeline" id="line-166"><code>	<span class="comment">// If the returned error is nil, attempting to type assert to error leads to</span></code></span>
+<span class="codeline" id="line-167"><code><span class="comment">	// panic. So, this needs to handled separately.</span></code></span>
+<span class="codeline" id="line-168"><code>	<span class="keyword">if</span> <label for="r16" class="ident">res</label> == <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-169"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-170"><code>	}</code></span>
+<span class="codeline" id="line-171"><code>	<span class="keyword">return</span> <label for="r16" class="ident">res</label>.(<a href="../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
+<span class="codeline" id="line-172"><code>}</code></span>
+<span class="codeline" id="line-173"><code></code></span>
+<span class="codeline" id="line-174"><code><span class="comment">// handleClientConnStateChange handles a ClientConnState update from the update</span></code></span>
+<span class="codeline" id="line-175"><code><span class="comment">// channel and invokes the appropriate method on the underlying balancer.</span></code></span>
+<span class="codeline" id="line-176"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-177"><code><span class="comment">// If the addresses specified in the update contain addresses of type "grpclb"</span></code></span>
+<span class="codeline" id="line-178"><code><span class="comment">// and the selected LB policy is not "grpclb", these addresses will be filtered</span></code></span>
+<span class="codeline" id="line-179"><code><span class="comment">// out and ccs will be modified with the updated address list.</span></code></span>
+<span class="codeline" id="line-180"><code><span class="keyword">func</span> (<label for="r17" class="ident">ccb</label> *<a href="#line-51" class="ident">ccBalancerWrapper</a>) <label for="r18" class="ident"><a href="../../../use/google.golang.org/grpc..ccBalancerWrapper^53aca.handleClientConnStateChange^5711b.html" class="ident">handleClientConnStateChange</a></label>(<label for="r19" class="ident">ccs</label> *<a href="../../../pkg/google.golang.org/grpc/balancer.html" class="ident i4">balancer</a>.<a href="balancer/balancer.go.html#line-377" class="ident">ClientConnState</a>) {</code></span>
+<span class="codeline" id="line-181"><code>	<span class="keyword">if</span> <label for="r17" class="ident">ccb</label>.<a href="#line-58" class="ident">curBalancerName</a> != <a href="clientconn.go.html#line-58" class="ident">grpclbName</a> {</code></span>
+<span class="codeline" id="line-182"><code>		<span class="comment">// Filter any grpclb addresses since we don't have the grpclb balancer.</span></code></span>
+<span class="codeline" id="line-183"><code>		<span class="keyword">var</span> <label for="r20" class="ident">addrs</label> []<a href="../../../pkg/google.golang.org/grpc/resolver.html" class="ident i11">resolver</a>.<a href="resolver/resolver.go.html#line-104" class="ident">Address</a></code></span>
+<span class="codeline" id="line-184"><code>		<span class="keyword">for</span> <label for="r21" class="ident">_</label>, <label for="r22" class="ident">addr</label> := <span class="keyword">range</span> <label for="r19" class="ident">ccs</label>.<a href="balancer/balancer.go.html#line-378" class="ident">ResolverState</a>.<a href="resolver/resolver.go.html#line-185" class="ident">Addresses</a> {</code></span>
+<span class="codeline" id="line-185"><code>			<span class="keyword">if</span> <label for="r22" class="ident">addr</label>.<a href="resolver/resolver.go.html#line-133" class="ident">Type</a> == <a href="../../../pkg/google.golang.org/grpc/resolver.html" class="ident i11">resolver</a>.<a href="resolver/resolver.go.html#line-95" class="ident">GRPCLB</a> {</code></span>
+<span class="codeline" id="line-186"><code>				<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-187"><code>			}</code></span>
+<span class="codeline" id="line-188"><code>			<label for="r20" class="ident">addrs</label> = <a href="../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r20" class="ident">addrs</label>, <label for="r22" class="ident">addr</label>)</code></span>
+<span class="codeline" id="line-189"><code>		}</code></span>
+<span class="codeline" id="line-190"><code>		<label for="r19" class="ident">ccs</label>.<a href="balancer/balancer.go.html#line-378" class="ident">ResolverState</a>.<a href="resolver/resolver.go.html#line-185" class="ident">Addresses</a> = <label for="r20" class="ident">addrs</label></code></span>
+<span class="codeline" id="line-191"><code>	}</code></span>
+<span class="codeline" id="line-192"><code>	<label for="r17" class="ident">ccb</label>.<a href="#line-61" class="ident">resultCh</a>.<a href="internal/buffer/unbounded.go.html#line-48" class="ident">Put</a>(<label for="r17" class="ident">ccb</label>.<a href="#line-57" class="ident">balancer</a>.<a href="internal/balancer/gracefulswitch/gracefulswitch.go.html#line-155" class="ident">UpdateClientConnState</a>(*<label for="r19" class="ident">ccs</label>))</code></span>
+<span class="codeline" id="line-193"><code>}</code></span>
+<span class="codeline" id="line-194"><code></code></span>
+<span class="codeline" id="line-195"><code><span class="comment">// updateSubConnState is invoked by grpc to push a subConn state update to the</span></code></span>
+<span class="codeline" id="line-196"><code><span class="comment">// underlying balancer.</span></code></span>
+<span class="codeline" id="line-197"><code><span class="keyword">func</span> (<label for="r23" class="ident">ccb</label> *<a href="#line-51" class="ident">ccBalancerWrapper</a>) <label for="r24" class="ident"><a href="../../../use/google.golang.org/grpc..ccBalancerWrapper^53aca.updateSubConnState^b9b59.html" class="ident">updateSubConnState</a></label>(<label for="r25" class="ident">sc</label> <a href="../../../pkg/google.golang.org/grpc/balancer.html" class="ident i4">balancer</a>.<a href="balancer/balancer.go.html#line-99" class="ident">SubConn</a>, <label for="r26" class="ident">s</label> <a href="../../../pkg/google.golang.org/grpc/connectivity.html" class="ident i6">connectivity</a>.<a href="connectivity/connectivity.go.html#line-31" class="ident">State</a>, <label for="r27" class="ident">err</label> <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-198"><code>	<span class="comment">// When updating addresses for a SubConn, if the address in use is not in</span></code></span>
+<span class="codeline" id="line-199"><code><span class="comment">	// the new addresses, the old ac will be tearDown() and a new ac will be</span></code></span>
+<span class="codeline" id="line-200"><code><span class="comment">	// created. tearDown() generates a state change with Shutdown state, we</span></code></span>
+<span class="codeline" id="line-201"><code><span class="comment">	// don't want the balancer to receive this state change. So before</span></code></span>
+<span class="codeline" id="line-202"><code><span class="comment">	// tearDown() on the old ac, ac.acbw (acWrapper) will be set to nil, and</span></code></span>
+<span class="codeline" id="line-203"><code><span class="comment">	// this function will be called with (nil, Shutdown). We don't need to call</span></code></span>
+<span class="codeline" id="line-204"><code><span class="comment">	// balancer method in this case.</span></code></span>
+<span class="codeline" id="line-205"><code>	<span class="keyword">if</span> <label for="r25" class="ident">sc</label> == <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-206"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-207"><code>	}</code></span>
+<span class="codeline" id="line-208"><code>	<label for="r23" class="ident">ccb</label>.<a href="#line-60" class="ident">updateCh</a>.<a href="internal/buffer/unbounded.go.html#line-48" class="ident">Put</a>(&amp;<a href="#line-89" class="ident">scStateUpdate</a>{</code></span>
+<span class="codeline" id="line-209"><code>		<a href="#line-90" class="ident">sc</a>:    <label for="r25" class="ident">sc</label>,</code></span>
+<span class="codeline" id="line-210"><code>		<a href="#line-91" class="ident">state</a>: <label for="r26" class="ident">s</label>,</code></span>
+<span class="codeline" id="line-211"><code>		<a href="#line-92" class="ident">err</a>:   <label for="r27" class="ident">err</label>,</code></span>
+<span class="codeline" id="line-212"><code>	})</code></span>
+<span class="codeline" id="line-213"><code>}</code></span>
+<span class="codeline" id="line-214"><code></code></span>
+<span class="codeline" id="line-215"><code><span class="comment">// handleSubConnStateChange handles a SubConnState update from the update</span></code></span>
+<span class="codeline" id="line-216"><code><span class="comment">// channel and invokes the appropriate method on the underlying balancer.</span></code></span>
+<span class="codeline" id="line-217"><code><span class="keyword">func</span> (<label for="r28" class="ident">ccb</label> *<a href="#line-51" class="ident">ccBalancerWrapper</a>) <label for="r29" class="ident"><a href="../../../use/google.golang.org/grpc..ccBalancerWrapper^53aca.handleSubConnStateChange^cae3f.html" class="ident">handleSubConnStateChange</a></label>(<label for="r30" class="ident">update</label> *<a href="#line-89" class="ident">scStateUpdate</a>) {</code></span>
+<span class="codeline" id="line-218"><code>	<label for="r28" class="ident">ccb</label>.<a href="#line-57" class="ident">balancer</a>.<a href="internal/balancer/gracefulswitch/gracefulswitch.go.html#line-204" class="ident">UpdateSubConnState</a>(<label for="r30" class="ident">update</label>.<a href="#line-90" class="ident">sc</a>, <a href="../../../pkg/google.golang.org/grpc/balancer.html" class="ident i4">balancer</a>.<a href="balancer/balancer.go.html#line-367" class="ident">SubConnState</a>{<a href="balancer/balancer.go.html#line-369" class="ident">ConnectivityState</a>: <label for="r30" class="ident">update</label>.<a href="#line-91" class="ident">state</a>, <a href="balancer/balancer.go.html#line-372" class="ident">ConnectionError</a>: <label for="r30" class="ident">update</label>.<a href="#line-92" class="ident">err</a>})</code></span>
+<span class="codeline" id="line-219"><code>}</code></span>
+<span class="codeline" id="line-220"><code></code></span>
+<span class="codeline" id="line-221"><code><span class="keyword">func</span> (<label for="r31" class="ident">ccb</label> *<a href="#line-51" class="ident">ccBalancerWrapper</a>) <label for="r32" class="ident"><a href="../../../use/google.golang.org/grpc..ccBalancerWrapper^53aca.exitIdle^6a040.html" class="ident">exitIdle</a></label>() {</code></span>
+<span class="codeline" id="line-222"><code>	<label for="r31" class="ident">ccb</label>.<a href="#line-60" class="ident">updateCh</a>.<a href="internal/buffer/unbounded.go.html#line-48" class="ident">Put</a>(&amp;<a href="#line-95" class="ident">exitIdleUpdate</a>{})</code></span>
+<span class="codeline" id="line-223"><code>}</code></span>
+<span class="codeline" id="line-224"><code></code></span>
+<span class="codeline" id="line-225"><code><span class="keyword">func</span> (<label for="r33" class="ident">ccb</label> *<a href="#line-51" class="ident">ccBalancerWrapper</a>) <label for="r34" class="ident"><a href="../../../use/google.golang.org/grpc..ccBalancerWrapper^53aca.handleExitIdle^350e1.html" class="ident">handleExitIdle</a></label>() {</code></span>
+<span class="codeline" id="line-226"><code>	<span class="keyword">if</span> <label for="r33" class="ident">ccb</label>.<a href="#line-52" class="ident">cc</a>.<a href="clientconn.go.html#line-529" class="ident">GetState</a>() != <a href="../../../pkg/google.golang.org/grpc/connectivity.html" class="ident i6">connectivity</a>.<a href="connectivity/connectivity.go.html#line-53" class="ident">Idle</a> {</code></span>
+<span class="codeline" id="line-227"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-228"><code>	}</code></span>
+<span class="codeline" id="line-229"><code>	<label for="r33" class="ident">ccb</label>.<a href="#line-57" class="ident">balancer</a>.<a href="internal/balancer/gracefulswitch/gracefulswitch.go.html#line-184" class="ident">ExitIdle</a>()</code></span>
+<span class="codeline" id="line-230"><code>}</code></span>
+<span class="codeline" id="line-231"><code></code></span>
+<span class="codeline" id="line-232"><code><span class="keyword">func</span> (<label for="r35" class="ident">ccb</label> *<a href="#line-51" class="ident">ccBalancerWrapper</a>) <label for="r36" class="ident"><a href="../../../use/google.golang.org/grpc..ccBalancerWrapper^53aca.resolverError^81f98.html" class="ident">resolverError</a></label>(<label for="r37" class="ident">err</label> <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-233"><code>	<label for="r35" class="ident">ccb</label>.<a href="#line-60" class="ident">updateCh</a>.<a href="internal/buffer/unbounded.go.html#line-48" class="ident">Put</a>(&amp;<a href="#line-97" class="ident">resolverErrorUpdate</a>{<a href="#line-98" class="ident">err</a>: <label for="r37" class="ident">err</label>})</code></span>
+<span class="codeline" id="line-234"><code>}</code></span>
+<span class="codeline" id="line-235"><code></code></span>
+<span class="codeline" id="line-236"><code><span class="keyword">func</span> (<label for="r38" class="ident">ccb</label> *<a href="#line-51" class="ident">ccBalancerWrapper</a>) <label for="r39" class="ident"><a href="../../../use/google.golang.org/grpc..ccBalancerWrapper^53aca.handleResolverError^54f27.html" class="ident">handleResolverError</a></label>(<label for="r40" class="ident">err</label> <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-237"><code>	<label for="r38" class="ident">ccb</label>.<a href="#line-57" class="ident">balancer</a>.<a href="internal/balancer/gracefulswitch/gracefulswitch.go.html#line-168" class="ident">ResolverError</a>(<label for="r40" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-238"><code>}</code></span>
+<span class="codeline" id="line-239"><code></code></span>
+<span class="codeline" id="line-240"><code><span class="comment">// switchTo is invoked by grpc to instruct the balancer wrapper to switch to the</span></code></span>
+<span class="codeline" id="line-241"><code><span class="comment">// LB policy identified by name.</span></code></span>
+<span class="codeline" id="line-242"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-243"><code><span class="comment">// ClientConn calls newCCBalancerWrapper() at creation time. Upon receipt of the</span></code></span>
+<span class="codeline" id="line-244"><code><span class="comment">// first good update from the name resolver, it determines the LB policy to use</span></code></span>
+<span class="codeline" id="line-245"><code><span class="comment">// and invokes the switchTo() method. Upon receipt of every subsequent update</span></code></span>
+<span class="codeline" id="line-246"><code><span class="comment">// from the name resolver, it invokes this method.</span></code></span>
+<span class="codeline" id="line-247"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-248"><code><span class="comment">// the ccBalancerWrapper keeps track of the current LB policy name, and skips</span></code></span>
+<span class="codeline" id="line-249"><code><span class="comment">// the graceful balancer switching process if the name does not change.</span></code></span>
+<span class="codeline" id="line-250"><code><span class="keyword">func</span> (<label for="r41" class="ident">ccb</label> *<a href="#line-51" class="ident">ccBalancerWrapper</a>) <label for="r42" class="ident"><a href="../../../use/google.golang.org/grpc..ccBalancerWrapper^53aca.switchTo^fda75.html" class="ident">switchTo</a></label>(<label for="r43" class="ident">name</label> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>) {</code></span>
+<span class="codeline" id="line-251"><code>	<label for="r41" class="ident">ccb</label>.<a href="#line-60" class="ident">updateCh</a>.<a href="internal/buffer/unbounded.go.html#line-48" class="ident">Put</a>(&amp;<a href="#line-101" class="ident">switchToUpdate</a>{<a href="#line-102" class="ident">name</a>: <label for="r43" class="ident">name</label>})</code></span>
+<span class="codeline" id="line-252"><code>}</code></span>
+<span class="codeline" id="line-253"><code></code></span>
+<span class="codeline" id="line-254"><code><span class="comment">// handleSwitchTo handles a balancer switch update from the update channel. It</span></code></span>
+<span class="codeline" id="line-255"><code><span class="comment">// calls the SwitchTo() method on the gracefulswitch.Balancer with a</span></code></span>
+<span class="codeline" id="line-256"><code><span class="comment">// balancer.Builder corresponding to name. If no balancer.Builder is registered</span></code></span>
+<span class="codeline" id="line-257"><code><span class="comment">// for the given name, it uses the default LB policy which is "pick_first".</span></code></span>
+<span class="codeline" id="line-258"><code><span class="keyword">func</span> (<label for="r44" class="ident">ccb</label> *<a href="#line-51" class="ident">ccBalancerWrapper</a>) <label for="r45" class="ident"><a href="../../../use/google.golang.org/grpc..ccBalancerWrapper^53aca.handleSwitchTo^28011.html" class="ident">handleSwitchTo</a></label>(<label for="r46" class="ident">name</label> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>) {</code></span>
+<span class="codeline" id="line-259"><code>	<span class="comment">// TODO: Other languages use case-insensitive balancer registries. We should</span></code></span>
+<span class="codeline" id="line-260"><code><span class="comment">	// switch as well. See: https://github.com/grpc/grpc-go/issues/5288.</span></code></span>
+<span class="codeline" id="line-261"><code>	<span class="keyword">if</span> <a href="../../../pkg/strings.html" class="ident i2">strings</a>.<a href="../../strings/strings.go.html#line-1187" class="ident">EqualFold</a>(<label for="r44" class="ident">ccb</label>.<a href="#line-58" class="ident">curBalancerName</a>, <label for="r46" class="ident">name</label>) {</code></span>
+<span class="codeline" id="line-262"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-263"><code>	}</code></span>
+<span class="codeline" id="line-264"><code></code></span>
+<span class="codeline" id="line-265"><code>	<span class="comment">// TODO: Ensure that name is a registered LB policy when we get here.</span></code></span>
+<span class="codeline" id="line-266"><code><span class="comment">	// We currently only validate the `loadBalancingConfig` field. We need to do</span></code></span>
+<span class="codeline" id="line-267"><code><span class="comment">	// the same for the `loadBalancingPolicy` field and reject the service config</span></code></span>
+<span class="codeline" id="line-268"><code><span class="comment">	// if the specified policy is not registered.</span></code></span>
+<span class="codeline" id="line-269"><code>	<label for="r47" class="ident">builder</label> := <a href="../../../pkg/google.golang.org/grpc/balancer.html" class="ident i4">balancer</a>.<a href="balancer/balancer.go.html#line-72" class="ident">Get</a>(<label for="r46" class="ident">name</label>)</code></span>
+<span class="codeline" id="line-270"><code>	<span class="keyword">if</span> <label for="r47" class="ident">builder</label> == <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-271"><code>		<a href="../../../pkg/google.golang.org/grpc/internal/channelz.html" class="ident i9">channelz</a>.<a href="internal/channelz/logging.go.html#line-58" class="ident">Warningf</a>(<a href="server.go.html#line-87" class="ident">logger</a>, <label for="r44" class="ident">ccb</label>.<a href="#line-52" class="ident">cc</a>.<a href="clientconn.go.html#line-476" class="ident">channelzID</a>, <span class="lit-string">"Channel switches to new LB policy %q, since the specified LB policy %q was not registered"</span>, <a href="pickfirst.go.html#line-30" class="ident">PickFirstBalancerName</a>, <label for="r46" class="ident">name</label>)</code></span>
+<span class="codeline" id="line-272"><code>		<label for="r47" class="ident">builder</label> = <a href="pickfirst.go.html#line-32" class="ident">newPickfirstBuilder</a>()</code></span>
+<span class="codeline" id="line-273"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-274"><code>		<a href="../../../pkg/google.golang.org/grpc/internal/channelz.html" class="ident i9">channelz</a>.<a href="internal/channelz/logging.go.html#line-42" class="ident">Infof</a>(<a href="server.go.html#line-87" class="ident">logger</a>, <label for="r44" class="ident">ccb</label>.<a href="#line-52" class="ident">cc</a>.<a href="clientconn.go.html#line-476" class="ident">channelzID</a>, <span class="lit-string">"Channel switches to new LB policy %q"</span>, <label for="r46" class="ident">name</label>)</code></span>
+<span class="codeline" id="line-275"><code>	}</code></span>
+<span class="codeline" id="line-276"><code></code></span>
+<span class="codeline" id="line-277"><code>	<span class="keyword">if</span> <label for="r48" class="ident">err</label> := <label for="r44" class="ident">ccb</label>.<a href="#line-57" class="ident">balancer</a>.<a href="internal/balancer/gracefulswitch/gracefulswitch.go.html#line-97" class="ident">SwitchTo</a>(<label for="r47" class="ident">builder</label>); <label for="r48" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-278"><code>		<a href="../../../pkg/google.golang.org/grpc/internal/channelz.html" class="ident i9">channelz</a>.<a href="internal/channelz/logging.go.html#line-74" class="ident">Errorf</a>(<a href="server.go.html#line-87" class="ident">logger</a>, <label for="r44" class="ident">ccb</label>.<a href="#line-52" class="ident">cc</a>.<a href="clientconn.go.html#line-476" class="ident">channelzID</a>, <span class="lit-string">"Channel failed to build new LB policy %q: %v"</span>, <label for="r46" class="ident">name</label>, <label for="r48" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-279"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-280"><code>	}</code></span>
+<span class="codeline" id="line-281"><code>	<label for="r44" class="ident">ccb</label>.<a href="#line-58" class="ident">curBalancerName</a> = <label for="r47" class="ident">builder</label>.<a href="balancer/balancer.go.html#line-218" class="ident">Name</a>()</code></span>
+<span class="codeline" id="line-282"><code>}</code></span>
+<span class="codeline" id="line-283"><code></code></span>
+<span class="codeline" id="line-284"><code><span class="comment">// handleRemoveSucConn handles a request from the underlying balancer to remove</span></code></span>
+<span class="codeline" id="line-285"><code><span class="comment">// a subConn.</span></code></span>
+<span class="codeline" id="line-286"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-287"><code><span class="comment">// See comments in RemoveSubConn() for more details.</span></code></span>
+<span class="codeline" id="line-288"><code><span class="keyword">func</span> (<label for="r49" class="ident">ccb</label> *<a href="#line-51" class="ident">ccBalancerWrapper</a>) <label for="r50" class="ident"><a href="../../../use/google.golang.org/grpc..ccBalancerWrapper^53aca.handleRemoveSubConn^8d6d0.html" class="ident">handleRemoveSubConn</a></label>(<label for="r51" class="ident">acbw</label> *<a href="#line-364" class="ident">acBalancerWrapper</a>) {</code></span>
+<span class="codeline" id="line-289"><code>	<label for="r49" class="ident">ccb</label>.<a href="#line-52" class="ident">cc</a>.<a href="clientconn.go.html#line-740" class="ident">removeAddrConn</a>(<label for="r51" class="ident">acbw</label>.<a href="#line-416" class="ident">getAddrConn</a>(), <a href="clientconn.go.html#line-69" class="ident">errConnDrain</a>)</code></span>
+<span class="codeline" id="line-290"><code>}</code></span>
+<span class="codeline" id="line-291"><code></code></span>
+<span class="codeline" id="line-292"><code><span class="keyword">func</span> (<label for="r52" class="ident">ccb</label> *<a href="#line-51" class="ident">ccBalancerWrapper</a>) <label for="r53" class="ident"><a href="../../../use/google.golang.org/grpc..ccBalancerWrapper^53aca.close^310ff.html" class="ident">close</a></label>() {</code></span>
+<span class="codeline" id="line-293"><code>	<label for="r52" class="ident">ccb</label>.<a href="#line-62" class="ident">closed</a>.<a href="internal/grpcsync/event.go.html#line-38" class="ident">Fire</a>()</code></span>
+<span class="codeline" id="line-294"><code>	&lt;-<label for="r52" class="ident">ccb</label>.<a href="#line-63" class="ident">done</a>.<a href="internal/grpcsync/event.go.html#line-49" class="ident">Done</a>()</code></span>
+<span class="codeline" id="line-295"><code>}</code></span>
+<span class="codeline" id="line-296"><code></code></span>
+<span class="codeline" id="line-297"><code><span class="keyword">func</span> (<label for="r54" class="ident">ccb</label> *<a href="#line-51" class="ident">ccBalancerWrapper</a>) <label for="r55" class="ident"><a href="../../../use/google.golang.org/grpc..ccBalancerWrapper^53aca.handleClose^a2827.html" class="ident">handleClose</a></label>() {</code></span>
+<span class="codeline" id="line-298"><code>	<label for="r54" class="ident">ccb</label>.<a href="#line-57" class="ident">balancer</a>.<a href="internal/balancer/gracefulswitch/gracefulswitch.go.html#line-227" class="ident">Close</a>()</code></span>
+<span class="codeline" id="line-299"><code>	<label for="r54" class="ident">ccb</label>.<a href="#line-63" class="ident">done</a>.<a href="internal/grpcsync/event.go.html#line-38" class="ident">Fire</a>()</code></span>
+<span class="codeline" id="line-300"><code>}</code></span>
+<span class="codeline" id="line-301"><code></code></span>
+<span class="codeline" id="line-302"><code><span class="keyword">func</span> (<label for="r56" class="ident">ccb</label> *<a href="#line-51" class="ident">ccBalancerWrapper</a>) <label for="r57" class="ident"><a href="../../../use/google.golang.org/grpc..ccBalancerWrapper^53aca.NewSubConn.html" class="ident">NewSubConn</a></label>(<label for="r58" class="ident">addrs</label> []<a href="../../../pkg/google.golang.org/grpc/resolver.html" class="ident i11">resolver</a>.<a href="resolver/resolver.go.html#line-104" class="ident">Address</a>, <label for="r59" class="ident">opts</label> <a href="../../../pkg/google.golang.org/grpc/balancer.html" class="ident i4">balancer</a>.<a href="balancer/balancer.go.html#line-121" class="ident">NewSubConnOptions</a>) (<a href="../../../pkg/google.golang.org/grpc/balancer.html" class="ident i4">balancer</a>.<a href="balancer/balancer.go.html#line-99" class="ident">SubConn</a>, <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-303"><code>	<span class="keyword">if</span> <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r58" class="ident">addrs</label>) &lt;= <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-304"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../pkg/fmt.html" class="ident i1">fmt</a>.<a href="../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"grpc: cannot create SubConn with empty address list"</span>)</code></span>
+<span class="codeline" id="line-305"><code>	}</code></span>
+<span class="codeline" id="line-306"><code>	<label for="r60" class="ident">ac</label>, <label for="r61" class="ident">err</label> := <label for="r56" class="ident">ccb</label>.<a href="#line-52" class="ident">cc</a>.<a href="clientconn.go.html#line-702" class="ident">newAddrConn</a>(<label for="r58" class="ident">addrs</label>, <label for="r59" class="ident">opts</label>)</code></span>
+<span class="codeline" id="line-307"><code>	<span class="keyword">if</span> <label for="r61" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-308"><code>		<a href="../../../pkg/google.golang.org/grpc/internal/channelz.html" class="ident i9">channelz</a>.<a href="internal/channelz/logging.go.html#line-58" class="ident">Warningf</a>(<a href="server.go.html#line-87" class="ident">logger</a>, <label for="r56" class="ident">ccb</label>.<a href="#line-52" class="ident">cc</a>.<a href="clientconn.go.html#line-476" class="ident">channelzID</a>, <span class="lit-string">"acBalancerWrapper: NewSubConn: failed to newAddrConn: %v"</span>, <label for="r61" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-309"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r61" class="ident">err</label></code></span>
+<span class="codeline" id="line-310"><code>	}</code></span>
+<span class="codeline" id="line-311"><code>	<label for="r62" class="ident">acbw</label> := &amp;<a href="#line-364" class="ident">acBalancerWrapper</a>{<a href="#line-366" class="ident">ac</a>: <label for="r60" class="ident">ac</label>, <a href="#line-367" class="ident">producers</a>: <a href="../../../pkg/builtin.html#name-make" class="ident">make</a>(<span class="keyword">map</span>[<a href="../../../pkg/google.golang.org/grpc/balancer.html" class="ident i4">balancer</a>.<a href="balancer/balancer.go.html#line-390" class="ident">ProducerBuilder</a>]*<a href="#line-447" class="ident">refCountedProducer</a>)}</code></span>
+<span class="codeline" id="line-312"><code>	<label for="r62" class="ident">acbw</label>.<a href="#line-366" class="ident">ac</a>.<a href="clientconn.go.html#line-1086" class="ident">mu</a>.<a href="../../sync/mutex.go.html#line-45" class="ident">Lock</a>()</code></span>
+<span class="codeline" id="line-313"><code>	<label for="r60" class="ident">ac</label>.<a href="clientconn.go.html#line-1077" class="ident">acbw</a> = <label for="r62" class="ident">acbw</label></code></span>
+<span class="codeline" id="line-314"><code>	<label for="r62" class="ident">acbw</label>.<a href="#line-366" class="ident">ac</a>.<a href="clientconn.go.html#line-1086" class="ident">mu</a>.<a href="../../sync/mutex.go.html#line-64" class="ident">Unlock</a>()</code></span>
+<span class="codeline" id="line-315"><code>	<span class="keyword">return</span> <label for="r62" class="ident">acbw</label>, <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-316"><code>}</code></span>
+<span class="codeline" id="line-317"><code></code></span>
+<span class="codeline" id="line-318"><code><span class="keyword">func</span> (<label for="r63" class="ident">ccb</label> *<a href="#line-51" class="ident">ccBalancerWrapper</a>) <label for="r64" class="ident"><a href="../../../use/google.golang.org/grpc..ccBalancerWrapper^53aca.RemoveSubConn.html" class="ident">RemoveSubConn</a></label>(<label for="r65" class="ident">sc</label> <a href="../../../pkg/google.golang.org/grpc/balancer.html" class="ident i4">balancer</a>.<a href="balancer/balancer.go.html#line-99" class="ident">SubConn</a>) {</code></span>
+<span class="codeline" id="line-319"><code>	<span class="comment">// Before we switched the ccBalancerWrapper to use gracefulswitch.Balancer, it</span></code></span>
+<span class="codeline" id="line-320"><code><span class="comment">	// was required to handle the RemoveSubConn() method asynchronously by pushing</span></code></span>
+<span class="codeline" id="line-321"><code><span class="comment">	// the update onto the update channel. This was done to avoid a deadlock as</span></code></span>
+<span class="codeline" id="line-322"><code><span class="comment">	// switchBalancer() was holding cc.mu when calling Close() on the old</span></code></span>
+<span class="codeline" id="line-323"><code><span class="comment">	// balancer, which would in turn call RemoveSubConn().</span></code></span>
+<span class="codeline" id="line-324"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-325"><code><span class="comment">	// With the use of gracefulswitch.Balancer in ccBalancerWrapper, handling this</span></code></span>
+<span class="codeline" id="line-326"><code><span class="comment">	// asynchronously is probably not required anymore since the switchTo() method</span></code></span>
+<span class="codeline" id="line-327"><code><span class="comment">	// handles the balancer switch by pushing the update onto the channel.</span></code></span>
+<span class="codeline" id="line-328"><code><span class="comment">	// TODO(easwars): Handle this inline.</span></code></span>
+<span class="codeline" id="line-329"><code>	<label for="r66" class="ident">acbw</label>, <label for="r67" class="ident">ok</label> := <label for="r65" class="ident">sc</label>.(*<a href="#line-364" class="ident">acBalancerWrapper</a>)</code></span>
+<span class="codeline" id="line-330"><code>	<span class="keyword">if</span> !<label for="r67" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-331"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-332"><code>	}</code></span>
+<span class="codeline" id="line-333"><code>	<label for="r63" class="ident">ccb</label>.<a href="#line-60" class="ident">updateCh</a>.<a href="internal/buffer/unbounded.go.html#line-48" class="ident">Put</a>(&amp;<a href="#line-105" class="ident">subConnUpdate</a>{<a href="#line-106" class="ident">acbw</a>: <label for="r66" class="ident">acbw</label>})</code></span>
+<span class="codeline" id="line-334"><code>}</code></span>
+<span class="codeline" id="line-335"><code></code></span>
+<span class="codeline" id="line-336"><code><span class="keyword">func</span> (<label for="r68" class="ident">ccb</label> *<a href="#line-51" class="ident">ccBalancerWrapper</a>) <label for="r69" class="ident"><a href="../../../use/google.golang.org/grpc..ccBalancerWrapper^53aca.UpdateAddresses.html" class="ident">UpdateAddresses</a></label>(<label for="r70" class="ident">sc</label> <a href="../../../pkg/google.golang.org/grpc/balancer.html" class="ident i4">balancer</a>.<a href="balancer/balancer.go.html#line-99" class="ident">SubConn</a>, <label for="r71" class="ident">addrs</label> []<a href="../../../pkg/google.golang.org/grpc/resolver.html" class="ident i11">resolver</a>.<a href="resolver/resolver.go.html#line-104" class="ident">Address</a>) {</code></span>
+<span class="codeline" id="line-337"><code>	<label for="r72" class="ident">acbw</label>, <label for="r73" class="ident">ok</label> := <label for="r70" class="ident">sc</label>.(*<a href="#line-364" class="ident">acBalancerWrapper</a>)</code></span>
+<span class="codeline" id="line-338"><code>	<span class="keyword">if</span> !<label for="r73" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-339"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-340"><code>	}</code></span>
+<span class="codeline" id="line-341"><code>	<label for="r72" class="ident">acbw</label>.<a href="#line-370" class="ident">UpdateAddresses</a>(<label for="r71" class="ident">addrs</label>)</code></span>
+<span class="codeline" id="line-342"><code>}</code></span>
+<span class="codeline" id="line-343"><code></code></span>
+<span class="codeline" id="line-344"><code><span class="keyword">func</span> (<label for="r74" class="ident">ccb</label> *<a href="#line-51" class="ident">ccBalancerWrapper</a>) <label for="r75" class="ident"><a href="../../../use/google.golang.org/grpc..ccBalancerWrapper^53aca.UpdateState.html" class="ident">UpdateState</a></label>(<label for="r76" class="ident">s</label> <a href="../../../pkg/google.golang.org/grpc/balancer.html" class="ident i4">balancer</a>.<a href="balancer/balancer.go.html#line-135" class="ident">State</a>) {</code></span>
+<span class="codeline" id="line-345"><code>	<span class="comment">// Update picker before updating state.  Even though the ordering here does</span></code></span>
+<span class="codeline" id="line-346"><code><span class="comment">	// not matter, it can lead to multiple calls of Pick in the common start-up</span></code></span>
+<span class="codeline" id="line-347"><code><span class="comment">	// case where we wait for ready and then perform an RPC.  If the picker is</span></code></span>
+<span class="codeline" id="line-348"><code><span class="comment">	// updated later, we could call the "connecting" picker when the state is</span></code></span>
+<span class="codeline" id="line-349"><code><span class="comment">	// updated, and then call the "ready" picker after the picker gets updated.</span></code></span>
+<span class="codeline" id="line-350"><code>	<label for="r74" class="ident">ccb</label>.<a href="#line-52" class="ident">cc</a>.<a href="clientconn.go.html#line-482" class="ident">blockingpicker</a>.<a href="picker_wrapper.go.html#line-48" class="ident">updatePicker</a>(<label for="r76" class="ident">s</label>.<a href="balancer/balancer.go.html#line-140" class="ident">Picker</a>)</code></span>
+<span class="codeline" id="line-351"><code>	<label for="r74" class="ident">ccb</label>.<a href="#line-52" class="ident">cc</a>.<a href="clientconn.go.html#line-481" class="ident">csMgr</a>.<a href="clientconn.go.html#line-408" class="ident">updateState</a>(<label for="r76" class="ident">s</label>.<a href="balancer/balancer.go.html#line-138" class="ident">ConnectivityState</a>)</code></span>
+<span class="codeline" id="line-352"><code>}</code></span>
+<span class="codeline" id="line-353"><code></code></span>
+<span class="codeline" id="line-354"><code><span class="keyword">func</span> (<label for="r77" class="ident">ccb</label> *<a href="#line-51" class="ident">ccBalancerWrapper</a>) <label for="r78" class="ident"><a href="../../../use/google.golang.org/grpc..ccBalancerWrapper^53aca.ResolveNow.html" class="ident">ResolveNow</a></label>(<label for="r79" class="ident">o</label> <a href="../../../pkg/google.golang.org/grpc/resolver.html" class="ident i11">resolver</a>.<a href="resolver/resolver.go.html#line-289" class="ident">ResolveNowOptions</a>) {</code></span>
+<span class="codeline" id="line-355"><code>	<label for="r77" class="ident">ccb</label>.<a href="#line-52" class="ident">cc</a>.<a href="clientconn.go.html#line-988" class="ident">resolveNow</a>(<label for="r79" class="ident">o</label>)</code></span>
+<span class="codeline" id="line-356"><code>}</code></span>
+<span class="codeline" id="line-357"><code></code></span>
+<span class="codeline" id="line-358"><code><span class="keyword">func</span> (<label for="r80" class="ident">ccb</label> *<a href="#line-51" class="ident">ccBalancerWrapper</a>) <label for="r81" class="ident"><a href="../../../use/google.golang.org/grpc..ccBalancerWrapper^53aca.Target.html" class="ident">Target</a></label>() <a href="../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-359"><code>	<span class="keyword">return</span> <label for="r80" class="ident">ccb</label>.<a href="#line-52" class="ident">cc</a>.<a href="clientconn.go.html#line-472" class="ident">target</a></code></span>
+<span class="codeline" id="line-360"><code>}</code></span>
+<span class="codeline" id="line-361"><code></code></span>
+<span class="codeline" id="line-362"><code><span class="comment">// acBalancerWrapper is a wrapper on top of ac for balancers.</span></code></span>
+<span class="codeline" id="line-363"><code><span class="comment">// It implements balancer.SubConn interface.</span></code></span>
+<span class="codeline" id="line-364"><code><span class="keyword">type</span> <a href="../../../pkg/google.golang.org/grpc.html#name-acBalancerWrapper" class="ident">acBalancerWrapper</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-365"><code>	<a href="../../../use/google.golang.org/grpc..acBalancerWrapper^49b61.mu^19503.html" class="ident">mu</a>        <a href="../../../pkg/sync.html" class="ident i3">sync</a>.<a href="../../sync/mutex.go.html#line-30" class="ident">Mutex</a></code></span>
+<span class="codeline" id="line-366"><code>	<a href="../../../use/google.golang.org/grpc..acBalancerWrapper^49b61.ac^f45de.html" class="ident">ac</a>        *<a href="clientconn.go.html#line-1071" class="ident">addrConn</a></code></span>
+<span class="codeline" id="line-367"><code>	<a href="../../../use/google.golang.org/grpc..acBalancerWrapper^49b61.producers^cd14f.html" class="ident">producers</a> <span class="keyword">map</span>[<a href="../../../pkg/google.golang.org/grpc/balancer.html" class="ident i4">balancer</a>.<a href="balancer/balancer.go.html#line-390" class="ident">ProducerBuilder</a>]*<a href="#line-447" class="ident">refCountedProducer</a></code></span>
+<span class="codeline" id="line-368"><code>}</code></span>
+<span class="codeline" id="line-369"><code></code></span>
+<span class="codeline" id="line-370"><code><span class="keyword">func</span> (<label for="r82" class="ident">acbw</label> *<a href="#line-364" class="ident">acBalancerWrapper</a>) <label for="r83" class="ident"><a href="../../../use/google.golang.org/grpc..acBalancerWrapper^49b61.UpdateAddresses.html" class="ident">UpdateAddresses</a></label>(<label for="r84" class="ident">addrs</label> []<a href="../../../pkg/google.golang.org/grpc/resolver.html" class="ident i11">resolver</a>.<a href="resolver/resolver.go.html#line-104" class="ident">Address</a>) {</code></span>
+<span class="codeline" id="line-371"><code>	<label for="r82" class="ident">acbw</label>.<a href="#line-365" class="ident">mu</a>.<a href="../../sync/mutex.go.html#line-45" class="ident">Lock</a>()</code></span>
+<span class="codeline" id="line-372"><code>	<span class="keyword">defer</span> <label for="r82" class="ident">acbw</label>.<a href="#line-365" class="ident">mu</a>.<a href="../../sync/mutex.go.html#line-64" class="ident">Unlock</a>()</code></span>
+<span class="codeline" id="line-373"><code>	<span class="keyword">if</span> <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r84" class="ident">addrs</label>) &lt;= <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-374"><code>		<label for="r82" class="ident">acbw</label>.<a href="#line-366" class="ident">ac</a>.<a href="clientconn.go.html#line-1075" class="ident">cc</a>.<a href="clientconn.go.html#line-740" class="ident">removeAddrConn</a>(<label for="r82" class="ident">acbw</label>.<a href="#line-366" class="ident">ac</a>, <a href="clientconn.go.html#line-69" class="ident">errConnDrain</a>)</code></span>
+<span class="codeline" id="line-375"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-376"><code>	}</code></span>
+<span class="codeline" id="line-377"><code>	<span class="keyword">if</span> !<label for="r82" class="ident">acbw</label>.<a href="#line-366" class="ident">ac</a>.<a href="clientconn.go.html#line-843" class="ident">tryUpdateAddrs</a>(<label for="r84" class="ident">addrs</label>) {</code></span>
+<span class="codeline" id="line-378"><code>		<label for="r85" class="ident">cc</label> := <label for="r82" class="ident">acbw</label>.<a href="#line-366" class="ident">ac</a>.<a href="clientconn.go.html#line-1075" class="ident">cc</a></code></span>
+<span class="codeline" id="line-379"><code>		<label for="r86" class="ident">opts</label> := <label for="r82" class="ident">acbw</label>.<a href="#line-366" class="ident">ac</a>.<a href="clientconn.go.html#line-1078" class="ident">scopts</a></code></span>
+<span class="codeline" id="line-380"><code>		<label for="r82" class="ident">acbw</label>.<a href="#line-366" class="ident">ac</a>.<a href="clientconn.go.html#line-1086" class="ident">mu</a>.<a href="../../sync/mutex.go.html#line-45" class="ident">Lock</a>()</code></span>
+<span class="codeline" id="line-381"><code>		<span class="comment">// Set old ac.acbw to nil so the Shutdown state update will be ignored</span></code></span>
+<span class="codeline" id="line-382"><code><span class="comment">		// by balancer.</span></code></span>
+<span class="codeline" id="line-383"><code><span class="comment">		//</span></code></span>
+<span class="codeline" id="line-384"><code><span class="comment">		// TODO(bar) the state transition could be wrong when tearDown() old ac</span></code></span>
+<span class="codeline" id="line-385"><code><span class="comment">		// and creating new ac, fix the transition.</span></code></span>
+<span class="codeline" id="line-386"><code>		<label for="r82" class="ident">acbw</label>.<a href="#line-366" class="ident">ac</a>.<a href="clientconn.go.html#line-1077" class="ident">acbw</a> = <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-387"><code>		<label for="r82" class="ident">acbw</label>.<a href="#line-366" class="ident">ac</a>.<a href="clientconn.go.html#line-1086" class="ident">mu</a>.<a href="../../sync/mutex.go.html#line-64" class="ident">Unlock</a>()</code></span>
+<span class="codeline" id="line-388"><code>		<label for="r87" class="ident">acState</label> := <label for="r82" class="ident">acbw</label>.<a href="#line-366" class="ident">ac</a>.<a href="clientconn.go.html#line-1445" class="ident">getState</a>()</code></span>
+<span class="codeline" id="line-389"><code>		<label for="r82" class="ident">acbw</label>.<a href="#line-366" class="ident">ac</a>.<a href="clientconn.go.html#line-1075" class="ident">cc</a>.<a href="clientconn.go.html#line-740" class="ident">removeAddrConn</a>(<label for="r82" class="ident">acbw</label>.<a href="#line-366" class="ident">ac</a>, <a href="clientconn.go.html#line-69" class="ident">errConnDrain</a>)</code></span>
+<span class="codeline" id="line-390"><code></code></span>
+<span class="codeline" id="line-391"><code>		<span class="keyword">if</span> <label for="r87" class="ident">acState</label> == <a href="../../../pkg/google.golang.org/grpc/connectivity.html" class="ident i6">connectivity</a>.<a href="connectivity/connectivity.go.html#line-61" class="ident">Shutdown</a> {</code></span>
+<span class="codeline" id="line-392"><code>			<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-393"><code>		}</code></span>
+<span class="codeline" id="line-394"><code></code></span>
+<span class="codeline" id="line-395"><code>		<label for="r88" class="ident">newAC</label>, <label for="r89" class="ident">err</label> := <label for="r85" class="ident">cc</label>.<a href="clientconn.go.html#line-702" class="ident">newAddrConn</a>(<label for="r84" class="ident">addrs</label>, <label for="r86" class="ident">opts</label>)</code></span>
+<span class="codeline" id="line-396"><code>		<span class="keyword">if</span> <label for="r89" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-397"><code>			<a href="../../../pkg/google.golang.org/grpc/internal/channelz.html" class="ident i9">channelz</a>.<a href="internal/channelz/logging.go.html#line-58" class="ident">Warningf</a>(<a href="server.go.html#line-87" class="ident">logger</a>, <label for="r82" class="ident">acbw</label>.<a href="#line-366" class="ident">ac</a>.<a href="clientconn.go.html#line-1096" class="ident">channelzID</a>, <span class="lit-string">"acBalancerWrapper: UpdateAddresses: failed to newAddrConn: %v"</span>, <label for="r89" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-398"><code>			<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-399"><code>		}</code></span>
+<span class="codeline" id="line-400"><code>		<label for="r82" class="ident">acbw</label>.<a href="#line-366" class="ident">ac</a> = <label for="r88" class="ident">newAC</label></code></span>
+<span class="codeline" id="line-401"><code>		<label for="r88" class="ident">newAC</label>.<a href="clientconn.go.html#line-1086" class="ident">mu</a>.<a href="../../sync/mutex.go.html#line-45" class="ident">Lock</a>()</code></span>
+<span class="codeline" id="line-402"><code>		<label for="r88" class="ident">newAC</label>.<a href="clientconn.go.html#line-1077" class="ident">acbw</a> = <label for="r82" class="ident">acbw</label></code></span>
+<span class="codeline" id="line-403"><code>		<label for="r88" class="ident">newAC</label>.<a href="clientconn.go.html#line-1086" class="ident">mu</a>.<a href="../../sync/mutex.go.html#line-64" class="ident">Unlock</a>()</code></span>
+<span class="codeline" id="line-404"><code>		<span class="keyword">if</span> <label for="r87" class="ident">acState</label> != <a href="../../../pkg/google.golang.org/grpc/connectivity.html" class="ident i6">connectivity</a>.<a href="connectivity/connectivity.go.html#line-53" class="ident">Idle</a> {</code></span>
+<span class="codeline" id="line-405"><code>			<span class="keyword">go</span> <label for="r88" class="ident">newAC</label>.<a href="clientconn.go.html#line-788" class="ident">connect</a>()</code></span>
+<span class="codeline" id="line-406"><code>		}</code></span>
+<span class="codeline" id="line-407"><code>	}</code></span>
+<span class="codeline" id="line-408"><code>}</code></span>
+<span class="codeline" id="line-409"><code></code></span>
+<span class="codeline" id="line-410"><code><span class="keyword">func</span> (<label for="r90" class="ident">acbw</label> *<a href="#line-364" class="ident">acBalancerWrapper</a>) <label for="r91" class="ident"><a href="../../../use/google.golang.org/grpc..acBalancerWrapper^49b61.Connect.html" class="ident">Connect</a></label>() {</code></span>
+<span class="codeline" id="line-411"><code>	<label for="r90" class="ident">acbw</label>.<a href="#line-365" class="ident">mu</a>.<a href="../../sync/mutex.go.html#line-45" class="ident">Lock</a>()</code></span>
+<span class="codeline" id="line-412"><code>	<span class="keyword">defer</span> <label for="r90" class="ident">acbw</label>.<a href="#line-365" class="ident">mu</a>.<a href="../../sync/mutex.go.html#line-64" class="ident">Unlock</a>()</code></span>
+<span class="codeline" id="line-413"><code>	<span class="keyword">go</span> <label for="r90" class="ident">acbw</label>.<a href="#line-366" class="ident">ac</a>.<a href="clientconn.go.html#line-788" class="ident">connect</a>()</code></span>
+<span class="codeline" id="line-414"><code>}</code></span>
+<span class="codeline" id="line-415"><code></code></span>
+<span class="codeline" id="line-416"><code><span class="keyword">func</span> (<label for="r92" class="ident">acbw</label> *<a href="#line-364" class="ident">acBalancerWrapper</a>) <label for="r93" class="ident"><a href="../../../use/google.golang.org/grpc..acBalancerWrapper^49b61.getAddrConn^6b50c.html" class="ident">getAddrConn</a></label>() *<a href="clientconn.go.html#line-1071" class="ident">addrConn</a> {</code></span>
+<span class="codeline" id="line-417"><code>	<label for="r92" class="ident">acbw</label>.<a href="#line-365" class="ident">mu</a>.<a href="../../sync/mutex.go.html#line-45" class="ident">Lock</a>()</code></span>
+<span class="codeline" id="line-418"><code>	<span class="keyword">defer</span> <label for="r92" class="ident">acbw</label>.<a href="#line-365" class="ident">mu</a>.<a href="../../sync/mutex.go.html#line-64" class="ident">Unlock</a>()</code></span>
+<span class="codeline" id="line-419"><code>	<span class="keyword">return</span> <label for="r92" class="ident">acbw</label>.<a href="#line-366" class="ident">ac</a></code></span>
+<span class="codeline" id="line-420"><code>}</code></span>
+<span class="codeline" id="line-421"><code></code></span>
+<span class="codeline" id="line-422"><code><span class="keyword">var</span> <a href="../../../pkg/google.golang.org/grpc.html#name-errSubConnNotReady" class="ident">errSubConnNotReady</a> = <a href="../../../pkg/google.golang.org/grpc/status.html" class="ident i12">status</a>.<a href="status/status.go.html#line-58" class="ident">Error</a>(<a href="../../../pkg/google.golang.org/grpc/codes.html" class="ident i5">codes</a>.<a href="codes/codes.go.html#line-180" class="ident">Unavailable</a>, <span class="lit-string">"SubConn not currently connected"</span>)</code></span>
+<span class="codeline" id="line-423"><code></code></span>
+<span class="codeline" id="line-424"><code><span class="comment">// NewStream begins a streaming RPC on the addrConn.  If the addrConn is not</span></code></span>
+<span class="codeline" id="line-425"><code><span class="comment">// ready, returns errSubConnNotReady.</span></code></span>
+<span class="codeline" id="line-426"><code><span class="keyword">func</span> (<label for="r94" class="ident">acbw</label> *<a href="#line-364" class="ident">acBalancerWrapper</a>) <label for="r95" class="ident"><a href="../../../use/google.golang.org/grpc..acBalancerWrapper^49b61.NewStream.html" class="ident">NewStream</a></label>(<label for="r96" class="ident">ctx</label> <a href="../../../pkg/context.html" class="ident i0">context</a>.<a href="../../context/context.go.html#line-71" class="ident">Context</a>, <label for="r97" class="ident">desc</label> *<a href="stream.go.html#line-62" class="ident">StreamDesc</a>, <label for="r98" class="ident">method</label> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r99" class="ident">opts</label> ...<a href="rpc_util.go.html#line-173" class="ident">CallOption</a>) (<a href="stream.go.html#line-91" class="ident">ClientStream</a>, <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-427"><code>	<label for="r100" class="ident">transport</label> := <label for="r94" class="ident">acbw</label>.<a href="#line-366" class="ident">ac</a>.<a href="clientconn.go.html#line-1394" class="ident">getReadyTransport</a>()</code></span>
+<span class="codeline" id="line-428"><code>	<span class="keyword">if</span> <label for="r100" class="ident">transport</label> == <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-429"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="#line-422" class="ident">errSubConnNotReady</a></code></span>
+<span class="codeline" id="line-430"><code>	}</code></span>
+<span class="codeline" id="line-431"><code>	<span class="keyword">return</span> <a href="stream.go.html#line-1172" class="ident">newNonRetryClientStream</a>(<label for="r96" class="ident">ctx</label>, <label for="r97" class="ident">desc</label>, <label for="r98" class="ident">method</label>, <label for="r100" class="ident">transport</label>, <label for="r94" class="ident">acbw</label>.<a href="#line-366" class="ident">ac</a>, <label for="r99" class="ident">opts</label>...)</code></span>
+<span class="codeline" id="line-432"><code>}</code></span>
+<span class="codeline" id="line-433"><code></code></span>
+<span class="codeline" id="line-434"><code><span class="comment">// Invoke performs a unary RPC.  If the addrConn is not ready, returns</span></code></span>
+<span class="codeline" id="line-435"><code><span class="comment">// errSubConnNotReady.</span></code></span>
+<span class="codeline" id="line-436"><code><span class="keyword">func</span> (<label for="r101" class="ident">acbw</label> *<a href="#line-364" class="ident">acBalancerWrapper</a>) <label for="r102" class="ident"><a href="../../../use/google.golang.org/grpc..acBalancerWrapper^49b61.Invoke.html" class="ident">Invoke</a></label>(<label for="r103" class="ident">ctx</label> <a href="../../../pkg/context.html" class="ident i0">context</a>.<a href="../../context/context.go.html#line-71" class="ident">Context</a>, <label for="r104" class="ident">method</label> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r105" class="ident">args</label> <span class="keyword">interface</span>{}, <label for="r106" class="ident">reply</label> <span class="keyword">interface</span>{}, <label for="r107" class="ident">opts</label> ...<a href="rpc_util.go.html#line-173" class="ident">CallOption</a>) <a href="../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-437"><code>	<label for="r108" class="ident">cs</label>, <label for="r109" class="ident">err</label> := <label for="r101" class="ident">acbw</label>.<a href="#line-426" class="ident">NewStream</a>(<label for="r103" class="ident">ctx</label>, <a href="call.go.html#line-63" class="ident">unaryStreamDesc</a>, <label for="r104" class="ident">method</label>, <label for="r107" class="ident">opts</label>...)</code></span>
+<span class="codeline" id="line-438"><code>	<span class="keyword">if</span> <label for="r109" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-439"><code>		<span class="keyword">return</span> <label for="r109" class="ident">err</label></code></span>
+<span class="codeline" id="line-440"><code>	}</code></span>
+<span class="codeline" id="line-441"><code>	<span class="keyword">if</span> <label for="r110" class="ident">err</label> := <label for="r108" class="ident">cs</label>.<a href="stream.go.html#line-126" class="ident">SendMsg</a>(<label for="r105" class="ident">args</label>); <label for="r110" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-442"><code>		<span class="keyword">return</span> <label for="r110" class="ident">err</label></code></span>
+<span class="codeline" id="line-443"><code>	}</code></span>
+<span class="codeline" id="line-444"><code>	<span class="keyword">return</span> <label for="r108" class="ident">cs</label>.<a href="stream.go.html#line-135" class="ident">RecvMsg</a>(<label for="r106" class="ident">reply</label>)</code></span>
+<span class="codeline" id="line-445"><code>}</code></span>
+<span class="codeline" id="line-446"><code></code></span>
+<span class="codeline" id="line-447"><code><span class="keyword">type</span> <a href="../../../pkg/google.golang.org/grpc.html#name-refCountedProducer" class="ident">refCountedProducer</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-448"><code>	<a href="../../../use/google.golang.org/grpc..refCountedProducer^8ae91.producer^d1990.html" class="ident">producer</a> <a href="../../../pkg/google.golang.org/grpc/balancer.html" class="ident i4">balancer</a>.<a href="balancer/balancer.go.html#line-403" class="ident">Producer</a></code></span>
+<span class="codeline" id="line-449"><code>	<a href="../../../use/google.golang.org/grpc..refCountedProducer^8ae91.refs^e812c.html" class="ident">refs</a>     <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>    <span class="comment">// number of current refs to the producer</span></code></span>
+<span class="codeline" id="line-450"><code>	<a href="../../../use/google.golang.org/grpc..refCountedProducer^8ae91.close^310ff.html" class="ident">close</a>    <span class="keyword">func</span>() <span class="comment">// underlying producer's close function</span></code></span>
+<span class="codeline" id="line-451"><code>}</code></span>
+<span class="codeline" id="line-452"><code></code></span>
+<span class="codeline" id="line-453"><code><span class="keyword">func</span> (<label for="r111" class="ident">acbw</label> *<a href="#line-364" class="ident">acBalancerWrapper</a>) <label for="r112" class="ident"><a href="../../../use/google.golang.org/grpc..acBalancerWrapper^49b61.GetOrBuildProducer.html" class="ident">GetOrBuildProducer</a></label>(<label for="r113" class="ident">pb</label> <a href="../../../pkg/google.golang.org/grpc/balancer.html" class="ident i4">balancer</a>.<a href="balancer/balancer.go.html#line-390" class="ident">ProducerBuilder</a>) (<a href="../../../pkg/google.golang.org/grpc/balancer.html" class="ident i4">balancer</a>.<a href="balancer/balancer.go.html#line-403" class="ident">Producer</a>, <span class="keyword">func</span>()) {</code></span>
+<span class="codeline" id="line-454"><code>	<label for="r111" class="ident">acbw</label>.<a href="#line-365" class="ident">mu</a>.<a href="../../sync/mutex.go.html#line-45" class="ident">Lock</a>()</code></span>
+<span class="codeline" id="line-455"><code>	<span class="keyword">defer</span> <label for="r111" class="ident">acbw</label>.<a href="#line-365" class="ident">mu</a>.<a href="../../sync/mutex.go.html#line-64" class="ident">Unlock</a>()</code></span>
+<span class="codeline" id="line-456"><code></code></span>
+<span class="codeline" id="line-457"><code>	<span class="comment">// Look up existing producer from this builder.</span></code></span>
+<span class="codeline" id="line-458"><code>	<label for="r114" class="ident">pData</label> := <label for="r111" class="ident">acbw</label>.<a href="#line-367" class="ident">producers</a>[<label for="r113" class="ident">pb</label>]</code></span>
+<span class="codeline" id="line-459"><code>	<span class="keyword">if</span> <label for="r114" class="ident">pData</label> == <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-460"><code>		<span class="comment">// Not found; create a new one and add it to the producers map.</span></code></span>
+<span class="codeline" id="line-461"><code>		<label for="r115" class="ident">p</label>, <label for="r116" class="ident">close</label> := <label for="r113" class="ident">pb</label>.<a href="balancer/balancer.go.html#line-396" class="ident">Build</a>(<label for="r111" class="ident">acbw</label>)</code></span>
+<span class="codeline" id="line-462"><code>		<label for="r114" class="ident">pData</label> = &amp;<a href="#line-447" class="ident">refCountedProducer</a>{<a href="#line-448" class="ident">producer</a>: <label for="r115" class="ident">p</label>, <a href="#line-450" class="ident">close</a>: <label for="r116" class="ident">close</label>}</code></span>
+<span class="codeline" id="line-463"><code>		<label for="r111" class="ident">acbw</label>.<a href="#line-367" class="ident">producers</a>[<label for="r113" class="ident">pb</label>] = <label for="r114" class="ident">pData</label></code></span>
+<span class="codeline" id="line-464"><code>	}</code></span>
+<span class="codeline" id="line-465"><code>	<span class="comment">// Account for this new reference.</span></code></span>
+<span class="codeline" id="line-466"><code>	<label for="r114" class="ident">pData</label>.<a href="#line-449" class="ident">refs</a>++</code></span>
+<span class="codeline" id="line-467"><code></code></span>
+<span class="codeline" id="line-468"><code>	<span class="comment">// Return a cleanup function wrapped in a OnceFunc to remove this reference</span></code></span>
+<span class="codeline" id="line-469"><code><span class="comment">	// and delete the refCountedProducer from the map if the total reference</span></code></span>
+<span class="codeline" id="line-470"><code><span class="comment">	// count goes to zero.</span></code></span>
+<span class="codeline" id="line-471"><code>	<label for="r117" class="ident">unref</label> := <span class="keyword">func</span>() {</code></span>
+<span class="codeline" id="line-472"><code>		<label for="r111" class="ident">acbw</label>.<a href="#line-365" class="ident">mu</a>.<a href="../../sync/mutex.go.html#line-45" class="ident">Lock</a>()</code></span>
+<span class="codeline" id="line-473"><code>		<label for="r114" class="ident">pData</label>.<a href="#line-449" class="ident">refs</a>--</code></span>
+<span class="codeline" id="line-474"><code>		<span class="keyword">if</span> <label for="r114" class="ident">pData</label>.<a href="#line-449" class="ident">refs</a> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-475"><code>			<span class="keyword">defer</span> <label for="r114" class="ident">pData</label>.<a href="#line-450" class="ident">close</a>() <span class="comment">// Run outside the acbw mutex</span></code></span>
+<span class="codeline" id="line-476"><code>			<a href="../../../pkg/builtin.html#name-delete" class="ident">delete</a>(<label for="r111" class="ident">acbw</label>.<a href="#line-367" class="ident">producers</a>, <label for="r113" class="ident">pb</label>)</code></span>
+<span class="codeline" id="line-477"><code>		}</code></span>
+<span class="codeline" id="line-478"><code>		<label for="r111" class="ident">acbw</label>.<a href="#line-365" class="ident">mu</a>.<a href="../../sync/mutex.go.html#line-64" class="ident">Unlock</a>()</code></span>
+<span class="codeline" id="line-479"><code>	}</code></span>
+<span class="codeline" id="line-480"><code>	<span class="keyword">return</span> <label for="r114" class="ident">pData</label>.<a href="#line-448" class="ident">producer</a>, <a href="../../../pkg/google.golang.org/grpc/internal/grpcsync.html" class="ident i10">grpcsync</a>.<a href="internal/grpcsync/oncefunc.go.html#line-27" class="ident">OnceFunc</a>(<label for="r117" class="ident">unref</label>)</code></span>
+<span class="codeline" id="line-481"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>
