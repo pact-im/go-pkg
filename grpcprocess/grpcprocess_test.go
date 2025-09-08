@@ -7,6 +7,8 @@ import (
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/health"
+	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 
 	"go.uber.org/goleak"
 
@@ -20,22 +22,28 @@ func TestServer(t *testing.T) {
 	ctx := context.Background()
 	lis := netchan.NewListener()
 	srv := grpc.NewServer()
+	healthcheck := health.NewServer()
+	healthpb.RegisterHealthServer(srv, healthcheck)
 
 	p := process.NewProcess(ctx, Server(srv, lis))
 	if err := p.Start(ctx); err != nil {
 		t.Fatalf("start server: %v", err)
 	}
-
-	cc, err := grpc.DialContext(ctx, "fake",
+	cc, err := grpc.NewClient("passthrough://netchan",
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithContextDialer(func(ctx context.Context, _ string) (net.Conn, error) {
 			return lis.Dial(ctx)
 		}),
-		grpc.WithBlock(),
 	)
 	if err != nil {
 		t.Fatalf("dial: %v", err)
 	}
+
+	healthClient := healthpb.NewHealthClient(cc)
+	if _, err := healthClient.Check(t.Context(), &healthpb.HealthCheckRequest{}); err != nil {
+		t.Fatalf("healthcheck: %v", err)
+	}
+
 	if err := cc.Close(); err != nil {
 		t.Fatalf("close client: %v", err)
 	}

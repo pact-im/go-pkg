@@ -6,17 +6,16 @@ require (
 	go.pact.im/x/netchan v0.0.11
 	go.pact.im/x/process v0.0.11
 	go.uber.org/goleak v1.3.0
-	google.golang.org/grpc v1.53.0
+	google.golang.org/grpc v1.75.0
 )
 
 require (
-	github.com/golang/protobuf v1.5.2 // indirect
 	go.pact.im/x/task v0.0.11 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/multierr v1.9.0 // indirect
 	golang.org/x/net v0.43.0 // indirect
 	golang.org/x/sys v0.35.0 // indirect
 	golang.org/x/text v0.28.0 // indirect
-	google.golang.org/genproto v0.0.0-20230221151758-ace64dc21148 // indirect
-	google.golang.org/protobuf v1.28.1 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20250707201910-8d1bb00bc6a7 // indirect
+	google.golang.org/protobuf v1.36.6 // indirect
 )
