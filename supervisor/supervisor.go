@@ -6,8 +6,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
-
-	"go.uber.org/atomic"
+	"sync/atomic"
 
 	"go.pact.im/x/clock"
 	"go.pact.im/x/process"
