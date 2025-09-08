@@ -3,7 +3,7 @@ module go.pact.im/x/httptrack
 go 1.24.0
 
 require (
-	go.pact.im/x/netchan v0.0.0-20250908025521-0ba550abbfe4
+	go.pact.im/x/netchan v0.0.11
 	go.uber.org/goleak v1.3.0
 )
 
