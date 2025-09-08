@@ -1,6 +1,7 @@
 package httptrack
 
 import (
+	"maps"
 	"net"
 	"net/http"
 	"sync"
@@ -157,4 +158,16 @@ func (s *StatsTracker) Stats() Stats {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return s.stats
+}
+
+// Connections returns a snapshot of connection states.
+func (s *StatsTracker) Connections() map[net.Conn]http.ConnState {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	// Note that we return the original map instead of a cloned map. That
+	// is, as a side effect of this method, the internal map is shrinked.
+	// See https://go.dev/issue/20135 and https://antonz.org/go-map-shrink
+	var conns map[net.Conn]http.ConnState
+	s.conns, conns = maps.Clone(s.conns), s.conns
+	return conns
 }
