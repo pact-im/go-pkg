@@ -10,9 +10,8 @@ require (
 )
 
 require (
-	go.pact.im/x/task v0.0.11 // indirect
+	go.pact.im/x/task v0.0.12 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
-	go.uber.org/multierr v1.9.0 // indirect
 	golang.org/x/net v0.43.0 // indirect
 	golang.org/x/sys v0.35.0 // indirect
 	golang.org/x/text v0.28.0 // indirect
