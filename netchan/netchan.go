@@ -38,12 +38,14 @@ type Listener struct {
 	once sync.Once
 }
 
-// NewListener returns a new Listener instance with the given network address.
-// If the provided addr is nil, the default address is used.
-func NewListener(addr net.Addr) *Listener {
-	if addr == nil {
-		addr = chanAddr{}
-	}
+// NewListener returns a new Listener with the default address.
+func NewListener() *Listener {
+	return NewListenerAddr(chanAddr{})
+}
+
+// NewListenerAddr returns a new Listener instance with the specified network
+// address.
+func NewListenerAddr(addr net.Addr) *Listener {
 	return &Listener{
 		addr: addr,
 		conn: make(chan net.Conn),
