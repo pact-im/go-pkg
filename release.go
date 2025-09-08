@@ -1,3 +1,5 @@
+//go:build ignore
+
 package main
 
 import (
@@ -216,7 +218,7 @@ func commitGoModChange(modName, version string) error {
 }
 
 func tagAndPush(tag string) error {
-	if err := run("git", "tag", tag); err != nil {
+	if err := run("git", "tag", "-m=", tag); err != nil {
 		return err
 	}
 	return run("git", "push", "origin", tag)
