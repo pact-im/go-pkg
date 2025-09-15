@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: heap.go in package container/heap</title>
+<link href="../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	heap.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../pkg/container/heap.html">container/heap</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2009 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<div class="anchor" id="doc"><span class="codeline" id="line-5"><code><span class="comment">// Package heap provides heap operations for any type that implements</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment">// heap.Interface. A heap is a tree with the property that each node is the</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment">// minimum-valued node in its subtree.</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment">// The minimum element in the tree is the root, at index 0.</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment">// A heap is a common way to implement a priority queue. To build a priority</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment">// queue, implement the Heap interface with the (negative) priority as the</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">// ordering for the Less method, so Push adds items while Pop removes the</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">// highest-priority item from the queue. The Examples include such an</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">// implementation; the file example_pq_test.go has the complete source.</span></code></span></div><span class="codeline" id="line-16"><code><span class="keyword">package</span> heap</code></span>
+<span class="codeline" id="line-17"><code></code></span>
+<span class="codeline" id="line-18"><code><span class="keyword">import</span> <label for="i0"><span class="lit-string i0">"sort"</span></label></code></span>
+<span class="codeline" id="line-19"><code></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">// The Interface type describes the requirements</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">// for a type using the routines in this package.</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">// Any type that implements it may be used as a</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">// min-heap with the following invariants (established after</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">// [Init] has been called or if the data is empty or sorted):</span></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">//	!h.Less(j, i) for 0 &lt;= i &lt; h.Len() and 2*i+1 &lt;= j &lt;= 2*i+2 and j &lt; h.Len()</span></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">// Note that [Push] and [Pop] in this interface are for package heap's</span></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">// implementation to call. To add and remove things from the heap,</span></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">// use [heap.Push] and [heap.Pop].</span></code></span>
+<span class="codeline" id="line-31"><code><span class="keyword">type</span> <a href="../../../pkg/container/heap.html#name-Interface" class="ident">Interface</a> <span class="keyword">interface</span> {</code></span>
+<span class="codeline" id="line-32"><code>	<a href="../../../pkg/sort.html" class="ident i0">sort</a>.<a href="../../sort/sort.go.html#line-17" class="ident">Interface</a></code></span>
+<span class="codeline" id="line-33"><code>	<a href="../../../imp/container/heap.Interface.html#name-Push" class="ident">Push</a>(x <a href="../../../pkg/builtin.html#name-any" class="ident">any</a>) <span class="comment">// add x as element Len()</span></code></span>
+<span class="codeline" id="line-34"><code>	<a href="../../../imp/container/heap.Interface.html#name-Pop" class="ident">Pop</a>() <a href="../../../pkg/builtin.html#name-any" class="ident">any</a>   <span class="comment">// remove and return element Len() - 1.</span></code></span>
+<span class="codeline" id="line-35"><code>}</code></span>
+<span class="codeline" id="line-36"><code></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">// Init establishes the heap invariants required by the other routines in this package.</span></code></span>
+<span class="codeline" id="line-38"><code><span class="comment">// Init is idempotent with respect to the heap invariants</span></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">// and may be called whenever the heap invariants may have been invalidated.</span></code></span>
+<span class="codeline" id="line-40"><code><span class="comment">// The complexity is O(n) where n = h.Len().</span></code></span>
+<span class="codeline" id="line-41"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../pkg/container/heap.html#name-Init" class="ident">Init</a></label>(<label for="r1" class="ident">h</label> <a href="#line-31" class="ident">Interface</a>) {</code></span>
+<span class="codeline" id="line-42"><code>	<span class="comment">// heapify</span></code></span>
+<span class="codeline" id="line-43"><code>	<label for="r2" class="ident">n</label> := <label for="r1" class="ident">h</label>.<a href="../../sort/sort.go.html#line-19" class="ident">Len</a>()</code></span>
+<span class="codeline" id="line-44"><code>	<span class="keyword">for</span> <label for="r3" class="ident">i</label> := <label for="r2" class="ident">n</label>/<span class="lit-number">2</span> - <span class="lit-number">1</span>; <label for="r3" class="ident">i</label> &gt;= <span class="lit-number">0</span>; <label for="r3" class="ident">i</label>-- {</code></span>
+<span class="codeline" id="line-45"><code>		<a href="#line-100" class="ident">down</a>(<label for="r1" class="ident">h</label>, <label for="r3" class="ident">i</label>, <label for="r2" class="ident">n</label>)</code></span>
+<span class="codeline" id="line-46"><code>	}</code></span>
+<span class="codeline" id="line-47"><code>}</code></span>
+<span class="codeline" id="line-48"><code></code></span>
+<span class="codeline" id="line-49"><code><span class="comment">// Push pushes the element x onto the heap.</span></code></span>
+<span class="codeline" id="line-50"><code><span class="comment">// The complexity is O(log n) where n = h.Len().</span></code></span>
+<span class="codeline" id="line-51"><code><span class="keyword">func</span> <label for="r4" class="ident"><a href="../../../pkg/container/heap.html#name-Push" class="ident">Push</a></label>(<label for="r5" class="ident">h</label> <a href="#line-31" class="ident">Interface</a>, <label for="r6" class="ident">x</label> <a href="../../../pkg/builtin.html#name-any" class="ident">any</a>) {</code></span>
+<span class="codeline" id="line-52"><code>	<label for="r5" class="ident">h</label>.<a href="#line-33" class="ident">Push</a>(<label for="r6" class="ident">x</label>)</code></span>
+<span class="codeline" id="line-53"><code>	<a href="#line-89" class="ident">up</a>(<label for="r5" class="ident">h</label>, <label for="r5" class="ident">h</label>.<a href="../../sort/sort.go.html#line-19" class="ident">Len</a>()-<span class="lit-number">1</span>)</code></span>
+<span class="codeline" id="line-54"><code>}</code></span>
+<span class="codeline" id="line-55"><code></code></span>
+<span class="codeline" id="line-56"><code><span class="comment">// Pop removes and returns the minimum element (according to Less) from the heap.</span></code></span>
+<span class="codeline" id="line-57"><code><span class="comment">// The complexity is O(log n) where n = h.Len().</span></code></span>
+<span class="codeline" id="line-58"><code><span class="comment">// Pop is equivalent to [Remove](h, 0).</span></code></span>
+<span class="codeline" id="line-59"><code><span class="keyword">func</span> <label for="r7" class="ident"><a href="../../../pkg/container/heap.html#name-Pop" class="ident">Pop</a></label>(<label for="r8" class="ident">h</label> <a href="#line-31" class="ident">Interface</a>) <a href="../../../pkg/builtin.html#name-any" class="ident">any</a> {</code></span>
+<span class="codeline" id="line-60"><code>	<label for="r9" class="ident">n</label> := <label for="r8" class="ident">h</label>.<a href="../../sort/sort.go.html#line-19" class="ident">Len</a>() - <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-61"><code>	<label for="r8" class="ident">h</label>.<a href="../../sort/sort.go.html#line-39" class="ident">Swap</a>(<span class="lit-number">0</span>, <label for="r9" class="ident">n</label>)</code></span>
+<span class="codeline" id="line-62"><code>	<a href="#line-100" class="ident">down</a>(<label for="r8" class="ident">h</label>, <span class="lit-number">0</span>, <label for="r9" class="ident">n</label>)</code></span>
+<span class="codeline" id="line-63"><code>	<span class="keyword">return</span> <label for="r8" class="ident">h</label>.<a href="#line-34" class="ident">Pop</a>()</code></span>
+<span class="codeline" id="line-64"><code>}</code></span>
+<span class="codeline" id="line-65"><code></code></span>
+<span class="codeline" id="line-66"><code><span class="comment">// Remove removes and returns the element at index i from the heap.</span></code></span>
+<span class="codeline" id="line-67"><code><span class="comment">// The complexity is O(log n) where n = h.Len().</span></code></span>
+<span class="codeline" id="line-68"><code><span class="keyword">func</span> <label for="r10" class="ident"><a href="../../../pkg/container/heap.html#name-Remove" class="ident">Remove</a></label>(<label for="r11" class="ident">h</label> <a href="#line-31" class="ident">Interface</a>, <label for="r12" class="ident">i</label> <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>) <a href="../../../pkg/builtin.html#name-any" class="ident">any</a> {</code></span>
+<span class="codeline" id="line-69"><code>	<label for="r13" class="ident">n</label> := <label for="r11" class="ident">h</label>.<a href="../../sort/sort.go.html#line-19" class="ident">Len</a>() - <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-70"><code>	<span class="keyword">if</span> <label for="r13" class="ident">n</label> != <label for="r12" class="ident">i</label> {</code></span>
+<span class="codeline" id="line-71"><code>		<label for="r11" class="ident">h</label>.<a href="../../sort/sort.go.html#line-39" class="ident">Swap</a>(<label for="r12" class="ident">i</label>, <label for="r13" class="ident">n</label>)</code></span>
+<span class="codeline" id="line-72"><code>		<span class="keyword">if</span> !<a href="#line-100" class="ident">down</a>(<label for="r11" class="ident">h</label>, <label for="r12" class="ident">i</label>, <label for="r13" class="ident">n</label>) {</code></span>
+<span class="codeline" id="line-73"><code>			<a href="#line-89" class="ident">up</a>(<label for="r11" class="ident">h</label>, <label for="r12" class="ident">i</label>)</code></span>
+<span class="codeline" id="line-74"><code>		}</code></span>
+<span class="codeline" id="line-75"><code>	}</code></span>
+<span class="codeline" id="line-76"><code>	<span class="keyword">return</span> <label for="r11" class="ident">h</label>.<a href="#line-34" class="ident">Pop</a>()</code></span>
+<span class="codeline" id="line-77"><code>}</code></span>
+<span class="codeline" id="line-78"><code></code></span>
+<span class="codeline" id="line-79"><code><span class="comment">// Fix re-establishes the heap ordering after the element at index i has changed its value.</span></code></span>
+<span class="codeline" id="line-80"><code><span class="comment">// Changing the value of the element at index i and then calling Fix is equivalent to,</span></code></span>
+<span class="codeline" id="line-81"><code><span class="comment">// but less expensive than, calling [Remove](h, i) followed by a Push of the new value.</span></code></span>
+<span class="codeline" id="line-82"><code><span class="comment">// The complexity is O(log n) where n = h.Len().</span></code></span>
+<span class="codeline" id="line-83"><code><span class="keyword">func</span> <label for="r14" class="ident"><a href="../../../pkg/container/heap.html#name-Fix" class="ident">Fix</a></label>(<label for="r15" class="ident">h</label> <a href="#line-31" class="ident">Interface</a>, <label for="r16" class="ident">i</label> <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>) {</code></span>
+<span class="codeline" id="line-84"><code>	<span class="keyword">if</span> !<a href="#line-100" class="ident">down</a>(<label for="r15" class="ident">h</label>, <label for="r16" class="ident">i</label>, <label for="r15" class="ident">h</label>.<a href="../../sort/sort.go.html#line-19" class="ident">Len</a>()) {</code></span>
+<span class="codeline" id="line-85"><code>		<a href="#line-89" class="ident">up</a>(<label for="r15" class="ident">h</label>, <label for="r16" class="ident">i</label>)</code></span>
+<span class="codeline" id="line-86"><code>	}</code></span>
+<span class="codeline" id="line-87"><code>}</code></span>
+<span class="codeline" id="line-88"><code></code></span>
+<span class="codeline" id="line-89"><code><span class="keyword">func</span> <label for="r17" class="ident"><a href="../../../pkg/container/heap.html#name-up" class="ident">up</a></label>(<label for="r18" class="ident">h</label> <a href="#line-31" class="ident">Interface</a>, <label for="r19" class="ident">j</label> <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>) {</code></span>
+<span class="codeline" id="line-90"><code>	<span class="keyword">for</span> {</code></span>
+<span class="codeline" id="line-91"><code>		<label for="r20" class="ident">i</label> := (<label for="r19" class="ident">j</label> - <span class="lit-number">1</span>) / <span class="lit-number">2</span> <span class="comment">// parent</span></code></span>
+<span class="codeline" id="line-92"><code>		<span class="keyword">if</span> <label for="r20" class="ident">i</label> == <label for="r19" class="ident">j</label> || !<label for="r18" class="ident">h</label>.<a href="../../sort/sort.go.html#line-36" class="ident">Less</a>(<label for="r19" class="ident">j</label>, <label for="r20" class="ident">i</label>) {</code></span>
+<span class="codeline" id="line-93"><code>			<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-94"><code>		}</code></span>
+<span class="codeline" id="line-95"><code>		<label for="r18" class="ident">h</label>.<a href="../../sort/sort.go.html#line-39" class="ident">Swap</a>(<label for="r20" class="ident">i</label>, <label for="r19" class="ident">j</label>)</code></span>
+<span class="codeline" id="line-96"><code>		<label for="r19" class="ident">j</label> = <label for="r20" class="ident">i</label></code></span>
+<span class="codeline" id="line-97"><code>	}</code></span>
+<span class="codeline" id="line-98"><code>}</code></span>
+<span class="codeline" id="line-99"><code></code></span>
+<span class="codeline" id="line-100"><code><span class="keyword">func</span> <label for="r21" class="ident"><a href="../../../pkg/container/heap.html#name-down" class="ident">down</a></label>(<label for="r22" class="ident">h</label> <a href="#line-31" class="ident">Interface</a>, <label for="r23" class="ident">i0</label>, <label for="r24" class="ident">n</label> <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>) <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-101"><code>	<label for="r25" class="ident">i</label> := <label for="r23" class="ident">i0</label></code></span>
+<span class="codeline" id="line-102"><code>	<span class="keyword">for</span> {</code></span>
+<span class="codeline" id="line-103"><code>		<label for="r26" class="ident">j1</label> := <span class="lit-number">2</span>*<label for="r25" class="ident">i</label> + <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-104"><code>		<span class="keyword">if</span> <label for="r26" class="ident">j1</label> &gt;= <label for="r24" class="ident">n</label> || <label for="r26" class="ident">j1</label> &lt; <span class="lit-number">0</span> { <span class="comment">// j1 &lt; 0 after int overflow</span></code></span>
+<span class="codeline" id="line-105"><code>			<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-106"><code>		}</code></span>
+<span class="codeline" id="line-107"><code>		<label for="r27" class="ident">j</label> := <label for="r26" class="ident">j1</label> <span class="comment">// left child</span></code></span>
+<span class="codeline" id="line-108"><code>		<span class="keyword">if</span> <label for="r28" class="ident">j2</label> := <label for="r26" class="ident">j1</label> + <span class="lit-number">1</span>; <label for="r28" class="ident">j2</label> &lt; <label for="r24" class="ident">n</label> &amp;&amp; <label for="r22" class="ident">h</label>.<a href="../../sort/sort.go.html#line-36" class="ident">Less</a>(<label for="r28" class="ident">j2</label>, <label for="r26" class="ident">j1</label>) {</code></span>
+<span class="codeline" id="line-109"><code>			<label for="r27" class="ident">j</label> = <label for="r28" class="ident">j2</label> <span class="comment">// = 2*i + 2  // right child</span></code></span>
+<span class="codeline" id="line-110"><code>		}</code></span>
+<span class="codeline" id="line-111"><code>		<span class="keyword">if</span> !<label for="r22" class="ident">h</label>.<a href="../../sort/sort.go.html#line-36" class="ident">Less</a>(<label for="r27" class="ident">j</label>, <label for="r25" class="ident">i</label>) {</code></span>
+<span class="codeline" id="line-112"><code>			<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-113"><code>		}</code></span>
+<span class="codeline" id="line-114"><code>		<label for="r22" class="ident">h</label>.<a href="../../sort/sort.go.html#line-39" class="ident">Swap</a>(<label for="r25" class="ident">i</label>, <label for="r27" class="ident">j</label>)</code></span>
+<span class="codeline" id="line-115"><code>		<label for="r25" class="ident">i</label> = <label for="r27" class="ident">j</label></code></span>
+<span class="codeline" id="line-116"><code>	}</code></span>
+<span class="codeline" id="line-117"><code>	<span class="keyword">return</span> <label for="r25" class="ident">i</label> &gt; <label for="r23" class="ident">i0</label></code></span>
+<span class="codeline" id="line-118"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

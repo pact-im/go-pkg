@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: util.go in package go/types</title>
+<link href="../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	util.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../pkg/go/types.html">go/types</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2023 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="comment">// This file contains various functionality that is</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment">// different between go/types and types2. Factoring</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment">// out this code allows more of the rest of the code</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment">// to be shared.</span></code></span>
+<span class="codeline" id="line-9"><code></code></span>
+<span class="codeline" id="line-10"><code><span class="keyword">package</span> types</code></span>
+<span class="codeline" id="line-11"><code></code></span>
+<span class="codeline" id="line-12"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-13"><code>	<label for="i0"><span class="lit-string i0">"go/ast"</span></label></code></span>
+<span class="codeline" id="line-14"><code>	<label for="i1"><span class="lit-string i1">"go/constant"</span></label></code></span>
+<span class="codeline" id="line-15"><code>	<label for="i2"><span class="lit-string i2">"go/token"</span></label></code></span>
+<span class="codeline" id="line-16"><code>)</code></span>
+<span class="codeline" id="line-17"><code></code></span>
+<span class="codeline" id="line-18"><code><span class="keyword">const</span> <a href="../../../pkg/go/types.html#name-isTypes2" class="ident">isTypes2</a> = <a href="../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-19"><code></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">// cmpPos compares the positions p and q and returns a result r as follows:</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">// r &lt;  0: p is before q</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">// r == 0: p and q are the same position (but may not be identical)</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">// r &gt;  0: p is after q</span></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">// If p and q are in different files, p is before q if the filename</span></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">// of p sorts lexicographically before the filename of q.</span></code></span>
+<span class="codeline" id="line-28"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../pkg/go/types.html#name-cmpPos" class="ident">cmpPos</a></label>(<label for="r1" class="ident">p</label>, <label for="r2" class="ident">q</label> <a href="../../../pkg/go/token.html" class="ident i2">token</a>.<a href="../token/position.go.html#line-83" class="ident">Pos</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> { <span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>(<label for="r1" class="ident">p</label> - <label for="r2" class="ident">q</label>) }</code></span>
+<span class="codeline" id="line-29"><code></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">// hasDots reports whether the last argument in the call is followed by ...</span></code></span>
+<span class="codeline" id="line-31"><code><span class="keyword">func</span> <label for="r3" class="ident"><a href="../../../pkg/go/types.html#name-hasDots" class="ident">hasDots</a></label>(<label for="r4" class="ident">call</label> *<a href="../../../pkg/go/ast.html" class="ident i0">ast</a>.<a href="../ast/ast.go.html#line-387" class="ident">CallExpr</a>) <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a> { <span class="keyword">return</span> <label for="r4" class="ident">call</label>.<a href="../ast/ast.go.html#line-391" class="ident">Ellipsis</a>.<a href="../token/position.go.html#line-92" class="ident">IsValid</a>() }</code></span>
+<span class="codeline" id="line-32"><code></code></span>
+<span class="codeline" id="line-33"><code><span class="comment">// dddErrPos returns the positioner for reporting an invalid ... use in a call.</span></code></span>
+<span class="codeline" id="line-34"><code><span class="keyword">func</span> <label for="r5" class="ident"><a href="../../../pkg/go/types.html#name-dddErrPos" class="ident">dddErrPos</a></label>(<label for="r6" class="ident">call</label> *<a href="../../../pkg/go/ast.html" class="ident i0">ast</a>.<a href="../ast/ast.go.html#line-387" class="ident">CallExpr</a>) <a href="errors.go.html#line-230" class="ident">positioner</a> { <span class="keyword">return</span> <a href="errors.go.html#line-261" class="ident">atPos</a>(<label for="r6" class="ident">call</label>.<a href="../ast/ast.go.html#line-391" class="ident">Ellipsis</a>) }</code></span>
+<span class="codeline" id="line-35"><code></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">// isdddArray reports whether atyp is of the form [...]E.</span></code></span>
+<span class="codeline" id="line-37"><code><span class="keyword">func</span> <label for="r7" class="ident"><a href="../../../pkg/go/types.html#name-isdddArray" class="ident">isdddArray</a></label>(<label for="r8" class="ident">atyp</label> *<a href="../../../pkg/go/ast.html" class="ident i0">ast</a>.<a href="../ast/ast.go.html#line-444" class="ident">ArrayType</a>) <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-38"><code>	<span class="keyword">if</span> <label for="r8" class="ident">atyp</label>.<a href="../ast/ast.go.html#line-446" class="ident">Len</a> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-39"><code>		<span class="keyword">if</span> <label for="r9" class="ident">ddd</label>, <label for="r10" class="ident">_</label> := <label for="r8" class="ident">atyp</label>.<a href="../ast/ast.go.html#line-446" class="ident">Len</a>.(*<a href="../../../pkg/go/ast.html" class="ident i0">ast</a>.<a href="../ast/ast.go.html#line-296" class="ident">Ellipsis</a>); <label for="r9" class="ident">ddd</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> &amp;&amp; <label for="r9" class="ident">ddd</label>.<a href="../ast/ast.go.html#line-298" class="ident">Elt</a> == <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-40"><code>			<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-41"><code>		}</code></span>
+<span class="codeline" id="line-42"><code>	}</code></span>
+<span class="codeline" id="line-43"><code>	<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-44"><code>}</code></span>
+<span class="codeline" id="line-45"><code></code></span>
+<span class="codeline" id="line-46"><code><span class="comment">// argErrPos returns positioner for reporting an invalid argument count.</span></code></span>
+<span class="codeline" id="line-47"><code><span class="keyword">func</span> <label for="r11" class="ident"><a href="../../../pkg/go/types.html#name-argErrPos" class="ident">argErrPos</a></label>(<label for="r12" class="ident">call</label> *<a href="../../../pkg/go/ast.html" class="ident i0">ast</a>.<a href="../ast/ast.go.html#line-387" class="ident">CallExpr</a>) <a href="errors.go.html#line-230" class="ident">positioner</a> { <span class="keyword">return</span> <a href="errors.go.html#line-283" class="ident">inNode</a>(<label for="r12" class="ident">call</label>, <label for="r12" class="ident">call</label>.<a href="../ast/ast.go.html#line-392" class="ident">Rparen</a>) }</code></span>
+<span class="codeline" id="line-48"><code></code></span>
+<span class="codeline" id="line-49"><code><span class="comment">// startPos returns the start position of node n.</span></code></span>
+<span class="codeline" id="line-50"><code><span class="keyword">func</span> <label for="r13" class="ident"><a href="../../../pkg/go/types.html#name-startPos" class="ident">startPos</a></label>(<label for="r14" class="ident">n</label> <a href="../../../pkg/go/ast.html" class="ident i0">ast</a>.<a href="../ast/ast.go.html#line-32" class="ident">Node</a>) <a href="../../../pkg/go/token.html" class="ident i2">token</a>.<a href="../token/position.go.html#line-83" class="ident">Pos</a> { <span class="keyword">return</span> <label for="r14" class="ident">n</label>.<a href="../ast/ast.go.html#line-33" class="ident">Pos</a>() }</code></span>
+<span class="codeline" id="line-51"><code></code></span>
+<span class="codeline" id="line-52"><code><span class="comment">// endPos returns the position of the first character immediately after node n.</span></code></span>
+<span class="codeline" id="line-53"><code><span class="keyword">func</span> <label for="r15" class="ident"><a href="../../../pkg/go/types.html#name-endPos" class="ident">endPos</a></label>(<label for="r16" class="ident">n</label> <a href="../../../pkg/go/ast.html" class="ident i0">ast</a>.<a href="../ast/ast.go.html#line-32" class="ident">Node</a>) <a href="../../../pkg/go/token.html" class="ident i2">token</a>.<a href="../token/position.go.html#line-83" class="ident">Pos</a> { <span class="keyword">return</span> <label for="r16" class="ident">n</label>.<a href="../ast/ast.go.html#line-34" class="ident">End</a>() }</code></span>
+<span class="codeline" id="line-54"><code></code></span>
+<span class="codeline" id="line-55"><code><span class="comment">// makeFromLiteral returns the constant value for the given literal string and kind.</span></code></span>
+<span class="codeline" id="line-56"><code><span class="keyword">func</span> <label for="r17" class="ident"><a href="../../../pkg/go/types.html#name-makeFromLiteral" class="ident">makeFromLiteral</a></label>(<label for="r18" class="ident">lit</label> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r19" class="ident">kind</label> <a href="../../../pkg/go/token.html" class="ident i2">token</a>.<a href="../token/token.go.html#line-16" class="ident">Token</a>) <a href="../../../pkg/go/constant.html" class="ident i1">constant</a>.<a href="../constant/value.go.html#line-46" class="ident">Value</a> {</code></span>
+<span class="codeline" id="line-57"><code>	<span class="keyword">return</span> <a href="../../../pkg/go/constant.html" class="ident i1">constant</a>.<a href="../constant/value.go.html#line-427" class="ident">MakeFromLiteral</a>(<label for="r18" class="ident">lit</label>, <label for="r19" class="ident">kind</label>, <span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-58"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

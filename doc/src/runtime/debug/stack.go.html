@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: stack.go in package runtime/debug</title>
+<link href="../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	stack.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../pkg/runtime/debug.html">runtime/debug</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2011 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<div class="anchor" id="doc"><span class="codeline" id="line-5"><code><span class="comment">// Package debug contains facilities for programs to debug themselves while</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment">// they are running.</span></code></span></div><span class="codeline" id="line-7"><code><span class="keyword">package</span> debug</code></span>
+<span class="codeline" id="line-8"><code></code></span>
+<span class="codeline" id="line-9"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-10"><code>	<label for="i0"><span class="lit-string i0">"internal/poll"</span></label></code></span>
+<span class="codeline" id="line-11"><code>	<label for="i1"><span class="lit-string i1">"os"</span></label></code></span>
+<span class="codeline" id="line-12"><code>	<label for="i2"><span class="lit-string i2">"runtime"</span></label></code></span>
+<span class="codeline" id="line-13"><code>	<a href="../../../pkg/unsafe.html" class="ident i3">_</a> <label for="i3"><span class="lit-string i3">"unsafe"</span></label> <span class="comment">// for linkname</span></code></span>
+<span class="codeline" id="line-14"><code>)</code></span>
+<span class="codeline" id="line-15"><code></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">// PrintStack prints to standard error the stack trace returned by runtime.Stack.</span></code></span>
+<span class="codeline" id="line-17"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../pkg/runtime/debug.html#name-PrintStack" class="ident">PrintStack</a></label>() {</code></span>
+<span class="codeline" id="line-18"><code>	<a href="../../../pkg/os.html" class="ident i1">os</a>.<a href="../../os/file.go.html#line-73" class="ident">Stderr</a>.<a href="../../os/file.go.html#line-191" class="ident">Write</a>(<a href="#line-23" class="ident">Stack</a>())</code></span>
+<span class="codeline" id="line-19"><code>}</code></span>
+<span class="codeline" id="line-20"><code></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">// Stack returns a formatted stack trace of the goroutine that calls it.</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">// It calls [runtime.Stack] with a large enough buffer to capture the entire trace.</span></code></span>
+<span class="codeline" id="line-23"><code><span class="keyword">func</span> <label for="r1" class="ident"><a href="../../../pkg/runtime/debug.html#name-Stack" class="ident">Stack</a></label>() []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a> {</code></span>
+<span class="codeline" id="line-24"><code>	<label for="r2" class="ident">buf</label> := <a href="../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <span class="lit-number">1024</span>)</code></span>
+<span class="codeline" id="line-25"><code>	<span class="keyword">for</span> {</code></span>
+<span class="codeline" id="line-26"><code>		<label for="r3" class="ident">n</label> := <a href="../../../pkg/runtime.html" class="ident i2">runtime</a>.<a href="../mprof.go.html#line-1702" class="ident">Stack</a>(<label for="r2" class="ident">buf</label>, <a href="../../../pkg/builtin.html#name-false" class="ident">false</a>)</code></span>
+<span class="codeline" id="line-27"><code>		<span class="keyword">if</span> <label for="r3" class="ident">n</label> &lt; <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r2" class="ident">buf</label>) {</code></span>
+<span class="codeline" id="line-28"><code>			<span class="keyword">return</span> <label for="r2" class="ident">buf</label>[:<label for="r3" class="ident">n</label>]</code></span>
+<span class="codeline" id="line-29"><code>		}</code></span>
+<span class="codeline" id="line-30"><code>		<label for="r2" class="ident">buf</label> = <a href="../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <span class="lit-number">2</span>*<a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r2" class="ident">buf</label>))</code></span>
+<span class="codeline" id="line-31"><code>	}</code></span>
+<span class="codeline" id="line-32"><code>}</code></span>
+<span class="codeline" id="line-33"><code></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">// CrashOptions provides options that control the formatting of the</span></code></span>
+<span class="codeline" id="line-35"><code><span class="comment">// fatal crash message.</span></code></span>
+<span class="codeline" id="line-36"><code><span class="keyword">type</span> <a href="../../../pkg/runtime/debug.html#name-CrashOptions" class="ident">CrashOptions</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-37"><code>	<span class="comment">/* for future expansion */</span></code></span>
+<span class="codeline" id="line-38"><code>}</code></span>
+<span class="codeline" id="line-39"><code></code></span>
+<span class="codeline" id="line-40"><code><span class="comment">// SetCrashOutput configures a single additional file where unhandled</span></code></span>
+<span class="codeline" id="line-41"><code><span class="comment">// panics and other fatal errors are printed, in addition to standard error.</span></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">// There is only one additional file: calling SetCrashOutput again overrides</span></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">// any earlier call.</span></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">// SetCrashOutput duplicates f's file descriptor, so the caller may safely</span></code></span>
+<span class="codeline" id="line-45"><code><span class="comment">// close f as soon as SetCrashOutput returns.</span></code></span>
+<span class="codeline" id="line-46"><code><span class="comment">// To disable this additional crash output, call SetCrashOutput(nil).</span></code></span>
+<span class="codeline" id="line-47"><code><span class="comment">// If called concurrently with a crash, some in-progress output may be written</span></code></span>
+<span class="codeline" id="line-48"><code><span class="comment">// to the old file even after an overriding SetCrashOutput returns.</span></code></span>
+<span class="codeline" id="line-49"><code><span class="keyword">func</span> <label for="r4" class="ident"><a href="../../../pkg/runtime/debug.html#name-SetCrashOutput" class="ident">SetCrashOutput</a></label>(<label for="r5" class="ident">f</label> *<a href="../../../pkg/os.html" class="ident i1">os</a>.<a href="../../os/types.go.html#line-18" class="ident">File</a>, <label for="r6" class="ident">opts</label> <a href="#line-36" class="ident">CrashOptions</a>) <a href="../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-50"><code>	<label for="r7" class="ident">fd</label> := ^<a href="../../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>(<span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-51"><code>	<span class="keyword">if</span> <label for="r5" class="ident">f</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-52"><code>		<span class="comment">// The runtime will write to this file descriptor from</span></code></span>
+<span class="codeline" id="line-53"><code><span class="comment">		// low-level routines during a panic, possibly without</span></code></span>
+<span class="codeline" id="line-54"><code><span class="comment">		// a G, so we must call f.Fd() eagerly. This creates a</span></code></span>
+<span class="codeline" id="line-55"><code><span class="comment">		// danger that the file descriptor is no longer</span></code></span>
+<span class="codeline" id="line-56"><code><span class="comment">		// valid at the time of the write, because the caller</span></code></span>
+<span class="codeline" id="line-57"><code><span class="comment">		// (incorrectly) called f.Close() and the kernel</span></code></span>
+<span class="codeline" id="line-58"><code><span class="comment">		// reissued the fd in a later call to open(2), leading</span></code></span>
+<span class="codeline" id="line-59"><code><span class="comment">		// to crashes being written to the wrong file.</span></code></span>
+<span class="codeline" id="line-60"><code><span class="comment">		//</span></code></span>
+<span class="codeline" id="line-61"><code><span class="comment">		// So, we duplicate the fd to obtain a private one</span></code></span>
+<span class="codeline" id="line-62"><code><span class="comment">		// that cannot be closed by the user.</span></code></span>
+<span class="codeline" id="line-63"><code><span class="comment">		// This also alleviates us from concerns about the</span></code></span>
+<span class="codeline" id="line-64"><code><span class="comment">		// lifetime and finalization of f.</span></code></span>
+<span class="codeline" id="line-65"><code><span class="comment">		// (DupCloseOnExec returns an fd, not a *File, so</span></code></span>
+<span class="codeline" id="line-66"><code><span class="comment">		// there is no finalizer, and we are responsible for</span></code></span>
+<span class="codeline" id="line-67"><code><span class="comment">		// closing it.)</span></code></span>
+<span class="codeline" id="line-68"><code><span class="comment">		//</span></code></span>
+<span class="codeline" id="line-69"><code><span class="comment">		// The new fd must be close-on-exec, otherwise if the</span></code></span>
+<span class="codeline" id="line-70"><code><span class="comment">		// crash monitor is a child process, it may inherit</span></code></span>
+<span class="codeline" id="line-71"><code><span class="comment">		// it, so it will never see EOF from the pipe even</span></code></span>
+<span class="codeline" id="line-72"><code><span class="comment">		// when this process crashes.</span></code></span>
+<span class="codeline" id="line-73"><code><span class="comment">		//</span></code></span>
+<span class="codeline" id="line-74"><code><span class="comment">		// A side effect of Fd() is that it calls SetBlocking,</span></code></span>
+<span class="codeline" id="line-75"><code><span class="comment">		// which is important so that writes of a crash report</span></code></span>
+<span class="codeline" id="line-76"><code><span class="comment">		// to a full pipe buffer don't get lost.</span></code></span>
+<span class="codeline" id="line-77"><code>		<label for="r8" class="ident">fd2</label>, <label for="r9" class="ident">_</label>, <label for="r10" class="ident">err</label> := <a href="../../../pkg/internal/poll.html" class="ident i0">poll</a>.<a href="../../internal/poll/fd_unix.go.html#line-660" class="ident">DupCloseOnExec</a>(<a href="../../../pkg/builtin.html#name-int" class="ident">int</a>(<label for="r5" class="ident">f</label>.<a href="../../os/file_unix.go.html#line-80" class="ident">Fd</a>()))</code></span>
+<span class="codeline" id="line-78"><code>		<span class="keyword">if</span> <label for="r10" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-79"><code>			<span class="keyword">return</span> <label for="r10" class="ident">err</label></code></span>
+<span class="codeline" id="line-80"><code>		}</code></span>
+<span class="codeline" id="line-81"><code>		<a href="../../../pkg/runtime.html" class="ident i2">runtime</a>.<a href="../mfinal.go.html#line-568" class="ident">KeepAlive</a>(<label for="r5" class="ident">f</label>) <span class="comment">// prevent finalization before dup</span></code></span>
+<span class="codeline" id="line-82"><code>		<label for="r7" class="ident">fd</label> = <a href="../../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>(<label for="r8" class="ident">fd2</label>)</code></span>
+<span class="codeline" id="line-83"><code>	}</code></span>
+<span class="codeline" id="line-84"><code>	<span class="keyword">if</span> <label for="r11" class="ident">prev</label> := <a href="#line-93" class="ident">runtime_setCrashFD</a>(<label for="r7" class="ident">fd</label>); <label for="r11" class="ident">prev</label> != ^<a href="../../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>(<span class="lit-number">0</span>) {</code></span>
+<span class="codeline" id="line-85"><code>		<span class="comment">// We use NewFile+Close because it is portable</span></code></span>
+<span class="codeline" id="line-86"><code><span class="comment">		// unlike syscall.Close, whose parameter type varies.</span></code></span>
+<span class="codeline" id="line-87"><code>		<a href="../../../pkg/os.html" class="ident i1">os</a>.<a href="../../os/file_unix.go.html#line-106" class="ident">NewFile</a>(<label for="r11" class="ident">prev</label>, <span class="lit-string">""</span>).<a href="../../os/file_posix.go.html#line-19" class="ident">Close</a>() <span class="comment">// ignore error</span></code></span>
+<span class="codeline" id="line-88"><code>	}</code></span>
+<span class="codeline" id="line-89"><code>	<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-90"><code>}</code></span>
+<span class="codeline" id="line-91"><code></code></span>
+<span class="codeline" id="line-92"><code><span class="comment">//go:linkname runtime_setCrashFD runtime.setCrashFD</span></code></span>
+<span class="codeline" id="line-93"><code><span class="keyword">func</span> <label for="r12" class="ident"><a href="../../../pkg/runtime/debug.html#name-runtime_setCrashFD" class="ident">runtime_setCrashFD</a></label>(<a href="../../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>) <a href="../../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a></code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

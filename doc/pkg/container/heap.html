@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Package: container/heap</title>
+<link href="../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="package-details"><code><span style="font-size:xx-large;">package <b>heap</b></span>
+
+<span class="title">Import Path</span>
+	<a href="../../index.html#pkg-container/heap">container/heap</a><i> (on <a href="https://pkg.go.dev/container/heap" target="_blank">go.dev</a>)</i>
+
+<span class="title">Dependency Relation</span>
+	imports <a href="../../dep/container/heap.html">one package</a>, and imported by <a href="../../dep/container/heap.html#imported-by">one package</a>
+
+<div id="files"><span class="title">Involved Source Files</span>
+
+	<input type='checkbox' checked class="fold" id="file-0-fold-content"><label for="file-0-fold-content">  <a href="../../src/container/heap/heap.go.html#doc">d</a> <a href="../../src/container/heap/heap.go.html">heap.go</a></label><span id='file-0-fold-content-items' class="fold-items">
+<span class="md-text">		Package heap provides heap operations for any type that implements
+		heap.Interface. A heap is a tree with the property that each node is the
+		minimum-valued node in its subtree.
+		
+		The minimum element in the tree is the root, at index 0.
+		
+		A heap is a common way to implement a priority queue. To build a priority
+		queue, implement the Heap interface with the (negative) priority as the
+		ordering for the Less method, so Push adds items while Pop removes the
+		highest-priority item from the queue. The Examples include such an
+		implementation; the file example_pq_test.go has the complete source.</span></span></div>
+<div id="examples"><span class="title">Code Examples</span>
+
+	<input type='checkbox' class="fold" id="example-0-fold-content"><label for="example-0-fold-content">_intHeap</label><span id='example-0-fold-content-items' class="fold-items">
+		// This example demonstrates an integer heap built using the heap interface.
+		package main
+		
+		import (
+			"container/heap"
+			"fmt"
+		)
+		
+		// An IntHeap is a min-heap of ints.
+		type IntHeap []int
+		
+		func (h IntHeap) Len() int           { return len(h) }
+		func (h IntHeap) Less(i, j int) bool { return h[i] &lt; h[j] }
+		func (h IntHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
+		
+		func (h *IntHeap) Push(x any) {
+			// Push and Pop use pointer receivers because they modify the slice's length,
+			// not just its contents.
+			*h = append(*h, x.(int))
+		}
+		
+		func (h *IntHeap) Pop() any {
+			old := *h
+			n := len(old)
+			x := old[n-1]
+			*h = old[0 : n-1]
+			return x
+		}
+		
+		// This example inserts several ints into an IntHeap, checks the minimum,
+		// and removes them in order of priority.
+		func main() {
+			h := &amp;IntHeap{2, 1, 5}
+			heap.Init(h)
+			heap.Push(h, 3)
+			fmt.Printf("minimum: %d\n", (*h)[0])
+			for h.Len() &gt; 0 {
+				fmt.Printf("%d ", heap.Pop(h))
+			}
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-1-fold-content"><label for="example-1-fold-content">_priorityQueue</label><span id='example-1-fold-content-items' class="fold-items">
+		// This example demonstrates a priority queue built using the heap interface.
+		package main
+		
+		import (
+			"container/heap"
+			"fmt"
+		)
+		
+		// An Item is something we manage in a priority queue.
+		type Item struct {
+			value    string // The value of the item; arbitrary.
+			priority int    // The priority of the item in the queue.
+			// The index is needed by update and is maintained by the heap.Interface methods.
+			index int // The index of the item in the heap.
+		}
+		
+		// A PriorityQueue implements heap.Interface and holds Items.
+		type PriorityQueue []*Item
+		
+		func (pq PriorityQueue) Len() int { return len(pq) }
+		
+		func (pq PriorityQueue) Less(i, j int) bool {
+			// We want Pop to give us the highest, not lowest, priority so we use greater than here.
+			return pq[i].priority &gt; pq[j].priority
+		}
+		
+		func (pq PriorityQueue) Swap(i, j int) {
+			pq[i], pq[j] = pq[j], pq[i]
+			pq[i].index = i
+			pq[j].index = j
+		}
+		
+		func (pq *PriorityQueue) Push(x any) {
+			n := len(*pq)
+			item := x.(*Item)
+			item.index = n
+			*pq = append(*pq, item)
+		}
+		
+		func (pq *PriorityQueue) Pop() any {
+			old := *pq
+			n := len(old)
+			item := old[n-1]
+			old[n-1] = nil  // don't stop the GC from reclaiming the item eventually
+			item.index = -1 // for safety
+			*pq = old[0 : n-1]
+			return item
+		}
+		
+		// update modifies the priority and value of an Item in the queue.
+		func (pq *PriorityQueue) update(item *Item, value string, priority int) {
+			item.value = value
+			item.priority = priority
+			heap.Fix(pq, item.index)
+		}
+		
+		// This example creates a PriorityQueue with some items, adds and manipulates an item,
+		// and then removes the items in priority order.
+		func main() {
+			// Some items and their priorities.
+			items := map[string]int{
+				"banana": 3, "apple": 2, "pear": 4,
+			}
+		
+			// Create a priority queue, put the items in it, and
+			// establish the priority queue (heap) invariants.
+			pq := make(PriorityQueue, len(items))
+			i := 0
+			for value, priority := range items {
+				pq[i] = &amp;Item{
+					value:    value,
+					priority: priority,
+					index:    i,
+				}
+				i++
+			}
+			heap.Init(&amp;pq)
+		
+			// Insert a new item and then modify its priority.
+			item := &amp;Item{
+				value:    "orange",
+				priority: 1,
+			}
+			heap.Push(&amp;pq, item)
+			pq.update(item, item.value, 5)
+		
+			// Take the items out; they arrive in decreasing priority order.
+			for pq.Len() &gt; 0 {
+				item := heap.Pop(&amp;pq).(*Item)
+				fmt.Printf("%.2d:%s ", item.priority, item.value)
+			}
+		}
+</span>
+</div>
+<div id="exported-types"><span class="title">Package-Level Type Names<span class="title-stat"><i> (only one, which is exported)</i></span></span>
+
+<div id="exported-types-buttons" class="js-on">	/* sort exporteds by: <label id="sort-types-by-alphabet" class="button">alphabet</label> | <label id="sort-types-by-popularity" class="button">popularity</label> */</div><div class="anchor type-res" id="name-Interface" data-popularity="695">	<input type='checkbox' class="fold" id="Interface-fold-content"><label for="Interface-fold-content"> <a href="../../use/container/heap..Interface.html">type</a> <a href="../../src/container/heap/heap.go.html#line-31">Interface</a> <b><i>(interface)</i></b></label><span id='Interface-fold-content-docs' class="fold-docs">
+<span class="md-text">		The Interface type describes the requirements
+		for a type using the routines in this package.
+		Any type that implements it may be used as a
+		min-heap with the following invariants (established after
+		[Init] has been called or if the data is empty or sorted):
+		
+			!h.Less(j, i) for 0 &lt;= i &lt; h.Len() and 2*i+1 &lt;= j &lt;= 2*i+2 and j &lt; h.Len()
+		
+		Note that [Push] and [Pop] in this interface are for package heap's
+		implementation to call. To add and remove things from the heap,
+		use [heap.Push] and [heap.Pop].</span>
+
+		<input type='checkbox' class="fold" id="Interface-fold-methods"><label for="Interface-fold-methods">Methods (<i>total 5, all are exported</i>)</label><span id='Interface-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="Interface-fold-method-Len"><label for="Interface-fold-method-Len">( Interface) <a href="../../src/sort/sort.go.html#line-19">Len</a>() <a href="../builtin.html#name-int">int</a></label><span id='Interface-fold-method-Len-docs' class="fold-docs">
+<span class="md-text">				Len is the number of elements in the collection.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Interface-fold-method-Less"><label for="Interface-fold-method-Less">( Interface) <a href="../../src/sort/sort.go.html#line-36">Less</a>(i, j <a href="../builtin.html#name-int">int</a>) <a href="../builtin.html#name-bool">bool</a></label><span id='Interface-fold-method-Less-docs' class="fold-docs">
+<span class="md-text">				Less reports whether the element with index i
+				must sort before the element with index j.
+				
+				If both Less(i, j) and Less(j, i) are false,
+				then the elements at index i and j are considered equal.
+				Sort may place equal elements in any order in the final result,
+				while Stable preserves the original input order of equal elements.
+				
+				Less must describe a transitive ordering:
+				 - if both Less(i, j) and Less(j, k) are true, then Less(i, k) must be true as well.
+				 - if both Less(i, j) and Less(j, k) are false, then Less(i, k) must be false as well.
+				
+				Note that floating-point comparison (the &lt; operator on float32 or float64 values)
+				is not a transitive ordering when not-a-number (NaN) values are involved.
+				See Float64Slice.Less for a correct implementation for floating-point values.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Interface-fold-method-Pop"><label for="Interface-fold-method-Pop">( Interface) <a href="../../src/container/heap/heap.go.html#line-34">Pop</a>() <a href="../builtin.html#name-any">any</a></label><span id='Interface-fold-method-Pop-docs' class="fold-docs">
+<span class="md-text">				// remove and return element Len() - 1.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Interface-fold-method-Push"><label for="Interface-fold-method-Push">( Interface) <a href="../../src/container/heap/heap.go.html#line-33">Push</a>(x <a href="../builtin.html#name-any">any</a>)</label><span id='Interface-fold-method-Push-docs' class="fold-docs">
+<span class="md-text">				// add x as element Len()</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Interface-fold-method-Swap"><label for="Interface-fold-method-Swap">( Interface) <a href="../../src/sort/sort.go.html#line-39">Swap</a>(i, j <a href="../builtin.html#name-int">int</a>)</label><span id='Interface-fold-method-Swap-docs' class="fold-docs">
+<span class="md-text">				Swap swaps the elements with indexes i and j.</span>
+</span></span></span>
+		<input type='checkbox' class="fold" id="Interface-fold-impledby"><label for="Interface-fold-impledby">Implemented By (<i>at least one unexported</i>)</label><span id='Interface-fold-impledby-items' class="fold-items">
+			<input type='checkbox' class="showhide" id="Interface-showhide-impedBys"><i><label for="Interface-showhide-impedBys" class="show-inline">/* at least one unexported ... */</label><label for="Interface-showhide-impedBys" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			*go/types.<a href="../go/types.html#name-nodeQueue">nodeQueue</a></i></span></span>
+		<input type='checkbox' class="fold" id="Interface-fold-impls"><label for="Interface-fold-impls">Implements (<i>at least one exported</i>)</label><span id='Interface-fold-impls-items' class="fold-items"><span>
+			 Interface : sort.<a href="../sort.html#name-Interface">Interface</a></span></span>
+		<input type='checkbox' class="fold" id="Interface-fold-params"><label for="Interface-fold-params">As Inputs Of (<i>at least 7, in which 5 are exported</i>)</label><span id='Interface-fold-params-items' class="fold-items"><span>
+			func <a href="#name-Fix">Fix</a>(h <b>Interface</b>, i <a href="../builtin.html#name-int">int</a>)</span><span>
+			func <a href="#name-Init">Init</a>(h <b>Interface</b>)</span><span>
+			func <a href="#name-Pop">Pop</a>(h <b>Interface</b>) <a href="../builtin.html#name-any">any</a></span><span>
+			func <a href="#name-Push">Push</a>(h <b>Interface</b>, x <a href="../builtin.html#name-any">any</a>)</span><span>
+			func <a href="#name-Remove">Remove</a>(h <b>Interface</b>, i <a href="../builtin.html#name-int">int</a>) <a href="../builtin.html#name-any">any</a></span>
+			<input type='checkbox' class="showhide" id="Interface-showhide-outputofs"><i><label for="Interface-showhide-outputofs" class="show-inline">/* 2+ unexporteds ... */</label><label for="Interface-showhide-outputofs" class="hide-inline">/* 2+ unexporteds: */</label></i><span class="hidden"><i>
+			func <a href="#name-down">down</a>(h <b>Interface</b>, i0, n <a href="../builtin.html#name-int">int</a>) <a href="../builtin.html#name-bool">bool</a></i></span><span class="hidden"><i>
+			func <a href="#name-up">up</a>(h <b>Interface</b>, j <a href="../builtin.html#name-int">int</a>)</i></span></span>
+
+</span></div></div>
+<div id="exported-functions"><span class="title">Package-Level Functions<span class="title-stat"><i> (total 7, in which 5 are exported)</i></span></span>
+
+<div class="anchor value-res" id="name-Fix">	<input type='checkbox' class="fold" id="Fix-fold-content"><label for="Fix-fold-content"> <a href="../../use/container/heap..Fix.html">func</a> <a href="../../src/container/heap/heap.go.html#line-83">Fix</a>(h <a href="#name-Interface">Interface</a>, i <a href="../builtin.html#name-int">int</a>)</label><span id='Fix-fold-content-docs' class="fold-docs">
+<span class="md-text">		Fix re-establishes the heap ordering after the element at index i has changed its value.
+		Changing the value of the element at index i and then calling Fix is equivalent to,
+		but less expensive than, calling [Remove](h, i) followed by a Push of the new value.
+		The complexity is O(log n) where n = h.Len().</span>
+
+</span></div><div class="anchor value-res" id="name-Init">	<input type='checkbox' class="fold" id="Init-fold-content"><label for="Init-fold-content"> <a href="../../use/container/heap..Init.html">func</a> <a href="../../src/container/heap/heap.go.html#line-41">Init</a>(h <a href="#name-Interface">Interface</a>)</label><span id='Init-fold-content-docs' class="fold-docs">
+<span class="md-text">		Init establishes the heap invariants required by the other routines in this package.
+		Init is idempotent with respect to the heap invariants
+		and may be called whenever the heap invariants may have been invalidated.
+		The complexity is O(n) where n = h.Len().</span>
+
+</span></div><div class="anchor value-res" id="name-Pop">	<input type='checkbox' class="fold" id="Pop-fold-content"><label for="Pop-fold-content"> <a href="../../use/container/heap..Pop.html">func</a> <a href="../../src/container/heap/heap.go.html#line-59">Pop</a>(h <a href="#name-Interface">Interface</a>) <a href="../builtin.html#name-any">any</a></label><span id='Pop-fold-content-docs' class="fold-docs">
+<span class="md-text">		Pop removes and returns the minimum element (according to Less) from the heap.
+		The complexity is O(log n) where n = h.Len().
+		Pop is equivalent to [Remove](h, 0).</span>
+
+</span></div><div class="anchor value-res" id="name-Push">	<input type='checkbox' class="fold" id="Push-fold-content"><label for="Push-fold-content"> <a href="../../use/container/heap..Push.html">func</a> <a href="../../src/container/heap/heap.go.html#line-51">Push</a>(h <a href="#name-Interface">Interface</a>, x <a href="../builtin.html#name-any">any</a>)</label><span id='Push-fold-content-docs' class="fold-docs">
+<span class="md-text">		Push pushes the element x onto the heap.
+		The complexity is O(log n) where n = h.Len().</span>
+
+</span></div><div class="anchor value-res" id="name-Remove">	<input type='checkbox' class="fold" id="Remove-fold-content"><label for="Remove-fold-content"> <a href="../../use/container/heap..Remove.html">func</a> <a href="../../src/container/heap/heap.go.html#line-68">Remove</a>(h <a href="#name-Interface">Interface</a>, i <a href="../builtin.html#name-int">int</a>) <a href="../builtin.html#name-any">any</a></label><span id='Remove-fold-content-docs' class="fold-docs">
+<span class="md-text">		Remove removes and returns the element at index i from the heap.
+		The complexity is O(log n) where n = h.Len().</span>
+
+</span></div>	<input type='checkbox' class="showhide" id="unexported-functions-showhide"><i><label for="unexported-functions-showhide" class="show-inline">/* 2 unexporteds ... */</label><label for="unexported-functions-showhide" class="hide-inline">/* 2 unexporteds: */</label></i><div class="anchor value-res hidden" id="name-down"><i>	<span class="nodocs"> <a href="../../use/container/heap..down^908ae.html">func</a> <a href="../../src/container/heap/heap.go.html#line-100">down</a>(h <a href="#name-Interface">Interface</a>, i0, n <a href="../builtin.html#name-int">int</a>) <a href="../builtin.html#name-bool">bool</a></span></i></div><div class="anchor value-res hidden" id="name-up"><i>	<span class="nodocs"> <a href="../../use/container/heap..up^75a28.html">func</a> <a href="../../src/container/heap/heap.go.html#line-89">up</a>(h <a href="#name-Interface">Interface</a>, j <a href="../builtin.html#name-int">int</a>)</span></i></div></div></code></pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

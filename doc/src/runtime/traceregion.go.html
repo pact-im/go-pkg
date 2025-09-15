@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: traceregion.go in package runtime</title>
+<link href="../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	traceregion.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../pkg/runtime.html">runtime</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2023 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="comment">// Simple not-in-heap bump-pointer traceRegion allocator.</span></code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">package</span> runtime</code></span>
+<span class="codeline" id="line-8"><code></code></span>
+<span class="codeline" id="line-9"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-10"><code>	<label for="i0"><span class="lit-string i0">"internal/runtime/atomic"</span></label></code></span>
+<span class="codeline" id="line-11"><code>	<label for="i1"><span class="lit-string i1">"internal/runtime/sys"</span></label></code></span>
+<span class="codeline" id="line-12"><code>	<label for="i2"><span class="lit-string i2">"unsafe"</span></label></code></span>
+<span class="codeline" id="line-13"><code>)</code></span>
+<span class="codeline" id="line-14"><code></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">// traceRegionAlloc is a thread-safe region allocator.</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">// It holds a linked list of traceRegionAllocBlock.</span></code></span>
+<span class="codeline" id="line-17"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-traceRegionAlloc" class="ident">traceRegionAlloc</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-18"><code>	<a href="../../use/runtime..traceRegionAlloc^606dc.lock^0c030.html" class="ident">lock</a>     <a href="runtime2.go.html#line-165" class="ident">mutex</a></code></span>
+<span class="codeline" id="line-19"><code>	<a href="../../use/runtime..traceRegionAlloc^606dc.dropping^1d630.html" class="ident">dropping</a> <a href="../../pkg/internal/runtime/atomic.html" class="ident i0">atomic</a>.<a href="../internal/runtime/atomic/types.go.html#line-159" class="ident">Bool</a>          <span class="comment">// For checking invariants.</span></code></span>
+<span class="codeline" id="line-20"><code>	<a href="../../use/runtime..traceRegionAlloc^606dc.current^97b05.html" class="ident">current</a>  <a href="../../pkg/internal/runtime/atomic.html" class="ident i0">atomic</a>.<a href="../internal/runtime/atomic/types.go.html#line-457" class="ident">UnsafePointer</a> <span class="comment">// *traceRegionAllocBlock</span></code></span>
+<span class="codeline" id="line-21"><code>	<a href="../../use/runtime..traceRegionAlloc^606dc.full^a18b8.html" class="ident">full</a>     *<a href="#line-29" class="ident">traceRegionAllocBlock</a></code></span>
+<span class="codeline" id="line-22"><code>}</code></span>
+<span class="codeline" id="line-23"><code></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">// traceRegionAllocBlock is a block in traceRegionAlloc.</span></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">// traceRegionAllocBlock is allocated from non-GC'd memory, so it must not</span></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">// contain heap pointers. Writes to pointers to traceRegionAllocBlocks do</span></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">// not need write barriers.</span></code></span>
+<span class="codeline" id="line-29"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-traceRegionAllocBlock" class="ident">traceRegionAllocBlock</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-30"><code>	_ <a href="../../pkg/internal/runtime/sys.html" class="ident i1">sys</a>.<a href="../internal/runtime/sys/nih.go.html#line-41" class="ident">NotInHeap</a></code></span>
+<span class="codeline" id="line-31"><code>	<a href="#line-35" class="ident">traceRegionAllocBlockHeader</a></code></span>
+<span class="codeline" id="line-32"><code>	<a href="../../use/runtime..traceRegionAllocBlock^0fbe2.data^3a6eb.html" class="ident">data</a> [<a href="#line-40" class="ident">traceRegionAllocBlockData</a>]<a href="../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
+<span class="codeline" id="line-33"><code>}</code></span>
+<span class="codeline" id="line-34"><code></code></span>
+<span class="codeline" id="line-35"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-traceRegionAllocBlockHeader" class="ident">traceRegionAllocBlockHeader</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-36"><code>	<a href="../../use/runtime..traceRegionAllocBlockHeader^96bb3.next^c6c1c.html" class="ident">next</a> *<a href="#line-29" class="ident">traceRegionAllocBlock</a></code></span>
+<span class="codeline" id="line-37"><code>	<a href="../../use/runtime..traceRegionAllocBlockHeader^96bb3.off^b4dc6.html" class="ident">off</a>  <a href="../../pkg/internal/runtime/atomic.html" class="ident i0">atomic</a>.<a href="../internal/runtime/atomic/types.go.html#line-350" class="ident">Uintptr</a></code></span>
+<span class="codeline" id="line-38"><code>}</code></span>
+<span class="codeline" id="line-39"><code></code></span>
+<span class="codeline" id="line-40"><code><span class="keyword">const</span> <a href="../../pkg/runtime.html#name-traceRegionAllocBlockData" class="ident">traceRegionAllocBlockData</a> = <span class="lit-number">64</span>&lt;&lt;<span class="lit-number">10</span> - <a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Sizeof" class="ident">Sizeof</a>(<a href="#line-35" class="ident">traceRegionAllocBlockHeader</a>{})</code></span>
+<span class="codeline" id="line-41"><code></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">// alloc allocates n-byte block. The block is always aligned to 8 bytes, regardless of platform.</span></code></span>
+<span class="codeline" id="line-43"><code><span class="keyword">func</span> (<label for="r0" class="ident">a</label> *<a href="#line-17" class="ident">traceRegionAlloc</a>) <label for="r1" class="ident"><a href="../../use/runtime..traceRegionAlloc^606dc.alloc^bcd3b.html" class="ident">alloc</a></label>(<label for="r2" class="ident">n</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>) *<a href="malloc.go.html#line-2052" class="ident">notInHeap</a> {</code></span>
+<span class="codeline" id="line-44"><code>	<label for="r2" class="ident">n</label> = <a href="stubs.go.html#line-372" class="ident">alignUp</a>(<label for="r2" class="ident">n</label>, <span class="lit-number">8</span>)</code></span>
+<span class="codeline" id="line-45"><code>	<span class="keyword">if</span> <label for="r2" class="ident">n</label> &gt; <a href="#line-40" class="ident">traceRegionAllocBlockData</a> {</code></span>
+<span class="codeline" id="line-46"><code>		<a href="panic.go.html#line-1092" class="ident">throw</a>(<span class="lit-string">"traceRegion: alloc too large"</span>)</code></span>
+<span class="codeline" id="line-47"><code>	}</code></span>
+<span class="codeline" id="line-48"><code>	<span class="keyword">if</span> <label for="r0" class="ident">a</label>.<a href="#line-19" class="ident">dropping</a>.<a href="../internal/runtime/atomic/types.go.html#line-167" class="ident">Load</a>() {</code></span>
+<span class="codeline" id="line-49"><code>		<a href="panic.go.html#line-1092" class="ident">throw</a>(<span class="lit-string">"traceRegion: alloc with concurrent drop"</span>)</code></span>
+<span class="codeline" id="line-50"><code>	}</code></span>
+<span class="codeline" id="line-51"><code></code></span>
+<span class="codeline" id="line-52"><code>	<span class="comment">// Try to bump-pointer allocate into the current block.</span></code></span>
+<span class="codeline" id="line-53"><code>	<label for="r3" class="ident">block</label> := (*<a href="#line-29" class="ident">traceRegionAllocBlock</a>)(<label for="r0" class="ident">a</label>.<a href="#line-20" class="ident">current</a>.<a href="../internal/runtime/atomic/types.go.html#line-465" class="ident">Load</a>())</code></span>
+<span class="codeline" id="line-54"><code>	<span class="keyword">if</span> <label for="r3" class="ident">block</label> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-55"><code>		<label for="r4" class="ident">r</label> := <label for="r3" class="ident">block</label>.<a href="#line-37" class="ident">off</a>.<a href="../internal/runtime/atomic/types.go.html#line-419" class="ident">Add</a>(<label for="r2" class="ident">n</label>)</code></span>
+<span class="codeline" id="line-56"><code>		<span class="keyword">if</span> <label for="r4" class="ident">r</label> &lt;= <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>(<a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r3" class="ident">block</label>.<a href="#line-32" class="ident">data</a>)) {</code></span>
+<span class="codeline" id="line-57"><code>			<span class="keyword">return</span> (*<a href="malloc.go.html#line-2052" class="ident">notInHeap</a>)(<a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(&amp;<label for="r3" class="ident">block</label>.<a href="#line-32" class="ident">data</a>[<label for="r4" class="ident">r</label>-<label for="r2" class="ident">n</label>]))</code></span>
+<span class="codeline" id="line-58"><code>		}</code></span>
+<span class="codeline" id="line-59"><code>	}</code></span>
+<span class="codeline" id="line-60"><code></code></span>
+<span class="codeline" id="line-61"><code>	<span class="comment">// Try to install a new block.</span></code></span>
+<span class="codeline" id="line-62"><code>	<a href="lock_spinbit.go.html#line-149" class="ident">lock</a>(&amp;<label for="r0" class="ident">a</label>.<a href="#line-18" class="ident">lock</a>)</code></span>
+<span class="codeline" id="line-63"><code></code></span>
+<span class="codeline" id="line-64"><code>	<span class="comment">// Check block again under the lock. Someone may</span></code></span>
+<span class="codeline" id="line-65"><code><span class="comment">	// have gotten here first.</span></code></span>
+<span class="codeline" id="line-66"><code>	<label for="r3" class="ident">block</label> = (*<a href="#line-29" class="ident">traceRegionAllocBlock</a>)(<label for="r0" class="ident">a</label>.<a href="#line-20" class="ident">current</a>.<a href="../internal/runtime/atomic/types.go.html#line-465" class="ident">Load</a>())</code></span>
+<span class="codeline" id="line-67"><code>	<span class="keyword">if</span> <label for="r3" class="ident">block</label> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-68"><code>		<label for="r5" class="ident">r</label> := <label for="r3" class="ident">block</label>.<a href="#line-37" class="ident">off</a>.<a href="../internal/runtime/atomic/types.go.html#line-419" class="ident">Add</a>(<label for="r2" class="ident">n</label>)</code></span>
+<span class="codeline" id="line-69"><code>		<span class="keyword">if</span> <label for="r5" class="ident">r</label> &lt;= <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>(<a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r3" class="ident">block</label>.<a href="#line-32" class="ident">data</a>)) {</code></span>
+<span class="codeline" id="line-70"><code>			<a href="lock_spinbit.go.html#line-252" class="ident">unlock</a>(&amp;<label for="r0" class="ident">a</label>.<a href="#line-18" class="ident">lock</a>)</code></span>
+<span class="codeline" id="line-71"><code>			<span class="keyword">return</span> (*<a href="malloc.go.html#line-2052" class="ident">notInHeap</a>)(<a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(&amp;<label for="r3" class="ident">block</label>.<a href="#line-32" class="ident">data</a>[<label for="r5" class="ident">r</label>-<label for="r2" class="ident">n</label>]))</code></span>
+<span class="codeline" id="line-72"><code>		}</code></span>
+<span class="codeline" id="line-73"><code></code></span>
+<span class="codeline" id="line-74"><code>		<span class="comment">// Add the existing block to the full list.</span></code></span>
+<span class="codeline" id="line-75"><code>		<label for="r3" class="ident">block</label>.<a href="#line-36" class="ident">next</a> = <label for="r0" class="ident">a</label>.<a href="#line-21" class="ident">full</a></code></span>
+<span class="codeline" id="line-76"><code>		<label for="r0" class="ident">a</label>.<a href="#line-21" class="ident">full</a> = <label for="r3" class="ident">block</label></code></span>
+<span class="codeline" id="line-77"><code>	}</code></span>
+<span class="codeline" id="line-78"><code></code></span>
+<span class="codeline" id="line-79"><code>	<span class="comment">// Allocate a new block.</span></code></span>
+<span class="codeline" id="line-80"><code>	<label for="r3" class="ident">block</label> = (*<a href="#line-29" class="ident">traceRegionAllocBlock</a>)(<a href="mem.go.html#line-49" class="ident">sysAlloc</a>(<a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Sizeof" class="ident">Sizeof</a>(<a href="#line-29" class="ident">traceRegionAllocBlock</a>{}), &amp;<a href="mstats.go.html#line-49" class="ident">memstats</a>.<a href="mstats.go.html#line-30" class="ident">other_sys</a>))</code></span>
+<span class="codeline" id="line-81"><code>	<span class="keyword">if</span> <label for="r3" class="ident">block</label> == <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-82"><code>		<a href="panic.go.html#line-1092" class="ident">throw</a>(<span class="lit-string">"traceRegion: out of memory"</span>)</code></span>
+<span class="codeline" id="line-83"><code>	}</code></span>
+<span class="codeline" id="line-84"><code></code></span>
+<span class="codeline" id="line-85"><code>	<span class="comment">// Allocate space for our current request, so we always make</span></code></span>
+<span class="codeline" id="line-86"><code><span class="comment">	// progress.</span></code></span>
+<span class="codeline" id="line-87"><code>	<label for="r3" class="ident">block</label>.<a href="#line-37" class="ident">off</a>.<a href="../internal/runtime/atomic/types.go.html#line-378" class="ident">Store</a>(<label for="r2" class="ident">n</label>)</code></span>
+<span class="codeline" id="line-88"><code>	<label for="r6" class="ident">x</label> := (*<a href="malloc.go.html#line-2052" class="ident">notInHeap</a>)(<a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(&amp;<label for="r3" class="ident">block</label>.<a href="#line-32" class="ident">data</a>[<span class="lit-number">0</span>]))</code></span>
+<span class="codeline" id="line-89"><code></code></span>
+<span class="codeline" id="line-90"><code>	<span class="comment">// Publish the new block.</span></code></span>
+<span class="codeline" id="line-91"><code>	<label for="r0" class="ident">a</label>.<a href="#line-20" class="ident">current</a>.<a href="../internal/runtime/atomic/types.go.html#line-483" class="ident">Store</a>(<a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r3" class="ident">block</label>))</code></span>
+<span class="codeline" id="line-92"><code>	<a href="lock_spinbit.go.html#line-252" class="ident">unlock</a>(&amp;<label for="r0" class="ident">a</label>.<a href="#line-18" class="ident">lock</a>)</code></span>
+<span class="codeline" id="line-93"><code>	<span class="keyword">return</span> <label for="r6" class="ident">x</label></code></span>
+<span class="codeline" id="line-94"><code>}</code></span>
+<span class="codeline" id="line-95"><code></code></span>
+<span class="codeline" id="line-96"><code><span class="comment">// drop frees all previously allocated memory and resets the allocator.</span></code></span>
+<span class="codeline" id="line-97"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-98"><code><span class="comment">// drop is not safe to call concurrently with other calls to drop or with calls to alloc. The caller</span></code></span>
+<span class="codeline" id="line-99"><code><span class="comment">// must ensure that it is not possible for anything else to be using the same structure.</span></code></span>
+<span class="codeline" id="line-100"><code><span class="keyword">func</span> (<label for="r7" class="ident">a</label> *<a href="#line-17" class="ident">traceRegionAlloc</a>) <label for="r8" class="ident"><a href="../../use/runtime..traceRegionAlloc^606dc.drop^d90ee.html" class="ident">drop</a></label>() {</code></span>
+<span class="codeline" id="line-101"><code>	<label for="r7" class="ident">a</label>.<a href="#line-19" class="ident">dropping</a>.<a href="../internal/runtime/atomic/types.go.html#line-174" class="ident">Store</a>(<a href="../../pkg/builtin.html#name-true" class="ident">true</a>)</code></span>
+<span class="codeline" id="line-102"><code>	<span class="keyword">for</span> <label for="r7" class="ident">a</label>.<a href="#line-21" class="ident">full</a> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-103"><code>		<label for="r9" class="ident">block</label> := <label for="r7" class="ident">a</label>.<a href="#line-21" class="ident">full</a></code></span>
+<span class="codeline" id="line-104"><code>		<label for="r7" class="ident">a</label>.<a href="#line-21" class="ident">full</a> = <label for="r9" class="ident">block</label>.<a href="#line-36" class="ident">next</a></code></span>
+<span class="codeline" id="line-105"><code>		<a href="mem.go.html#line-113" class="ident">sysFree</a>(<a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r9" class="ident">block</label>), <a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Sizeof" class="ident">Sizeof</a>(<a href="#line-29" class="ident">traceRegionAllocBlock</a>{}), &amp;<a href="mstats.go.html#line-49" class="ident">memstats</a>.<a href="mstats.go.html#line-30" class="ident">other_sys</a>)</code></span>
+<span class="codeline" id="line-106"><code>	}</code></span>
+<span class="codeline" id="line-107"><code>	<span class="keyword">if</span> <label for="r10" class="ident">current</label> := <label for="r7" class="ident">a</label>.<a href="#line-20" class="ident">current</a>.<a href="../internal/runtime/atomic/types.go.html#line-465" class="ident">Load</a>(); <label for="r10" class="ident">current</label> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-108"><code>		<a href="mem.go.html#line-113" class="ident">sysFree</a>(<label for="r10" class="ident">current</label>, <a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Sizeof" class="ident">Sizeof</a>(<a href="#line-29" class="ident">traceRegionAllocBlock</a>{}), &amp;<a href="mstats.go.html#line-49" class="ident">memstats</a>.<a href="mstats.go.html#line-30" class="ident">other_sys</a>)</code></span>
+<span class="codeline" id="line-109"><code>		<label for="r7" class="ident">a</label>.<a href="#line-20" class="ident">current</a>.<a href="../internal/runtime/atomic/types.go.html#line-483" class="ident">Store</a>(<a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>)</code></span>
+<span class="codeline" id="line-110"><code>	}</code></span>
+<span class="codeline" id="line-111"><code>	<label for="r7" class="ident">a</label>.<a href="#line-19" class="ident">dropping</a>.<a href="../internal/runtime/atomic/types.go.html#line-174" class="ident">Store</a>(<a href="../../pkg/builtin.html#name-false" class="ident">false</a>)</code></span>
+<span class="codeline" id="line-112"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>
