@@ -9,4 +9,8 @@ require (
 	go.uber.org/goleak v1.3.0
 )
 
-require go.pact.im/x/task v0.0.12 // indirect
+require (
+	github.com/stretchr/testify v1.11.1 // indirect
+	go.pact.im/x/task v0.0.12 // indirect
+	gotest.tools/v3 v3.5.2 // indirect
+)
