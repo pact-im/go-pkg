@@ -4,7 +4,7 @@ go 1.24.0
 
 require (
 	go.pact.im/x/netchan v0.0.13
-	go.pact.im/x/process v0.0.12
+	go.pact.im/x/process v0.0.13
 	go.uber.org/goleak v1.3.0
 	google.golang.org/grpc v1.75.1
 )
