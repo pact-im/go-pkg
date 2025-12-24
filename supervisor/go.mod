@@ -11,5 +11,5 @@ require (
 
 require (
 	github.com/google/go-cmp v0.7.0 // indirect
-	go.pact.im/x/task v0.0.12 // indirect
+	go.pact.im/x/task v0.0.13 // indirect
 )
