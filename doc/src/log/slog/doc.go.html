@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: doc.go in package log/slog</title>
+<link href="../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	doc.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../pkg/log/slog.html">log/slog</a>
+</code></pre>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2022 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<div class="anchor" id="doc"><span class="codeline" id="line-5"><code><span class="comment">/*</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment">Package slog provides structured logging,</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment">in which log records include a message,</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment">a severity level, and various other attributes</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment">expressed as key-value pairs.</span></code></span>
+<span class="codeline" id="line-10"><code></code></span>
+<span class="codeline" id="line-11"><code><span class="comment">It defines a type, [Logger],</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment">which provides several methods (such as [Logger.Info] and [Logger.Error])</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">for reporting events of interest.</span></code></span>
+<span class="codeline" id="line-14"><code></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">Each Logger is associated with a [Handler].</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">A Logger output method creates a [Record] from the method arguments</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">and passes it to the Handler, which decides how to handle it.</span></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">There is a default Logger accessible through top-level functions</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">(such as [Info] and [Error]) that call the corresponding Logger methods.</span></code></span>
+<span class="codeline" id="line-20"><code></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">A log record consists of a time, a level, a message, and a set of key-value</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">pairs, where the keys are strings and the values may be of any type.</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">As an example,</span></code></span>
+<span class="codeline" id="line-24"><code></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">	slog.Info("hello", "count", 3)</span></code></span>
+<span class="codeline" id="line-26"><code></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">creates a record containing the time of the call,</span></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">a level of Info, the message "hello", and a single</span></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">pair with key "count" and value 3.</span></code></span>
+<span class="codeline" id="line-30"><code></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">The [Info] top-level function calls the [Logger.Info] method on the default Logger.</span></code></span>
+<span class="codeline" id="line-32"><code><span class="comment">In addition to [Logger.Info], there are methods for Debug, Warn and Error levels.</span></code></span>
+<span class="codeline" id="line-33"><code><span class="comment">Besides these convenience methods for common levels,</span></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">there is also a [Logger.Log] method which takes the level as an argument.</span></code></span>
+<span class="codeline" id="line-35"><code><span class="comment">Each of these methods has a corresponding top-level function that uses the</span></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">default logger.</span></code></span>
+<span class="codeline" id="line-37"><code></code></span>
+<span class="codeline" id="line-38"><code><span class="comment">The default handler formats the log record's message, time, level, and attributes</span></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">as a string and passes it to the [log] package.</span></code></span>
+<span class="codeline" id="line-40"><code></code></span>
+<span class="codeline" id="line-41"><code><span class="comment">	2022/11/08 15:28:26 INFO hello count=3</span></code></span>
+<span class="codeline" id="line-42"><code></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">For more control over the output format, create a logger with a different handler.</span></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">This statement uses [New] to create a new logger with a [TextHandler]</span></code></span>
+<span class="codeline" id="line-45"><code><span class="comment">that writes structured records in text form to standard error:</span></code></span>
+<span class="codeline" id="line-46"><code></code></span>
+<span class="codeline" id="line-47"><code><span class="comment">	logger := slog.New(slog.NewTextHandler(os.Stderr, nil))</span></code></span>
+<span class="codeline" id="line-48"><code></code></span>
+<span class="codeline" id="line-49"><code><span class="comment">[TextHandler] output is a sequence of key=value pairs, easily and unambiguously</span></code></span>
+<span class="codeline" id="line-50"><code><span class="comment">parsed by machine. This statement:</span></code></span>
+<span class="codeline" id="line-51"><code></code></span>
+<span class="codeline" id="line-52"><code><span class="comment">	logger.Info("hello", "count", 3)</span></code></span>
+<span class="codeline" id="line-53"><code></code></span>
+<span class="codeline" id="line-54"><code><span class="comment">produces this output:</span></code></span>
+<span class="codeline" id="line-55"><code></code></span>
+<span class="codeline" id="line-56"><code><span class="comment">	time=2022-11-08T15:28:26.000-05:00 level=INFO msg=hello count=3</span></code></span>
+<span class="codeline" id="line-57"><code></code></span>
+<span class="codeline" id="line-58"><code><span class="comment">The package also provides [JSONHandler], whose output is line-delimited JSON:</span></code></span>
+<span class="codeline" id="line-59"><code></code></span>
+<span class="codeline" id="line-60"><code><span class="comment">	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))</span></code></span>
+<span class="codeline" id="line-61"><code><span class="comment">	logger.Info("hello", "count", 3)</span></code></span>
+<span class="codeline" id="line-62"><code></code></span>
+<span class="codeline" id="line-63"><code><span class="comment">produces this output:</span></code></span>
+<span class="codeline" id="line-64"><code></code></span>
+<span class="codeline" id="line-65"><code><span class="comment">	{"time":"2022-11-08T15:28:26.000000000-05:00","level":"INFO","msg":"hello","count":3}</span></code></span>
+<span class="codeline" id="line-66"><code></code></span>
+<span class="codeline" id="line-67"><code><span class="comment">Both [TextHandler] and [JSONHandler] can be configured with [HandlerOptions].</span></code></span>
+<span class="codeline" id="line-68"><code><span class="comment">There are options for setting the minimum level (see Levels, below),</span></code></span>
+<span class="codeline" id="line-69"><code><span class="comment">displaying the source file and line of the log call, and</span></code></span>
+<span class="codeline" id="line-70"><code><span class="comment">modifying attributes before they are logged.</span></code></span>
+<span class="codeline" id="line-71"><code></code></span>
+<span class="codeline" id="line-72"><code><span class="comment">Setting a logger as the default with</span></code></span>
+<span class="codeline" id="line-73"><code></code></span>
+<span class="codeline" id="line-74"><code><span class="comment">	slog.SetDefault(logger)</span></code></span>
+<span class="codeline" id="line-75"><code></code></span>
+<span class="codeline" id="line-76"><code><span class="comment">will cause the top-level functions like [Info] to use it.</span></code></span>
+<span class="codeline" id="line-77"><code><span class="comment">[SetDefault] also updates the default logger used by the [log] package,</span></code></span>
+<span class="codeline" id="line-78"><code><span class="comment">so that existing applications that use [log.Printf] and related functions</span></code></span>
+<span class="codeline" id="line-79"><code><span class="comment">will send log records to the logger's handler without needing to be rewritten.</span></code></span>
+<span class="codeline" id="line-80"><code></code></span>
+<span class="codeline" id="line-81"><code><span class="comment">Some attributes are common to many log calls.</span></code></span>
+<span class="codeline" id="line-82"><code><span class="comment">For example, you may wish to include the URL or trace identifier of a server request</span></code></span>
+<span class="codeline" id="line-83"><code><span class="comment">with all log events arising from the request.</span></code></span>
+<span class="codeline" id="line-84"><code><span class="comment">Rather than repeat the attribute with every log call, you can use [Logger.With]</span></code></span>
+<span class="codeline" id="line-85"><code><span class="comment">to construct a new Logger containing the attributes:</span></code></span>
+<span class="codeline" id="line-86"><code></code></span>
+<span class="codeline" id="line-87"><code><span class="comment">	logger2 := logger.With("url", r.URL)</span></code></span>
+<span class="codeline" id="line-88"><code></code></span>
+<span class="codeline" id="line-89"><code><span class="comment">The arguments to With are the same key-value pairs used in [Logger.Info].</span></code></span>
+<span class="codeline" id="line-90"><code><span class="comment">The result is a new Logger with the same handler as the original, but additional</span></code></span>
+<span class="codeline" id="line-91"><code><span class="comment">attributes that will appear in the output of every call.</span></code></span>
+<span class="codeline" id="line-92"><code></code></span>
+<span class="codeline" id="line-93"><code><span class="comment"># Levels</span></code></span>
+<span class="codeline" id="line-94"><code></code></span>
+<span class="codeline" id="line-95"><code><span class="comment">A [Level] is an integer representing the importance or severity of a log event.</span></code></span>
+<span class="codeline" id="line-96"><code><span class="comment">The higher the level, the more severe the event.</span></code></span>
+<span class="codeline" id="line-97"><code><span class="comment">This package defines constants for the most common levels,</span></code></span>
+<span class="codeline" id="line-98"><code><span class="comment">but any int can be used as a level.</span></code></span>
+<span class="codeline" id="line-99"><code></code></span>
+<span class="codeline" id="line-100"><code><span class="comment">In an application, you may wish to log messages only at a certain level or greater.</span></code></span>
+<span class="codeline" id="line-101"><code><span class="comment">One common configuration is to log messages at Info or higher levels,</span></code></span>
+<span class="codeline" id="line-102"><code><span class="comment">suppressing debug logging until it is needed.</span></code></span>
+<span class="codeline" id="line-103"><code><span class="comment">The built-in handlers can be configured with the minimum level to output by</span></code></span>
+<span class="codeline" id="line-104"><code><span class="comment">setting [HandlerOptions.Level].</span></code></span>
+<span class="codeline" id="line-105"><code><span class="comment">The program's `main` function typically does this.</span></code></span>
+<span class="codeline" id="line-106"><code><span class="comment">The default value is LevelInfo.</span></code></span>
+<span class="codeline" id="line-107"><code></code></span>
+<span class="codeline" id="line-108"><code><span class="comment">Setting the [HandlerOptions.Level] field to a [Level] value</span></code></span>
+<span class="codeline" id="line-109"><code><span class="comment">fixes the handler's minimum level throughout its lifetime.</span></code></span>
+<span class="codeline" id="line-110"><code><span class="comment">Setting it to a [LevelVar] allows the level to be varied dynamically.</span></code></span>
+<span class="codeline" id="line-111"><code><span class="comment">A LevelVar holds a Level and is safe to read or write from multiple</span></code></span>
+<span class="codeline" id="line-112"><code><span class="comment">goroutines.</span></code></span>
+<span class="codeline" id="line-113"><code><span class="comment">To vary the level dynamically for an entire program, first initialize</span></code></span>
+<span class="codeline" id="line-114"><code><span class="comment">a global LevelVar:</span></code></span>
+<span class="codeline" id="line-115"><code></code></span>
+<span class="codeline" id="line-116"><code><span class="comment">	var programLevel = new(slog.LevelVar) // Info by default</span></code></span>
+<span class="codeline" id="line-117"><code></code></span>
+<span class="codeline" id="line-118"><code><span class="comment">Then use the LevelVar to construct a handler, and make it the default:</span></code></span>
+<span class="codeline" id="line-119"><code></code></span>
+<span class="codeline" id="line-120"><code><span class="comment">	h := slog.NewJSONHandler(os.Stderr, &amp;slog.HandlerOptions{Level: programLevel})</span></code></span>
+<span class="codeline" id="line-121"><code><span class="comment">	slog.SetDefault(slog.New(h))</span></code></span>
+<span class="codeline" id="line-122"><code></code></span>
+<span class="codeline" id="line-123"><code><span class="comment">Now the program can change its logging level with a single statement:</span></code></span>
+<span class="codeline" id="line-124"><code></code></span>
+<span class="codeline" id="line-125"><code><span class="comment">	programLevel.Set(slog.LevelDebug)</span></code></span>
+<span class="codeline" id="line-126"><code></code></span>
+<span class="codeline" id="line-127"><code><span class="comment"># Groups</span></code></span>
+<span class="codeline" id="line-128"><code></code></span>
+<span class="codeline" id="line-129"><code><span class="comment">Attributes can be collected into groups.</span></code></span>
+<span class="codeline" id="line-130"><code><span class="comment">A group has a name that is used to qualify the names of its attributes.</span></code></span>
+<span class="codeline" id="line-131"><code><span class="comment">How this qualification is displayed depends on the handler.</span></code></span>
+<span class="codeline" id="line-132"><code><span class="comment">[TextHandler] separates the group and attribute names with a dot.</span></code></span>
+<span class="codeline" id="line-133"><code><span class="comment">[JSONHandler] treats each group as a separate JSON object, with the group name as the key.</span></code></span>
+<span class="codeline" id="line-134"><code></code></span>
+<span class="codeline" id="line-135"><code><span class="comment">Use [Group] to create a Group attribute from a name and a list of key-value pairs:</span></code></span>
+<span class="codeline" id="line-136"><code></code></span>
+<span class="codeline" id="line-137"><code><span class="comment">	slog.Group("request",</span></code></span>
+<span class="codeline" id="line-138"><code><span class="comment">	    "method", r.Method,</span></code></span>
+<span class="codeline" id="line-139"><code><span class="comment">	    "url", r.URL)</span></code></span>
+<span class="codeline" id="line-140"><code></code></span>
+<span class="codeline" id="line-141"><code><span class="comment">TextHandler would display this group as</span></code></span>
+<span class="codeline" id="line-142"><code></code></span>
+<span class="codeline" id="line-143"><code><span class="comment">	request.method=GET request.url=http://example.com</span></code></span>
+<span class="codeline" id="line-144"><code></code></span>
+<span class="codeline" id="line-145"><code><span class="comment">JSONHandler would display it as</span></code></span>
+<span class="codeline" id="line-146"><code></code></span>
+<span class="codeline" id="line-147"><code><span class="comment">	"request":{"method":"GET","url":"http://example.com"}</span></code></span>
+<span class="codeline" id="line-148"><code></code></span>
+<span class="codeline" id="line-149"><code><span class="comment">Use [Logger.WithGroup] to qualify all of a Logger's output</span></code></span>
+<span class="codeline" id="line-150"><code><span class="comment">with a group name. Calling WithGroup on a Logger results in a</span></code></span>
+<span class="codeline" id="line-151"><code><span class="comment">new Logger with the same Handler as the original, but with all</span></code></span>
+<span class="codeline" id="line-152"><code><span class="comment">its attributes qualified by the group name.</span></code></span>
+<span class="codeline" id="line-153"><code></code></span>
+<span class="codeline" id="line-154"><code><span class="comment">This can help prevent duplicate attribute keys in large systems,</span></code></span>
+<span class="codeline" id="line-155"><code><span class="comment">where subsystems might use the same keys.</span></code></span>
+<span class="codeline" id="line-156"><code><span class="comment">Pass each subsystem a different Logger with its own group name so that</span></code></span>
+<span class="codeline" id="line-157"><code><span class="comment">potential duplicates are qualified:</span></code></span>
+<span class="codeline" id="line-158"><code></code></span>
+<span class="codeline" id="line-159"><code><span class="comment">	logger := slog.Default().With("id", systemID)</span></code></span>
+<span class="codeline" id="line-160"><code><span class="comment">	parserLogger := logger.WithGroup("parser")</span></code></span>
+<span class="codeline" id="line-161"><code><span class="comment">	parseInput(input, parserLogger)</span></code></span>
+<span class="codeline" id="line-162"><code></code></span>
+<span class="codeline" id="line-163"><code><span class="comment">When parseInput logs with parserLogger, its keys will be qualified with "parser",</span></code></span>
+<span class="codeline" id="line-164"><code><span class="comment">so even if it uses the common key "id", the log line will have distinct keys.</span></code></span>
+<span class="codeline" id="line-165"><code></code></span>
+<span class="codeline" id="line-166"><code><span class="comment"># Contexts</span></code></span>
+<span class="codeline" id="line-167"><code></code></span>
+<span class="codeline" id="line-168"><code><span class="comment">Some handlers may wish to include information from the [context.Context] that is</span></code></span>
+<span class="codeline" id="line-169"><code><span class="comment">available at the call site. One example of such information</span></code></span>
+<span class="codeline" id="line-170"><code><span class="comment">is the identifier for the current span when tracing is enabled.</span></code></span>
+<span class="codeline" id="line-171"><code></code></span>
+<span class="codeline" id="line-172"><code><span class="comment">The [Logger.Log] and [Logger.LogAttrs] methods take a context as a first</span></code></span>
+<span class="codeline" id="line-173"><code><span class="comment">argument, as do their corresponding top-level functions.</span></code></span>
+<span class="codeline" id="line-174"><code></code></span>
+<span class="codeline" id="line-175"><code><span class="comment">Although the convenience methods on Logger (Info and so on) and the</span></code></span>
+<span class="codeline" id="line-176"><code><span class="comment">corresponding top-level functions do not take a context, the alternatives ending</span></code></span>
+<span class="codeline" id="line-177"><code><span class="comment">in "Context" do. For example,</span></code></span>
+<span class="codeline" id="line-178"><code></code></span>
+<span class="codeline" id="line-179"><code><span class="comment">	slog.InfoContext(ctx, "message")</span></code></span>
+<span class="codeline" id="line-180"><code></code></span>
+<span class="codeline" id="line-181"><code><span class="comment">It is recommended to pass a context to an output method if one is available.</span></code></span>
+<span class="codeline" id="line-182"><code></code></span>
+<span class="codeline" id="line-183"><code><span class="comment"># Attrs and Values</span></code></span>
+<span class="codeline" id="line-184"><code></code></span>
+<span class="codeline" id="line-185"><code><span class="comment">An [Attr] is a key-value pair. The Logger output methods accept Attrs as well as</span></code></span>
+<span class="codeline" id="line-186"><code><span class="comment">alternating keys and values. The statement</span></code></span>
+<span class="codeline" id="line-187"><code></code></span>
+<span class="codeline" id="line-188"><code><span class="comment">	slog.Info("hello", slog.Int("count", 3))</span></code></span>
+<span class="codeline" id="line-189"><code></code></span>
+<span class="codeline" id="line-190"><code><span class="comment">behaves the same as</span></code></span>
+<span class="codeline" id="line-191"><code></code></span>
+<span class="codeline" id="line-192"><code><span class="comment">	slog.Info("hello", "count", 3)</span></code></span>
+<span class="codeline" id="line-193"><code></code></span>
+<span class="codeline" id="line-194"><code><span class="comment">There are convenience constructors for [Attr] such as [Int], [String], and [Bool]</span></code></span>
+<span class="codeline" id="line-195"><code><span class="comment">for common types, as well as the function [Any] for constructing Attrs of any</span></code></span>
+<span class="codeline" id="line-196"><code><span class="comment">type.</span></code></span>
+<span class="codeline" id="line-197"><code></code></span>
+<span class="codeline" id="line-198"><code><span class="comment">The value part of an Attr is a type called [Value].</span></code></span>
+<span class="codeline" id="line-199"><code><span class="comment">Like an [any], a Value can hold any Go value,</span></code></span>
+<span class="codeline" id="line-200"><code><span class="comment">but it can represent typical values, including all numbers and strings,</span></code></span>
+<span class="codeline" id="line-201"><code><span class="comment">without an allocation.</span></code></span>
+<span class="codeline" id="line-202"><code></code></span>
+<span class="codeline" id="line-203"><code><span class="comment">For the most efficient log output, use [Logger.LogAttrs].</span></code></span>
+<span class="codeline" id="line-204"><code><span class="comment">It is similar to [Logger.Log] but accepts only Attrs, not alternating</span></code></span>
+<span class="codeline" id="line-205"><code><span class="comment">keys and values; this allows it, too, to avoid allocation.</span></code></span>
+<span class="codeline" id="line-206"><code></code></span>
+<span class="codeline" id="line-207"><code><span class="comment">The call</span></code></span>
+<span class="codeline" id="line-208"><code></code></span>
+<span class="codeline" id="line-209"><code><span class="comment">	logger.LogAttrs(ctx, slog.LevelInfo, "hello", slog.Int("count", 3))</span></code></span>
+<span class="codeline" id="line-210"><code></code></span>
+<span class="codeline" id="line-211"><code><span class="comment">is the most efficient way to achieve the same output as</span></code></span>
+<span class="codeline" id="line-212"><code></code></span>
+<span class="codeline" id="line-213"><code><span class="comment">	slog.InfoContext(ctx, "hello", "count", 3)</span></code></span>
+<span class="codeline" id="line-214"><code></code></span>
+<span class="codeline" id="line-215"><code><span class="comment"># Customizing a type's logging behavior</span></code></span>
+<span class="codeline" id="line-216"><code></code></span>
+<span class="codeline" id="line-217"><code><span class="comment">If a type implements the [LogValuer] interface, the [Value] returned from its LogValue</span></code></span>
+<span class="codeline" id="line-218"><code><span class="comment">method is used for logging. You can use this to control how values of the type</span></code></span>
+<span class="codeline" id="line-219"><code><span class="comment">appear in logs. For example, you can redact secret information like passwords,</span></code></span>
+<span class="codeline" id="line-220"><code><span class="comment">or gather a struct's fields in a Group. See the examples under [LogValuer] for</span></code></span>
+<span class="codeline" id="line-221"><code><span class="comment">details.</span></code></span>
+<span class="codeline" id="line-222"><code></code></span>
+<span class="codeline" id="line-223"><code><span class="comment">A LogValue method may return a Value that itself implements [LogValuer]. The [Value.Resolve]</span></code></span>
+<span class="codeline" id="line-224"><code><span class="comment">method handles these cases carefully, avoiding infinite loops and unbounded recursion.</span></code></span>
+<span class="codeline" id="line-225"><code><span class="comment">Handler authors and others may wish to use [Value.Resolve] instead of calling LogValue directly.</span></code></span>
+<span class="codeline" id="line-226"><code></code></span>
+<span class="codeline" id="line-227"><code><span class="comment"># Wrapping output methods</span></code></span>
+<span class="codeline" id="line-228"><code></code></span>
+<span class="codeline" id="line-229"><code><span class="comment">The logger functions use reflection over the call stack to find the file name</span></code></span>
+<span class="codeline" id="line-230"><code><span class="comment">and line number of the logging call within the application. This can produce</span></code></span>
+<span class="codeline" id="line-231"><code><span class="comment">incorrect source information for functions that wrap slog. For instance, if you</span></code></span>
+<span class="codeline" id="line-232"><code><span class="comment">define this function in file mylog.go:</span></code></span>
+<span class="codeline" id="line-233"><code></code></span>
+<span class="codeline" id="line-234"><code><span class="comment">	func Infof(logger *slog.Logger, format string, args ...any) {</span></code></span>
+<span class="codeline" id="line-235"><code><span class="comment">	    logger.Info(fmt.Sprintf(format, args...))</span></code></span>
+<span class="codeline" id="line-236"><code><span class="comment">	}</span></code></span>
+<span class="codeline" id="line-237"><code></code></span>
+<span class="codeline" id="line-238"><code><span class="comment">and you call it like this in main.go:</span></code></span>
+<span class="codeline" id="line-239"><code></code></span>
+<span class="codeline" id="line-240"><code><span class="comment">	Infof(slog.Default(), "hello, %s", "world")</span></code></span>
+<span class="codeline" id="line-241"><code></code></span>
+<span class="codeline" id="line-242"><code><span class="comment">then slog will report the source file as mylog.go, not main.go.</span></code></span>
+<span class="codeline" id="line-243"><code></code></span>
+<span class="codeline" id="line-244"><code><span class="comment">A correct implementation of Infof will obtain the source location</span></code></span>
+<span class="codeline" id="line-245"><code><span class="comment">(pc) and pass it to NewRecord.</span></code></span>
+<span class="codeline" id="line-246"><code><span class="comment">The Infof function in the package-level example called "wrapping"</span></code></span>
+<span class="codeline" id="line-247"><code><span class="comment">demonstrates how to do this.</span></code></span>
+<span class="codeline" id="line-248"><code></code></span>
+<span class="codeline" id="line-249"><code><span class="comment"># Working with Records</span></code></span>
+<span class="codeline" id="line-250"><code></code></span>
+<span class="codeline" id="line-251"><code><span class="comment">Sometimes a Handler will need to modify a Record</span></code></span>
+<span class="codeline" id="line-252"><code><span class="comment">before passing it on to another Handler or backend.</span></code></span>
+<span class="codeline" id="line-253"><code><span class="comment">A Record contains a mixture of simple public fields (e.g. Time, Level, Message)</span></code></span>
+<span class="codeline" id="line-254"><code><span class="comment">and hidden fields that refer to state (such as attributes) indirectly. This</span></code></span>
+<span class="codeline" id="line-255"><code><span class="comment">means that modifying a simple copy of a Record (e.g. by calling</span></code></span>
+<span class="codeline" id="line-256"><code><span class="comment">[Record.Add] or [Record.AddAttrs] to add attributes)</span></code></span>
+<span class="codeline" id="line-257"><code><span class="comment">may have unexpected effects on the original.</span></code></span>
+<span class="codeline" id="line-258"><code><span class="comment">Before modifying a Record, use [Record.Clone] to</span></code></span>
+<span class="codeline" id="line-259"><code><span class="comment">create a copy that shares no state with the original,</span></code></span>
+<span class="codeline" id="line-260"><code><span class="comment">or create a new Record with [NewRecord]</span></code></span>
+<span class="codeline" id="line-261"><code><span class="comment">and build up its Attrs by traversing the old ones with [Record.Attrs].</span></code></span>
+<span class="codeline" id="line-262"><code></code></span>
+<span class="codeline" id="line-263"><code><span class="comment"># Performance considerations</span></code></span>
+<span class="codeline" id="line-264"><code></code></span>
+<span class="codeline" id="line-265"><code><span class="comment">If profiling your application demonstrates that logging is taking significant time,</span></code></span>
+<span class="codeline" id="line-266"><code><span class="comment">the following suggestions may help.</span></code></span>
+<span class="codeline" id="line-267"><code></code></span>
+<span class="codeline" id="line-268"><code><span class="comment">If many log lines have a common attribute, use [Logger.With] to create a Logger with</span></code></span>
+<span class="codeline" id="line-269"><code><span class="comment">that attribute. The built-in handlers will format that attribute only once, at the</span></code></span>
+<span class="codeline" id="line-270"><code><span class="comment">call to [Logger.With]. The [Handler] interface is designed to allow that optimization,</span></code></span>
+<span class="codeline" id="line-271"><code><span class="comment">and a well-written Handler should take advantage of it.</span></code></span>
+<span class="codeline" id="line-272"><code></code></span>
+<span class="codeline" id="line-273"><code><span class="comment">The arguments to a log call are always evaluated, even if the log event is discarded.</span></code></span>
+<span class="codeline" id="line-274"><code><span class="comment">If possible, defer computation so that it happens only if the value is actually logged.</span></code></span>
+<span class="codeline" id="line-275"><code><span class="comment">For example, consider the call</span></code></span>
+<span class="codeline" id="line-276"><code></code></span>
+<span class="codeline" id="line-277"><code><span class="comment">	slog.Info("starting request", "url", r.URL.String())  // may compute String unnecessarily</span></code></span>
+<span class="codeline" id="line-278"><code></code></span>
+<span class="codeline" id="line-279"><code><span class="comment">The URL.String method will be called even if the logger discards Info-level events.</span></code></span>
+<span class="codeline" id="line-280"><code><span class="comment">Instead, pass the URL directly:</span></code></span>
+<span class="codeline" id="line-281"><code></code></span>
+<span class="codeline" id="line-282"><code><span class="comment">	slog.Info("starting request", "url", &amp;r.URL) // calls URL.String only if needed</span></code></span>
+<span class="codeline" id="line-283"><code></code></span>
+<span class="codeline" id="line-284"><code><span class="comment">The built-in [TextHandler] will call its String method, but only</span></code></span>
+<span class="codeline" id="line-285"><code><span class="comment">if the log event is enabled.</span></code></span>
+<span class="codeline" id="line-286"><code><span class="comment">Avoiding the call to String also preserves the structure of the underlying value.</span></code></span>
+<span class="codeline" id="line-287"><code><span class="comment">For example [JSONHandler] emits the components of the parsed URL as a JSON object.</span></code></span>
+<span class="codeline" id="line-288"><code><span class="comment">If you want to avoid eagerly paying the cost of the String call</span></code></span>
+<span class="codeline" id="line-289"><code><span class="comment">without causing the handler to potentially inspect the structure of the value,</span></code></span>
+<span class="codeline" id="line-290"><code><span class="comment">wrap the value in a fmt.Stringer implementation that hides its Marshal methods.</span></code></span>
+<span class="codeline" id="line-291"><code></code></span>
+<span class="codeline" id="line-292"><code><span class="comment">You can also use the [LogValuer] interface to avoid unnecessary work in disabled log</span></code></span>
+<span class="codeline" id="line-293"><code><span class="comment">calls. Say you need to log some expensive value:</span></code></span>
+<span class="codeline" id="line-294"><code></code></span>
+<span class="codeline" id="line-295"><code><span class="comment">	slog.Debug("frobbing", "value", computeExpensiveValue(arg))</span></code></span>
+<span class="codeline" id="line-296"><code></code></span>
+<span class="codeline" id="line-297"><code><span class="comment">Even if this line is disabled, computeExpensiveValue will be called.</span></code></span>
+<span class="codeline" id="line-298"><code><span class="comment">To avoid that, define a type implementing LogValuer:</span></code></span>
+<span class="codeline" id="line-299"><code></code></span>
+<span class="codeline" id="line-300"><code><span class="comment">	type expensive struct { arg int }</span></code></span>
+<span class="codeline" id="line-301"><code></code></span>
+<span class="codeline" id="line-302"><code><span class="comment">	func (e expensive) LogValue() slog.Value {</span></code></span>
+<span class="codeline" id="line-303"><code><span class="comment">	    return slog.AnyValue(computeExpensiveValue(e.arg))</span></code></span>
+<span class="codeline" id="line-304"><code><span class="comment">	}</span></code></span>
+<span class="codeline" id="line-305"><code></code></span>
+<span class="codeline" id="line-306"><code><span class="comment">Then use a value of that type in log calls:</span></code></span>
+<span class="codeline" id="line-307"><code></code></span>
+<span class="codeline" id="line-308"><code><span class="comment">	slog.Debug("frobbing", "value", expensive{arg})</span></code></span>
+<span class="codeline" id="line-309"><code></code></span>
+<span class="codeline" id="line-310"><code><span class="comment">Now computeExpensiveValue will only be called when the line is enabled.</span></code></span>
+<span class="codeline" id="line-311"><code></code></span>
+<span class="codeline" id="line-312"><code><span class="comment">The built-in handlers acquire a lock before calling [io.Writer.Write]</span></code></span>
+<span class="codeline" id="line-313"><code><span class="comment">to ensure that exactly one [Record] is written at a time in its entirety.</span></code></span>
+<span class="codeline" id="line-314"><code><span class="comment">Although each log record has a timestamp,</span></code></span>
+<span class="codeline" id="line-315"><code><span class="comment">the built-in handlers do not use that time to sort the written records.</span></code></span>
+<span class="codeline" id="line-316"><code><span class="comment">User-defined handlers are responsible for their own locking and sorting.</span></code></span>
+<span class="codeline" id="line-317"><code></code></span>
+<span class="codeline" id="line-318"><code><span class="comment"># Writing a handler</span></code></span>
+<span class="codeline" id="line-319"><code></code></span>
+<span class="codeline" id="line-320"><code><span class="comment">For a guide to writing a custom handler, see https://golang.org/s/slog-handler-guide.</span></code></span>
+<span class="codeline" id="line-321"><code><span class="comment">*/</span></code></span></div><span class="codeline" id="line-322"><code><span class="keyword">package</span> slog</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

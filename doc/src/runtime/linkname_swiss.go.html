@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: linkname_swiss.go in package runtime</title>
+<link href="../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	linkname_swiss.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../pkg/runtime.html">runtime</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2025 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="comment">//go:build goexperiment.swissmap</span></code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">package</span> runtime</code></span>
+<span class="codeline" id="line-8"><code></code></span>
+<span class="codeline" id="line-9"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-10"><code>	<label for="i0"><span class="lit-string i0">"internal/abi"</span></label></code></span>
+<span class="codeline" id="line-11"><code>	<label for="i1"><span class="lit-string i1">"internal/runtime/maps"</span></label></code></span>
+<span class="codeline" id="line-12"><code>	<label for="i2"><span class="lit-string i2">"internal/runtime/sys"</span></label></code></span>
+<span class="codeline" id="line-13"><code>	<label for="i3"><span class="lit-string i3">"unsafe"</span></label></code></span>
+<span class="codeline" id="line-14"><code>)</code></span>
+<span class="codeline" id="line-15"><code></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">// Legacy //go:linkname compatibility shims</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">// The functions below are unused by the toolchain, and exist only for</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">// compatibility with existing //go:linkname use in the ecosystem (and in</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">// map_noswiss.go for normal use via GOEXPERIMENT=noswissmap).</span></code></span>
+<span class="codeline" id="line-21"><code></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">// linknameIter is the it argument to mapiterinit and mapiternext.</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">// Callers of mapiterinit allocate their own iter structure, which has the</span></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">// layout of the pre-Go 1.24 hiter structure, shown here for posterity:</span></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">//	type hiter struct {</span></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">//		key         unsafe.Pointer</span></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">//		elem        unsafe.Pointer</span></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">//		t           *maptype</span></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">//		h           *hmap</span></code></span>
+<span class="codeline" id="line-32"><code><span class="comment">//		buckets     unsafe.Pointer</span></code></span>
+<span class="codeline" id="line-33"><code><span class="comment">//		bptr        *bmap</span></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">//		overflow    *[]*bmap</span></code></span>
+<span class="codeline" id="line-35"><code><span class="comment">//		oldoverflow *[]*bmap</span></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">//		startBucket uintptr</span></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">//		offset      uint8</span></code></span>
+<span class="codeline" id="line-38"><code><span class="comment">//		wrapped     bool</span></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">//		B           uint8</span></code></span>
+<span class="codeline" id="line-40"><code><span class="comment">//		i           uint8</span></code></span>
+<span class="codeline" id="line-41"><code><span class="comment">//		bucket      uintptr</span></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">//		checkBucket uintptr</span></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">//	}</span></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-45"><code><span class="comment">// Our structure must maintain compatibility with the old structure. This</span></code></span>
+<span class="codeline" id="line-46"><code><span class="comment">// means:</span></code></span>
+<span class="codeline" id="line-47"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-48"><code><span class="comment">//   - Our structure must be the same size or smaller than hiter. Otherwise we</span></code></span>
+<span class="codeline" id="line-49"><code><span class="comment">//     may write outside the caller's hiter allocation.</span></code></span>
+<span class="codeline" id="line-50"><code><span class="comment">//   - Our structure must have the same pointer layout as hiter, so that the GC</span></code></span>
+<span class="codeline" id="line-51"><code><span class="comment">//     tracks pointers properly.</span></code></span>
+<span class="codeline" id="line-52"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-53"><code><span class="comment">// Based on analysis of the "hall of shame" users of these linknames:</span></code></span>
+<span class="codeline" id="line-54"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-55"><code><span class="comment">//   - The key and elem fields must be kept up to date with the current key/elem.</span></code></span>
+<span class="codeline" id="line-56"><code><span class="comment">//     Some users directly access the key and elem fields rather than calling</span></code></span>
+<span class="codeline" id="line-57"><code><span class="comment">//     reflect.mapiterkey/reflect.mapiterelem.</span></code></span>
+<span class="codeline" id="line-58"><code><span class="comment">//   - The t field must be non-nil after mapiterinit. gonum.org/v1/gonum uses</span></code></span>
+<span class="codeline" id="line-59"><code><span class="comment">//     this to verify the iterator is initialized.</span></code></span>
+<span class="codeline" id="line-60"><code><span class="comment">//   - github.com/segmentio/encoding and github.com/RomiChan/protobuf check if h</span></code></span>
+<span class="codeline" id="line-61"><code><span class="comment">//     is non-nil, but the code has no effect. Thus the value of h does not</span></code></span>
+<span class="codeline" id="line-62"><code><span class="comment">//     matter. See internal/runtime_reflect/map.go.</span></code></span>
+<span class="codeline" id="line-63"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-linknameIter" class="ident">linknameIter</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-64"><code>	<span class="comment">// Fields from hiter.</span></code></span>
+<span class="codeline" id="line-65"><code>	<a href="../../use/runtime..linknameIter^9eb28.key^2c70e.html" class="ident">key</a>  <a href="../../pkg/unsafe.html" class="ident i3">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a></code></span>
+<span class="codeline" id="line-66"><code>	<a href="../../use/runtime..linknameIter^9eb28.elem^7ddcd.html" class="ident">elem</a> <a href="../../pkg/unsafe.html" class="ident i3">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a></code></span>
+<span class="codeline" id="line-67"><code>	<a href="../../use/runtime..linknameIter^9eb28.typ^5a553.html" class="ident">typ</a>  *<a href="../../pkg/internal/abi.html" class="ident i0">abi</a>.<a href="../internal/abi/map_swiss.go.html#line-32" class="ident">SwissMapType</a></code></span>
+<span class="codeline" id="line-68"><code></code></span>
+<span class="codeline" id="line-69"><code>	<span class="comment">// The real iterator.</span></code></span>
+<span class="codeline" id="line-70"><code>	<a href="../../use/runtime..linknameIter^9eb28.it^2ad8a.html" class="ident">it</a> *<a href="../../pkg/internal/runtime/maps.html" class="ident i1">maps</a>.<a href="../internal/runtime/maps/table.go.html#line-505" class="ident">Iter</a></code></span>
+<span class="codeline" id="line-71"><code>}</code></span>
+<span class="codeline" id="line-72"><code></code></span>
+<span class="codeline" id="line-73"><code><span class="comment">// mapiterinit is a compatibility wrapper for map iterator for users of</span></code></span>
+<span class="codeline" id="line-74"><code><span class="comment">// //go:linkname from before Go 1.24. It is not used by Go itself. New users</span></code></span>
+<span class="codeline" id="line-75"><code><span class="comment">// should use reflect or the maps package.</span></code></span>
+<span class="codeline" id="line-76"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-77"><code><span class="comment">// mapiterinit should be an internal detail,</span></code></span>
+<span class="codeline" id="line-78"><code><span class="comment">// but widely used packages access it using linkname.</span></code></span>
+<span class="codeline" id="line-79"><code><span class="comment">// Notable members of the hall of shame include:</span></code></span>
+<span class="codeline" id="line-80"><code><span class="comment">//   - github.com/bytedance/sonic</span></code></span>
+<span class="codeline" id="line-81"><code><span class="comment">//   - github.com/goccy/go-json</span></code></span>
+<span class="codeline" id="line-82"><code><span class="comment">//   - github.com/RomiChan/protobuf</span></code></span>
+<span class="codeline" id="line-83"><code><span class="comment">//   - github.com/segmentio/encoding</span></code></span>
+<span class="codeline" id="line-84"><code><span class="comment">//   - github.com/ugorji/go/codec</span></code></span>
+<span class="codeline" id="line-85"><code><span class="comment">//   - github.com/wI2L/jettison</span></code></span>
+<span class="codeline" id="line-86"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-87"><code><span class="comment">// Do not remove or change the type signature.</span></code></span>
+<span class="codeline" id="line-88"><code><span class="comment">// See go.dev/issue/67401.</span></code></span>
+<span class="codeline" id="line-89"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-90"><code><span class="comment">//go:linkname mapiterinit</span></code></span>
+<span class="codeline" id="line-91"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../pkg/runtime.html#name-mapiterinit" class="ident">mapiterinit</a></label>(<label for="r1" class="ident">t</label> *<a href="../../pkg/internal/abi.html" class="ident i0">abi</a>.<a href="../internal/abi/map_swiss.go.html#line-32" class="ident">SwissMapType</a>, <label for="r2" class="ident">m</label> *<a href="../../pkg/internal/runtime/maps.html" class="ident i1">maps</a>.<a href="../internal/runtime/maps/map.go.html#line-194" class="ident">Map</a>, <label for="r3" class="ident">it</label> *<a href="#line-63" class="ident">linknameIter</a>) {</code></span>
+<span class="codeline" id="line-92"><code>	<span class="keyword">if</span> <a href="race0.go.html#line-15" class="ident">raceenabled</a> &amp;&amp; <label for="r2" class="ident">m</label> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-93"><code>		<label for="r4" class="ident">callerpc</label> := <a href="../../pkg/internal/runtime/sys.html" class="ident i2">sys</a>.<a href="../internal/runtime/sys/intrinsics.go.html#line-233" class="ident">GetCallerPC</a>()</code></span>
+<span class="codeline" id="line-94"><code>		<a href="race0.go.html#line-27" class="ident">racereadpc</a>(<a href="../../pkg/unsafe.html" class="ident i3">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r2" class="ident">m</label>), <label for="r4" class="ident">callerpc</label>, <a href="../../pkg/internal/abi.html" class="ident i0">abi</a>.<a href="../internal/abi/funcpc.go.html#line-31" class="ident">FuncPCABIInternal</a>(<label for="r0" class="ident">mapiterinit</label>))</code></span>
+<span class="codeline" id="line-95"><code>	}</code></span>
+<span class="codeline" id="line-96"><code></code></span>
+<span class="codeline" id="line-97"><code>	<label for="r3" class="ident">it</label>.<a href="#line-67" class="ident">typ</a> = <label for="r1" class="ident">t</label></code></span>
+<span class="codeline" id="line-98"><code></code></span>
+<span class="codeline" id="line-99"><code>	<label for="r3" class="ident">it</label>.<a href="#line-70" class="ident">it</a> = <a href="../../pkg/builtin.html#name-new" class="ident">new</a>(<a href="../../pkg/internal/runtime/maps.html" class="ident i1">maps</a>.<a href="../internal/runtime/maps/table.go.html#line-505" class="ident">Iter</a>)</code></span>
+<span class="codeline" id="line-100"><code>	<label for="r3" class="ident">it</label>.<a href="#line-70" class="ident">it</a>.<a href="../internal/runtime/maps/table.go.html#line-542" class="ident">Init</a>(<label for="r1" class="ident">t</label>, <label for="r2" class="ident">m</label>)</code></span>
+<span class="codeline" id="line-101"><code>	<label for="r3" class="ident">it</label>.<a href="#line-70" class="ident">it</a>.<a href="../internal/runtime/maps/table.go.html#line-674" class="ident">Next</a>()</code></span>
+<span class="codeline" id="line-102"><code></code></span>
+<span class="codeline" id="line-103"><code>	<label for="r3" class="ident">it</label>.<a href="#line-65" class="ident">key</a> = <label for="r3" class="ident">it</label>.<a href="#line-70" class="ident">it</a>.<a href="../internal/runtime/maps/table.go.html#line-578" class="ident">Key</a>()</code></span>
+<span class="codeline" id="line-104"><code>	<label for="r3" class="ident">it</label>.<a href="#line-66" class="ident">elem</a> = <label for="r3" class="ident">it</label>.<a href="#line-70" class="ident">it</a>.<a href="../internal/runtime/maps/table.go.html#line-586" class="ident">Elem</a>()</code></span>
+<span class="codeline" id="line-105"><code>}</code></span>
+<span class="codeline" id="line-106"><code></code></span>
+<span class="codeline" id="line-107"><code><span class="comment">// reflect_mapiterinit is a compatibility wrapper for map iterator for users of</span></code></span>
+<span class="codeline" id="line-108"><code><span class="comment">// //go:linkname from before Go 1.24. It is not used by Go itself. New users</span></code></span>
+<span class="codeline" id="line-109"><code><span class="comment">// should use reflect or the maps package.</span></code></span>
+<span class="codeline" id="line-110"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-111"><code><span class="comment">// reflect_mapiterinit should be an internal detail,</span></code></span>
+<span class="codeline" id="line-112"><code><span class="comment">// but widely used packages access it using linkname.</span></code></span>
+<span class="codeline" id="line-113"><code><span class="comment">// Notable members of the hall of shame include:</span></code></span>
+<span class="codeline" id="line-114"><code><span class="comment">//   - github.com/modern-go/reflect2</span></code></span>
+<span class="codeline" id="line-115"><code><span class="comment">//   - gitee.com/quant1x/gox</span></code></span>
+<span class="codeline" id="line-116"><code><span class="comment">//   - github.com/v2pro/plz</span></code></span>
+<span class="codeline" id="line-117"><code><span class="comment">//   - github.com/wI2L/jettison</span></code></span>
+<span class="codeline" id="line-118"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-119"><code><span class="comment">// Do not remove or change the type signature.</span></code></span>
+<span class="codeline" id="line-120"><code><span class="comment">// See go.dev/issue/67401.</span></code></span>
+<span class="codeline" id="line-121"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-122"><code><span class="comment">//go:linkname reflect_mapiterinit reflect.mapiterinit</span></code></span>
+<span class="codeline" id="line-123"><code><span class="keyword">func</span> <label for="r5" class="ident"><a href="../../pkg/runtime.html#name-reflect_mapiterinit" class="ident">reflect_mapiterinit</a></label>(<label for="r6" class="ident">t</label> *<a href="../../pkg/internal/abi.html" class="ident i0">abi</a>.<a href="../internal/abi/map_swiss.go.html#line-32" class="ident">SwissMapType</a>, <label for="r7" class="ident">m</label> *<a href="../../pkg/internal/runtime/maps.html" class="ident i1">maps</a>.<a href="../internal/runtime/maps/map.go.html#line-194" class="ident">Map</a>, <label for="r8" class="ident">it</label> *<a href="#line-63" class="ident">linknameIter</a>) {</code></span>
+<span class="codeline" id="line-124"><code>	<a href="#line-91" class="ident">mapiterinit</a>(<label for="r6" class="ident">t</label>, <label for="r7" class="ident">m</label>, <label for="r8" class="ident">it</label>)</code></span>
+<span class="codeline" id="line-125"><code>}</code></span>
+<span class="codeline" id="line-126"><code></code></span>
+<span class="codeline" id="line-127"><code><span class="comment">// mapiternext is a compatibility wrapper for map iterator for users of</span></code></span>
+<span class="codeline" id="line-128"><code><span class="comment">// //go:linkname from before Go 1.24. It is not used by Go itself. New users</span></code></span>
+<span class="codeline" id="line-129"><code><span class="comment">// should use reflect or the maps package.</span></code></span>
+<span class="codeline" id="line-130"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-131"><code><span class="comment">// mapiternext should be an internal detail,</span></code></span>
+<span class="codeline" id="line-132"><code><span class="comment">// but widely used packages access it using linkname.</span></code></span>
+<span class="codeline" id="line-133"><code><span class="comment">// Notable members of the hall of shame include:</span></code></span>
+<span class="codeline" id="line-134"><code><span class="comment">//   - github.com/bytedance/sonic</span></code></span>
+<span class="codeline" id="line-135"><code><span class="comment">//   - github.com/RomiChan/protobuf</span></code></span>
+<span class="codeline" id="line-136"><code><span class="comment">//   - github.com/segmentio/encoding</span></code></span>
+<span class="codeline" id="line-137"><code><span class="comment">//   - github.com/ugorji/go/codec</span></code></span>
+<span class="codeline" id="line-138"><code><span class="comment">//   - gonum.org/v1/gonum</span></code></span>
+<span class="codeline" id="line-139"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-140"><code><span class="comment">// Do not remove or change the type signature.</span></code></span>
+<span class="codeline" id="line-141"><code><span class="comment">// See go.dev/issue/67401.</span></code></span>
+<span class="codeline" id="line-142"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-143"><code><span class="comment">//go:linkname mapiternext</span></code></span>
+<span class="codeline" id="line-144"><code><span class="keyword">func</span> <label for="r9" class="ident"><a href="../../pkg/runtime.html#name-mapiternext" class="ident">mapiternext</a></label>(<label for="r10" class="ident">it</label> *<a href="#line-63" class="ident">linknameIter</a>) {</code></span>
+<span class="codeline" id="line-145"><code>	<span class="keyword">if</span> <a href="race0.go.html#line-15" class="ident">raceenabled</a> {</code></span>
+<span class="codeline" id="line-146"><code>		<label for="r11" class="ident">callerpc</label> := <a href="../../pkg/internal/runtime/sys.html" class="ident i2">sys</a>.<a href="../internal/runtime/sys/intrinsics.go.html#line-233" class="ident">GetCallerPC</a>()</code></span>
+<span class="codeline" id="line-147"><code>		<a href="race0.go.html#line-27" class="ident">racereadpc</a>(<a href="../../pkg/unsafe.html" class="ident i3">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r10" class="ident">it</label>.<a href="#line-70" class="ident">it</a>.<a href="../internal/runtime/maps/table.go.html#line-571" class="ident">Map</a>()), <label for="r11" class="ident">callerpc</label>, <a href="../../pkg/internal/abi.html" class="ident i0">abi</a>.<a href="../internal/abi/funcpc.go.html#line-31" class="ident">FuncPCABIInternal</a>(<label for="r9" class="ident">mapiternext</label>))</code></span>
+<span class="codeline" id="line-148"><code>	}</code></span>
+<span class="codeline" id="line-149"><code></code></span>
+<span class="codeline" id="line-150"><code>	<label for="r10" class="ident">it</label>.<a href="#line-70" class="ident">it</a>.<a href="../internal/runtime/maps/table.go.html#line-674" class="ident">Next</a>()</code></span>
+<span class="codeline" id="line-151"><code></code></span>
+<span class="codeline" id="line-152"><code>	<label for="r10" class="ident">it</label>.<a href="#line-65" class="ident">key</a> = <label for="r10" class="ident">it</label>.<a href="#line-70" class="ident">it</a>.<a href="../internal/runtime/maps/table.go.html#line-578" class="ident">Key</a>()</code></span>
+<span class="codeline" id="line-153"><code>	<label for="r10" class="ident">it</label>.<a href="#line-66" class="ident">elem</a> = <label for="r10" class="ident">it</label>.<a href="#line-70" class="ident">it</a>.<a href="../internal/runtime/maps/table.go.html#line-586" class="ident">Elem</a>()</code></span>
+<span class="codeline" id="line-154"><code>}</code></span>
+<span class="codeline" id="line-155"><code></code></span>
+<span class="codeline" id="line-156"><code><span class="comment">// reflect_mapiternext is a compatibility wrapper for map iterator for users of</span></code></span>
+<span class="codeline" id="line-157"><code><span class="comment">// //go:linkname from before Go 1.24. It is not used by Go itself. New users</span></code></span>
+<span class="codeline" id="line-158"><code><span class="comment">// should use reflect or the maps package.</span></code></span>
+<span class="codeline" id="line-159"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-160"><code><span class="comment">// reflect_mapiternext is for package reflect,</span></code></span>
+<span class="codeline" id="line-161"><code><span class="comment">// but widely used packages access it using linkname.</span></code></span>
+<span class="codeline" id="line-162"><code><span class="comment">// Notable members of the hall of shame include:</span></code></span>
+<span class="codeline" id="line-163"><code><span class="comment">//   - gitee.com/quant1x/gox</span></code></span>
+<span class="codeline" id="line-164"><code><span class="comment">//   - github.com/modern-go/reflect2</span></code></span>
+<span class="codeline" id="line-165"><code><span class="comment">//   - github.com/goccy/go-json</span></code></span>
+<span class="codeline" id="line-166"><code><span class="comment">//   - github.com/v2pro/plz</span></code></span>
+<span class="codeline" id="line-167"><code><span class="comment">//   - github.com/wI2L/jettison</span></code></span>
+<span class="codeline" id="line-168"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-169"><code><span class="comment">// Do not remove or change the type signature.</span></code></span>
+<span class="codeline" id="line-170"><code><span class="comment">// See go.dev/issue/67401.</span></code></span>
+<span class="codeline" id="line-171"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-172"><code><span class="comment">//go:linkname reflect_mapiternext reflect.mapiternext</span></code></span>
+<span class="codeline" id="line-173"><code><span class="keyword">func</span> <label for="r12" class="ident"><a href="../../pkg/runtime.html#name-reflect_mapiternext" class="ident">reflect_mapiternext</a></label>(<label for="r13" class="ident">it</label> *<a href="#line-63" class="ident">linknameIter</a>) {</code></span>
+<span class="codeline" id="line-174"><code>	<a href="#line-144" class="ident">mapiternext</a>(<label for="r13" class="ident">it</label>)</code></span>
+<span class="codeline" id="line-175"><code>}</code></span>
+<span class="codeline" id="line-176"><code></code></span>
+<span class="codeline" id="line-177"><code><span class="comment">// reflect_mapiterkey is a compatibility wrapper for map iterator for users of</span></code></span>
+<span class="codeline" id="line-178"><code><span class="comment">// //go:linkname from before Go 1.24. It is not used by Go itself. New users</span></code></span>
+<span class="codeline" id="line-179"><code><span class="comment">// should use reflect or the maps package.</span></code></span>
+<span class="codeline" id="line-180"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-181"><code><span class="comment">// reflect_mapiterkey should be an internal detail,</span></code></span>
+<span class="codeline" id="line-182"><code><span class="comment">// but widely used packages access it using linkname.</span></code></span>
+<span class="codeline" id="line-183"><code><span class="comment">// Notable members of the hall of shame include:</span></code></span>
+<span class="codeline" id="line-184"><code><span class="comment">//   - github.com/goccy/go-json</span></code></span>
+<span class="codeline" id="line-185"><code><span class="comment">//   - gonum.org/v1/gonum</span></code></span>
+<span class="codeline" id="line-186"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-187"><code><span class="comment">// Do not remove or change the type signature.</span></code></span>
+<span class="codeline" id="line-188"><code><span class="comment">// See go.dev/issue/67401.</span></code></span>
+<span class="codeline" id="line-189"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-190"><code><span class="comment">//go:linkname reflect_mapiterkey reflect.mapiterkey</span></code></span>
+<span class="codeline" id="line-191"><code><span class="keyword">func</span> <label for="r14" class="ident"><a href="../../pkg/runtime.html#name-reflect_mapiterkey" class="ident">reflect_mapiterkey</a></label>(<label for="r15" class="ident">it</label> *<a href="#line-63" class="ident">linknameIter</a>) <a href="../../pkg/unsafe.html" class="ident i3">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a> {</code></span>
+<span class="codeline" id="line-192"><code>	<span class="keyword">return</span> <label for="r15" class="ident">it</label>.<a href="#line-70" class="ident">it</a>.<a href="../internal/runtime/maps/table.go.html#line-578" class="ident">Key</a>()</code></span>
+<span class="codeline" id="line-193"><code>}</code></span>
+<span class="codeline" id="line-194"><code></code></span>
+<span class="codeline" id="line-195"><code><span class="comment">// reflect_mapiterelem is a compatibility wrapper for map iterator for users of</span></code></span>
+<span class="codeline" id="line-196"><code><span class="comment">// //go:linkname from before Go 1.24. It is not used by Go itself. New users</span></code></span>
+<span class="codeline" id="line-197"><code><span class="comment">// should use reflect or the maps package.</span></code></span>
+<span class="codeline" id="line-198"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-199"><code><span class="comment">// reflect_mapiterelem should be an internal detail,</span></code></span>
+<span class="codeline" id="line-200"><code><span class="comment">// but widely used packages access it using linkname.</span></code></span>
+<span class="codeline" id="line-201"><code><span class="comment">// Notable members of the hall of shame include:</span></code></span>
+<span class="codeline" id="line-202"><code><span class="comment">//   - github.com/goccy/go-json</span></code></span>
+<span class="codeline" id="line-203"><code><span class="comment">//   - gonum.org/v1/gonum</span></code></span>
+<span class="codeline" id="line-204"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-205"><code><span class="comment">// Do not remove or change the type signature.</span></code></span>
+<span class="codeline" id="line-206"><code><span class="comment">// See go.dev/issue/67401.</span></code></span>
+<span class="codeline" id="line-207"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-208"><code><span class="comment">//go:linkname reflect_mapiterelem reflect.mapiterelem</span></code></span>
+<span class="codeline" id="line-209"><code><span class="keyword">func</span> <label for="r16" class="ident"><a href="../../pkg/runtime.html#name-reflect_mapiterelem" class="ident">reflect_mapiterelem</a></label>(<label for="r17" class="ident">it</label> *<a href="#line-63" class="ident">linknameIter</a>) <a href="../../pkg/unsafe.html" class="ident i3">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a> {</code></span>
+<span class="codeline" id="line-210"><code>	<span class="keyword">return</span> <label for="r17" class="ident">it</label>.<a href="#line-70" class="ident">it</a>.<a href="../internal/runtime/maps/table.go.html#line-586" class="ident">Elem</a>()</code></span>
+<span class="codeline" id="line-211"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

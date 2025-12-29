@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: traceexp.go in package runtime</title>
+<link href="../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	traceexp.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../pkg/runtime.html">runtime</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6]
+{background: #226; color: #ff8;}
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2024 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> runtime</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="comment">// expWriter returns a traceWriter that writes into the current M's stream for</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment">// the given experiment.</span></code></span>
+<span class="codeline" id="line-9"><code><span class="keyword">func</span> (<label for="r0" class="ident">tl</label> <a href="traceruntime.go.html#line-169" class="ident">traceLocker</a>) <label for="r1" class="ident"><a href="../../use/runtime..traceLocker^95127.expWriter^e1451.html" class="ident">expWriter</a></label>(<label for="r2" class="ident">exp</label> <a href="#line-29" class="ident">traceExperiment</a>) <a href="tracebuf.go.html#line-25" class="ident">traceWriter</a> {</code></span>
+<span class="codeline" id="line-10"><code>	<span class="keyword">return</span> <a href="tracebuf.go.html#line-25" class="ident">traceWriter</a>{<a href="tracebuf.go.html#line-26" class="ident">traceLocker</a>: <label for="r0" class="ident">tl</label>, <a href="tracebuf.go.html#line-28" class="ident">traceBuf</a>: <label for="r0" class="ident">tl</label>.<a href="traceruntime.go.html#line-170" class="ident">mp</a>.<a href="runtime2.go.html#line-590" class="ident">trace</a>.<a href="traceruntime.go.html#line-28" class="ident">buf</a>[<label for="r0" class="ident">tl</label>.<a href="traceruntime.go.html#line-171" class="ident">gen</a>%<span class="lit-number">2</span>][<label for="r2" class="ident">exp</label>], <a href="tracebuf.go.html#line-27" class="ident">exp</a>: <label for="r2" class="ident">exp</label>}</code></span>
+<span class="codeline" id="line-11"><code>}</code></span>
+<span class="codeline" id="line-12"><code></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">// unsafeTraceExpWriter produces a traceWriter for experimental trace batches</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">// that doesn't lock the trace. Data written to experimental batches need not</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">// conform to the standard trace format.</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">// It should only be used in contexts where either:</span></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">// - Another traceLocker is held.</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">// - trace.gen is prevented from advancing.</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">// This does not have the same stack growth restrictions as traceLocker.writer.</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">// buf may be nil.</span></code></span>
+<span class="codeline" id="line-24"><code><span class="keyword">func</span> <label for="r3" class="ident"><a href="../../pkg/runtime.html#name-unsafeTraceExpWriter" class="ident">unsafeTraceExpWriter</a></label>(<label for="r4" class="ident">gen</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>, <label for="r5" class="ident">buf</label> *<a href="tracebuf.go.html#line-247" class="ident">traceBuf</a>, <label for="r6" class="ident">exp</label> <a href="#line-29" class="ident">traceExperiment</a>) <a href="tracebuf.go.html#line-25" class="ident">traceWriter</a> {</code></span>
+<span class="codeline" id="line-25"><code>	<span class="keyword">return</span> <a href="tracebuf.go.html#line-25" class="ident">traceWriter</a>{<a href="tracebuf.go.html#line-26" class="ident">traceLocker</a>: <a href="traceruntime.go.html#line-169" class="ident">traceLocker</a>{<a href="traceruntime.go.html#line-171" class="ident">gen</a>: <label for="r4" class="ident">gen</label>}, <a href="tracebuf.go.html#line-28" class="ident">traceBuf</a>: <label for="r5" class="ident">buf</label>, <a href="tracebuf.go.html#line-27" class="ident">exp</a>: <label for="r6" class="ident">exp</label>}</code></span>
+<span class="codeline" id="line-26"><code>}</code></span>
+<span class="codeline" id="line-27"><code></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">// traceExperiment is an enumeration of the different kinds of experiments supported for tracing.</span></code></span>
+<span class="codeline" id="line-29"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-traceExperiment" class="ident">traceExperiment</a> <a href="../../pkg/builtin.html#name-uint8" class="ident">uint8</a></code></span>
+<span class="codeline" id="line-30"><code></code></span>
+<span class="codeline" id="line-31"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-32"><code>	<span class="comment">// traceNoExperiment indicates no experiment.</span></code></span>
+<span class="codeline" id="line-33"><code>	<a href="../../pkg/runtime.html#name-traceNoExperiment" class="ident">traceNoExperiment</a> <a href="#line-29" class="ident">traceExperiment</a> = <a href="../../pkg/builtin.html#name-iota" class="ident">iota</a></code></span>
+<span class="codeline" id="line-34"><code></code></span>
+<span class="codeline" id="line-35"><code>	<span class="comment">// traceExperimentAllocFree is an experiment to add alloc/free events to the trace.</span></code></span>
+<span class="codeline" id="line-36"><code>	<a href="../../pkg/runtime.html#name-traceExperimentAllocFree" class="ident">traceExperimentAllocFree</a></code></span>
+<span class="codeline" id="line-37"><code></code></span>
+<span class="codeline" id="line-38"><code>	<span class="comment">// traceNumExperiments is the number of trace experiments (and 1 higher than</span></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">	// the highest numbered experiment).</span></code></span>
+<span class="codeline" id="line-40"><code>	<a href="../../pkg/runtime.html#name-traceNumExperiments" class="ident">traceNumExperiments</a></code></span>
+<span class="codeline" id="line-41"><code>)</code></span>
+<span class="codeline" id="line-42"><code></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">// Experimental events.</span></code></span>
+<span class="codeline" id="line-44"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-45"><code>	_ <a href="traceevent.go.html#line-23" class="ident">traceEv</a> = <span class="lit-number">127</span> + <a href="../../pkg/builtin.html#name-iota" class="ident">iota</a></code></span>
+<span class="codeline" id="line-46"><code></code></span>
+<span class="codeline" id="line-47"><code>	<span class="comment">// Experimental events for ExperimentAllocFree.</span></code></span>
+<span class="codeline" id="line-48"><code></code></span>
+<span class="codeline" id="line-49"><code>	<span class="comment">// Experimental heap span events. IDs map reversibly to base addresses.</span></code></span>
+<span class="codeline" id="line-50"><code>	<a href="../../pkg/runtime.html#name-traceEvSpan" class="ident">traceEvSpan</a>      <span class="comment">// heap span exists [timestamp, id, npages, type/class]</span></code></span>
+<span class="codeline" id="line-51"><code>	<a href="../../pkg/runtime.html#name-traceEvSpanAlloc" class="ident">traceEvSpanAlloc</a> <span class="comment">// heap span alloc [timestamp, id, npages, type/class]</span></code></span>
+<span class="codeline" id="line-52"><code>	<a href="../../pkg/runtime.html#name-traceEvSpanFree" class="ident">traceEvSpanFree</a>  <span class="comment">// heap span free [timestamp, id]</span></code></span>
+<span class="codeline" id="line-53"><code></code></span>
+<span class="codeline" id="line-54"><code>	<span class="comment">// Experimental heap object events. IDs map reversibly to addresses.</span></code></span>
+<span class="codeline" id="line-55"><code>	<a href="../../pkg/runtime.html#name-traceEvHeapObject" class="ident">traceEvHeapObject</a>      <span class="comment">// heap object exists [timestamp, id, type]</span></code></span>
+<span class="codeline" id="line-56"><code>	<a href="../../pkg/runtime.html#name-traceEvHeapObjectAlloc" class="ident">traceEvHeapObjectAlloc</a> <span class="comment">// heap object alloc [timestamp, id, type]</span></code></span>
+<span class="codeline" id="line-57"><code>	<a href="../../pkg/runtime.html#name-traceEvHeapObjectFree" class="ident">traceEvHeapObjectFree</a>  <span class="comment">// heap object free [timestamp, id]</span></code></span>
+<span class="codeline" id="line-58"><code></code></span>
+<span class="codeline" id="line-59"><code>	<span class="comment">// Experimental goroutine stack events. IDs map reversibly to addresses.</span></code></span>
+<span class="codeline" id="line-60"><code>	<a href="../../pkg/runtime.html#name-traceEvGoroutineStack" class="ident">traceEvGoroutineStack</a>      <span class="comment">// stack exists [timestamp, id, order]</span></code></span>
+<span class="codeline" id="line-61"><code>	<a href="../../pkg/runtime.html#name-traceEvGoroutineStackAlloc" class="ident">traceEvGoroutineStackAlloc</a> <span class="comment">// stack alloc [timestamp, id, order]</span></code></span>
+<span class="codeline" id="line-62"><code>	<a href="../../pkg/runtime.html#name-traceEvGoroutineStackFree" class="ident">traceEvGoroutineStackFree</a>  <span class="comment">// stack free [timestamp, id]</span></code></span>
+<span class="codeline" id="line-63"><code>)</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

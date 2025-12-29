@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: pkcs1v15.go in package crypto/rsa</title>
+<link href="../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	pkcs1v15.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../pkg/crypto/rsa.html">crypto/rsa</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30],
+input[id=r31]:checked ~pre label[for=r31],
+input[id=r32]:checked ~pre label[for=r32],
+input[id=r33]:checked ~pre label[for=r33],
+input[id=r34]:checked ~pre label[for=r34],
+input[id=r35]:checked ~pre label[for=r35],
+input[id=r36]:checked ~pre label[for=r36],
+input[id=r37]:checked ~pre label[for=r37],
+input[id=r38]:checked ~pre label[for=r38],
+input[id=r39]:checked ~pre label[for=r39],
+input[id=r40]:checked ~pre label[for=r40],
+input[id=r41]:checked ~pre label[for=r41],
+input[id=r42]:checked ~pre label[for=r42],
+input[id=r43]:checked ~pre label[for=r43],
+input[id=r44]:checked ~pre label[for=r44],
+input[id=r45]:checked ~pre label[for=r45],
+input[id=r46]:checked ~pre label[for=r46],
+input[id=r47]:checked ~pre label[for=r47],
+input[id=r48]:checked ~pre label[for=r48],
+input[id=r49]:checked ~pre label[for=r49],
+input[id=r50]:checked ~pre label[for=r50],
+input[id=r51]:checked ~pre label[for=r51],
+input[id=r52]:checked ~pre label[for=r52],
+input[id=r53]:checked ~pre label[for=r53],
+input[id=r54]:checked ~pre label[for=r54],
+input[id=r55]:checked ~pre label[for=r55],
+input[id=r56]:checked ~pre label[for=r56],
+input[id=r57]:checked ~pre label[for=r57],
+input[id=r58]:checked ~pre label[for=r58]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3,
+input[id=i4]:checked ~pre .i4,
+input[id=i5]:checked ~pre .i5,
+input[id=i6]:checked ~pre .i6
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="r31" type="radio" name="g"/>
+<input id="r32" type="radio" name="g"/>
+<input id="r33" type="radio" name="g"/>
+<input id="r34" type="radio" name="g"/>
+<input id="r35" type="radio" name="g"/>
+<input id="r36" type="radio" name="g"/>
+<input id="r37" type="radio" name="g"/>
+<input id="r38" type="radio" name="g"/>
+<input id="r39" type="radio" name="g"/>
+<input id="r40" type="radio" name="g"/>
+<input id="r41" type="radio" name="g"/>
+<input id="r42" type="radio" name="g"/>
+<input id="r43" type="radio" name="g"/>
+<input id="r44" type="radio" name="g"/>
+<input id="r45" type="radio" name="g"/>
+<input id="r46" type="radio" name="g"/>
+<input id="r47" type="radio" name="g"/>
+<input id="r48" type="radio" name="g"/>
+<input id="r49" type="radio" name="g"/>
+<input id="r50" type="radio" name="g"/>
+<input id="r51" type="radio" name="g"/>
+<input id="r52" type="radio" name="g"/>
+<input id="r53" type="radio" name="g"/>
+<input id="r54" type="radio" name="g"/>
+<input id="r55" type="radio" name="g"/>
+<input id="r56" type="radio" name="g"/>
+<input id="r57" type="radio" name="g"/>
+<input id="r58" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+<input id="i4" type="radio" name="i"/>
+<input id="i5" type="radio" name="i"/>
+<input id="i6" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2009 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> rsa</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-8"><code>	<label for="i0"><span class="lit-string i0">"crypto/internal/boring"</span></label></code></span>
+<span class="codeline" id="line-9"><code>	<label for="i1"><span class="lit-string i1">"crypto/internal/fips140/rsa"</span></label></code></span>
+<span class="codeline" id="line-10"><code>	<label for="i2"><span class="lit-string i2">"crypto/internal/fips140only"</span></label></code></span>
+<span class="codeline" id="line-11"><code>	<label for="i3"><span class="lit-string i3">"crypto/internal/randutil"</span></label></code></span>
+<span class="codeline" id="line-12"><code>	<label for="i4"><span class="lit-string i4">"crypto/subtle"</span></label></code></span>
+<span class="codeline" id="line-13"><code>	<label for="i5"><span class="lit-string i5">"errors"</span></label></code></span>
+<span class="codeline" id="line-14"><code>	<label for="i6"><span class="lit-string i6">"io"</span></label></code></span>
+<span class="codeline" id="line-15"><code>)</code></span>
+<span class="codeline" id="line-16"><code></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">// This file implements encryption and decryption using PKCS #1 v1.5 padding.</span></code></span>
+<span class="codeline" id="line-18"><code></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">// PKCS1v15DecryptOptions is for passing options to PKCS #1 v1.5 decryption using</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">// the [crypto.Decrypter] interface.</span></code></span>
+<span class="codeline" id="line-21"><code><span class="keyword">type</span> <a href="../../../pkg/crypto/rsa.html#name-PKCS1v15DecryptOptions" class="ident">PKCS1v15DecryptOptions</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-22"><code>	<span class="comment">// SessionKeyLen is the length of the session key that is being</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">	// decrypted. If not zero, then a padding error during decryption will</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">	// cause a random plaintext of this length to be returned rather than</span></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">	// an error. These alternatives happen in constant time.</span></code></span>
+<span class="codeline" id="line-26"><code>	<a href="../../../use/crypto/rsa..PKCS1v15DecryptOptions.SessionKeyLen.html" class="ident">SessionKeyLen</a> <a href="../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-27"><code>}</code></span>
+<span class="codeline" id="line-28"><code></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">// EncryptPKCS1v15 encrypts the given message with RSA and the padding</span></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">// scheme from PKCS #1 v1.5.  The message must be no longer than the</span></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">// length of the public modulus minus 11 bytes.</span></code></span>
+<span class="codeline" id="line-32"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-33"><code><span class="comment">// The random parameter is used as a source of entropy to ensure that</span></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">// encrypting the same message twice doesn't result in the same</span></code></span>
+<span class="codeline" id="line-35"><code><span class="comment">// ciphertext. Most applications should use [crypto/rand.Reader]</span></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">// as random. Note that the returned ciphertext does not depend</span></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">// deterministically on the bytes read from random, and may change</span></code></span>
+<span class="codeline" id="line-38"><code><span class="comment">// between calls and/or between versions.</span></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-40"><code><span class="comment">// WARNING: use of this function to encrypt plaintexts other than</span></code></span>
+<span class="codeline" id="line-41"><code><span class="comment">// session keys is dangerous. Use RSA OAEP in new protocols.</span></code></span>
+<span class="codeline" id="line-42"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../pkg/crypto/rsa.html#name-EncryptPKCS1v15" class="ident">EncryptPKCS1v15</a></label>(<label for="r1" class="ident">random</label> <a href="../../../pkg/io.html" class="ident i6">io</a>.<a href="../../io/io.go.html#line-86" class="ident">Reader</a>, <label for="r2" class="ident">pub</label> *<a href="rsa.go.html#line-68" class="ident">PublicKey</a>, <label for="r3" class="ident">msg</label> []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) ([]<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-43"><code>	<span class="keyword">if</span> <a href="../../../pkg/crypto/internal/fips140only.html" class="ident i2">fips140only</a>.<a href="../internal/fips140only/fips140only.go.html#line-19" class="ident">Enabled</a> {</code></span>
+<span class="codeline" id="line-44"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../pkg/errors.html" class="ident i5">errors</a>.<a href="../../errors/errors.go.html#line-64" class="ident">New</a>(<span class="lit-string">"crypto/rsa: use of PKCS#1 v1.5 encryption is not allowed in FIPS 140-only mode"</span>)</code></span>
+<span class="codeline" id="line-45"><code>	}</code></span>
+<span class="codeline" id="line-46"><code></code></span>
+<span class="codeline" id="line-47"><code>	<span class="keyword">if</span> <label for="r4" class="ident">err</label> := <a href="rsa.go.html#line-261" class="ident">checkPublicKeySize</a>(<label for="r2" class="ident">pub</label>); <label for="r4" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-48"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r4" class="ident">err</label></code></span>
+<span class="codeline" id="line-49"><code>	}</code></span>
+<span class="codeline" id="line-50"><code></code></span>
+<span class="codeline" id="line-51"><code>	<a href="../../../pkg/crypto/internal/randutil.html" class="ident i3">randutil</a>.<a href="../internal/randutil/randutil.go.html#line-20" class="ident">MaybeReadByte</a>(<label for="r1" class="ident">random</label>)</code></span>
+<span class="codeline" id="line-52"><code></code></span>
+<span class="codeline" id="line-53"><code>	<label for="r5" class="ident">k</label> := <label for="r2" class="ident">pub</label>.<a href="rsa.go.html#line-78" class="ident">Size</a>()</code></span>
+<span class="codeline" id="line-54"><code>	<span class="keyword">if</span> <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r3" class="ident">msg</label>) &gt; <label for="r5" class="ident">k</label>-<span class="lit-number">11</span> {</code></span>
+<span class="codeline" id="line-55"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="rsa.go.html#line-495" class="ident">ErrMessageTooLong</a></code></span>
+<span class="codeline" id="line-56"><code>	}</code></span>
+<span class="codeline" id="line-57"><code></code></span>
+<span class="codeline" id="line-58"><code>	<span class="keyword">if</span> <a href="../../../pkg/crypto/internal/boring.html" class="ident i0">boring</a>.<a href="../internal/boring/doc.go.html#line-14" class="ident">Enabled</a> &amp;&amp; <label for="r1" class="ident">random</label> == <a href="../../../pkg/crypto/internal/boring.html" class="ident i0">boring</a>.<a href="../internal/boring/notboring.go.html#line-35" class="ident">RandReader</a> {</code></span>
+<span class="codeline" id="line-59"><code>		<label for="r6" class="ident">bkey</label>, <label for="r7" class="ident">err</label> := <a href="notboring.go.html#line-11" class="ident">boringPublicKey</a>(<label for="r2" class="ident">pub</label>)</code></span>
+<span class="codeline" id="line-60"><code>		<span class="keyword">if</span> <label for="r7" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-61"><code>			<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r7" class="ident">err</label></code></span>
+<span class="codeline" id="line-62"><code>		}</code></span>
+<span class="codeline" id="line-63"><code>		<span class="keyword">return</span> <a href="../../../pkg/crypto/internal/boring.html" class="ident i0">boring</a>.<a href="../internal/boring/notboring.go.html#line-89" class="ident">EncryptRSAPKCS1</a>(<label for="r6" class="ident">bkey</label>, <label for="r3" class="ident">msg</label>)</code></span>
+<span class="codeline" id="line-64"><code>	}</code></span>
+<span class="codeline" id="line-65"><code>	<a href="../../../pkg/crypto/internal/boring.html" class="ident i0">boring</a>.<a href="../internal/boring/notboring.go.html#line-29" class="ident">UnreachableExceptTests</a>()</code></span>
+<span class="codeline" id="line-66"><code></code></span>
+<span class="codeline" id="line-67"><code>	<span class="comment">// EM = 0x00 || 0x02 || PS || 0x00 || M</span></code></span>
+<span class="codeline" id="line-68"><code>	<label for="r8" class="ident">em</label> := <a href="../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r5" class="ident">k</label>)</code></span>
+<span class="codeline" id="line-69"><code>	<label for="r8" class="ident">em</label>[<span class="lit-number">1</span>] = <span class="lit-number">2</span></code></span>
+<span class="codeline" id="line-70"><code>	<label for="r9" class="ident">ps</label>, <label for="r10" class="ident">mm</label> := <label for="r8" class="ident">em</label>[<span class="lit-number">2</span>:<a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r8" class="ident">em</label>)-<a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r3" class="ident">msg</label>)-<span class="lit-number">1</span>], <label for="r8" class="ident">em</label>[<a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r8" class="ident">em</label>)-<a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r3" class="ident">msg</label>):]</code></span>
+<span class="codeline" id="line-71"><code>	<label for="r11" class="ident">err</label> := <a href="#line-252" class="ident">nonZeroRandomBytes</a>(<label for="r9" class="ident">ps</label>, <label for="r1" class="ident">random</label>)</code></span>
+<span class="codeline" id="line-72"><code>	<span class="keyword">if</span> <label for="r11" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-73"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r11" class="ident">err</label></code></span>
+<span class="codeline" id="line-74"><code>	}</code></span>
+<span class="codeline" id="line-75"><code>	<label for="r8" class="ident">em</label>[<a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r8" class="ident">em</label>)-<a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r3" class="ident">msg</label>)-<span class="lit-number">1</span>] = <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-76"><code>	<a href="../../../pkg/builtin.html#name-copy" class="ident">copy</a>(<label for="r10" class="ident">mm</label>, <label for="r3" class="ident">msg</label>)</code></span>
+<span class="codeline" id="line-77"><code></code></span>
+<span class="codeline" id="line-78"><code>	<span class="keyword">if</span> <a href="../../../pkg/crypto/internal/boring.html" class="ident i0">boring</a>.<a href="../internal/boring/doc.go.html#line-14" class="ident">Enabled</a> {</code></span>
+<span class="codeline" id="line-79"><code>		<span class="keyword">var</span> <label for="r12" class="ident">bkey</label> *<a href="../../../pkg/crypto/internal/boring.html" class="ident i0">boring</a>.<a href="../internal/boring/notboring.go.html#line-74" class="ident">PublicKeyRSA</a></code></span>
+<span class="codeline" id="line-80"><code>		<label for="r12" class="ident">bkey</label>, <label for="r11" class="ident">err</label> = <a href="notboring.go.html#line-11" class="ident">boringPublicKey</a>(<label for="r2" class="ident">pub</label>)</code></span>
+<span class="codeline" id="line-81"><code>		<span class="keyword">if</span> <label for="r11" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-82"><code>			<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r11" class="ident">err</label></code></span>
+<span class="codeline" id="line-83"><code>		}</code></span>
+<span class="codeline" id="line-84"><code>		<span class="keyword">return</span> <a href="../../../pkg/crypto/internal/boring.html" class="ident i0">boring</a>.<a href="../internal/boring/notboring.go.html#line-92" class="ident">EncryptRSANoPadding</a>(<label for="r12" class="ident">bkey</label>, <label for="r8" class="ident">em</label>)</code></span>
+<span class="codeline" id="line-85"><code>	}</code></span>
+<span class="codeline" id="line-86"><code></code></span>
+<span class="codeline" id="line-87"><code>	<label for="r13" class="ident">fk</label>, <label for="r11" class="ident">err</label> := <a href="rsa.go.html#line-624" class="ident">fipsPublicKey</a>(<label for="r2" class="ident">pub</label>)</code></span>
+<span class="codeline" id="line-88"><code>	<span class="keyword">if</span> <label for="r11" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-89"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r11" class="ident">err</label></code></span>
+<span class="codeline" id="line-90"><code>	}</code></span>
+<span class="codeline" id="line-91"><code>	<span class="keyword">return</span> <a href="../../../pkg/crypto/internal/fips140/rsa.html" class="ident i1">rsa</a>.<a href="../internal/fips140/rsa/rsa.go.html#line-377" class="ident">Encrypt</a>(<label for="r13" class="ident">fk</label>, <label for="r8" class="ident">em</label>)</code></span>
+<span class="codeline" id="line-92"><code>}</code></span>
+<span class="codeline" id="line-93"><code></code></span>
+<span class="codeline" id="line-94"><code><span class="comment">// DecryptPKCS1v15 decrypts a plaintext using RSA and the padding scheme from PKCS #1 v1.5.</span></code></span>
+<span class="codeline" id="line-95"><code><span class="comment">// The random parameter is legacy and ignored, and it can be nil.</span></code></span>
+<span class="codeline" id="line-96"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-97"><code><span class="comment">// Note that whether this function returns an error or not discloses secret</span></code></span>
+<span class="codeline" id="line-98"><code><span class="comment">// information. If an attacker can cause this function to run repeatedly and</span></code></span>
+<span class="codeline" id="line-99"><code><span class="comment">// learn whether each instance returned an error then they can decrypt and</span></code></span>
+<span class="codeline" id="line-100"><code><span class="comment">// forge signatures as if they had the private key. See</span></code></span>
+<span class="codeline" id="line-101"><code><span class="comment">// DecryptPKCS1v15SessionKey for a way of solving this problem.</span></code></span>
+<span class="codeline" id="line-102"><code><span class="keyword">func</span> <label for="r14" class="ident"><a href="../../../pkg/crypto/rsa.html#name-DecryptPKCS1v15" class="ident">DecryptPKCS1v15</a></label>(<label for="r15" class="ident">random</label> <a href="../../../pkg/io.html" class="ident i6">io</a>.<a href="../../io/io.go.html#line-86" class="ident">Reader</a>, <label for="r16" class="ident">priv</label> *<a href="rsa.go.html#line-107" class="ident">PrivateKey</a>, <label for="r17" class="ident">ciphertext</label> []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) ([]<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-103"><code>	<span class="keyword">if</span> <label for="r18" class="ident">err</label> := <a href="rsa.go.html#line-261" class="ident">checkPublicKeySize</a>(&amp;<label for="r16" class="ident">priv</label>.<a href="rsa.go.html#line-108" class="ident">PublicKey</a>); <label for="r18" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-104"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r18" class="ident">err</label></code></span>
+<span class="codeline" id="line-105"><code>	}</code></span>
+<span class="codeline" id="line-106"><code></code></span>
+<span class="codeline" id="line-107"><code>	<span class="keyword">if</span> <a href="../../../pkg/crypto/internal/boring.html" class="ident i0">boring</a>.<a href="../internal/boring/doc.go.html#line-14" class="ident">Enabled</a> {</code></span>
+<span class="codeline" id="line-108"><code>		<label for="r19" class="ident">bkey</label>, <label for="r20" class="ident">err</label> := <a href="notboring.go.html#line-14" class="ident">boringPrivateKey</a>(<label for="r16" class="ident">priv</label>)</code></span>
+<span class="codeline" id="line-109"><code>		<span class="keyword">if</span> <label for="r20" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-110"><code>			<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r20" class="ident">err</label></code></span>
+<span class="codeline" id="line-111"><code>		}</code></span>
+<span class="codeline" id="line-112"><code>		<label for="r21" class="ident">out</label>, <label for="r20" class="ident">err</label> := <a href="../../../pkg/crypto/internal/boring.html" class="ident i0">boring</a>.<a href="../internal/boring/notboring.go.html#line-80" class="ident">DecryptRSAPKCS1</a>(<label for="r19" class="ident">bkey</label>, <label for="r17" class="ident">ciphertext</label>)</code></span>
+<span class="codeline" id="line-113"><code>		<span class="keyword">if</span> <label for="r20" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-114"><code>			<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="rsa.go.html#line-499" class="ident">ErrDecryption</a></code></span>
+<span class="codeline" id="line-115"><code>		}</code></span>
+<span class="codeline" id="line-116"><code>		<span class="keyword">return</span> <label for="r21" class="ident">out</label>, <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-117"><code>	}</code></span>
+<span class="codeline" id="line-118"><code></code></span>
+<span class="codeline" id="line-119"><code>	<label for="r22" class="ident">valid</label>, <label for="r23" class="ident">out</label>, <label for="r24" class="ident">index</label>, <label for="r25" class="ident">err</label> := <a href="#line-195" class="ident">decryptPKCS1v15</a>(<label for="r16" class="ident">priv</label>, <label for="r17" class="ident">ciphertext</label>)</code></span>
+<span class="codeline" id="line-120"><code>	<span class="keyword">if</span> <label for="r25" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-121"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r25" class="ident">err</label></code></span>
+<span class="codeline" id="line-122"><code>	}</code></span>
+<span class="codeline" id="line-123"><code>	<span class="keyword">if</span> <label for="r22" class="ident">valid</label> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-124"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="rsa.go.html#line-499" class="ident">ErrDecryption</a></code></span>
+<span class="codeline" id="line-125"><code>	}</code></span>
+<span class="codeline" id="line-126"><code>	<span class="keyword">return</span> <label for="r23" class="ident">out</label>[<label for="r24" class="ident">index</label>:], <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-127"><code>}</code></span>
+<span class="codeline" id="line-128"><code></code></span>
+<span class="codeline" id="line-129"><code><span class="comment">// DecryptPKCS1v15SessionKey decrypts a session key using RSA and the padding</span></code></span>
+<span class="codeline" id="line-130"><code><span class="comment">// scheme from PKCS #1 v1.5. The random parameter is legacy and ignored, and it</span></code></span>
+<span class="codeline" id="line-131"><code><span class="comment">// can be nil.</span></code></span>
+<span class="codeline" id="line-132"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-133"><code><span class="comment">// DecryptPKCS1v15SessionKey returns an error if the ciphertext is the wrong</span></code></span>
+<span class="codeline" id="line-134"><code><span class="comment">// length or if the ciphertext is greater than the public modulus. Otherwise, no</span></code></span>
+<span class="codeline" id="line-135"><code><span class="comment">// error is returned. If the padding is valid, the resulting plaintext message</span></code></span>
+<span class="codeline" id="line-136"><code><span class="comment">// is copied into key. Otherwise, key is unchanged. These alternatives occur in</span></code></span>
+<span class="codeline" id="line-137"><code><span class="comment">// constant time. It is intended that the user of this function generate a</span></code></span>
+<span class="codeline" id="line-138"><code><span class="comment">// random session key beforehand and continue the protocol with the resulting</span></code></span>
+<span class="codeline" id="line-139"><code><span class="comment">// value.</span></code></span>
+<span class="codeline" id="line-140"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-141"><code><span class="comment">// Note that if the session key is too small then it may be possible for an</span></code></span>
+<span class="codeline" id="line-142"><code><span class="comment">// attacker to brute-force it. If they can do that then they can learn whether a</span></code></span>
+<span class="codeline" id="line-143"><code><span class="comment">// random value was used (because it'll be different for the same ciphertext)</span></code></span>
+<span class="codeline" id="line-144"><code><span class="comment">// and thus whether the padding was correct. This also defeats the point of this</span></code></span>
+<span class="codeline" id="line-145"><code><span class="comment">// function. Using at least a 16-byte key will protect against this attack.</span></code></span>
+<span class="codeline" id="line-146"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-147"><code><span class="comment">// This method implements protections against Bleichenbacher chosen ciphertext</span></code></span>
+<span class="codeline" id="line-148"><code><span class="comment">// attacks [0] described in RFC 3218 Section 2.3.2 [1]. While these protections</span></code></span>
+<span class="codeline" id="line-149"><code><span class="comment">// make a Bleichenbacher attack significantly more difficult, the protections</span></code></span>
+<span class="codeline" id="line-150"><code><span class="comment">// are only effective if the rest of the protocol which uses</span></code></span>
+<span class="codeline" id="line-151"><code><span class="comment">// DecryptPKCS1v15SessionKey is designed with these considerations in mind. In</span></code></span>
+<span class="codeline" id="line-152"><code><span class="comment">// particular, if any subsequent operations which use the decrypted session key</span></code></span>
+<span class="codeline" id="line-153"><code><span class="comment">// leak any information about the key (e.g. whether it is a static or random</span></code></span>
+<span class="codeline" id="line-154"><code><span class="comment">// key) then the mitigations are defeated. This method must be used extremely</span></code></span>
+<span class="codeline" id="line-155"><code><span class="comment">// carefully, and typically should only be used when absolutely necessary for</span></code></span>
+<span class="codeline" id="line-156"><code><span class="comment">// compatibility with an existing protocol (such as TLS) that is designed with</span></code></span>
+<span class="codeline" id="line-157"><code><span class="comment">// these properties in mind.</span></code></span>
+<span class="codeline" id="line-158"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-159"><code><span class="comment">//   - [0] “Chosen Ciphertext Attacks Against Protocols Based on the RSA Encryption</span></code></span>
+<span class="codeline" id="line-160"><code><span class="comment">//     Standard PKCS #1”, Daniel Bleichenbacher, Advances in Cryptology (Crypto '98)</span></code></span>
+<span class="codeline" id="line-161"><code><span class="comment">//   - [1] RFC 3218, Preventing the Million Message Attack on CMS,</span></code></span>
+<span class="codeline" id="line-162"><code><span class="comment">//     https://www.rfc-editor.org/rfc/rfc3218.html</span></code></span>
+<span class="codeline" id="line-163"><code><span class="keyword">func</span> <label for="r26" class="ident"><a href="../../../pkg/crypto/rsa.html#name-DecryptPKCS1v15SessionKey" class="ident">DecryptPKCS1v15SessionKey</a></label>(<label for="r27" class="ident">random</label> <a href="../../../pkg/io.html" class="ident i6">io</a>.<a href="../../io/io.go.html#line-86" class="ident">Reader</a>, <label for="r28" class="ident">priv</label> *<a href="rsa.go.html#line-107" class="ident">PrivateKey</a>, <label for="r29" class="ident">ciphertext</label> []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r30" class="ident">key</label> []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-164"><code>	<span class="keyword">if</span> <label for="r31" class="ident">err</label> := <a href="rsa.go.html#line-261" class="ident">checkPublicKeySize</a>(&amp;<label for="r28" class="ident">priv</label>.<a href="rsa.go.html#line-108" class="ident">PublicKey</a>); <label for="r31" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-165"><code>		<span class="keyword">return</span> <label for="r31" class="ident">err</label></code></span>
+<span class="codeline" id="line-166"><code>	}</code></span>
+<span class="codeline" id="line-167"><code></code></span>
+<span class="codeline" id="line-168"><code>	<label for="r32" class="ident">k</label> := <label for="r28" class="ident">priv</label>.<a href="rsa.go.html#line-78" class="ident">Size</a>()</code></span>
+<span class="codeline" id="line-169"><code>	<span class="keyword">if</span> <label for="r32" class="ident">k</label>-(<a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r30" class="ident">key</label>)+<span class="lit-number">3</span>+<span class="lit-number">8</span>) &lt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-170"><code>		<span class="keyword">return</span> <a href="rsa.go.html#line-499" class="ident">ErrDecryption</a></code></span>
+<span class="codeline" id="line-171"><code>	}</code></span>
+<span class="codeline" id="line-172"><code></code></span>
+<span class="codeline" id="line-173"><code>	<label for="r33" class="ident">valid</label>, <label for="r34" class="ident">em</label>, <label for="r35" class="ident">index</label>, <label for="r36" class="ident">err</label> := <a href="#line-195" class="ident">decryptPKCS1v15</a>(<label for="r28" class="ident">priv</label>, <label for="r29" class="ident">ciphertext</label>)</code></span>
+<span class="codeline" id="line-174"><code>	<span class="keyword">if</span> <label for="r36" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-175"><code>		<span class="keyword">return</span> <label for="r36" class="ident">err</label></code></span>
+<span class="codeline" id="line-176"><code>	}</code></span>
+<span class="codeline" id="line-177"><code></code></span>
+<span class="codeline" id="line-178"><code>	<span class="keyword">if</span> <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r34" class="ident">em</label>) != <label for="r32" class="ident">k</label> {</code></span>
+<span class="codeline" id="line-179"><code>		<span class="comment">// This should be impossible because decryptPKCS1v15 always</span></code></span>
+<span class="codeline" id="line-180"><code><span class="comment">		// returns the full slice.</span></code></span>
+<span class="codeline" id="line-181"><code>		<span class="keyword">return</span> <a href="rsa.go.html#line-499" class="ident">ErrDecryption</a></code></span>
+<span class="codeline" id="line-182"><code>	}</code></span>
+<span class="codeline" id="line-183"><code></code></span>
+<span class="codeline" id="line-184"><code>	<label for="r33" class="ident">valid</label> &amp;= <a href="../../../pkg/crypto/subtle.html" class="ident i4">subtle</a>.<a href="../subtle/constant_time.go.html#line-31" class="ident">ConstantTimeEq</a>(<a href="../../../pkg/builtin.html#name-int32" class="ident">int32</a>(<a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r34" class="ident">em</label>)-<label for="r35" class="ident">index</label>), <a href="../../../pkg/builtin.html#name-int32" class="ident">int32</a>(<a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r30" class="ident">key</label>)))</code></span>
+<span class="codeline" id="line-185"><code>	<a href="../../../pkg/crypto/subtle.html" class="ident i4">subtle</a>.<a href="../subtle/constant_time.go.html#line-38" class="ident">ConstantTimeCopy</a>(<label for="r33" class="ident">valid</label>, <label for="r30" class="ident">key</label>, <label for="r34" class="ident">em</label>[<a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r34" class="ident">em</label>)-<a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r30" class="ident">key</label>):])</code></span>
+<span class="codeline" id="line-186"><code>	<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-187"><code>}</code></span>
+<span class="codeline" id="line-188"><code></code></span>
+<span class="codeline" id="line-189"><code><span class="comment">// decryptPKCS1v15 decrypts ciphertext using priv. It returns one or zero in</span></code></span>
+<span class="codeline" id="line-190"><code><span class="comment">// valid that indicates whether the plaintext was correctly structured.</span></code></span>
+<span class="codeline" id="line-191"><code><span class="comment">// In either case, the plaintext is returned in em so that it may be read</span></code></span>
+<span class="codeline" id="line-192"><code><span class="comment">// independently of whether it was valid in order to maintain constant memory</span></code></span>
+<span class="codeline" id="line-193"><code><span class="comment">// access patterns. If the plaintext was valid then index contains the index of</span></code></span>
+<span class="codeline" id="line-194"><code><span class="comment">// the original message in em, to allow constant time padding removal.</span></code></span>
+<span class="codeline" id="line-195"><code><span class="keyword">func</span> <label for="r37" class="ident"><a href="../../../pkg/crypto/rsa.html#name-decryptPKCS1v15" class="ident">decryptPKCS1v15</a></label>(<label for="r38" class="ident">priv</label> *<a href="rsa.go.html#line-107" class="ident">PrivateKey</a>, <label for="r39" class="ident">ciphertext</label> []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) (<label for="r40" class="ident">valid</label> <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r41" class="ident">em</label> []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r42" class="ident">index</label> <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r43" class="ident">err</label> <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-196"><code>	<span class="keyword">if</span> <a href="../../../pkg/crypto/internal/fips140only.html" class="ident i2">fips140only</a>.<a href="../internal/fips140only/fips140only.go.html#line-19" class="ident">Enabled</a> {</code></span>
+<span class="codeline" id="line-197"><code>		<span class="keyword">return</span> <span class="lit-number">0</span>, <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <span class="lit-number">0</span>, <a href="../../../pkg/errors.html" class="ident i5">errors</a>.<a href="../../errors/errors.go.html#line-64" class="ident">New</a>(<span class="lit-string">"crypto/rsa: use of PKCS#1 v1.5 encryption is not allowed in FIPS 140-only mode"</span>)</code></span>
+<span class="codeline" id="line-198"><code>	}</code></span>
+<span class="codeline" id="line-199"><code></code></span>
+<span class="codeline" id="line-200"><code>	<label for="r44" class="ident">k</label> := <label for="r38" class="ident">priv</label>.<a href="rsa.go.html#line-78" class="ident">Size</a>()</code></span>
+<span class="codeline" id="line-201"><code>	<span class="keyword">if</span> <label for="r44" class="ident">k</label> &lt; <span class="lit-number">11</span> {</code></span>
+<span class="codeline" id="line-202"><code>		<label for="r43" class="ident">err</label> = <a href="rsa.go.html#line-499" class="ident">ErrDecryption</a></code></span>
+<span class="codeline" id="line-203"><code>		<span class="keyword">return</span> <span class="lit-number">0</span>, <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <span class="lit-number">0</span>, <label for="r43" class="ident">err</label></code></span>
+<span class="codeline" id="line-204"><code>	}</code></span>
+<span class="codeline" id="line-205"><code></code></span>
+<span class="codeline" id="line-206"><code>	<span class="keyword">if</span> <a href="../../../pkg/crypto/internal/boring.html" class="ident i0">boring</a>.<a href="../internal/boring/doc.go.html#line-14" class="ident">Enabled</a> {</code></span>
+<span class="codeline" id="line-207"><code>		<span class="keyword">var</span> <label for="r45" class="ident">bkey</label> *<a href="../../../pkg/crypto/internal/boring.html" class="ident i0">boring</a>.<a href="../internal/boring/notboring.go.html#line-75" class="ident">PrivateKeyRSA</a></code></span>
+<span class="codeline" id="line-208"><code>		<label for="r45" class="ident">bkey</label>, <label for="r43" class="ident">err</label> = <a href="notboring.go.html#line-14" class="ident">boringPrivateKey</a>(<label for="r38" class="ident">priv</label>)</code></span>
+<span class="codeline" id="line-209"><code>		<span class="keyword">if</span> <label for="r43" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-210"><code>			<span class="keyword">return</span> <span class="lit-number">0</span>, <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <span class="lit-number">0</span>, <label for="r43" class="ident">err</label></code></span>
+<span class="codeline" id="line-211"><code>		}</code></span>
+<span class="codeline" id="line-212"><code>		<label for="r41" class="ident">em</label>, <label for="r43" class="ident">err</label> = <a href="../../../pkg/crypto/internal/boring.html" class="ident i0">boring</a>.<a href="../internal/boring/notboring.go.html#line-83" class="ident">DecryptRSANoPadding</a>(<label for="r45" class="ident">bkey</label>, <label for="r39" class="ident">ciphertext</label>)</code></span>
+<span class="codeline" id="line-213"><code>		<span class="keyword">if</span> <label for="r43" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-214"><code>			<span class="keyword">return</span> <span class="lit-number">0</span>, <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <span class="lit-number">0</span>, <a href="rsa.go.html#line-499" class="ident">ErrDecryption</a></code></span>
+<span class="codeline" id="line-215"><code>		}</code></span>
+<span class="codeline" id="line-216"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-217"><code>		<label for="r46" class="ident">fk</label>, <label for="r47" class="ident">err</label> := <a href="rsa.go.html#line-632" class="ident">fipsPrivateKey</a>(<label for="r38" class="ident">priv</label>)</code></span>
+<span class="codeline" id="line-218"><code>		<span class="keyword">if</span> <label for="r47" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-219"><code>			<span class="keyword">return</span> <span class="lit-number">0</span>, <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <span class="lit-number">0</span>, <label for="r47" class="ident">err</label></code></span>
+<span class="codeline" id="line-220"><code>		}</code></span>
+<span class="codeline" id="line-221"><code>		<label for="r41" class="ident">em</label>, <label for="r47" class="ident">err</label> = <a href="../../../pkg/crypto/internal/fips140/rsa.html" class="ident i1">rsa</a>.<a href="../internal/fips140/rsa/rsa.go.html#line-401" class="ident">DecryptWithoutCheck</a>(<label for="r46" class="ident">fk</label>, <label for="r39" class="ident">ciphertext</label>)</code></span>
+<span class="codeline" id="line-222"><code>		<span class="keyword">if</span> <label for="r47" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-223"><code>			<span class="keyword">return</span> <span class="lit-number">0</span>, <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <span class="lit-number">0</span>, <a href="rsa.go.html#line-499" class="ident">ErrDecryption</a></code></span>
+<span class="codeline" id="line-224"><code>		}</code></span>
+<span class="codeline" id="line-225"><code>	}</code></span>
+<span class="codeline" id="line-226"><code></code></span>
+<span class="codeline" id="line-227"><code>	<label for="r48" class="ident">firstByteIsZero</label> := <a href="../../../pkg/crypto/subtle.html" class="ident i4">subtle</a>.<a href="../subtle/constant_time.go.html#line-26" class="ident">ConstantTimeByteEq</a>(<label for="r41" class="ident">em</label>[<span class="lit-number">0</span>], <span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-228"><code>	<label for="r49" class="ident">secondByteIsTwo</label> := <a href="../../../pkg/crypto/subtle.html" class="ident i4">subtle</a>.<a href="../subtle/constant_time.go.html#line-26" class="ident">ConstantTimeByteEq</a>(<label for="r41" class="ident">em</label>[<span class="lit-number">1</span>], <span class="lit-number">2</span>)</code></span>
+<span class="codeline" id="line-229"><code></code></span>
+<span class="codeline" id="line-230"><code>	<span class="comment">// The remainder of the plaintext must be a string of non-zero random</span></code></span>
+<span class="codeline" id="line-231"><code><span class="comment">	// octets, followed by a 0, followed by the message.</span></code></span>
+<span class="codeline" id="line-232"><code><span class="comment">	//   lookingForIndex: 1 iff we are still looking for the zero.</span></code></span>
+<span class="codeline" id="line-233"><code><span class="comment">	//   index: the offset of the first zero byte.</span></code></span>
+<span class="codeline" id="line-234"><code>	<label for="r50" class="ident">lookingForIndex</label> := <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-235"><code></code></span>
+<span class="codeline" id="line-236"><code>	<span class="keyword">for</span> <label for="r51" class="ident">i</label> := <span class="lit-number">2</span>; <label for="r51" class="ident">i</label> &lt; <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r41" class="ident">em</label>); <label for="r51" class="ident">i</label>++ {</code></span>
+<span class="codeline" id="line-237"><code>		<label for="r52" class="ident">equals0</label> := <a href="../../../pkg/crypto/subtle.html" class="ident i4">subtle</a>.<a href="../subtle/constant_time.go.html#line-26" class="ident">ConstantTimeByteEq</a>(<label for="r41" class="ident">em</label>[<label for="r51" class="ident">i</label>], <span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-238"><code>		<label for="r42" class="ident">index</label> = <a href="../../../pkg/crypto/subtle.html" class="ident i4">subtle</a>.<a href="../subtle/constant_time.go.html#line-21" class="ident">ConstantTimeSelect</a>(<label for="r50" class="ident">lookingForIndex</label>&amp;<label for="r52" class="ident">equals0</label>, <label for="r51" class="ident">i</label>, <label for="r42" class="ident">index</label>)</code></span>
+<span class="codeline" id="line-239"><code>		<label for="r50" class="ident">lookingForIndex</label> = <a href="../../../pkg/crypto/subtle.html" class="ident i4">subtle</a>.<a href="../subtle/constant_time.go.html#line-21" class="ident">ConstantTimeSelect</a>(<label for="r52" class="ident">equals0</label>, <span class="lit-number">0</span>, <label for="r50" class="ident">lookingForIndex</label>)</code></span>
+<span class="codeline" id="line-240"><code>	}</code></span>
+<span class="codeline" id="line-241"><code></code></span>
+<span class="codeline" id="line-242"><code>	<span class="comment">// The PS padding must be at least 8 bytes long, and it starts two</span></code></span>
+<span class="codeline" id="line-243"><code><span class="comment">	// bytes into em.</span></code></span>
+<span class="codeline" id="line-244"><code>	<label for="r53" class="ident">validPS</label> := <a href="../../../pkg/crypto/subtle.html" class="ident i4">subtle</a>.<a href="../subtle/constant_time.go.html#line-44" class="ident">ConstantTimeLessOrEq</a>(<span class="lit-number">2</span>+<span class="lit-number">8</span>, <label for="r42" class="ident">index</label>)</code></span>
+<span class="codeline" id="line-245"><code></code></span>
+<span class="codeline" id="line-246"><code>	<label for="r40" class="ident">valid</label> = <label for="r48" class="ident">firstByteIsZero</label> &amp; <label for="r49" class="ident">secondByteIsTwo</label> &amp; (^<label for="r50" class="ident">lookingForIndex</label> &amp; <span class="lit-number">1</span>) &amp; <label for="r53" class="ident">validPS</label></code></span>
+<span class="codeline" id="line-247"><code>	<label for="r42" class="ident">index</label> = <a href="../../../pkg/crypto/subtle.html" class="ident i4">subtle</a>.<a href="../subtle/constant_time.go.html#line-21" class="ident">ConstantTimeSelect</a>(<label for="r40" class="ident">valid</label>, <label for="r42" class="ident">index</label>+<span class="lit-number">1</span>, <span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-248"><code>	<span class="keyword">return</span> <label for="r40" class="ident">valid</label>, <label for="r41" class="ident">em</label>, <label for="r42" class="ident">index</label>, <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-249"><code>}</code></span>
+<span class="codeline" id="line-250"><code></code></span>
+<span class="codeline" id="line-251"><code><span class="comment">// nonZeroRandomBytes fills the given slice with non-zero random octets.</span></code></span>
+<span class="codeline" id="line-252"><code><span class="keyword">func</span> <label for="r54" class="ident"><a href="../../../pkg/crypto/rsa.html#name-nonZeroRandomBytes" class="ident">nonZeroRandomBytes</a></label>(<label for="r55" class="ident">s</label> []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r56" class="ident">random</label> <a href="../../../pkg/io.html" class="ident i6">io</a>.<a href="../../io/io.go.html#line-86" class="ident">Reader</a>) (<label for="r57" class="ident">err</label> <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-253"><code>	_, <label for="r57" class="ident">err</label> = <a href="../../../pkg/io.html" class="ident i6">io</a>.<a href="../../io/io.go.html#line-353" class="ident">ReadFull</a>(<label for="r56" class="ident">random</label>, <label for="r55" class="ident">s</label>)</code></span>
+<span class="codeline" id="line-254"><code>	<span class="keyword">if</span> <label for="r57" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-255"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-256"><code>	}</code></span>
+<span class="codeline" id="line-257"><code></code></span>
+<span class="codeline" id="line-258"><code>	<span class="keyword">for</span> <label for="r58" class="ident">i</label> := <span class="lit-number">0</span>; <label for="r58" class="ident">i</label> &lt; <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r55" class="ident">s</label>); <label for="r58" class="ident">i</label>++ {</code></span>
+<span class="codeline" id="line-259"><code>		<span class="keyword">for</span> <label for="r55" class="ident">s</label>[<label for="r58" class="ident">i</label>] == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-260"><code>			_, <label for="r57" class="ident">err</label> = <a href="../../../pkg/io.html" class="ident i6">io</a>.<a href="../../io/io.go.html#line-353" class="ident">ReadFull</a>(<label for="r56" class="ident">random</label>, <label for="r55" class="ident">s</label>[<label for="r58" class="ident">i</label>:<label for="r58" class="ident">i</label>+<span class="lit-number">1</span>])</code></span>
+<span class="codeline" id="line-261"><code>			<span class="keyword">if</span> <label for="r57" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-262"><code>				<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-263"><code>			}</code></span>
+<span class="codeline" id="line-264"><code>			<span class="comment">// In tests, the PRNG may return all zeros so we do</span></code></span>
+<span class="codeline" id="line-265"><code><span class="comment">			// this to break the loop.</span></code></span>
+<span class="codeline" id="line-266"><code>			<label for="r55" class="ident">s</label>[<label for="r58" class="ident">i</label>] ^= <span class="lit-number">0x42</span></code></span>
+<span class="codeline" id="line-267"><code>		}</code></span>
+<span class="codeline" id="line-268"><code>	}</code></span>
+<span class="codeline" id="line-269"><code></code></span>
+<span class="codeline" id="line-270"><code>	<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-271"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

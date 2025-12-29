@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: sendfile_unix.go in package internal/poll</title>
+<link href="../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	sendfile_unix.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../pkg/internal/poll.html">internal/poll</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30],
+input[id=r31]:checked ~pre label[for=r31],
+input[id=r32]:checked ~pre label[for=r32]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="r31" type="radio" name="g"/>
+<input id="r32" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2024 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="comment">//go:build darwin || dragonfly || freebsd || linux || solaris</span></code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">package</span> poll</code></span>
+<span class="codeline" id="line-8"><code></code></span>
+<span class="codeline" id="line-9"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-10"><code>	<label for="i0"><span class="lit-string i0">"io"</span></label></code></span>
+<span class="codeline" id="line-11"><code>	<label for="i1"><span class="lit-string i1">"runtime"</span></label></code></span>
+<span class="codeline" id="line-12"><code>	<label for="i2"><span class="lit-string i2">"syscall"</span></label></code></span>
+<span class="codeline" id="line-13"><code>)</code></span>
+<span class="codeline" id="line-14"><code></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">// SendFile wraps the sendfile system call.</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">// It copies data from src (a file descriptor) to dstFD,</span></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">// starting at the current position of src.</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">// It updates the current position of src to after the</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">// copied data.</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">// If size is zero, it copies the rest of src.</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">// Otherwise, it copies up to size bytes.</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">// The handled return parameter indicates whether SendFile</span></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">// was able to handle some or all of the operation.</span></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">// If handled is false, sendfile was unable to perform the copy,</span></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">// has not modified the source or destination,</span></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">// and the caller should perform the copy using a fallback implementation.</span></code></span>
+<span class="codeline" id="line-30"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../pkg/internal/poll.html#name-SendFile" class="ident">SendFile</a></label>(<label for="r1" class="ident">dstFD</label> *<a href="fd_unix.go.html#line-19" class="ident">FD</a>, <label for="r2" class="ident">src</label> <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r3" class="ident">size</label> <a href="../../../pkg/builtin.html#name-int64" class="ident">int64</a>) (<label for="r4" class="ident">n</label> <a href="../../../pkg/builtin.html#name-int64" class="ident">int64</a>, <label for="r5" class="ident">err</label> <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>, <label for="r6" class="ident">handled</label> <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a>) {</code></span>
+<span class="codeline" id="line-31"><code>	<span class="keyword">if</span> <label for="r7" class="ident">goos</label> := <a href="../../../pkg/runtime.html" class="ident i1">runtime</a>.<a href="../../runtime/extern.go.html#line-373" class="ident">GOOS</a>; <label for="r7" class="ident">goos</label> == <span class="lit-string">"linux"</span> || <label for="r7" class="ident">goos</label> == <span class="lit-string">"android"</span> {</code></span>
+<span class="codeline" id="line-32"><code>		<span class="comment">// Linux's sendfile doesn't require any setup:</span></code></span>
+<span class="codeline" id="line-33"><code><span class="comment">		// It sends from the current position of the source file and</span></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">		// updates the position of the source after sending.</span></code></span>
+<span class="codeline" id="line-35"><code>		<span class="keyword">return</span> <a href="#line-59" class="ident">sendFile</a>(<label for="r1" class="ident">dstFD</label>, <label for="r2" class="ident">src</label>, <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r3" class="ident">size</label>)</code></span>
+<span class="codeline" id="line-36"><code>	}</code></span>
+<span class="codeline" id="line-37"><code></code></span>
+<span class="codeline" id="line-38"><code>	<span class="comment">// Non-Linux sendfile implementations don't use the current position of the source file,</span></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">	// so we need to look up the position, pass it explicitly, and adjust it after</span></code></span>
+<span class="codeline" id="line-40"><code><span class="comment">	// sendfile returns.</span></code></span>
+<span class="codeline" id="line-41"><code>	<label for="r8" class="ident">start</label>, <label for="r5" class="ident">err</label> := <a href="fd_posix.go.html#line-82" class="ident">ignoringEINTR2</a>(<span class="keyword">func</span>() (<a href="../../../pkg/builtin.html#name-int64" class="ident">int64</a>, <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-42"><code>		<span class="keyword">return</span> <a href="../../../pkg/syscall.html" class="ident i2">syscall</a>.<a href="../../syscall/zsyscall_linux_amd64.go.html#line-1276" class="ident">Seek</a>(<label for="r2" class="ident">src</label>, <span class="lit-number">0</span>, <a href="../../../pkg/io.html" class="ident i0">io</a>.<a href="../../io/io.go.html#line-23" class="ident">SeekCurrent</a>)</code></span>
+<span class="codeline" id="line-43"><code>	})</code></span>
+<span class="codeline" id="line-44"><code>	<span class="keyword">if</span> <label for="r5" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-45"><code>		<span class="keyword">return</span> <span class="lit-number">0</span>, <label for="r5" class="ident">err</label>, <a href="../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-46"><code>	}</code></span>
+<span class="codeline" id="line-47"><code></code></span>
+<span class="codeline" id="line-48"><code>	<label for="r9" class="ident">pos</label> := <label for="r8" class="ident">start</label></code></span>
+<span class="codeline" id="line-49"><code>	<label for="r4" class="ident">n</label>, <label for="r5" class="ident">err</label>, <label for="r6" class="ident">handled</label> = <a href="#line-59" class="ident">sendFile</a>(<label for="r1" class="ident">dstFD</label>, <label for="r2" class="ident">src</label>, &amp;<label for="r9" class="ident">pos</label>, <label for="r3" class="ident">size</label>)</code></span>
+<span class="codeline" id="line-50"><code>	<span class="keyword">if</span> <label for="r4" class="ident">n</label> &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-51"><code>		<a href="fd_posix.go.html#line-82" class="ident">ignoringEINTR2</a>(<span class="keyword">func</span>() (<a href="../../../pkg/builtin.html#name-int64" class="ident">int64</a>, <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-52"><code>			<span class="keyword">return</span> <a href="../../../pkg/syscall.html" class="ident i2">syscall</a>.<a href="../../syscall/zsyscall_linux_amd64.go.html#line-1276" class="ident">Seek</a>(<label for="r2" class="ident">src</label>, <label for="r8" class="ident">start</label>+<label for="r4" class="ident">n</label>, <a href="../../../pkg/io.html" class="ident i0">io</a>.<a href="../../io/io.go.html#line-22" class="ident">SeekStart</a>)</code></span>
+<span class="codeline" id="line-53"><code>		})</code></span>
+<span class="codeline" id="line-54"><code>	}</code></span>
+<span class="codeline" id="line-55"><code>	<span class="keyword">return</span> <label for="r4" class="ident">n</label>, <label for="r5" class="ident">err</label>, <label for="r6" class="ident">handled</label></code></span>
+<span class="codeline" id="line-56"><code>}</code></span>
+<span class="codeline" id="line-57"><code></code></span>
+<span class="codeline" id="line-58"><code><span class="comment">// sendFile wraps the sendfile system call.</span></code></span>
+<span class="codeline" id="line-59"><code><span class="keyword">func</span> <label for="r10" class="ident"><a href="../../../pkg/internal/poll.html#name-sendFile" class="ident">sendFile</a></label>(<label for="r11" class="ident">dstFD</label> *<a href="fd_unix.go.html#line-19" class="ident">FD</a>, <label for="r12" class="ident">src</label> <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r13" class="ident">offset</label> *<a href="../../../pkg/builtin.html#name-int64" class="ident">int64</a>, <label for="r14" class="ident">size</label> <a href="../../../pkg/builtin.html#name-int64" class="ident">int64</a>) (<label for="r15" class="ident">written</label> <a href="../../../pkg/builtin.html#name-int64" class="ident">int64</a>, <label for="r16" class="ident">err</label> <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>, <label for="r17" class="ident">handled</label> <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a>) {</code></span>
+<span class="codeline" id="line-60"><code>	<span class="keyword">defer</span> <span class="keyword">func</span>() {</code></span>
+<span class="codeline" id="line-61"><code>		<a href="sendfile.go.html#line-7" class="ident">TestHookDidSendFile</a>(<label for="r11" class="ident">dstFD</label>, <label for="r12" class="ident">src</label>, <label for="r15" class="ident">written</label>, <label for="r16" class="ident">err</label>, <label for="r17" class="ident">handled</label>)</code></span>
+<span class="codeline" id="line-62"><code>	}()</code></span>
+<span class="codeline" id="line-63"><code>	<span class="keyword">if</span> <label for="r18" class="ident">err</label> := <label for="r11" class="ident">dstFD</label>.<a href="fd_mutex.go.html#line-238" class="ident">writeLock</a>(); <label for="r18" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-64"><code>		<span class="keyword">return</span> <span class="lit-number">0</span>, <label for="r18" class="ident">err</label>, <a href="../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-65"><code>	}</code></span>
+<span class="codeline" id="line-66"><code>	<span class="keyword">defer</span> <label for="r11" class="ident">dstFD</label>.<a href="fd_mutex.go.html#line-248" class="ident">writeUnlock</a>()</code></span>
+<span class="codeline" id="line-67"><code></code></span>
+<span class="codeline" id="line-68"><code>	<span class="keyword">if</span> <label for="r19" class="ident">err</label> := <label for="r11" class="ident">dstFD</label>.<a href="fd_unix.go.html#line-30" class="ident">pd</a>.<a href="fd_poll_runtime.go.html#line-76" class="ident">prepareWrite</a>(<label for="r11" class="ident">dstFD</label>.<a href="fd_unix.go.html#line-47" class="ident">isFile</a>); <label for="r19" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-69"><code>		<span class="keyword">return</span> <span class="lit-number">0</span>, <label for="r19" class="ident">err</label>, <a href="../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-70"><code>	}</code></span>
+<span class="codeline" id="line-71"><code></code></span>
+<span class="codeline" id="line-72"><code>	<label for="r20" class="ident">dst</label> := <label for="r11" class="ident">dstFD</label>.<a href="fd_unix.go.html#line-24" class="ident">Sysfd</a></code></span>
+<span class="codeline" id="line-73"><code>	<span class="keyword">for</span> {</code></span>
+<span class="codeline" id="line-74"><code>		<span class="comment">// Some platforms support passing 0 to read to the end of the source,</span></code></span>
+<span class="codeline" id="line-75"><code><span class="comment">		// but all platforms support just writing a large value.</span></code></span>
+<span class="codeline" id="line-76"><code><span class="comment">		//</span></code></span>
+<span class="codeline" id="line-77"><code><span class="comment">		// Limit the maximum size to fit in an int32, to avoid any possible overflow.</span></code></span>
+<span class="codeline" id="line-78"><code>		<label for="r21" class="ident">chunk</label> := <span class="lit-number">1</span>&lt;&lt;<span class="lit-number">31</span> - <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-79"><code>		<span class="keyword">if</span> <label for="r14" class="ident">size</label> &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-80"><code>			<label for="r21" class="ident">chunk</label> = <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>(<a href="../../../pkg/builtin.html#name-min" class="ident">min</a>(<label for="r14" class="ident">size</label>-<label for="r15" class="ident">written</label>, <a href="../../../pkg/builtin.html#name-int64" class="ident">int64</a>(<label for="r21" class="ident">chunk</label>)))</code></span>
+<span class="codeline" id="line-81"><code>		}</code></span>
+<span class="codeline" id="line-82"><code>		<span class="keyword">var</span> <label for="r22" class="ident">n</label> <a href="../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-83"><code>		<label for="r22" class="ident">n</label>, <label for="r16" class="ident">err</label> = <a href="#line-133" class="ident">sendFileChunk</a>(<label for="r20" class="ident">dst</label>, <label for="r12" class="ident">src</label>, <label for="r13" class="ident">offset</label>, <label for="r21" class="ident">chunk</label>, <label for="r15" class="ident">written</label>)</code></span>
+<span class="codeline" id="line-84"><code>		<span class="keyword">if</span> <label for="r22" class="ident">n</label> &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-85"><code>			<label for="r15" class="ident">written</label> += <a href="../../../pkg/builtin.html#name-int64" class="ident">int64</a>(<label for="r22" class="ident">n</label>)</code></span>
+<span class="codeline" id="line-86"><code>		}</code></span>
+<span class="codeline" id="line-87"><code>		<span class="keyword">switch</span> <label for="r16" class="ident">err</label> {</code></span>
+<span class="codeline" id="line-88"><code>		<span class="keyword">case</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>:</code></span>
+<span class="codeline" id="line-89"><code>			<span class="comment">// We're done if sendfile copied no bytes</span></code></span>
+<span class="codeline" id="line-90"><code><span class="comment">			// (we're at the end of the source)</span></code></span>
+<span class="codeline" id="line-91"><code><span class="comment">			// or if we have a size limit and have reached it.</span></code></span>
+<span class="codeline" id="line-92"><code><span class="comment">			//</span></code></span>
+<span class="codeline" id="line-93"><code><span class="comment">			// If sendfile copied some bytes and we don't have a size limit,</span></code></span>
+<span class="codeline" id="line-94"><code><span class="comment">			// try again to see if there is more data to copy.</span></code></span>
+<span class="codeline" id="line-95"><code>			<span class="keyword">if</span> <label for="r22" class="ident">n</label> == <span class="lit-number">0</span> || (<label for="r14" class="ident">size</label> &gt; <span class="lit-number">0</span> &amp;&amp; <label for="r15" class="ident">written</label> &gt;= <label for="r14" class="ident">size</label>) {</code></span>
+<span class="codeline" id="line-96"><code>				<span class="keyword">return</span> <label for="r15" class="ident">written</label>, <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-97"><code>			}</code></span>
+<span class="codeline" id="line-98"><code>		<span class="keyword">case</span> <a href="../../../pkg/syscall.html" class="ident i2">syscall</a>.<a href="../../syscall/zerrors_linux_amd64.go.html#line-1188" class="ident">EAGAIN</a>:</code></span>
+<span class="codeline" id="line-99"><code>			<span class="comment">// *BSD and Darwin can return EAGAIN with n &gt; 0,</span></code></span>
+<span class="codeline" id="line-100"><code><span class="comment">			// so check to see if the write has completed.</span></code></span>
+<span class="codeline" id="line-101"><code><span class="comment">			// So far as we know all other platforms only</span></code></span>
+<span class="codeline" id="line-102"><code><span class="comment">			// return EAGAIN when n == 0, but checking is harmless.</span></code></span>
+<span class="codeline" id="line-103"><code>			<span class="keyword">if</span> <label for="r14" class="ident">size</label> &gt; <span class="lit-number">0</span> &amp;&amp; <label for="r15" class="ident">written</label> &gt;= <label for="r14" class="ident">size</label> {</code></span>
+<span class="codeline" id="line-104"><code>				<span class="keyword">return</span> <label for="r15" class="ident">written</label>, <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-105"><code>			}</code></span>
+<span class="codeline" id="line-106"><code>			<span class="keyword">if</span> <label for="r16" class="ident">err</label> = <label for="r11" class="ident">dstFD</label>.<a href="fd_unix.go.html#line-30" class="ident">pd</a>.<a href="fd_poll_runtime.go.html#line-92" class="ident">waitWrite</a>(<label for="r11" class="ident">dstFD</label>.<a href="fd_unix.go.html#line-47" class="ident">isFile</a>); <label for="r16" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-107"><code>				<span class="keyword">return</span> <label for="r15" class="ident">written</label>, <label for="r16" class="ident">err</label>, <a href="../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-108"><code>			}</code></span>
+<span class="codeline" id="line-109"><code>		<span class="keyword">case</span> <a href="../../../pkg/syscall.html" class="ident i2">syscall</a>.<a href="../../syscall/zerrors_linux_amd64.go.html#line-1220" class="ident">EINTR</a>:</code></span>
+<span class="codeline" id="line-110"><code>			<span class="comment">// Retry.</span></code></span>
+<span class="codeline" id="line-111"><code>		<span class="keyword">case</span> <a href="../../../pkg/syscall.html" class="ident i2">syscall</a>.<a href="../../syscall/zerrors_linux_amd64.go.html#line-1270" class="ident">ENOSYS</a>, <a href="../../../pkg/syscall.html" class="ident i2">syscall</a>.<a href="../../syscall/zerrors_linux_amd64.go.html#line-1282" class="ident">EOPNOTSUPP</a>, <a href="../../../pkg/syscall.html" class="ident i2">syscall</a>.<a href="../../syscall/zerrors_linux_amd64.go.html#line-1221" class="ident">EINVAL</a>:</code></span>
+<span class="codeline" id="line-112"><code>			<span class="comment">// ENOSYS indicates no kernel support for sendfile.</span></code></span>
+<span class="codeline" id="line-113"><code><span class="comment">			// EINVAL indicates a FD type that does not support sendfile.</span></code></span>
+<span class="codeline" id="line-114"><code><span class="comment">			//</span></code></span>
+<span class="codeline" id="line-115"><code><span class="comment">			// On Linux, copy_file_range can return EOPNOTSUPP when copying</span></code></span>
+<span class="codeline" id="line-116"><code><span class="comment">			// to a NFS file (issue #40731); check for it here just in case.</span></code></span>
+<span class="codeline" id="line-117"><code>			<span class="keyword">return</span> <label for="r15" class="ident">written</label>, <label for="r16" class="ident">err</label>, <label for="r15" class="ident">written</label> &gt; <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-118"><code>		<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-119"><code>			<span class="comment">// We want to handle ENOTSUP like EOPNOTSUPP.</span></code></span>
+<span class="codeline" id="line-120"><code><span class="comment">			// It's a pain to put it as a switch case</span></code></span>
+<span class="codeline" id="line-121"><code><span class="comment">			// because on Linux systems ENOTSUP == EOPNOTSUPP,</span></code></span>
+<span class="codeline" id="line-122"><code><span class="comment">			// so the compiler complains about a duplicate case.</span></code></span>
+<span class="codeline" id="line-123"><code>			<span class="keyword">if</span> <label for="r16" class="ident">err</label> == <a href="../../../pkg/syscall.html" class="ident i2">syscall</a>.<a href="../../syscall/zerrors_linux_amd64.go.html#line-1278" class="ident">ENOTSUP</a> {</code></span>
+<span class="codeline" id="line-124"><code>				<span class="keyword">return</span> <label for="r15" class="ident">written</label>, <label for="r16" class="ident">err</label>, <label for="r15" class="ident">written</label> &gt; <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-125"><code>			}</code></span>
+<span class="codeline" id="line-126"><code></code></span>
+<span class="codeline" id="line-127"><code>			<span class="comment">// Not a retryable error.</span></code></span>
+<span class="codeline" id="line-128"><code>			<span class="keyword">return</span> <label for="r15" class="ident">written</label>, <label for="r16" class="ident">err</label>, <a href="../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-129"><code>		}</code></span>
+<span class="codeline" id="line-130"><code>	}</code></span>
+<span class="codeline" id="line-131"><code>}</code></span>
+<span class="codeline" id="line-132"><code></code></span>
+<span class="codeline" id="line-133"><code><span class="keyword">func</span> <label for="r23" class="ident"><a href="../../../pkg/internal/poll.html#name-sendFileChunk" class="ident">sendFileChunk</a></label>(<label for="r24" class="ident">dst</label>, <label for="r25" class="ident">src</label> <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r26" class="ident">offset</label> *<a href="../../../pkg/builtin.html#name-int64" class="ident">int64</a>, <label for="r27" class="ident">size</label> <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r28" class="ident">written</label> <a href="../../../pkg/builtin.html#name-int64" class="ident">int64</a>) (<label for="r29" class="ident">n</label> <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r30" class="ident">err</label> <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-134"><code>	<span class="keyword">switch</span> <a href="../../../pkg/runtime.html" class="ident i1">runtime</a>.<a href="../../runtime/extern.go.html#line-373" class="ident">GOOS</a> {</code></span>
+<span class="codeline" id="line-135"><code>	<span class="keyword">case</span> <span class="lit-string">"linux"</span>, <span class="lit-string">"android"</span>:</code></span>
+<span class="codeline" id="line-136"><code>		<span class="comment">// The offset is always nil on Linux.</span></code></span>
+<span class="codeline" id="line-137"><code>		<label for="r29" class="ident">n</label>, <label for="r30" class="ident">err</label> = <a href="../../../pkg/syscall.html" class="ident i2">syscall</a>.<a href="../../syscall/syscall_unix.go.html#line-517" class="ident">Sendfile</a>(<label for="r24" class="ident">dst</label>, <label for="r25" class="ident">src</label>, <label for="r26" class="ident">offset</label>, <label for="r27" class="ident">size</label>)</code></span>
+<span class="codeline" id="line-138"><code>	<span class="keyword">case</span> <span class="lit-string">"solaris"</span>, <span class="lit-string">"illumos"</span>:</code></span>
+<span class="codeline" id="line-139"><code>		<span class="comment">// Trust the offset, not the return value from sendfile.</span></code></span>
+<span class="codeline" id="line-140"><code>		<label for="r31" class="ident">start</label> := *<label for="r26" class="ident">offset</label></code></span>
+<span class="codeline" id="line-141"><code>		<label for="r29" class="ident">n</label>, <label for="r30" class="ident">err</label> = <a href="../../../pkg/syscall.html" class="ident i2">syscall</a>.<a href="../../syscall/syscall_unix.go.html#line-517" class="ident">Sendfile</a>(<label for="r24" class="ident">dst</label>, <label for="r25" class="ident">src</label>, <label for="r26" class="ident">offset</label>, <label for="r27" class="ident">size</label>)</code></span>
+<span class="codeline" id="line-142"><code>		<label for="r29" class="ident">n</label> = <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>(*<label for="r26" class="ident">offset</label> - <label for="r31" class="ident">start</label>)</code></span>
+<span class="codeline" id="line-143"><code>		<span class="comment">// A quirk on Solaris/illumos: sendfile claims to support out_fd</span></code></span>
+<span class="codeline" id="line-144"><code><span class="comment">		// as a regular file but returns EINVAL when the out_fd</span></code></span>
+<span class="codeline" id="line-145"><code><span class="comment">		// is not a socket of SOCK_STREAM, while it actually sends</span></code></span>
+<span class="codeline" id="line-146"><code><span class="comment">		// out data anyway and updates the file offset.</span></code></span>
+<span class="codeline" id="line-147"><code><span class="comment">		//</span></code></span>
+<span class="codeline" id="line-148"><code><span class="comment">		// Another quirk: sendfile transfers data and returns EINVAL when being</span></code></span>
+<span class="codeline" id="line-149"><code><span class="comment">		// asked to transfer bytes more than the actual file size. For instance,</span></code></span>
+<span class="codeline" id="line-150"><code><span class="comment">		// the source file is wrapped in an io.LimitedReader with larger size</span></code></span>
+<span class="codeline" id="line-151"><code><span class="comment">		// than the actual file size.</span></code></span>
+<span class="codeline" id="line-152"><code><span class="comment">		//</span></code></span>
+<span class="codeline" id="line-153"><code><span class="comment">		// To handle these cases we ignore EINVAL if any call to sendfile was</span></code></span>
+<span class="codeline" id="line-154"><code><span class="comment">		// able to send data.</span></code></span>
+<span class="codeline" id="line-155"><code>		<span class="keyword">if</span> <label for="r30" class="ident">err</label> == <a href="../../../pkg/syscall.html" class="ident i2">syscall</a>.<a href="../../syscall/zerrors_linux_amd64.go.html#line-1221" class="ident">EINVAL</a> &amp;&amp; (<label for="r29" class="ident">n</label> &gt; <span class="lit-number">0</span> || <label for="r28" class="ident">written</label> &gt; <span class="lit-number">0</span>) {</code></span>
+<span class="codeline" id="line-156"><code>			<label for="r30" class="ident">err</label> = <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-157"><code>		}</code></span>
+<span class="codeline" id="line-158"><code>	<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-159"><code>		<label for="r32" class="ident">start</label> := *<label for="r26" class="ident">offset</label></code></span>
+<span class="codeline" id="line-160"><code>		<label for="r29" class="ident">n</label>, <label for="r30" class="ident">err</label> = <a href="../../../pkg/syscall.html" class="ident i2">syscall</a>.<a href="../../syscall/syscall_unix.go.html#line-517" class="ident">Sendfile</a>(<label for="r24" class="ident">dst</label>, <label for="r25" class="ident">src</label>, <label for="r26" class="ident">offset</label>, <label for="r27" class="ident">size</label>)</code></span>
+<span class="codeline" id="line-161"><code>		<span class="keyword">if</span> <label for="r29" class="ident">n</label> &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-162"><code>			<span class="comment">// The BSD implementations of syscall.Sendfile don't</span></code></span>
+<span class="codeline" id="line-163"><code><span class="comment">			// update the offset parameter (despite it being a *int64).</span></code></span>
+<span class="codeline" id="line-164"><code><span class="comment">			//</span></code></span>
+<span class="codeline" id="line-165"><code><span class="comment">			// Trust the return value from sendfile, not the offset.</span></code></span>
+<span class="codeline" id="line-166"><code>			*<label for="r26" class="ident">offset</label> = <label for="r32" class="ident">start</label> + <a href="../../../pkg/builtin.html#name-int64" class="ident">int64</a>(<label for="r29" class="ident">n</label>)</code></span>
+<span class="codeline" id="line-167"><code>		}</code></span>
+<span class="codeline" id="line-168"><code>	}</code></span>
+<span class="codeline" id="line-169"><code>	<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-170"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

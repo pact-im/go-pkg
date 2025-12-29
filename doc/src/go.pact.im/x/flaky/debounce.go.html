@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: debounce.go in package go.pact.im/x/flaky</title>
+<link href="../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	debounce.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../pkg/go.pact.im/x/flaky.html">go.pact.im/x/flaky</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3,
+input[id=i4]:checked ~pre .i4
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+<input id="i4" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="keyword">package</span> flaky</code></span>
+<span class="codeline" id="line-2"><code></code></span>
+<span class="codeline" id="line-3"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-4"><code>	<label for="i0"><span class="lit-string i0">"context"</span></label></code></span>
+<span class="codeline" id="line-5"><code>	<label for="i1"><span class="lit-string i1">"errors"</span></label></code></span>
+<span class="codeline" id="line-6"><code>	<label for="i2"><span class="lit-string i2">"sync"</span></label></code></span>
+<span class="codeline" id="line-7"><code>	<label for="i3"><span class="lit-string i3">"time"</span></label></code></span>
+<span class="codeline" id="line-8"><code></code></span>
+<span class="codeline" id="line-9"><code>	<label for="i4"><span class="lit-string i4">"go.pact.im/x/clock"</span></label></code></span>
+<span class="codeline" id="line-10"><code>)</code></span>
+<span class="codeline" id="line-11"><code></code></span>
+<span class="codeline" id="line-12"><code><span class="comment">// ErrDebounced is an error that DebounceExecutor returns when an Execute call</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">// is superseded by another operation.</span></code></span>
+<span class="codeline" id="line-14"><code><span class="keyword">var</span> <a href="../../../../pkg/go.pact.im/x/flaky.html#name-ErrDebounced" class="ident">ErrDebounced</a> = <a href="../../../../pkg/errors.html" class="ident i1">errors</a>.<a href="../../../errors/errors.go.html#line-64" class="ident">New</a>(<span class="lit-string">"flaky: debounced"</span>)</code></span>
+<span class="codeline" id="line-15"><code></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">// DebounceExecutor is an executor that debounces an operation. That is, it</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">// performs an operation once it stops being called for the specified debounce</span></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">// duration.</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">// Keep in mind that using DebounceExecutor introduces latency to the operation</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">// for at least the specified debounce duration. In most cases it should be used</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">// when the operation is expensive to execute or under high event rate or load.</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">// As a side effect, DebounceExecutor guarantees that at most one operation is</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">// executing at a time.</span></code></span>
+<span class="codeline" id="line-25"><code><span class="keyword">type</span> <a href="../../../../pkg/go.pact.im/x/flaky.html#name-DebounceExecutor" class="ident">DebounceExecutor</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-26"><code>	<a href="../../../../use/go.pact.im/x/flaky..DebounceExecutor.once^20065.html" class="ident">once</a> <a href="../../../../pkg/sync.html" class="ident i2">sync</a>.<a href="../../../sync/once.go.html#line-20" class="ident">Once</a></code></span>
+<span class="codeline" id="line-27"><code>	<a href="#line-36" class="ident">debounceState</a></code></span>
+<span class="codeline" id="line-28"><code></code></span>
+<span class="codeline" id="line-29"><code>	<a href="../../../../use/go.pact.im/x/flaky..DebounceExecutor.c^2e7d2.html" class="ident">c</a> *<a href="../../../../pkg/go.pact.im/x/clock.html" class="ident i4">clock</a>.<a href="../clock/clock.go.html#line-56" class="ident">Clock</a></code></span>
+<span class="codeline" id="line-30"><code>	<a href="../../../../use/go.pact.im/x/flaky..DebounceExecutor.w^50e72.html" class="ident">w</a> <a href="../../../../pkg/time.html" class="ident i3">time</a>.<a href="../../../time/time.go.html#line-911" class="ident">Duration</a></code></span>
+<span class="codeline" id="line-31"><code></code></span>
+<span class="codeline" id="line-32"><code>	<a href="../../../../use/go.pact.im/x/flaky..DebounceExecutor.timer^cd94e.html" class="ident">timer</a> <a href="../../../../pkg/go.pact.im/x/clock.html" class="ident i4">clock</a>.<a href="../clock/timer.go.html#line-17" class="ident">Timer</a></code></span>
+<span class="codeline" id="line-33"><code>}</code></span>
+<span class="codeline" id="line-34"><code></code></span>
+<span class="codeline" id="line-35"><code><span class="comment">// debounceState is the debounce state for DebounceExecutor.</span></code></span>
+<span class="codeline" id="line-36"><code><span class="keyword">type</span> <a href="../../../../pkg/go.pact.im/x/flaky.html#name-debounceState" class="ident">debounceState</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-37"><code>	<a href="../../../../use/go.pact.im/x/flaky..debounceState^55112.lock^0c030.html" class="ident">lock</a>  <span class="keyword">chan</span> <span class="keyword">struct</span>{}</code></span>
+<span class="codeline" id="line-38"><code>	<a href="../../../../use/go.pact.im/x/flaky..debounceState^55112.exec^2706c.html" class="ident">exec</a>  <span class="keyword">chan</span> <span class="keyword">struct</span>{}</code></span>
+<span class="codeline" id="line-39"><code>	<a href="../../../../use/go.pact.im/x/flaky..debounceState^55112.steal^a0fd4.html" class="ident">steal</a> <span class="keyword">chan</span> <span class="keyword">struct</span>{}</code></span>
+<span class="codeline" id="line-40"><code>	<a href="../../../../use/go.pact.im/x/flaky..debounceState^55112.next^c6c1c.html" class="ident">next</a>  <span class="keyword">chan</span> <span class="keyword">struct</span>{}</code></span>
+<span class="codeline" id="line-41"><code>}</code></span>
+<span class="codeline" id="line-42"><code></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">// Debounce returns a new DebounceExecutor instance for the given wait duration.</span></code></span>
+<span class="codeline" id="line-44"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../pkg/go.pact.im/x/flaky.html#name-Debounce" class="ident">Debounce</a></label>(<label for="r1" class="ident">t</label> <a href="../../../../pkg/time.html" class="ident i3">time</a>.<a href="../../../time/time.go.html#line-911" class="ident">Duration</a>) *<a href="#line-25" class="ident">DebounceExecutor</a> {</code></span>
+<span class="codeline" id="line-45"><code>	<span class="keyword">return</span> &amp;<a href="#line-25" class="ident">DebounceExecutor</a>{</code></span>
+<span class="codeline" id="line-46"><code>		<a href="#line-30" class="ident">w</a>: <label for="r1" class="ident">t</label>,</code></span>
+<span class="codeline" id="line-47"><code>	}</code></span>
+<span class="codeline" id="line-48"><code>}</code></span>
+<span class="codeline" id="line-49"><code></code></span>
+<span class="codeline" id="line-50"><code><span class="comment">// clone returns a copy of the executor.</span></code></span>
+<span class="codeline" id="line-51"><code><span class="keyword">func</span> (<label for="r2" class="ident">d</label> *<a href="#line-25" class="ident">DebounceExecutor</a>) <label for="r3" class="ident"><a href="../../../../use/go.pact.im/x/flaky..DebounceExecutor.clone^b5d61.html" class="ident">clone</a></label>() *<a href="#line-25" class="ident">DebounceExecutor</a> {</code></span>
+<span class="codeline" id="line-52"><code>	<label for="r2" class="ident">d</label>.<a href="#line-144" class="ident">init</a>()</code></span>
+<span class="codeline" id="line-53"><code>	<span class="keyword">return</span> &amp;<a href="#line-25" class="ident">DebounceExecutor</a>{</code></span>
+<span class="codeline" id="line-54"><code>		<a href="#line-27" class="ident">debounceState</a>: <label for="r2" class="ident">d</label>.<a href="#line-27" class="ident">debounceState</a>,</code></span>
+<span class="codeline" id="line-55"><code>		<a href="#line-29" class="ident">c</a>:             <label for="r2" class="ident">d</label>.<a href="#line-29" class="ident">c</a>,</code></span>
+<span class="codeline" id="line-56"><code>		<a href="#line-30" class="ident">w</a>:             <label for="r2" class="ident">d</label>.<a href="#line-30" class="ident">w</a>,</code></span>
+<span class="codeline" id="line-57"><code>		<a href="#line-32" class="ident">timer</a>:         <label for="r2" class="ident">d</label>.<a href="#line-32" class="ident">timer</a>,</code></span>
+<span class="codeline" id="line-58"><code>	}</code></span>
+<span class="codeline" id="line-59"><code>}</code></span>
+<span class="codeline" id="line-60"><code></code></span>
+<span class="codeline" id="line-61"><code><span class="comment">// WithClock returns a copy of the executor that uses the given clock.</span></code></span>
+<span class="codeline" id="line-62"><code><span class="keyword">func</span> (<label for="r4" class="ident">d</label> *<a href="#line-25" class="ident">DebounceExecutor</a>) <label for="r5" class="ident"><a href="../../../../use/go.pact.im/x/flaky..DebounceExecutor.WithClock.html" class="ident">WithClock</a></label>(<label for="r6" class="ident">c</label> *<a href="../../../../pkg/go.pact.im/x/clock.html" class="ident i4">clock</a>.<a href="../clock/clock.go.html#line-56" class="ident">Clock</a>) *<a href="#line-25" class="ident">DebounceExecutor</a> {</code></span>
+<span class="codeline" id="line-63"><code>	<label for="r4" class="ident">d</label> = <label for="r4" class="ident">d</label>.<a href="#line-51" class="ident">clone</a>()</code></span>
+<span class="codeline" id="line-64"><code>	<label for="r4" class="ident">d</label>.<a href="#line-32" class="ident">timer</a> = <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-65"><code>	<label for="r4" class="ident">d</label>.<a href="#line-29" class="ident">c</a> = <label for="r6" class="ident">c</label></code></span>
+<span class="codeline" id="line-66"><code>	<label for="r4" class="ident">d</label>.<a href="#line-144" class="ident">init</a>()</code></span>
+<span class="codeline" id="line-67"><code>	<span class="keyword">return</span> <label for="r4" class="ident">d</label></code></span>
+<span class="codeline" id="line-68"><code>}</code></span>
+<span class="codeline" id="line-69"><code></code></span>
+<span class="codeline" id="line-70"><code><span class="comment">// WithWait returns a copy of the executor that uses the given wait duration.</span></code></span>
+<span class="codeline" id="line-71"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-72"><code><span class="comment">// It shares the underlying state and can be used to debounce operation with</span></code></span>
+<span class="codeline" id="line-73"><code><span class="comment">// non-default wait duration.</span></code></span>
+<span class="codeline" id="line-74"><code><span class="keyword">func</span> (<label for="r7" class="ident">d</label> *<a href="#line-25" class="ident">DebounceExecutor</a>) <label for="r8" class="ident"><a href="../../../../use/go.pact.im/x/flaky..DebounceExecutor.WithWait.html" class="ident">WithWait</a></label>(<label for="r9" class="ident">t</label> <a href="../../../../pkg/time.html" class="ident i3">time</a>.<a href="../../../time/time.go.html#line-911" class="ident">Duration</a>) *<a href="#line-25" class="ident">DebounceExecutor</a> {</code></span>
+<span class="codeline" id="line-75"><code>	<label for="r7" class="ident">d</label> = <label for="r7" class="ident">d</label>.<a href="#line-51" class="ident">clone</a>()</code></span>
+<span class="codeline" id="line-76"><code>	<label for="r7" class="ident">d</label>.<a href="#line-30" class="ident">w</a> = <label for="r9" class="ident">t</label></code></span>
+<span class="codeline" id="line-77"><code>	<label for="r7" class="ident">d</label>.<a href="#line-144" class="ident">init</a>()</code></span>
+<span class="codeline" id="line-78"><code>	<span class="keyword">return</span> <label for="r7" class="ident">d</label></code></span>
+<span class="codeline" id="line-79"><code>}</code></span>
+<span class="codeline" id="line-80"><code></code></span>
+<span class="codeline" id="line-81"><code><span class="comment">// Execute calls the function f if and only if Execute is not called again</span></code></span>
+<span class="codeline" id="line-82"><code><span class="comment">// during the debounce interval. Context expiration cancels an operation. It</span></code></span>
+<span class="codeline" id="line-83"><code><span class="comment">// returns ErrDebounced error if the given operation f was superseded by another</span></code></span>
+<span class="codeline" id="line-84"><code><span class="comment">// Execute call. If Execute is called concurrently, the last invocation wins.</span></code></span>
+<span class="codeline" id="line-85"><code><span class="comment">// When another operation is already executing, it returns ErrDebounced.</span></code></span>
+<span class="codeline" id="line-86"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-87"><code><span class="comment">// Callers should handle ErrDebounced error to avoid breaking assumptions when</span></code></span>
+<span class="codeline" id="line-88"><code><span class="comment">// running under another DebounceExecutor.</span></code></span>
+<span class="codeline" id="line-89"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-90"><code><span class="comment">// As a side effect, it guarantees that at most one f is executing at a time.</span></code></span>
+<span class="codeline" id="line-91"><code><span class="comment">// That is, it is safe to avoid locking if the state is mutated exclusively</span></code></span>
+<span class="codeline" id="line-92"><code><span class="comment">// under the DebounceExecutor.</span></code></span>
+<span class="codeline" id="line-93"><code><span class="keyword">func</span> (<label for="r10" class="ident">d</label> *<a href="#line-25" class="ident">DebounceExecutor</a>) <label for="r11" class="ident"><a href="../../../../use/go.pact.im/x/flaky..DebounceExecutor.Execute.html" class="ident">Execute</a></label>(<label for="r12" class="ident">ctx</label> <a href="../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../context/context.go.html#line-71" class="ident">Context</a>, <label for="r13" class="ident">f</label> <a href="flaky.go.html#line-9" class="ident">Op</a>) <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-94"><code>	<label for="r10" class="ident">d</label>.<a href="#line-144" class="ident">init</a>()</code></span>
+<span class="codeline" id="line-95"><code></code></span>
+<span class="codeline" id="line-96"><code>	<span class="comment">// Acquire a lock or steal it from an ongoing debounced Execute call.</span></code></span>
+<span class="codeline" id="line-97"><code>	<a href="../../../runtime/select.go.html#line-122"><span class="keyword">select</span></a> {</code></span>
+<span class="codeline" id="line-98"><code>	<span class="keyword">case</span> <a href="../../../runtime/chan.go.html#line-505">&lt;-</a><label for="r12" class="ident">ctx</label>.<a href="../../../context/context.go.html#line-108" class="ident">Done</a>():</code></span>
+<span class="codeline" id="line-99"><code>		<span class="keyword">return</span> <label for="r12" class="ident">ctx</label>.<a href="../../../context/context.go.html#line-115" class="ident">Err</a>()</code></span>
+<span class="codeline" id="line-100"><code>	<span class="keyword">case</span> <label for="r14" class="ident">v</label> := <a href="../../../runtime/chan.go.html#line-505">&lt;-</a><label for="r10" class="ident">d</label>.<a href="#line-38" class="ident">exec</a>:</code></span>
+<span class="codeline" id="line-101"><code>		<label for="r10" class="ident">d</label>.<a href="#line-38" class="ident">exec</a> &lt;- <label for="r14" class="ident">v</label></code></span>
+<span class="codeline" id="line-102"><code>		<span class="keyword">return</span> <a href="#line-14" class="ident">ErrDebounced</a></code></span>
+<span class="codeline" id="line-103"><code>	<span class="keyword">case</span> <label for="r10" class="ident">d</label>.<a href="#line-37" class="ident">lock</a> <a href="../../../runtime/chan.go.html#line-176">&lt;-</a> <span class="keyword">struct</span>{}{}:</code></span>
+<span class="codeline" id="line-104"><code>	<span class="keyword">case</span> <label for="r10" class="ident">d</label>.<a href="#line-39" class="ident">steal</a> <a href="../../../runtime/chan.go.html#line-176">&lt;-</a> <span class="keyword">struct</span>{}{}:</code></span>
+<span class="codeline" id="line-105"><code>		<span class="comment">// Wait until the Execute call we are stealing from stops the</span></code></span>
+<span class="codeline" id="line-106"><code><span class="comment">		// timer and passes the lock to us.</span></code></span>
+<span class="codeline" id="line-107"><code>		&lt;-<label for="r10" class="ident">d</label>.<a href="#line-40" class="ident">next</a></code></span>
+<span class="codeline" id="line-108"><code>	}</code></span>
+<span class="codeline" id="line-109"><code></code></span>
+<span class="codeline" id="line-110"><code>	<span class="comment">// Reset timer for the debounce duration.</span></code></span>
+<span class="codeline" id="line-111"><code>	<span class="keyword">if</span> <label for="r10" class="ident">d</label>.<a href="#line-32" class="ident">timer</a> == <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-112"><code>		<label for="r10" class="ident">d</label>.<a href="#line-32" class="ident">timer</a> = <label for="r10" class="ident">d</label>.<a href="#line-29" class="ident">c</a>.<a href="../clock/timer.go.html#line-68" class="ident">Timer</a>(<label for="r10" class="ident">d</label>.<a href="#line-30" class="ident">w</a>)</code></span>
+<span class="codeline" id="line-113"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-114"><code>		<label for="r10" class="ident">d</label>.<a href="#line-32" class="ident">timer</a>.<a href="../clock/timer.go.html#line-60" class="ident">Reset</a>(<label for="r10" class="ident">d</label>.<a href="#line-30" class="ident">w</a>)</code></span>
+<span class="codeline" id="line-115"><code>	}</code></span>
+<span class="codeline" id="line-116"><code></code></span>
+<span class="codeline" id="line-117"><code>	<span class="comment">// Wait until the debounce timer expiration, another Execute invocation</span></code></span>
+<span class="codeline" id="line-118"><code><span class="comment">	// that steals our lock, or the action cancellation.</span></code></span>
+<span class="codeline" id="line-119"><code>	<span class="keyword">var</span> <label for="r15" class="ident">steal</label> <a href="../../../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-120"><code>	<a href="../../../runtime/select.go.html#line-122"><span class="keyword">select</span></a> {</code></span>
+<span class="codeline" id="line-121"><code>	<span class="keyword">case</span> <a href="../../../runtime/chan.go.html#line-505">&lt;-</a><label for="r10" class="ident">d</label>.<a href="#line-32" class="ident">timer</a>.<a href="../clock/timer.go.html#line-20" class="ident">C</a>():</code></span>
+<span class="codeline" id="line-122"><code>		<label for="r10" class="ident">d</label>.<a href="#line-38" class="ident">exec</a> &lt;- <span class="keyword">struct</span>{}{}</code></span>
+<span class="codeline" id="line-123"><code>		<label for="r16" class="ident">err</label> := <label for="r13" class="ident">f</label>(<label for="r12" class="ident">ctx</label>)</code></span>
+<span class="codeline" id="line-124"><code>		&lt;-<label for="r10" class="ident">d</label>.<a href="#line-38" class="ident">exec</a></code></span>
+<span class="codeline" id="line-125"><code>		&lt;-<label for="r10" class="ident">d</label>.<a href="#line-37" class="ident">lock</a></code></span>
+<span class="codeline" id="line-126"><code>		<span class="keyword">return</span> <a href="permanent.go.html#line-58" class="ident">unwrapInternal</a>(<label for="r16" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-127"><code>	<span class="keyword">case</span> <a href="../../../runtime/chan.go.html#line-505">&lt;-</a><label for="r10" class="ident">d</label>.<a href="#line-39" class="ident">steal</a>:</code></span>
+<span class="codeline" id="line-128"><code>		<label for="r15" class="ident">steal</label> = <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-129"><code>	<span class="keyword">case</span> <a href="../../../runtime/chan.go.html#line-505">&lt;-</a><label for="r12" class="ident">ctx</label>.<a href="../../../context/context.go.html#line-108" class="ident">Done</a>():</code></span>
+<span class="codeline" id="line-130"><code>	}</code></span>
+<span class="codeline" id="line-131"><code>	<span class="keyword">if</span> !<label for="r10" class="ident">d</label>.<a href="#line-32" class="ident">timer</a>.<a href="../clock/timer.go.html#line-36" class="ident">Stop</a>() {</code></span>
+<span class="codeline" id="line-132"><code>		&lt;-<label for="r10" class="ident">d</label>.<a href="#line-32" class="ident">timer</a>.<a href="../clock/timer.go.html#line-20" class="ident">C</a>()</code></span>
+<span class="codeline" id="line-133"><code>	}</code></span>
+<span class="codeline" id="line-134"><code>	<span class="keyword">if</span> <label for="r15" class="ident">steal</label> {</code></span>
+<span class="codeline" id="line-135"><code>		<label for="r10" class="ident">d</label>.<a href="#line-40" class="ident">next</a> &lt;- <span class="keyword">struct</span>{}{}</code></span>
+<span class="codeline" id="line-136"><code>		<span class="keyword">return</span> <a href="#line-14" class="ident">ErrDebounced</a></code></span>
+<span class="codeline" id="line-137"><code>	}</code></span>
+<span class="codeline" id="line-138"><code></code></span>
+<span class="codeline" id="line-139"><code>	&lt;-<label for="r10" class="ident">d</label>.<a href="#line-37" class="ident">lock</a></code></span>
+<span class="codeline" id="line-140"><code>	<span class="keyword">return</span> <label for="r12" class="ident">ctx</label>.<a href="../../../context/context.go.html#line-115" class="ident">Err</a>()</code></span>
+<span class="codeline" id="line-141"><code>}</code></span>
+<span class="codeline" id="line-142"><code></code></span>
+<span class="codeline" id="line-143"><code><span class="comment">// init initializes the internal debouncer state.</span></code></span>
+<span class="codeline" id="line-144"><code><span class="keyword">func</span> (<label for="r17" class="ident">d</label> *<a href="#line-25" class="ident">DebounceExecutor</a>) <label for="r18" class="ident"><a href="../../../../use/go.pact.im/x/flaky..DebounceExecutor.init^bb540.html" class="ident">init</a></label>() {</code></span>
+<span class="codeline" id="line-145"><code>	<label for="r17" class="ident">d</label>.<a href="#line-26" class="ident">once</a>.<a href="../../../sync/once.go.html#line-52" class="ident">Do</a>(<span class="keyword">func</span>() {</code></span>
+<span class="codeline" id="line-146"><code>		<span class="keyword">if</span> <label for="r17" class="ident">d</label>.<a href="#line-29" class="ident">c</a> == <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-147"><code>			<label for="r17" class="ident">d</label>.<a href="#line-29" class="ident">c</a> = <a href="../../../../pkg/go.pact.im/x/clock.html" class="ident i4">clock</a>.<a href="../clock/runtime.go.html#line-16" class="ident">System</a>()</code></span>
+<span class="codeline" id="line-148"><code>		}</code></span>
+<span class="codeline" id="line-149"><code>		<span class="keyword">if</span> <label for="r17" class="ident">d</label>.<a href="#line-37" class="ident">lock</a> == <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-150"><code>			<label for="r17" class="ident">d</label>.<a href="#line-37" class="ident">lock</a> = <a href="../../../runtime/chan.go.html#line-75">make</a>(<span class="keyword">chan</span> <span class="keyword">struct</span>{}, <span class="lit-number">1</span>)</code></span>
+<span class="codeline" id="line-151"><code>		}</code></span>
+<span class="codeline" id="line-152"><code>		<span class="keyword">if</span> <label for="r17" class="ident">d</label>.<a href="#line-38" class="ident">exec</a> == <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-153"><code>			<label for="r17" class="ident">d</label>.<a href="#line-38" class="ident">exec</a> = <a href="../../../runtime/chan.go.html#line-75">make</a>(<span class="keyword">chan</span> <span class="keyword">struct</span>{}, <span class="lit-number">1</span>)</code></span>
+<span class="codeline" id="line-154"><code>		}</code></span>
+<span class="codeline" id="line-155"><code>		<span class="keyword">if</span> <label for="r17" class="ident">d</label>.<a href="#line-39" class="ident">steal</a> == <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-156"><code>			<label for="r17" class="ident">d</label>.<a href="#line-39" class="ident">steal</a> = <a href="../../../runtime/chan.go.html#line-75">make</a>(<span class="keyword">chan</span> <span class="keyword">struct</span>{})</code></span>
+<span class="codeline" id="line-157"><code>		}</code></span>
+<span class="codeline" id="line-158"><code>		<span class="keyword">if</span> <label for="r17" class="ident">d</label>.<a href="#line-40" class="ident">next</a> == <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-159"><code>			<label for="r17" class="ident">d</label>.<a href="#line-40" class="ident">next</a> = <a href="../../../runtime/chan.go.html#line-75">make</a>(<span class="keyword">chan</span> <span class="keyword">struct</span>{})</code></span>
+<span class="codeline" id="line-160"><code>		}</code></span>
+<span class="codeline" id="line-161"><code>	})</code></span>
+<span class="codeline" id="line-162"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: dit.go in package crypto/subtle</title>
+<link href="../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	dit.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../pkg/crypto/subtle.html">crypto/subtle</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2024 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> subtle</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-8"><code>	<label for="i0"><span class="lit-string i0">"internal/runtime/sys"</span></label></code></span>
+<span class="codeline" id="line-9"><code>	<label for="i1"><span class="lit-string i1">"runtime"</span></label></code></span>
+<span class="codeline" id="line-10"><code>)</code></span>
+<span class="codeline" id="line-11"><code></code></span>
+<span class="codeline" id="line-12"><code><span class="comment">// WithDataIndependentTiming enables architecture specific features which ensure</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">// that the timing of specific instructions is independent of their inputs</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">// before executing f. On f returning it disables these features.</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">// WithDataIndependentTiming should only be used when f is written to make use</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">// of constant-time operations. WithDataIndependentTiming does not make</span></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">// variable-time code constant-time.</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">// WithDataIndependentTiming may lock the current goroutine to the OS thread for</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">// the duration of f. Calls to WithDataIndependentTiming may be nested.</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">// On Arm64 processors with FEAT_DIT, WithDataIndependentTiming enables</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">// PSTATE.DIT. See https://developer.arm.com/documentation/ka005181/1-0/?lang=en.</span></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">// Currently, on all other architectures WithDataIndependentTiming executes f immediately</span></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">// with no other side-effects.</span></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">//go:noinline</span></code></span>
+<span class="codeline" id="line-30"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../pkg/crypto/subtle.html#name-WithDataIndependentTiming" class="ident">WithDataIndependentTiming</a></label>(<label for="r1" class="ident">f</label> <span class="keyword">func</span>()) {</code></span>
+<span class="codeline" id="line-31"><code>	<span class="keyword">if</span> !<a href="../../../pkg/internal/runtime/sys.html" class="ident i0">sys</a>.<a href="../../internal/runtime/sys/no_dit.go.html#line-9" class="ident">DITSupported</a> {</code></span>
+<span class="codeline" id="line-32"><code>		<label for="r1" class="ident">f</label>()</code></span>
+<span class="codeline" id="line-33"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-34"><code>	}</code></span>
+<span class="codeline" id="line-35"><code></code></span>
+<span class="codeline" id="line-36"><code>	<a href="../../../pkg/runtime.html" class="ident i1">runtime</a>.<a href="../../runtime/proc.go.html#line-5358" class="ident">LockOSThread</a>()</code></span>
+<span class="codeline" id="line-37"><code>	<span class="keyword">defer</span> <a href="../../../pkg/runtime.html" class="ident i1">runtime</a>.<a href="../../runtime/proc.go.html#line-5411" class="ident">UnlockOSThread</a>()</code></span>
+<span class="codeline" id="line-38"><code></code></span>
+<span class="codeline" id="line-39"><code>	<label for="r2" class="ident">alreadyEnabled</label> := <a href="../../../pkg/internal/runtime/sys.html" class="ident i0">sys</a>.<a href="../../internal/runtime/sys/no_dit.go.html#line-11" class="ident">EnableDIT</a>()</code></span>
+<span class="codeline" id="line-40"><code></code></span>
+<span class="codeline" id="line-41"><code>	<span class="comment">// disableDIT is called in a deferred function so that if f panics we will</span></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">	// still disable DIT, in case the panic is recovered further up the stack.</span></code></span>
+<span class="codeline" id="line-43"><code>	<span class="keyword">defer</span> <span class="keyword">func</span>() {</code></span>
+<span class="codeline" id="line-44"><code>		<span class="keyword">if</span> !<label for="r2" class="ident">alreadyEnabled</label> {</code></span>
+<span class="codeline" id="line-45"><code>			<a href="../../../pkg/internal/runtime/sys.html" class="ident i0">sys</a>.<a href="../../internal/runtime/sys/no_dit.go.html#line-13" class="ident">DisableDIT</a>()</code></span>
+<span class="codeline" id="line-46"><code>		}</code></span>
+<span class="codeline" id="line-47"><code>	}()</code></span>
+<span class="codeline" id="line-48"><code></code></span>
+<span class="codeline" id="line-49"><code>	<label for="r1" class="ident">f</label>()</code></span>
+<span class="codeline" id="line-50"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: pprof_rusage.go in package runtime/pprof</title>
+<link href="../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	pprof_rusage.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../pkg/runtime/pprof.html">runtime/pprof</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2019 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="comment">//go:build unix</span></code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">package</span> pprof</code></span>
+<span class="codeline" id="line-8"><code></code></span>
+<span class="codeline" id="line-9"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-10"><code>	<label for="i0"><span class="lit-string i0">"fmt"</span></label></code></span>
+<span class="codeline" id="line-11"><code>	<label for="i1"><span class="lit-string i1">"io"</span></label></code></span>
+<span class="codeline" id="line-12"><code>	<label for="i2"><span class="lit-string i2">"runtime"</span></label></code></span>
+<span class="codeline" id="line-13"><code>	<label for="i3"><span class="lit-string i3">"syscall"</span></label></code></span>
+<span class="codeline" id="line-14"><code>)</code></span>
+<span class="codeline" id="line-15"><code></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">// Adds MaxRSS to platforms that are supported.</span></code></span>
+<span class="codeline" id="line-17"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../pkg/runtime/pprof.html#name-addMaxRSS" class="ident">addMaxRSS</a></label>(<label for="r1" class="ident">w</label> <a href="../../../pkg/io.html" class="ident i1">io</a>.<a href="../../io/io.go.html#line-99" class="ident">Writer</a>) {</code></span>
+<span class="codeline" id="line-18"><code>	<span class="keyword">var</span> <label for="r2" class="ident">rssToBytes</label> <a href="../../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a></code></span>
+<span class="codeline" id="line-19"><code>	<span class="keyword">switch</span> <a href="../../../pkg/runtime.html" class="ident i2">runtime</a>.<a href="../extern.go.html#line-373" class="ident">GOOS</a> {</code></span>
+<span class="codeline" id="line-20"><code>	<span class="keyword">case</span> <span class="lit-string">"aix"</span>, <span class="lit-string">"android"</span>, <span class="lit-string">"dragonfly"</span>, <span class="lit-string">"freebsd"</span>, <span class="lit-string">"linux"</span>, <span class="lit-string">"netbsd"</span>, <span class="lit-string">"openbsd"</span>:</code></span>
+<span class="codeline" id="line-21"><code>		<label for="r2" class="ident">rssToBytes</label> = <span class="lit-number">1024</span></code></span>
+<span class="codeline" id="line-22"><code>	<span class="keyword">case</span> <span class="lit-string">"darwin"</span>, <span class="lit-string">"ios"</span>:</code></span>
+<span class="codeline" id="line-23"><code>		<label for="r2" class="ident">rssToBytes</label> = <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-24"><code>	<span class="keyword">case</span> <span class="lit-string">"illumos"</span>, <span class="lit-string">"solaris"</span>:</code></span>
+<span class="codeline" id="line-25"><code>		<label for="r2" class="ident">rssToBytes</label> = <a href="../../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>(<a href="../../../pkg/syscall.html" class="ident i3">syscall</a>.<a href="../../syscall/syscall.go.html#line-101" class="ident">Getpagesize</a>())</code></span>
+<span class="codeline" id="line-26"><code>	<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-27"><code>		<a href="../../../pkg/builtin.html#name-panic" class="ident">panic</a>(<span class="lit-string">"unsupported OS"</span>)</code></span>
+<span class="codeline" id="line-28"><code>	}</code></span>
+<span class="codeline" id="line-29"><code></code></span>
+<span class="codeline" id="line-30"><code>	<span class="keyword">var</span> <label for="r3" class="ident">rusage</label> <a href="../../../pkg/syscall.html" class="ident i3">syscall</a>.<a href="../../syscall/ztypes_linux_amd64.go.html#line-73" class="ident">Rusage</a></code></span>
+<span class="codeline" id="line-31"><code>	<label for="r4" class="ident">err</label> := <a href="../../../pkg/syscall.html" class="ident i3">syscall</a>.<a href="../../syscall/zsyscall_linux_amd64.go.html#line-527" class="ident">Getrusage</a>(<a href="../../../pkg/syscall.html" class="ident i3">syscall</a>.<a href="../../syscall/zerrors_linux_amd64.go.html#line-910" class="ident">RUSAGE_SELF</a>, &amp;<label for="r3" class="ident">rusage</label>)</code></span>
+<span class="codeline" id="line-32"><code>	<span class="keyword">if</span> <label for="r4" class="ident">err</label> == <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-33"><code>		<a href="../../../pkg/fmt.html" class="ident i0">fmt</a>.<a href="../../fmt/print.go.html#line-222" class="ident">Fprintf</a>(<label for="r1" class="ident">w</label>, <span class="lit-string">"# MaxRSS = %d\n"</span>, <a href="../../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>(<label for="r3" class="ident">rusage</label>.<a href="../../syscall/ztypes_linux_amd64.go.html#line-76" class="ident">Maxrss</a>)*<label for="r2" class="ident">rssToBytes</label>)</code></span>
+<span class="codeline" id="line-34"><code>	}</code></span>
+<span class="codeline" id="line-35"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>
