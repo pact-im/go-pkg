@@ -13,3 +13,11 @@ type Executor interface {
 	// Execute executes a flaky operation f using the execution policy.
 	Execute(ctx context.Context, f Op) error
 }
+
+// ExecutorFunc is a function that implements the [Executor] interface.
+type ExecutorFunc func(ctx context.Context, f Op) error
+
+// Execute implements the [Executor] interface.
+func (f ExecutorFunc) Execute(ctx context.Context, op Op) error {
+	return f(ctx, op)
+}
