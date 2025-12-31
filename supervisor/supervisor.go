@@ -1,223 +1,167 @@
-// Package supervisor provides a supervisor implementation for starting,
-// stopping, and monitoring its child processes.
+// Package supervisor provides [process.Runner] supervision implementation.
 package supervisor
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"sync"
 	"sync/atomic"
 
-	"go.pact.im/x/clock"
+	"go.pact.im/x/flaky"
 	"go.pact.im/x/process"
 )
 
-// Supervisor is responsible for starting, stopping, and monitoring its child
-// processes.
-type Supervisor[K comparable, P process.Runner] struct {
-	table Table[K, P]
-	clock *clock.Clock
+// errInterrupt is an internal error used to distinguish between supervisor
+// interrupts and other errors.
+var errInterrupt = errors.New("supervisor: interrupt")
 
-	// processes is a map of managed processes. It is used to track process
-	// state and allows returning an ErrProcessExists error to guarantee
-	// that at most one processes is active per key.
-	processes typedMap[K, *managedProcess[P]]
+// errRecursiveOrConcurrentRun is an error that [Supervisor] returns on
+// recursive or concurrent Run call.
+var errRecursiveOrConcurrentRun = errors.New("supervisor: recursive or concurrent Supervisor.Run calls are not allowed")
 
-	// runLock ensures that at most one Run method is executing at a time.
-	runLock chanLock
+// Supervisor runs a [process.Runner] alongside a control callback, managing
+// their concurrent execution and coordinated shutdown. It wraps the runner
+// with [flaky.Executor] retry logic and pre/post execution hooks.
+type Supervisor struct {
+	runner process.Runner
+	exec   flaky.Executor
+	hook   Hook
 
-	// startMu guards startProcess and startProcessForKey calls when
-	// Supervisor is not running. It also allows waiting for the ongoing
-	// calls to complete on shutdown.
-	startMu sync.RWMutex
-	start   bool
-
-	// parent is the parent context for all processes. It is set to the
-	// context passed to Run method and is guarded by startMu.
-	parent context.Context
-
-	// wg is the wait group for running processes and watchdogs. It is
-	// indirectly guarded by startMu and start.
-	wg sync.WaitGroup
+	intr atomic.Pointer[supervisorInterrupter]
 }
 
-// managedProcess contains a process.Process and associated [process.Runner]
-// managed by Supervisor.
-type managedProcess[P process.Runner] struct {
-	*process.Process
+// Hook is a set of hooks for supervisor’s runner.
+type Hook struct {
+	// Pre is a function that is called on runner’s callback. A non-nil
+	// error is immediately returned from the callback. In that case, an
+	// error from PostHook is ignored.
+	// Defaults to a function that returns nil error.
+	Pre func(context.Context, *Supervisor) error
 
-	// runner is the underlying process entrypoint with parametrized type P.
-	runner P
-
-	// stopped is used by Supervisor to remove the process instance from
-	// internal map at most once.
-	stopped atomic.Bool
+	// Post is a function that is called before runner’s callback returns.
+	// The result is returned from the callback.
+	// Defaults to a function that returns nil error.
+	Post func(context.Context, *Supervisor) error
 }
 
-// NewSupervisor returns a new Supervisor instance. The given table is used to
-// lookup managed processes and periodically restart failed units (or processes
-// that were added externally). Managed processes are uniquely identifiable by
-// key.
-//
-// A managed process may remove itself from the Supervisor by deleting the
-// associated entry from the table before terminating. Likewise, to stop a
-// process, it must be removed from the table prior to Stop call. That is,
-// processes must be aware of being managed and the removal is tighly coupled
-// with the table.
-//
-// As a rule of thumb, to keep the underlying table consistent, processes should
-// not be re-added to table after being removed from the table. It is possible
-// to implement re-adding on top of the Supervisor but that requires handling
-// possible orderings of table removal, addition, re-addition and process
-// startup, shutdown and self-removal (or a subset of these operations depending
-// on the use cases).
-func NewSupervisor[K comparable, P process.Runner](t Table[K, P], o Options) *Supervisor[K, P] {
-	o.setDefaults()
-
-	return &Supervisor[K, P]{
-		clock:   o.Clock,
-		table:   t,
-		runLock: newChanLock(),
+// NewSupervisor returns a new [Supervisor] instance for the given runner.
+func NewSupervisor(runner process.Runner, exec flaky.Executor, hook Hook) *Supervisor {
+	return &Supervisor{
+		runner: runner,
+		exec:   exec,
+		hook:   hook,
 	}
 }
 
-// Run starts the supervisor and executes callback on successful initialization.
-func (m *Supervisor[K, P]) Run(ctx context.Context, callback process.Callback) error {
-	if err := m.runLock.Acquire(ctx); err != nil {
+// Interrupt signals the supervisor to stop the current execution. This method
+// is non-blocking and returns immediately; it does not wait for execution to
+// complete.
+//
+// If no execution is active ([Supervisor.Run] is not being called), this method
+// does nothing. Otherwise, it signals the process to stop, but the caller must
+// separately wait for Run to return if synchronization is needed.
+//
+// It is safe to call from multiple goroutines concurrently.
+func (s *Supervisor) Interrupt() {
+	intr := s.intr.Load()
+	if intr == nil {
+		return
+	}
+	intr.Interrupt()
+}
+
+// Run executes the supervisor’s managed process concurrently with the provided
+// callback function without waiting for the initial process startup.
+//
+// Use [Hook.Pre] and [Hook.Post] to run code in runner’s callback.
+//
+// It returns an error combining any errors from the callback and runner execution.
+//
+// Execution timeline:
+//   - T0: Start runner under executor in background goroutine.
+//   - T0: Start callback in current goroutine.
+//   - T1: Callback returns → interrupt executor.
+//   - T1: Executor returns → cancel callback context.
+//   - T2: Wait for executor to complete cleanup → return combined errors.
+//
+// Only one active Run invocation is permitted per Supervisor instance.
+// Concurrent or recursive calls will return an error.
+func (s *Supervisor) Run(ctx context.Context, callback process.Callback) error {
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	intr := &supervisorInterrupter{
+		done:   make(chan struct{}),
+		cancel: cancel,
+	}
+	if !s.intr.CompareAndSwap(nil, intr) {
+		return errRecursiveOrConcurrentRun
+	}
+	defer s.intr.Store(nil)
+
+	var wg sync.WaitGroup
+	var executeError error
+	wg.Go(func() {
+		defer cancel() // cancel callback
+		executeError = s.execute(ctx, intr)
+	})
+
+	callbackError := callback(ctx)
+
+	intr.Interrupt()
+	wg.Wait()
+
+	// Do not wrap errors in errors.joinError unless necessary.
+	switch {
+	case callbackError == nil:
+		return executeError
+	case executeError == nil:
+		return callbackError
+	}
+	return errors.Join(callbackError, executeError)
+}
+
+// execute runs the supervised process under the executor with pre/post Run hooks.
+func (s *Supervisor) execute(ctx context.Context, intr *supervisorInterrupter) error {
+	err := s.exec.Execute(ctx, func(ctx context.Context) error {
+		if intr.shouldStopBeforeRunner() {
+			return flaky.Internal(errInterrupt)
+		}
+
+		err := s.runner.Run(ctx, func(ctx context.Context) error {
+			if err := s.pre(ctx); err != nil {
+				_ = s.post(ctx)
+				return err
+			}
+			select {
+			case <-ctx.Done():
+			case <-intr.done:
+			}
+			return s.post(ctx)
+		})
+
+		intr.afterRunner()
+
 		return err
+	})
+	if errors.Is(err, errInterrupt) {
+		err = nil
 	}
-	defer m.runLock.Release()
-
-	m.parent = ctx
-	defer func() { m.parent = nil }()
-
-	// Allow startProcess and startProcessForKey calls.
-	m.startMu.Lock()
-	m.start = true
-	m.startMu.Unlock()
-
-	// Restore last state from the storage.
-	m.restartInitial(ctx)
-
-	// Run restartLoop to keep the current state up-to-date with changes in
-	// the storage.
-	stopRestartLoop := m.spawnRestartLoop(ctx)
-
-	// Invoke callback.
-	err := callback(ctx)
-
-	// Wait for restart loop since it uses wg to spawn background tasks.
-	stopRestartLoop()
-
-	// Block until all ongoing startProcess and startProcessForKey calls are
-	// complete and forbid subsequent calls.
-	m.startMu.Lock()
-	m.start = false
-	m.startMu.Unlock()
-
-	// Stop all processes and wait for shutdown completion. At this point
-	// we are guaranteed that new processes would not be started.
-	m.stopAll(ctx)
-	m.wg.Wait()
 	return err
 }
 
-// startProcessForKey starts the process for the given key. An error is returned
-// if Supervisor’s Run method is not currently running.
-func (m *Supervisor[K, P]) startProcessForKey(ctx context.Context, pk K) (*managedProcess[P], error) {
-	m.startMu.RLock()
-	defer m.startMu.RUnlock()
-	if !m.start {
-		return nil, ErrNotRunning
+// pre runs pre hook of the supervisor.
+func (s *Supervisor) pre(ctx context.Context) error {
+	if s.hook.Pre == nil {
+		return nil
 	}
-	if _, exists := m.processes.LoadOrStore(pk, nil); exists {
-		return nil, ErrProcessExists
-	}
-
-	r, err := m.table.Get(ctx, pk)
-	if err != nil {
-		m.processes.Delete(pk)
-		return nil, fmt.Errorf("get process from table: %w", err)
-	}
-	return m.startProcessUnlocked(ctx, pk, r)
+	return s.hook.Pre(ctx, s)
 }
 
-// startProcess starts the process for the given key. Unlike startProcessForKey,
-// it uses the given r [process.Runner] instance instead of getting it from the
-// table.
-func (m *Supervisor[K, P]) startProcess(ctx context.Context, pk K, r P) (*managedProcess[P], error) {
-	m.startMu.RLock()
-	defer m.startMu.RUnlock()
-	if !m.start {
-		return nil, ErrNotRunning
+// pre runs post hook of the supervisor.
+func (s *Supervisor) post(ctx context.Context) error {
+	if s.hook.Post == nil {
+		return nil
 	}
-	if _, exists := m.processes.LoadOrStore(pk, nil); exists {
-		return nil, ErrProcessExists
-	}
-	return m.startProcessUnlocked(ctx, pk, r)
-}
-
-// startProcessUnlocked starts the given process assuming that the start lock
-// was acquired and an entry in the processes map exists. It removes this entry
-// on error.
-func (m *Supervisor[K, P]) startProcessUnlocked(ctx context.Context, pk K, r P) (*managedProcess[P], error) {
-	p := &managedProcess[P]{
-		Process: process.NewProcess(m.parent, r),
-		runner:  r,
-	}
-	m.processes.Store(pk, p)
-	if err := p.Start(ctx); err != nil {
-		m.processes.Delete(pk)
-		return nil, fmt.Errorf("start process: %w", err)
-	}
-	m.wg.Add(1)
-	go m.watchdog(pk, p)
-	return p, nil
-}
-
-// watchdog waits for process shutdown and removes it from processes map on such
-// event.
-func (m *Supervisor[K, P]) watchdog(pk K, p *managedProcess[P]) {
-	defer m.wg.Done()
-
-	<-p.Done()
-
-	// Remove process from the processes map unless we have been stopped
-	// externally.
-	if p.stopped.Swap(true) {
-		return
-	}
-	m.processes.Delete(pk)
-
-	_ = p.Err() // TODO: log error
-}
-
-// stopProcess stops the process with the given key. If the processes does not
-// exist, it returns ErrProcessNotFound.
-func (m *Supervisor[K, P]) stopProcess(ctx context.Context, pk K) error {
-	p, ok := m.processes.Load(pk)
-	if !ok || p == nil {
-		return ErrProcessNotFound
-	}
-
-	// Something else has already stopped the given process. Do nothing.
-	if p.stopped.Swap(true) {
-		return ErrProcessNotFound
-	}
-	m.processes.Delete(pk)
-
-	return p.Stop(ctx)
-}
-
-// stopAll stops all the processes in the underlying map. It does not wait for
-// processes to complete the termination.
-func (m *Supervisor[K, P]) stopAll(ctx context.Context) {
-	m.processes.Range(func(pk K, _ *managedProcess[P]) bool {
-		m.wg.Add(1)
-		go func() {
-			defer m.wg.Done()
-			_ = m.stopProcess(ctx, pk)
-		}()
-		return true
-	})
+	return s.hook.Post(ctx, s)
 }
