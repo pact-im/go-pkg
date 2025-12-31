@@ -1,6 +1,6 @@
 module go.pact.im/x/httpprocess
 
-go 1.24.0
+go 1.25.0
 
 require (
 	go.pact.im/x/httptrack v0.0.13

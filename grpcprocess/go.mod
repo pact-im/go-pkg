@@ -1,6 +1,6 @@
 module go.pact.im/x/grpcprocess
 
-go 1.24.0
+go 1.25.0
 
 require (
 	go.pact.im/x/netchan v0.0.13

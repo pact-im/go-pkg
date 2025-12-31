@@ -1,6 +1,6 @@
 module go.pact.im/x/zapjournal/tests
 
-go 1.24.0
+go 1.25.0
 
 require (
 	github.com/valyala/fastjson v1.6.4
