@@ -10,5 +10,5 @@ require (
 
 require (
 	go.pact.im/x/clock v0.0.14 // indirect
-	go.pact.im/x/task v0.0.13 // indirect
+	go.pact.im/x/task v0.0.14 // indirect
 )
