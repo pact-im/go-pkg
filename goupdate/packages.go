@@ -97,7 +97,7 @@ func splitBrokenPackages(pkgs []*packages.Package) (good, broken []*packages.Pac
 		}
 		good = append(good, pkg)
 	}
-	return
+	return good, broken
 }
 
 // packagesByImportPath groups packages by their import path.
