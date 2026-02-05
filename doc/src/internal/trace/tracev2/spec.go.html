@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: spec.go in package internal/trace/tracev2</title>
+<link href="../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	spec.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../pkg/internal/trace/tracev2.html">internal/trace/tracev2</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4]
+{background: #226; color: #ff8;}
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2023 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> tracev2</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="comment">// EventType indicates an event's type from which its arguments and semantics can be</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment">// derived. Its representation matches the wire format's representation of the event</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment">// types that precede all event data.</span></code></span>
+<span class="codeline" id="line-10"><code><span class="keyword">type</span> <a href="../../../../pkg/internal/trace/tracev2.html#name-EventType" class="ident">EventType</a> <a href="../../../../pkg/builtin.html#name-uint8" class="ident">uint8</a></code></span>
+<span class="codeline" id="line-11"><code></code></span>
+<span class="codeline" id="line-12"><code><span class="comment">// EventSpec is a specification for a trace event. It contains sufficient information</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">// to perform basic parsing of any trace event for any version of Go.</span></code></span>
+<span class="codeline" id="line-14"><code><span class="keyword">type</span> <a href="../../../../pkg/internal/trace/tracev2.html#name-EventSpec" class="ident">EventSpec</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-15"><code>	<span class="comment">// Name is the human-readable name of the trace event.</span></code></span>
+<span class="codeline" id="line-16"><code>	<a href="../../../../use/internal/trace/tracev2..EventSpec.Name.html" class="ident">Name</a> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-17"><code></code></span>
+<span class="codeline" id="line-18"><code>	<span class="comment">// Args contains the names of each trace event's argument.</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">	// Its length determines the number of arguments an event has.</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">	// Argument names follow a certain structure and this structure</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">	// is relied on by the testing framework to type-check arguments</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">	// and to produce Values for experimental events.</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">	// The structure is:</span></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">	//     (?P&lt;name&gt;[A-Za-z]+)(_(?P&lt;type&gt;[A-Za-z]+))?</span></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">	// In sum, it's a name followed by an optional type.</span></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">	// If the type is present, it is preceded with an underscore.</span></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">	// Arguments without types will be interpreted as just raw uint64s.</span></code></span>
+<span class="codeline" id="line-32"><code><span class="comment">	// The valid argument types and the Go types they map to are listed</span></code></span>
+<span class="codeline" id="line-33"><code><span class="comment">	// in the ArgTypes variable.</span></code></span>
+<span class="codeline" id="line-34"><code>	<a href="../../../../use/internal/trace/tracev2..EventSpec.Args.html" class="ident">Args</a> []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-35"><code></code></span>
+<span class="codeline" id="line-36"><code>	<span class="comment">// StringIDs indicates which of the arguments are string IDs.</span></code></span>
+<span class="codeline" id="line-37"><code>	<a href="../../../../use/internal/trace/tracev2..EventSpec.StringIDs.html" class="ident">StringIDs</a> []<a href="../../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-38"><code></code></span>
+<span class="codeline" id="line-39"><code>	<span class="comment">// StackIDs indicates which of the arguments are stack IDs.</span></code></span>
+<span class="codeline" id="line-40"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-41"><code><span class="comment">	// The list is not sorted. The first index always refers to</span></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">	// the main stack for the current execution context of the event.</span></code></span>
+<span class="codeline" id="line-43"><code>	<a href="../../../../use/internal/trace/tracev2..EventSpec.StackIDs.html" class="ident">StackIDs</a> []<a href="../../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-44"><code></code></span>
+<span class="codeline" id="line-45"><code>	<span class="comment">// StartEv indicates the event type of the corresponding "start"</span></code></span>
+<span class="codeline" id="line-46"><code><span class="comment">	// event, if this event is an "end," for a pair of events that</span></code></span>
+<span class="codeline" id="line-47"><code><span class="comment">	// represent a time range.</span></code></span>
+<span class="codeline" id="line-48"><code>	<a href="../../../../use/internal/trace/tracev2..EventSpec.StartEv.html" class="ident">StartEv</a> <a href="#line-10" class="ident">EventType</a></code></span>
+<span class="codeline" id="line-49"><code></code></span>
+<span class="codeline" id="line-50"><code>	<span class="comment">// IsTimedEvent indicates whether this is an event that both</span></code></span>
+<span class="codeline" id="line-51"><code><span class="comment">	// appears in the main event stream and is surfaced to the</span></code></span>
+<span class="codeline" id="line-52"><code><span class="comment">	// trace reader.</span></code></span>
+<span class="codeline" id="line-53"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-54"><code><span class="comment">	// Events that are not "timed" are considered "structural"</span></code></span>
+<span class="codeline" id="line-55"><code><span class="comment">	// since they either need significant reinterpretation or</span></code></span>
+<span class="codeline" id="line-56"><code><span class="comment">	// otherwise aren't actually surfaced by the trace reader.</span></code></span>
+<span class="codeline" id="line-57"><code>	<a href="../../../../use/internal/trace/tracev2..EventSpec.IsTimedEvent.html" class="ident">IsTimedEvent</a> <a href="../../../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-58"><code></code></span>
+<span class="codeline" id="line-59"><code>	<span class="comment">// HasData is true if the event has trailer consisting of a</span></code></span>
+<span class="codeline" id="line-60"><code><span class="comment">	// varint length followed by unencoded bytes of some data.</span></code></span>
+<span class="codeline" id="line-61"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-62"><code><span class="comment">	// An event may not be both a timed event and have data.</span></code></span>
+<span class="codeline" id="line-63"><code>	<a href="../../../../use/internal/trace/tracev2..EventSpec.HasData.html" class="ident">HasData</a> <a href="../../../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-64"><code></code></span>
+<span class="codeline" id="line-65"><code>	<span class="comment">// IsStack indicates that the event represents a complete</span></code></span>
+<span class="codeline" id="line-66"><code><span class="comment">	// stack trace. Specifically, it means that after the arguments</span></code></span>
+<span class="codeline" id="line-67"><code><span class="comment">	// there's a varint length, followed by 4*length varints. Each</span></code></span>
+<span class="codeline" id="line-68"><code><span class="comment">	// group of 4 represents the PC, file ID, func ID, and line number</span></code></span>
+<span class="codeline" id="line-69"><code><span class="comment">	// in that order.</span></code></span>
+<span class="codeline" id="line-70"><code>	<a href="../../../../use/internal/trace/tracev2..EventSpec.IsStack.html" class="ident">IsStack</a> <a href="../../../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-71"><code></code></span>
+<span class="codeline" id="line-72"><code>	<span class="comment">// Experiment indicates the ID of an experiment this event is associated</span></code></span>
+<span class="codeline" id="line-73"><code><span class="comment">	// with. If Experiment is not NoExperiment, then the event is experimental</span></code></span>
+<span class="codeline" id="line-74"><code><span class="comment">	// and will be exposed as an EventExperiment.</span></code></span>
+<span class="codeline" id="line-75"><code>	<a href="../../../../use/internal/trace/tracev2..EventSpec.Experiment.html" class="ident">Experiment</a> <a href="#line-104" class="ident">Experiment</a></code></span>
+<span class="codeline" id="line-76"><code>}</code></span>
+<span class="codeline" id="line-77"><code></code></span>
+<span class="codeline" id="line-78"><code><span class="comment">// EventArgTypes is a list of valid argument types for use in Args.</span></code></span>
+<span class="codeline" id="line-79"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-80"><code><span class="comment">// See the documentation of Args for more details.</span></code></span>
+<span class="codeline" id="line-81"><code><span class="keyword">var</span> <a href="../../../../pkg/internal/trace/tracev2.html#name-EventArgTypes" class="ident">EventArgTypes</a> = [...]<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>{</code></span>
+<span class="codeline" id="line-82"><code>	<span class="lit-string">"seq"</span>,     <span class="comment">// sequence number</span></code></span>
+<span class="codeline" id="line-83"><code>	<span class="lit-string">"pstatus"</span>, <span class="comment">// P status</span></code></span>
+<span class="codeline" id="line-84"><code>	<span class="lit-string">"gstatus"</span>, <span class="comment">// G status</span></code></span>
+<span class="codeline" id="line-85"><code>	<span class="lit-string">"g"</span>,       <span class="comment">// trace.GoID</span></code></span>
+<span class="codeline" id="line-86"><code>	<span class="lit-string">"m"</span>,       <span class="comment">// trace.ThreadID</span></code></span>
+<span class="codeline" id="line-87"><code>	<span class="lit-string">"p"</span>,       <span class="comment">// trace.ProcID</span></code></span>
+<span class="codeline" id="line-88"><code>	<span class="lit-string">"string"</span>,  <span class="comment">// string ID</span></code></span>
+<span class="codeline" id="line-89"><code>	<span class="lit-string">"stack"</span>,   <span class="comment">// stack ID</span></code></span>
+<span class="codeline" id="line-90"><code>	<span class="lit-string">"value"</span>,   <span class="comment">// uint64</span></code></span>
+<span class="codeline" id="line-91"><code>	<span class="lit-string">"task"</span>,    <span class="comment">// trace.TaskID</span></code></span>
+<span class="codeline" id="line-92"><code>}</code></span>
+<span class="codeline" id="line-93"><code></code></span>
+<span class="codeline" id="line-94"><code><span class="comment">// EventNames is a helper that produces a mapping of event names to event types.</span></code></span>
+<span class="codeline" id="line-95"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../pkg/internal/trace/tracev2.html#name-EventNames" class="ident">EventNames</a></label>(<label for="r1" class="ident">specs</label> []<a href="#line-14" class="ident">EventSpec</a>) <span class="keyword">map</span>[<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>]<a href="#line-10" class="ident">EventType</a> {</code></span>
+<span class="codeline" id="line-96"><code>	<label for="r2" class="ident">nameToType</label> := <a href="../../../../pkg/builtin.html#name-make" class="ident">make</a>(<span class="keyword">map</span>[<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>]<a href="#line-10" class="ident">EventType</a>)</code></span>
+<span class="codeline" id="line-97"><code>	<span class="keyword">for</span> <label for="r3" class="ident">i</label>, <label for="r4" class="ident">spec</label> := <span class="keyword">range</span> <label for="r1" class="ident">specs</label> {</code></span>
+<span class="codeline" id="line-98"><code>		<label for="r2" class="ident">nameToType</label>[<label for="r4" class="ident">spec</label>.<a href="#line-16" class="ident">Name</a>] = <a href="#line-10" class="ident">EventType</a>(<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>(<label for="r3" class="ident">i</label>))</code></span>
+<span class="codeline" id="line-99"><code>	}</code></span>
+<span class="codeline" id="line-100"><code>	<span class="keyword">return</span> <label for="r2" class="ident">nameToType</label></code></span>
+<span class="codeline" id="line-101"><code>}</code></span>
+<span class="codeline" id="line-102"><code></code></span>
+<span class="codeline" id="line-103"><code><span class="comment">// Experiment is an experiment ID that events may be associated with.</span></code></span>
+<span class="codeline" id="line-104"><code><span class="keyword">type</span> <a href="../../../../pkg/internal/trace/tracev2.html#name-Experiment" class="ident">Experiment</a> <a href="../../../../pkg/builtin.html#name-uint" class="ident">uint</a></code></span>
+<span class="codeline" id="line-105"><code></code></span>
+<span class="codeline" id="line-106"><code><span class="comment">// NoExperiment is the reserved ID 0 indicating no experiment.</span></code></span>
+<span class="codeline" id="line-107"><code><span class="keyword">const</span> <a href="../../../../pkg/internal/trace/tracev2.html#name-NoExperiment" class="ident">NoExperiment</a> <a href="#line-104" class="ident">Experiment</a> = <span class="lit-number">0</span></code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

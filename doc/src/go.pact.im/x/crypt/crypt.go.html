@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: crypt.go in package go.pact.im/x/crypt</title>
+<link href="../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	crypt.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../pkg/go.pact.im/x/crypt.html">go.pact.im/x/crypt</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<div class="anchor" id="doc"><span class="codeline" id="line-1"><code><span class="comment">// Package crypt provides a UNIX crypt-style API for password hashing using</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// structured hashes in PHC format.</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-4"><code><span class="comment">// # Built-in functions</span></code></span>
+<span class="codeline" id="line-5"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment">// This package provides the built-in implementations for widely used password</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment">// hashing algorithms with reasonable default parameter values.</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment">// ## Argon2</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment">// Argon2 implementation supports Argon2i and Argon2id variants, and requires</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment">// explicit memory, iterations and parallelism parameters.</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">//	$argon2&lt;variant&gt;[$v=&lt;version&gt;]$m=&lt;memory&gt;,t=&lt;iterations&gt;,p=&lt;parallelism&gt;[$&lt;salt&gt;[$&lt;hash&gt;]]</span></code></span></div><span class="codeline" id="line-15"><code><span class="keyword">package</span> crypt</code></span>
+<span class="codeline" id="line-16"><code></code></span>
+<span class="codeline" id="line-17"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-18"><code>	<label for="i0"><span class="lit-string i0">"encoding/base64"</span></label></code></span>
+<span class="codeline" id="line-19"><code>	<label for="i1"><span class="lit-string i1">"fmt"</span></label></code></span>
+<span class="codeline" id="line-20"><code></code></span>
+<span class="codeline" id="line-21"><code>	<label for="i2"><span class="lit-string i2">"go.pact.im/x/phcformat"</span></label></code></span>
+<span class="codeline" id="line-22"><code></code></span>
+<span class="codeline" id="line-23"><code>	<label for="i3"><span class="lit-string i3">"go.pact.im/x/crypt/crypterrors"</span></label></code></span>
+<span class="codeline" id="line-24"><code>)</code></span>
+<span class="codeline" id="line-25"><code></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">// b64 is a strict unpadded base64 encoding.</span></code></span>
+<span class="codeline" id="line-27"><code><span class="keyword">var</span> <a href="../../../../pkg/go.pact.im/x/crypt.html#name-b64" class="ident">b64</a> = <a href="../../../../pkg/encoding/base64.html" class="ident i0">base64</a>.<a href="../../../encoding/base64/base64.go.html#line-128" class="ident">RawStdEncoding</a>.<a href="../../../encoding/base64/base64.go.html#line-113" class="ident">Strict</a>()</code></span>
+<span class="codeline" id="line-28"><code></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">// Crypter is a UNIX crypt-like API that can be used both for password</span></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">// registration, and for password verification.</span></code></span>
+<span class="codeline" id="line-31"><code><span class="keyword">type</span> <a href="../../../../pkg/go.pact.im/x/crypt.html#name-Crypter" class="ident">Crypter</a> <span class="keyword">interface</span> {</code></span>
+<span class="codeline" id="line-32"><code>	<span class="comment">// Crypt computes the hash of password string k using the given hash</span></code></span>
+<span class="codeline" id="line-33"><code><span class="comment">	// parameters. Applying Crypt to the returned hash is deterministic,</span></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">	// that is, it always returns the same result that is equal to the</span></code></span>
+<span class="codeline" id="line-35"><code><span class="comment">	// returned hash.</span></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">	// If h contains a salt string without output, then Crypt computes a</span></code></span>
+<span class="codeline" id="line-38"><code><span class="comment">	// hash output whose length is the default output length for the</span></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">	// specified hash algorithm. The resulting hash contains a strict,</span></code></span>
+<span class="codeline" id="line-40"><code><span class="comment">	// deterministic encoding of the used parameters, salt and output.</span></code></span>
+<span class="codeline" id="line-41"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">	// If h does not contain salt (and therefore output), then it generates</span></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">	// a new new appropriate salt value as mandated by the specified hash</span></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">	// algorithm using the defined default salt length, and then proceeds</span></code></span>
+<span class="codeline" id="line-45"><code><span class="comment">	// as in the previous case.</span></code></span>
+<span class="codeline" id="line-46"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-47"><code><span class="comment">	// If h contains hash function output, then it computes an output with</span></code></span>
+<span class="codeline" id="line-48"><code><span class="comment">	// exactly the same length as the one provided in the input. It returns</span></code></span>
+<span class="codeline" id="line-49"><code><span class="comment">	// the exact parameters and salt as they were received, and the newly</span></code></span>
+<span class="codeline" id="line-50"><code><span class="comment">	// computed output. Basically, it recomputes hash output for password</span></code></span>
+<span class="codeline" id="line-51"><code><span class="comment">	// verification.</span></code></span>
+<span class="codeline" id="line-52"><code>	<a href="../../../../imp/go.pact.im/x/crypt.Crypter.html#name-Crypt" class="ident">Crypt</a>(k, h <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>) (<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
+<span class="codeline" id="line-53"><code>}</code></span>
+<span class="codeline" id="line-54"><code></code></span>
+<span class="codeline" id="line-55"><code><span class="comment">// crypter is the default Crypter implementation that delegates to</span></code></span>
+<span class="codeline" id="line-56"><code><span class="comment">// algorithm-specific parsedCrypter based on the hash ID.</span></code></span>
+<span class="codeline" id="line-57"><code><span class="keyword">type</span> <a href="../../../../pkg/go.pact.im/x/crypt.html#name-crypter" class="ident">crypter</a> <span class="keyword">map</span>[<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>]<a href="#line-61" class="ident">parsedCrypter</a></code></span>
+<span class="codeline" id="line-58"><code></code></span>
+<span class="codeline" id="line-59"><code><span class="comment">// parsedCrypter is a Crypter variant used by crypter that accepts a parsed hash</span></code></span>
+<span class="codeline" id="line-60"><code><span class="comment">// instead of an opaque string.</span></code></span>
+<span class="codeline" id="line-61"><code><span class="keyword">type</span> <a href="../../../../pkg/go.pact.im/x/crypt.html#name-parsedCrypter" class="ident">parsedCrypter</a> <span class="keyword">interface</span> {</code></span>
+<span class="codeline" id="line-62"><code>	<a href="../../../../imp/go.pact.im/x/crypt.parsedCrypter^f214f.html#name-go.pact.im/x/crypt.parsedCrypt" class="ident">parsedCrypt</a>(k <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>, h <a href="../../../../pkg/go.pact.im/x/phcformat.html" class="ident i2">phcformat</a>.<a href="../phcformat/phcformat.go.html#line-11" class="ident">Hash</a>) (<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
+<span class="codeline" id="line-63"><code>}</code></span>
+<span class="codeline" id="line-64"><code></code></span>
+<span class="codeline" id="line-65"><code><span class="comment">// Crypt implements the Crypter interface.</span></code></span>
+<span class="codeline" id="line-66"><code><span class="keyword">func</span> (<label for="r0" class="ident">c</label> <a href="#line-57" class="ident">crypter</a>) <label for="r1" class="ident"><a href="../../../../use/go.pact.im/x/crypt..crypter^dbb82.Crypt.html" class="ident">Crypt</a></label>(<label for="r2" class="ident">k</label>, <label for="r3" class="ident">h</label> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>) (<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-67"><code>	<label for="r4" class="ident">hash</label>, <label for="r5" class="ident">ok</label> := <a href="../../../../pkg/go.pact.im/x/phcformat.html" class="ident i2">phcformat</a>.<a href="../phcformat/parse.go.html#line-21" class="ident">Parse</a>(<label for="r3" class="ident">h</label>)</code></span>
+<span class="codeline" id="line-68"><code>	<span class="keyword">if</span> !<label for="r5" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-69"><code>		<span class="keyword">return</span> <span class="lit-string">""</span>, &amp;<a href="../../../../pkg/go.pact.im/x/crypt/crypterrors.html" class="ident i3">crypterrors</a>.<a href="crypterrors/crypterrors.go.html#line-11" class="ident">MalformedHashError</a>{</code></span>
+<span class="codeline" id="line-70"><code>			<a href="crypterrors/crypterrors.go.html#line-13" class="ident">Hash</a>: <label for="r3" class="ident">h</label>,</code></span>
+<span class="codeline" id="line-71"><code>		}</code></span>
+<span class="codeline" id="line-72"><code>	}</code></span>
+<span class="codeline" id="line-73"><code></code></span>
+<span class="codeline" id="line-74"><code>	<span class="keyword">var</span> <label for="r6" class="ident">out</label> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-75"><code>	<span class="keyword">var</span> <label for="r7" class="ident">err</label> <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-76"><code></code></span>
+<span class="codeline" id="line-77"><code>	<span class="keyword">if</span> <label for="r8" class="ident">algo</label>, <label for="r9" class="ident">ok</label> := <label for="r0" class="ident">c</label>[<label for="r4" class="ident">hash</label>.<a href="../phcformat/phcformat.go.html#line-16" class="ident">ID</a>]; !<label for="r9" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-78"><code>		<label for="r6" class="ident">out</label>, <label for="r7" class="ident">err</label> = <label for="r8" class="ident">algo</label>.<a href="#line-62" class="ident">parsedCrypt</a>(<label for="r2" class="ident">k</label>, <label for="r4" class="ident">hash</label>)</code></span>
+<span class="codeline" id="line-79"><code>		<span class="keyword">if</span> <label for="r7" class="ident">err</label> != <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-80"><code>			<label for="r7" class="ident">err</label> = <a href="../../../../pkg/fmt.html" class="ident i1">fmt</a>.<a href="../../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"%s: %w"</span>, <label for="r4" class="ident">hash</label>.<a href="../phcformat/phcformat.go.html#line-16" class="ident">ID</a>, <label for="r7" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-81"><code>		}</code></span>
+<span class="codeline" id="line-82"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-83"><code>		<label for="r7" class="ident">err</label> = &amp;<a href="../../../../pkg/go.pact.im/x/crypt/crypterrors.html" class="ident i3">crypterrors</a>.<a href="crypterrors/crypterrors.go.html#line-27" class="ident">UnsupportedHashError</a>{</code></span>
+<span class="codeline" id="line-84"><code>			<a href="crypterrors/crypterrors.go.html#line-29" class="ident">HashID</a>: <label for="r4" class="ident">hash</label>.<a href="../phcformat/phcformat.go.html#line-16" class="ident">ID</a>,</code></span>
+<span class="codeline" id="line-85"><code>		}</code></span>
+<span class="codeline" id="line-86"><code>	}</code></span>
+<span class="codeline" id="line-87"><code>	<span class="keyword">if</span> <label for="r7" class="ident">err</label> != <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-88"><code>		<span class="keyword">return</span> <span class="lit-string">""</span>, <a href="../../../../pkg/fmt.html" class="ident i1">fmt</a>.<a href="../../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"crypt: %w"</span>, <label for="r7" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-89"><code>	}</code></span>
+<span class="codeline" id="line-90"><code></code></span>
+<span class="codeline" id="line-91"><code>	<span class="keyword">return</span> <label for="r6" class="ident">out</label>, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-92"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

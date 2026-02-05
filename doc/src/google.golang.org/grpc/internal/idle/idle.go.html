@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: idle.go in package google.golang.org/grpc/internal/idle</title>
+<link href="../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	idle.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../pkg/google.golang.org/grpc/internal/idle.html">google.golang.org/grpc/internal/idle</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3,
+input[id=i4]:checked ~pre .i4
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+<input id="i4" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">/*</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment"> * Copyright 2023 gRPC authors.</span></code></span>
+<span class="codeline" id="line-4"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-5"><code><span class="comment"> * Licensed under the Apache License, Version 2.0 (the "License");</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment"> * you may not use this file except in compliance with the License.</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment"> * You may obtain a copy of the License at</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment"> *     http://www.apache.org/licenses/LICENSE-2.0</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment"> * Unless required by applicable law or agreed to in writing, software</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment"> * distributed under the License is distributed on an "AS IS" BASIS,</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment"> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment"> * See the License for the specific language governing permissions and</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment"> * limitations under the License.</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment"> */</span></code></span>
+<span class="codeline" id="line-18"><code></code></span>
+<div class="anchor" id="doc"><span class="codeline" id="line-19"><code><span class="comment">// Package idle contains a component for managing idleness (entering and exiting)</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">// based on RPC activity.</span></code></span></div><span class="codeline" id="line-21"><code><span class="keyword">package</span> idle</code></span>
+<span class="codeline" id="line-22"><code></code></span>
+<span class="codeline" id="line-23"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-24"><code>	<label for="i0"><span class="lit-string i0">"fmt"</span></label></code></span>
+<span class="codeline" id="line-25"><code>	<label for="i1"><span class="lit-string i1">"math"</span></label></code></span>
+<span class="codeline" id="line-26"><code>	<label for="i2"><span class="lit-string i2">"sync"</span></label></code></span>
+<span class="codeline" id="line-27"><code>	<label for="i3"><span class="lit-string i3">"sync/atomic"</span></label></code></span>
+<span class="codeline" id="line-28"><code>	<label for="i4"><span class="lit-string i4">"time"</span></label></code></span>
+<span class="codeline" id="line-29"><code>)</code></span>
+<span class="codeline" id="line-30"><code></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">// For overriding in unit tests.</span></code></span>
+<span class="codeline" id="line-32"><code><span class="keyword">var</span> <a href="../../../../../pkg/google.golang.org/grpc/internal/idle.html#name-timeAfterFunc" class="ident">timeAfterFunc</a> = <span class="keyword">func</span>(<label for="r0" class="ident">d</label> <a href="../../../../../pkg/time.html" class="ident i4">time</a>.<a href="../../../../time/time.go.html#line-911" class="ident">Duration</a>, <label for="r1" class="ident">f</label> <span class="keyword">func</span>()) *<a href="../../../../../pkg/time.html" class="ident i4">time</a>.<a href="../../../../time/sleep.go.html#line-89" class="ident">Timer</a> {</code></span>
+<span class="codeline" id="line-33"><code>	<span class="keyword">return</span> <a href="../../../../../pkg/time.html" class="ident i4">time</a>.<a href="../../../../time/sleep.go.html#line-210" class="ident">AfterFunc</a>(<label for="r0" class="ident">d</label>, <label for="r1" class="ident">f</label>)</code></span>
+<span class="codeline" id="line-34"><code>}</code></span>
+<span class="codeline" id="line-35"><code></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">// Enforcer is the functionality provided by grpc.ClientConn to enter</span></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">// and exit from idle mode.</span></code></span>
+<span class="codeline" id="line-38"><code><span class="keyword">type</span> <a href="../../../../../pkg/google.golang.org/grpc/internal/idle.html#name-Enforcer" class="ident">Enforcer</a> <span class="keyword">interface</span> {</code></span>
+<span class="codeline" id="line-39"><code>	<a href="../../../../../imp/google.golang.org/grpc/internal/idle.Enforcer.html#name-ExitIdleMode" class="ident">ExitIdleMode</a>() <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-40"><code>	<a href="../../../../../imp/google.golang.org/grpc/internal/idle.Enforcer.html#name-EnterIdleMode" class="ident">EnterIdleMode</a>()</code></span>
+<span class="codeline" id="line-41"><code>}</code></span>
+<span class="codeline" id="line-42"><code></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">// Manager implements idleness detection and calls the configured Enforcer to</span></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">// enter/exit idle mode when appropriate.  Must be created by NewManager.</span></code></span>
+<span class="codeline" id="line-45"><code><span class="keyword">type</span> <a href="../../../../../pkg/google.golang.org/grpc/internal/idle.html#name-Manager" class="ident">Manager</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-46"><code>	<span class="comment">// State accessed atomically.</span></code></span>
+<span class="codeline" id="line-47"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/idle..Manager.lastCallEndTime^ea5f2.html" class="ident">lastCallEndTime</a>           <a href="../../../../../pkg/builtin.html#name-int64" class="ident">int64</a> <span class="comment">// Unix timestamp in nanos; time when the most recent RPC completed.</span></code></span>
+<span class="codeline" id="line-48"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/idle..Manager.activeCallsCount^6d8c4.html" class="ident">activeCallsCount</a>          <a href="../../../../../pkg/builtin.html#name-int32" class="ident">int32</a> <span class="comment">// Count of active RPCs; -math.MaxInt32 means channel is idle or is trying to get there.</span></code></span>
+<span class="codeline" id="line-49"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/idle..Manager.activeSinceLastTimerCheck^d5203.html" class="ident">activeSinceLastTimerCheck</a> <a href="../../../../../pkg/builtin.html#name-int32" class="ident">int32</a> <span class="comment">// Boolean; True if there was an RPC since the last timer callback.</span></code></span>
+<span class="codeline" id="line-50"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/idle..Manager.closed^c3eef.html" class="ident">closed</a>                    <a href="../../../../../pkg/builtin.html#name-int32" class="ident">int32</a> <span class="comment">// Boolean; True when the manager is closed.</span></code></span>
+<span class="codeline" id="line-51"><code></code></span>
+<span class="codeline" id="line-52"><code>	<span class="comment">// Can be accessed without atomics or mutex since these are set at creation</span></code></span>
+<span class="codeline" id="line-53"><code><span class="comment">	// time and read-only after that.</span></code></span>
+<span class="codeline" id="line-54"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/idle..Manager.enforcer^7c285.html" class="ident">enforcer</a> <a href="#line-38" class="ident">Enforcer</a> <span class="comment">// Functionality provided by grpc.ClientConn.</span></code></span>
+<span class="codeline" id="line-55"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/idle..Manager.timeout^f77d1.html" class="ident">timeout</a>  <a href="../../../../../pkg/time.html" class="ident i4">time</a>.<a href="../../../../time/time.go.html#line-911" class="ident">Duration</a></code></span>
+<span class="codeline" id="line-56"><code></code></span>
+<span class="codeline" id="line-57"><code>	<span class="comment">// idleMu is used to guarantee mutual exclusion in two scenarios:</span></code></span>
+<span class="codeline" id="line-58"><code><span class="comment">	// - Opposing intentions:</span></code></span>
+<span class="codeline" id="line-59"><code><span class="comment">	//   - a: Idle timeout has fired and handleIdleTimeout() is trying to put</span></code></span>
+<span class="codeline" id="line-60"><code><span class="comment">	//     the channel in idle mode because the channel has been inactive.</span></code></span>
+<span class="codeline" id="line-61"><code><span class="comment">	//   - b: At the same time an RPC is made on the channel, and OnCallBegin()</span></code></span>
+<span class="codeline" id="line-62"><code><span class="comment">	//     is trying to prevent the channel from going idle.</span></code></span>
+<span class="codeline" id="line-63"><code><span class="comment">	// - Competing intentions:</span></code></span>
+<span class="codeline" id="line-64"><code><span class="comment">	//   - The channel is in idle mode and there are multiple RPCs starting at</span></code></span>
+<span class="codeline" id="line-65"><code><span class="comment">	//     the same time, all trying to move the channel out of idle. Only one</span></code></span>
+<span class="codeline" id="line-66"><code><span class="comment">	//     of them should succeed in doing so, while the other RPCs should</span></code></span>
+<span class="codeline" id="line-67"><code><span class="comment">	//     piggyback on the first one and be successfully handled.</span></code></span>
+<span class="codeline" id="line-68"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/idle..Manager.idleMu^85217.html" class="ident">idleMu</a>       <a href="../../../../../pkg/sync.html" class="ident i2">sync</a>.<a href="../../../../sync/rwmutex.go.html#line-39" class="ident">RWMutex</a></code></span>
+<span class="codeline" id="line-69"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/idle..Manager.actuallyIdle^dce45.html" class="ident">actuallyIdle</a> <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-70"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/idle..Manager.timer^cd94e.html" class="ident">timer</a>        *<a href="../../../../../pkg/time.html" class="ident i4">time</a>.<a href="../../../../time/sleep.go.html#line-89" class="ident">Timer</a></code></span>
+<span class="codeline" id="line-71"><code>}</code></span>
+<span class="codeline" id="line-72"><code></code></span>
+<span class="codeline" id="line-73"><code><span class="comment">// NewManager creates a new idleness manager implementation for the</span></code></span>
+<span class="codeline" id="line-74"><code><span class="comment">// given idle timeout.  It begins in idle mode.</span></code></span>
+<span class="codeline" id="line-75"><code><span class="keyword">func</span> <label for="r2" class="ident"><a href="../../../../../pkg/google.golang.org/grpc/internal/idle.html#name-NewManager" class="ident">NewManager</a></label>(<label for="r3" class="ident">enforcer</label> <a href="#line-38" class="ident">Enforcer</a>, <label for="r4" class="ident">timeout</label> <a href="../../../../../pkg/time.html" class="ident i4">time</a>.<a href="../../../../time/time.go.html#line-911" class="ident">Duration</a>) *<a href="#line-45" class="ident">Manager</a> {</code></span>
+<span class="codeline" id="line-76"><code>	<span class="keyword">return</span> &amp;<a href="#line-45" class="ident">Manager</a>{</code></span>
+<span class="codeline" id="line-77"><code>		<a href="#line-54" class="ident">enforcer</a>:         <label for="r3" class="ident">enforcer</label>,</code></span>
+<span class="codeline" id="line-78"><code>		<a href="#line-55" class="ident">timeout</a>:          <label for="r4" class="ident">timeout</label>,</code></span>
+<span class="codeline" id="line-79"><code>		<a href="#line-69" class="ident">actuallyIdle</a>:     <a href="../../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-80"><code>		<a href="#line-48" class="ident">activeCallsCount</a>: -<a href="../../../../../pkg/math.html" class="ident i1">math</a>.<a href="../../../../math/const.go.html#line-48" class="ident">MaxInt32</a>,</code></span>
+<span class="codeline" id="line-81"><code>	}</code></span>
+<span class="codeline" id="line-82"><code>}</code></span>
+<span class="codeline" id="line-83"><code></code></span>
+<span class="codeline" id="line-84"><code><span class="comment">// resetIdleTimerLocked resets the idle timer to the given duration.  Called</span></code></span>
+<span class="codeline" id="line-85"><code><span class="comment">// when exiting idle mode or when the timer fires and we need to reset it.</span></code></span>
+<span class="codeline" id="line-86"><code><span class="keyword">func</span> (<label for="r5" class="ident">m</label> *<a href="#line-45" class="ident">Manager</a>) <label for="r6" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/idle..Manager.resetIdleTimerLocked^d09e6.html" class="ident">resetIdleTimerLocked</a></label>(<label for="r7" class="ident">d</label> <a href="../../../../../pkg/time.html" class="ident i4">time</a>.<a href="../../../../time/time.go.html#line-911" class="ident">Duration</a>) {</code></span>
+<span class="codeline" id="line-87"><code>	<span class="keyword">if</span> <label for="r5" class="ident">m</label>.<a href="#line-266" class="ident">isClosed</a>() || <label for="r5" class="ident">m</label>.<a href="#line-55" class="ident">timeout</a> == <span class="lit-number">0</span> || <label for="r5" class="ident">m</label>.<a href="#line-69" class="ident">actuallyIdle</a> {</code></span>
+<span class="codeline" id="line-88"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-89"><code>	}</code></span>
+<span class="codeline" id="line-90"><code></code></span>
+<span class="codeline" id="line-91"><code>	<span class="comment">// It is safe to ignore the return value from Reset() because this method is</span></code></span>
+<span class="codeline" id="line-92"><code><span class="comment">	// only ever called from the timer callback or when exiting idle mode.</span></code></span>
+<span class="codeline" id="line-93"><code>	<span class="keyword">if</span> <label for="r5" class="ident">m</label>.<a href="#line-70" class="ident">timer</a> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-94"><code>		<label for="r5" class="ident">m</label>.<a href="#line-70" class="ident">timer</a>.<a href="../../../../time/sleep.go.html#line-113" class="ident">Stop</a>()</code></span>
+<span class="codeline" id="line-95"><code>	}</code></span>
+<span class="codeline" id="line-96"><code>	<label for="r5" class="ident">m</label>.<a href="#line-70" class="ident">timer</a> = <a href="#line-32" class="ident">timeAfterFunc</a>(<label for="r7" class="ident">d</label>, <label for="r5" class="ident">m</label>.<a href="#line-108" class="ident">handleIdleTimeout</a>)</code></span>
+<span class="codeline" id="line-97"><code>}</code></span>
+<span class="codeline" id="line-98"><code></code></span>
+<span class="codeline" id="line-99"><code><span class="keyword">func</span> (<label for="r8" class="ident">m</label> *<a href="#line-45" class="ident">Manager</a>) <label for="r9" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/idle..Manager.resetIdleTimer^495e2.html" class="ident">resetIdleTimer</a></label>(<label for="r10" class="ident">d</label> <a href="../../../../../pkg/time.html" class="ident i4">time</a>.<a href="../../../../time/time.go.html#line-911" class="ident">Duration</a>) {</code></span>
+<span class="codeline" id="line-100"><code>	<label for="r8" class="ident">m</label>.<a href="#line-68" class="ident">idleMu</a>.<a href="../../../../sync/rwmutex.go.html#line-144" class="ident">Lock</a>()</code></span>
+<span class="codeline" id="line-101"><code>	<span class="keyword">defer</span> <label for="r8" class="ident">m</label>.<a href="#line-68" class="ident">idleMu</a>.<a href="../../../../sync/rwmutex.go.html#line-201" class="ident">Unlock</a>()</code></span>
+<span class="codeline" id="line-102"><code>	<label for="r8" class="ident">m</label>.<a href="#line-86" class="ident">resetIdleTimerLocked</a>(<label for="r10" class="ident">d</label>)</code></span>
+<span class="codeline" id="line-103"><code>}</code></span>
+<span class="codeline" id="line-104"><code></code></span>
+<span class="codeline" id="line-105"><code><span class="comment">// handleIdleTimeout is the timer callback that is invoked upon expiry of the</span></code></span>
+<span class="codeline" id="line-106"><code><span class="comment">// configured idle timeout. The channel is considered inactive if there are no</span></code></span>
+<span class="codeline" id="line-107"><code><span class="comment">// ongoing calls and no RPC activity since the last time the timer fired.</span></code></span>
+<span class="codeline" id="line-108"><code><span class="keyword">func</span> (<label for="r11" class="ident">m</label> *<a href="#line-45" class="ident">Manager</a>) <label for="r12" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/idle..Manager.handleIdleTimeout^1c4ab.html" class="ident">handleIdleTimeout</a></label>() {</code></span>
+<span class="codeline" id="line-109"><code>	<span class="keyword">if</span> <label for="r11" class="ident">m</label>.<a href="#line-266" class="ident">isClosed</a>() {</code></span>
+<span class="codeline" id="line-110"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-111"><code>	}</code></span>
+<span class="codeline" id="line-112"><code></code></span>
+<span class="codeline" id="line-113"><code>	<span class="keyword">if</span> <a href="../../../../../pkg/sync/atomic.html" class="ident i3">atomic</a>.<a href="../../../../sync/atomic/doc.go.html#line-177" class="ident">LoadInt32</a>(&amp;<label for="r11" class="ident">m</label>.<a href="#line-48" class="ident">activeCallsCount</a>) &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-114"><code>		<label for="r11" class="ident">m</label>.<a href="#line-99" class="ident">resetIdleTimer</a>(<label for="r11" class="ident">m</label>.<a href="#line-55" class="ident">timeout</a>)</code></span>
+<span class="codeline" id="line-115"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-116"><code>	}</code></span>
+<span class="codeline" id="line-117"><code></code></span>
+<span class="codeline" id="line-118"><code>	<span class="comment">// There has been activity on the channel since we last got here. Reset the</span></code></span>
+<span class="codeline" id="line-119"><code><span class="comment">	// timer and return.</span></code></span>
+<span class="codeline" id="line-120"><code>	<span class="keyword">if</span> <a href="../../../../../pkg/sync/atomic.html" class="ident i3">atomic</a>.<a href="../../../../sync/atomic/doc.go.html#line-177" class="ident">LoadInt32</a>(&amp;<label for="r11" class="ident">m</label>.<a href="#line-49" class="ident">activeSinceLastTimerCheck</a>) == <span class="lit-number">1</span> {</code></span>
+<span class="codeline" id="line-121"><code>		<span class="comment">// Set the timer to fire after a duration of idle timeout, calculated</span></code></span>
+<span class="codeline" id="line-122"><code><span class="comment">		// from the time the most recent RPC completed.</span></code></span>
+<span class="codeline" id="line-123"><code>		<a href="../../../../../pkg/sync/atomic.html" class="ident i3">atomic</a>.<a href="../../../../sync/atomic/doc.go.html#line-199" class="ident">StoreInt32</a>(&amp;<label for="r11" class="ident">m</label>.<a href="#line-49" class="ident">activeSinceLastTimerCheck</a>, <span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-124"><code>		<label for="r11" class="ident">m</label>.<a href="#line-99" class="ident">resetIdleTimer</a>(<a href="../../../../../pkg/time.html" class="ident i4">time</a>.<a href="../../../../time/time.go.html#line-911" class="ident">Duration</a>(<a href="../../../../../pkg/sync/atomic.html" class="ident i3">atomic</a>.<a href="../../../../sync/atomic/doc_64.go.html#line-86" class="ident">LoadInt64</a>(&amp;<label for="r11" class="ident">m</label>.<a href="#line-47" class="ident">lastCallEndTime</a>)-<a href="../../../../../pkg/time.html" class="ident i4">time</a>.<a href="../../../../time/time.go.html#line-1343" class="ident">Now</a>().<a href="../../../../time/time.go.html#line-1456" class="ident">UnixNano</a>()) + <label for="r11" class="ident">m</label>.<a href="#line-55" class="ident">timeout</a>)</code></span>
+<span class="codeline" id="line-125"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-126"><code>	}</code></span>
+<span class="codeline" id="line-127"><code></code></span>
+<span class="codeline" id="line-128"><code>	<span class="comment">// Now that we've checked that there has been no activity, attempt to enter</span></code></span>
+<span class="codeline" id="line-129"><code><span class="comment">	// idle mode, which is very likely to succeed.</span></code></span>
+<span class="codeline" id="line-130"><code>	<span class="keyword">if</span> <label for="r11" class="ident">m</label>.<a href="#line-148" class="ident">tryEnterIdleMode</a>() {</code></span>
+<span class="codeline" id="line-131"><code>		<span class="comment">// Successfully entered idle mode. No timer needed until we exit idle.</span></code></span>
+<span class="codeline" id="line-132"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-133"><code>	}</code></span>
+<span class="codeline" id="line-134"><code></code></span>
+<span class="codeline" id="line-135"><code>	<span class="comment">// Failed to enter idle mode due to a concurrent RPC that kept the channel</span></code></span>
+<span class="codeline" id="line-136"><code><span class="comment">	// active, or because of an error from the channel. Undo the attempt to</span></code></span>
+<span class="codeline" id="line-137"><code><span class="comment">	// enter idle, and reset the timer to try again later.</span></code></span>
+<span class="codeline" id="line-138"><code>	<label for="r11" class="ident">m</label>.<a href="#line-99" class="ident">resetIdleTimer</a>(<label for="r11" class="ident">m</label>.<a href="#line-55" class="ident">timeout</a>)</code></span>
+<span class="codeline" id="line-139"><code>}</code></span>
+<span class="codeline" id="line-140"><code></code></span>
+<span class="codeline" id="line-141"><code><span class="comment">// tryEnterIdleMode instructs the channel to enter idle mode. But before</span></code></span>
+<span class="codeline" id="line-142"><code><span class="comment">// that, it performs a last minute check to ensure that no new RPC has come in,</span></code></span>
+<span class="codeline" id="line-143"><code><span class="comment">// making the channel active.</span></code></span>
+<span class="codeline" id="line-144"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-145"><code><span class="comment">// Return value indicates whether or not the channel moved to idle mode.</span></code></span>
+<span class="codeline" id="line-146"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-147"><code><span class="comment">// Holds idleMu which ensures mutual exclusion with exitIdleMode.</span></code></span>
+<span class="codeline" id="line-148"><code><span class="keyword">func</span> (<label for="r13" class="ident">m</label> *<a href="#line-45" class="ident">Manager</a>) <label for="r14" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/idle..Manager.tryEnterIdleMode^339ab.html" class="ident">tryEnterIdleMode</a></label>() <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-149"><code>	<span class="comment">// Setting the activeCallsCount to -math.MaxInt32 indicates to OnCallBegin()</span></code></span>
+<span class="codeline" id="line-150"><code><span class="comment">	// that the channel is either in idle mode or is trying to get there.</span></code></span>
+<span class="codeline" id="line-151"><code>	<span class="keyword">if</span> !<a href="../../../../../pkg/sync/atomic.html" class="ident i3">atomic</a>.<a href="../../../../sync/atomic/doc.go.html#line-93" class="ident">CompareAndSwapInt32</a>(&amp;<label for="r13" class="ident">m</label>.<a href="#line-48" class="ident">activeCallsCount</a>, <span class="lit-number">0</span>, -<a href="../../../../../pkg/math.html" class="ident i1">math</a>.<a href="../../../../math/const.go.html#line-48" class="ident">MaxInt32</a>) {</code></span>
+<span class="codeline" id="line-152"><code>		<span class="comment">// This CAS operation can fail if an RPC started after we checked for</span></code></span>
+<span class="codeline" id="line-153"><code><span class="comment">		// activity in the timer handler, or one was ongoing from before the</span></code></span>
+<span class="codeline" id="line-154"><code><span class="comment">		// last time the timer fired, or if a test is attempting to enter idle</span></code></span>
+<span class="codeline" id="line-155"><code><span class="comment">		// mode without checking.  In all cases, abort going into idle mode.</span></code></span>
+<span class="codeline" id="line-156"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-157"><code>	}</code></span>
+<span class="codeline" id="line-158"><code>	<span class="comment">// N.B. if we fail to enter idle mode after this, we must re-add</span></code></span>
+<span class="codeline" id="line-159"><code><span class="comment">	// math.MaxInt32 to m.activeCallsCount.</span></code></span>
+<span class="codeline" id="line-160"><code></code></span>
+<span class="codeline" id="line-161"><code>	<label for="r13" class="ident">m</label>.<a href="#line-68" class="ident">idleMu</a>.<a href="../../../../sync/rwmutex.go.html#line-144" class="ident">Lock</a>()</code></span>
+<span class="codeline" id="line-162"><code>	<span class="keyword">defer</span> <label for="r13" class="ident">m</label>.<a href="#line-68" class="ident">idleMu</a>.<a href="../../../../sync/rwmutex.go.html#line-201" class="ident">Unlock</a>()</code></span>
+<span class="codeline" id="line-163"><code></code></span>
+<span class="codeline" id="line-164"><code>	<span class="keyword">if</span> <a href="../../../../../pkg/sync/atomic.html" class="ident i3">atomic</a>.<a href="../../../../sync/atomic/doc.go.html#line-177" class="ident">LoadInt32</a>(&amp;<label for="r13" class="ident">m</label>.<a href="#line-48" class="ident">activeCallsCount</a>) != -<a href="../../../../../pkg/math.html" class="ident i1">math</a>.<a href="../../../../math/const.go.html#line-48" class="ident">MaxInt32</a> {</code></span>
+<span class="codeline" id="line-165"><code>		<span class="comment">// We raced and lost to a new RPC. Very rare, but stop entering idle.</span></code></span>
+<span class="codeline" id="line-166"><code>		<a href="../../../../../pkg/sync/atomic.html" class="ident i3">atomic</a>.<a href="../../../../sync/atomic/doc.go.html#line-115" class="ident">AddInt32</a>(&amp;<label for="r13" class="ident">m</label>.<a href="#line-48" class="ident">activeCallsCount</a>, <a href="../../../../../pkg/math.html" class="ident i1">math</a>.<a href="../../../../math/const.go.html#line-48" class="ident">MaxInt32</a>)</code></span>
+<span class="codeline" id="line-167"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-168"><code>	}</code></span>
+<span class="codeline" id="line-169"><code>	<span class="keyword">if</span> <a href="../../../../../pkg/sync/atomic.html" class="ident i3">atomic</a>.<a href="../../../../sync/atomic/doc.go.html#line-177" class="ident">LoadInt32</a>(&amp;<label for="r13" class="ident">m</label>.<a href="#line-49" class="ident">activeSinceLastTimerCheck</a>) == <span class="lit-number">1</span> {</code></span>
+<span class="codeline" id="line-170"><code>		<span class="comment">// A very short RPC could have come in (and also finished) after we</span></code></span>
+<span class="codeline" id="line-171"><code><span class="comment">		// checked for calls count and activity in handleIdleTimeout(), but</span></code></span>
+<span class="codeline" id="line-172"><code><span class="comment">		// before the CAS operation. So, we need to check for activity again.</span></code></span>
+<span class="codeline" id="line-173"><code>		<a href="../../../../../pkg/sync/atomic.html" class="ident i3">atomic</a>.<a href="../../../../sync/atomic/doc.go.html#line-115" class="ident">AddInt32</a>(&amp;<label for="r13" class="ident">m</label>.<a href="#line-48" class="ident">activeCallsCount</a>, <a href="../../../../../pkg/math.html" class="ident i1">math</a>.<a href="../../../../math/const.go.html#line-48" class="ident">MaxInt32</a>)</code></span>
+<span class="codeline" id="line-174"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-175"><code>	}</code></span>
+<span class="codeline" id="line-176"><code></code></span>
+<span class="codeline" id="line-177"><code>	<span class="comment">// No new RPCs have come in since we set the active calls count value to</span></code></span>
+<span class="codeline" id="line-178"><code><span class="comment">	// -math.MaxInt32. And since we have the lock, it is safe to enter idle mode</span></code></span>
+<span class="codeline" id="line-179"><code><span class="comment">	// unconditionally now.</span></code></span>
+<span class="codeline" id="line-180"><code>	<label for="r13" class="ident">m</label>.<a href="#line-54" class="ident">enforcer</a>.<a href="#line-40" class="ident">EnterIdleMode</a>()</code></span>
+<span class="codeline" id="line-181"><code>	<label for="r13" class="ident">m</label>.<a href="#line-69" class="ident">actuallyIdle</a> = <a href="../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-182"><code>	<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-183"><code>}</code></span>
+<span class="codeline" id="line-184"><code></code></span>
+<span class="codeline" id="line-185"><code><span class="comment">// EnterIdleModeForTesting instructs the channel to enter idle mode.</span></code></span>
+<span class="codeline" id="line-186"><code><span class="keyword">func</span> (<label for="r15" class="ident">m</label> *<a href="#line-45" class="ident">Manager</a>) <label for="r16" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/idle..Manager.EnterIdleModeForTesting.html" class="ident">EnterIdleModeForTesting</a></label>() {</code></span>
+<span class="codeline" id="line-187"><code>	<label for="r15" class="ident">m</label>.<a href="#line-148" class="ident">tryEnterIdleMode</a>()</code></span>
+<span class="codeline" id="line-188"><code>}</code></span>
+<span class="codeline" id="line-189"><code></code></span>
+<span class="codeline" id="line-190"><code><span class="comment">// OnCallBegin is invoked at the start of every RPC.</span></code></span>
+<span class="codeline" id="line-191"><code><span class="keyword">func</span> (<label for="r17" class="ident">m</label> *<a href="#line-45" class="ident">Manager</a>) <label for="r18" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/idle..Manager.OnCallBegin.html" class="ident">OnCallBegin</a></label>() <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-192"><code>	<span class="keyword">if</span> <label for="r17" class="ident">m</label>.<a href="#line-266" class="ident">isClosed</a>() {</code></span>
+<span class="codeline" id="line-193"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-194"><code>	}</code></span>
+<span class="codeline" id="line-195"><code></code></span>
+<span class="codeline" id="line-196"><code>	<span class="keyword">if</span> <a href="../../../../../pkg/sync/atomic.html" class="ident i3">atomic</a>.<a href="../../../../sync/atomic/doc.go.html#line-115" class="ident">AddInt32</a>(&amp;<label for="r17" class="ident">m</label>.<a href="#line-48" class="ident">activeCallsCount</a>, <span class="lit-number">1</span>) &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-197"><code>		<span class="comment">// Channel is not idle now. Set the activity bit and allow the call.</span></code></span>
+<span class="codeline" id="line-198"><code>		<a href="../../../../../pkg/sync/atomic.html" class="ident i3">atomic</a>.<a href="../../../../sync/atomic/doc.go.html#line-199" class="ident">StoreInt32</a>(&amp;<label for="r17" class="ident">m</label>.<a href="#line-49" class="ident">activeSinceLastTimerCheck</a>, <span class="lit-number">1</span>)</code></span>
+<span class="codeline" id="line-199"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-200"><code>	}</code></span>
+<span class="codeline" id="line-201"><code></code></span>
+<span class="codeline" id="line-202"><code>	<span class="comment">// Channel is either in idle mode or is in the process of moving to idle</span></code></span>
+<span class="codeline" id="line-203"><code><span class="comment">	// mode. Attempt to exit idle mode to allow this RPC.</span></code></span>
+<span class="codeline" id="line-204"><code>	<span class="keyword">if</span> <label for="r19" class="ident">err</label> := <label for="r17" class="ident">m</label>.<a href="#line-217" class="ident">ExitIdleMode</a>(); <label for="r19" class="ident">err</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-205"><code>		<span class="comment">// Undo the increment to calls count, and return an error causing the</span></code></span>
+<span class="codeline" id="line-206"><code><span class="comment">		// RPC to fail.</span></code></span>
+<span class="codeline" id="line-207"><code>		<a href="../../../../../pkg/sync/atomic.html" class="ident i3">atomic</a>.<a href="../../../../sync/atomic/doc.go.html#line-115" class="ident">AddInt32</a>(&amp;<label for="r17" class="ident">m</label>.<a href="#line-48" class="ident">activeCallsCount</a>, -<span class="lit-number">1</span>)</code></span>
+<span class="codeline" id="line-208"><code>		<span class="keyword">return</span> <label for="r19" class="ident">err</label></code></span>
+<span class="codeline" id="line-209"><code>	}</code></span>
+<span class="codeline" id="line-210"><code></code></span>
+<span class="codeline" id="line-211"><code>	<a href="../../../../../pkg/sync/atomic.html" class="ident i3">atomic</a>.<a href="../../../../sync/atomic/doc.go.html#line-199" class="ident">StoreInt32</a>(&amp;<label for="r17" class="ident">m</label>.<a href="#line-49" class="ident">activeSinceLastTimerCheck</a>, <span class="lit-number">1</span>)</code></span>
+<span class="codeline" id="line-212"><code>	<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-213"><code>}</code></span>
+<span class="codeline" id="line-214"><code></code></span>
+<span class="codeline" id="line-215"><code><span class="comment">// ExitIdleMode instructs m to call the enforcer's ExitIdleMode and update m's</span></code></span>
+<span class="codeline" id="line-216"><code><span class="comment">// internal state.</span></code></span>
+<span class="codeline" id="line-217"><code><span class="keyword">func</span> (<label for="r20" class="ident">m</label> *<a href="#line-45" class="ident">Manager</a>) <label for="r21" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/idle..Manager.ExitIdleMode.html" class="ident">ExitIdleMode</a></label>() <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-218"><code>	<span class="comment">// Holds idleMu which ensures mutual exclusion with tryEnterIdleMode.</span></code></span>
+<span class="codeline" id="line-219"><code>	<label for="r20" class="ident">m</label>.<a href="#line-68" class="ident">idleMu</a>.<a href="../../../../sync/rwmutex.go.html#line-144" class="ident">Lock</a>()</code></span>
+<span class="codeline" id="line-220"><code>	<span class="keyword">defer</span> <label for="r20" class="ident">m</label>.<a href="#line-68" class="ident">idleMu</a>.<a href="../../../../sync/rwmutex.go.html#line-201" class="ident">Unlock</a>()</code></span>
+<span class="codeline" id="line-221"><code></code></span>
+<span class="codeline" id="line-222"><code>	<span class="keyword">if</span> <label for="r20" class="ident">m</label>.<a href="#line-266" class="ident">isClosed</a>() || !<label for="r20" class="ident">m</label>.<a href="#line-69" class="ident">actuallyIdle</a> {</code></span>
+<span class="codeline" id="line-223"><code>		<span class="comment">// This can happen in three scenarios:</span></code></span>
+<span class="codeline" id="line-224"><code><span class="comment">		// - handleIdleTimeout() set the calls count to -math.MaxInt32 and called</span></code></span>
+<span class="codeline" id="line-225"><code><span class="comment">		//   tryEnterIdleMode(). But before the latter could grab the lock, an RPC</span></code></span>
+<span class="codeline" id="line-226"><code><span class="comment">		//   came in and OnCallBegin() noticed that the calls count is negative.</span></code></span>
+<span class="codeline" id="line-227"><code><span class="comment">		// - Channel is in idle mode, and multiple new RPCs come in at the same</span></code></span>
+<span class="codeline" id="line-228"><code><span class="comment">		//   time, all of them notice a negative calls count in OnCallBegin and get</span></code></span>
+<span class="codeline" id="line-229"><code><span class="comment">		//   here. The first one to get the lock would get the channel to exit idle.</span></code></span>
+<span class="codeline" id="line-230"><code><span class="comment">		// - Channel is not in idle mode, and the user calls Connect which calls</span></code></span>
+<span class="codeline" id="line-231"><code><span class="comment">		//   m.ExitIdleMode.</span></code></span>
+<span class="codeline" id="line-232"><code><span class="comment">		//</span></code></span>
+<span class="codeline" id="line-233"><code><span class="comment">		// In any case, there is nothing to do here.</span></code></span>
+<span class="codeline" id="line-234"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-235"><code>	}</code></span>
+<span class="codeline" id="line-236"><code></code></span>
+<span class="codeline" id="line-237"><code>	<span class="keyword">if</span> <label for="r22" class="ident">err</label> := <label for="r20" class="ident">m</label>.<a href="#line-54" class="ident">enforcer</a>.<a href="#line-39" class="ident">ExitIdleMode</a>(); <label for="r22" class="ident">err</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-238"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/fmt.html" class="ident i0">fmt</a>.<a href="../../../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"failed to exit idle mode: %w"</span>, <label for="r22" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-239"><code>	}</code></span>
+<span class="codeline" id="line-240"><code></code></span>
+<span class="codeline" id="line-241"><code>	<span class="comment">// Undo the idle entry process. This also respects any new RPC attempts.</span></code></span>
+<span class="codeline" id="line-242"><code>	<a href="../../../../../pkg/sync/atomic.html" class="ident i3">atomic</a>.<a href="../../../../sync/atomic/doc.go.html#line-115" class="ident">AddInt32</a>(&amp;<label for="r20" class="ident">m</label>.<a href="#line-48" class="ident">activeCallsCount</a>, <a href="../../../../../pkg/math.html" class="ident i1">math</a>.<a href="../../../../math/const.go.html#line-48" class="ident">MaxInt32</a>)</code></span>
+<span class="codeline" id="line-243"><code>	<label for="r20" class="ident">m</label>.<a href="#line-69" class="ident">actuallyIdle</a> = <a href="../../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-244"><code></code></span>
+<span class="codeline" id="line-245"><code>	<span class="comment">// Start a new timer to fire after the configured idle timeout.</span></code></span>
+<span class="codeline" id="line-246"><code>	<label for="r20" class="ident">m</label>.<a href="#line-86" class="ident">resetIdleTimerLocked</a>(<label for="r20" class="ident">m</label>.<a href="#line-55" class="ident">timeout</a>)</code></span>
+<span class="codeline" id="line-247"><code>	<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-248"><code>}</code></span>
+<span class="codeline" id="line-249"><code></code></span>
+<span class="codeline" id="line-250"><code><span class="comment">// OnCallEnd is invoked at the end of every RPC.</span></code></span>
+<span class="codeline" id="line-251"><code><span class="keyword">func</span> (<label for="r23" class="ident">m</label> *<a href="#line-45" class="ident">Manager</a>) <label for="r24" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/idle..Manager.OnCallEnd.html" class="ident">OnCallEnd</a></label>() {</code></span>
+<span class="codeline" id="line-252"><code>	<span class="keyword">if</span> <label for="r23" class="ident">m</label>.<a href="#line-266" class="ident">isClosed</a>() {</code></span>
+<span class="codeline" id="line-253"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-254"><code>	}</code></span>
+<span class="codeline" id="line-255"><code></code></span>
+<span class="codeline" id="line-256"><code>	<span class="comment">// Record the time at which the most recent call finished.</span></code></span>
+<span class="codeline" id="line-257"><code>	<a href="../../../../../pkg/sync/atomic.html" class="ident i3">atomic</a>.<a href="../../../../sync/atomic/doc_64.go.html#line-100" class="ident">StoreInt64</a>(&amp;<label for="r23" class="ident">m</label>.<a href="#line-47" class="ident">lastCallEndTime</a>, <a href="../../../../../pkg/time.html" class="ident i4">time</a>.<a href="../../../../time/time.go.html#line-1343" class="ident">Now</a>().<a href="../../../../time/time.go.html#line-1456" class="ident">UnixNano</a>())</code></span>
+<span class="codeline" id="line-258"><code></code></span>
+<span class="codeline" id="line-259"><code>	<span class="comment">// Decrement the active calls count. This count can temporarily go negative</span></code></span>
+<span class="codeline" id="line-260"><code><span class="comment">	// when the timer callback is in the process of moving the channel to idle</span></code></span>
+<span class="codeline" id="line-261"><code><span class="comment">	// mode, but one or more RPCs come in and complete before the timer callback</span></code></span>
+<span class="codeline" id="line-262"><code><span class="comment">	// can get done with the process of moving to idle mode.</span></code></span>
+<span class="codeline" id="line-263"><code>	<a href="../../../../../pkg/sync/atomic.html" class="ident i3">atomic</a>.<a href="../../../../sync/atomic/doc.go.html#line-115" class="ident">AddInt32</a>(&amp;<label for="r23" class="ident">m</label>.<a href="#line-48" class="ident">activeCallsCount</a>, -<span class="lit-number">1</span>)</code></span>
+<span class="codeline" id="line-264"><code>}</code></span>
+<span class="codeline" id="line-265"><code></code></span>
+<span class="codeline" id="line-266"><code><span class="keyword">func</span> (<label for="r25" class="ident">m</label> *<a href="#line-45" class="ident">Manager</a>) <label for="r26" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/idle..Manager.isClosed^f146b.html" class="ident">isClosed</a></label>() <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-267"><code>	<span class="keyword">return</span> <a href="../../../../../pkg/sync/atomic.html" class="ident i3">atomic</a>.<a href="../../../../sync/atomic/doc.go.html#line-177" class="ident">LoadInt32</a>(&amp;<label for="r25" class="ident">m</label>.<a href="#line-50" class="ident">closed</a>) == <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-268"><code>}</code></span>
+<span class="codeline" id="line-269"><code></code></span>
+<span class="codeline" id="line-270"><code><span class="comment">// Close stops the timer associated with the Manager, if it exists.</span></code></span>
+<span class="codeline" id="line-271"><code><span class="keyword">func</span> (<label for="r27" class="ident">m</label> *<a href="#line-45" class="ident">Manager</a>) <label for="r28" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/idle..Manager.Close.html" class="ident">Close</a></label>() {</code></span>
+<span class="codeline" id="line-272"><code>	<a href="../../../../../pkg/sync/atomic.html" class="ident i3">atomic</a>.<a href="../../../../sync/atomic/doc.go.html#line-199" class="ident">StoreInt32</a>(&amp;<label for="r27" class="ident">m</label>.<a href="#line-50" class="ident">closed</a>, <span class="lit-number">1</span>)</code></span>
+<span class="codeline" id="line-273"><code></code></span>
+<span class="codeline" id="line-274"><code>	<label for="r27" class="ident">m</label>.<a href="#line-68" class="ident">idleMu</a>.<a href="../../../../sync/rwmutex.go.html#line-144" class="ident">Lock</a>()</code></span>
+<span class="codeline" id="line-275"><code>	<span class="keyword">if</span> <label for="r27" class="ident">m</label>.<a href="#line-70" class="ident">timer</a> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-276"><code>		<label for="r27" class="ident">m</label>.<a href="#line-70" class="ident">timer</a>.<a href="../../../../time/sleep.go.html#line-113" class="ident">Stop</a>()</code></span>
+<span class="codeline" id="line-277"><code>		<label for="r27" class="ident">m</label>.<a href="#line-70" class="ident">timer</a> = <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-278"><code>	}</code></span>
+<span class="codeline" id="line-279"><code>	<label for="r27" class="ident">m</label>.<a href="#line-68" class="ident">idleMu</a>.<a href="../../../../sync/rwmutex.go.html#line-201" class="ident">Unlock</a>()</code></span>
+<span class="codeline" id="line-280"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

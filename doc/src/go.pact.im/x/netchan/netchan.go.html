@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: netchan.go in package go.pact.im/x/netchan</title>
+<link href="../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	netchan.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../pkg/go.pact.im/x/netchan.html">go.pact.im/x/netchan</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<div class="anchor" id="doc"><span class="codeline" id="line-1"><code><span class="comment">// Package netchan provides an in-memory implementation of the [net.Listener]</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// interface, allowing programs to simulate network connections using channels</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// and pipes instead of real network sockets.</span></code></span></div><span class="codeline" id="line-4"><code><span class="keyword">package</span> netchan</code></span>
+<span class="codeline" id="line-5"><code></code></span>
+<span class="codeline" id="line-6"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-7"><code>	<label for="i0"><span class="lit-string i0">"context"</span></label></code></span>
+<span class="codeline" id="line-8"><code>	<label for="i1"><span class="lit-string i1">"errors"</span></label></code></span>
+<span class="codeline" id="line-9"><code>	<label for="i2"><span class="lit-string i2">"net"</span></label></code></span>
+<span class="codeline" id="line-10"><code>	<label for="i3"><span class="lit-string i3">"sync"</span></label></code></span>
+<span class="codeline" id="line-11"><code>)</code></span>
+<span class="codeline" id="line-12"><code></code></span>
+<span class="codeline" id="line-13"><code><span class="keyword">var</span> _ <a href="../../../../pkg/net.html" class="ident i2">net</a>.<a href="../../../net/net.go.html#line-412" class="ident">Listener</a> = (*<a href="#line-34" class="ident">Listener</a>)(<a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a>)</code></span>
+<span class="codeline" id="line-14"><code></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">// ErrClosed indicates that the [Listener] has been closed and no further</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">// operations can be performed.</span></code></span>
+<span class="codeline" id="line-17"><code><span class="keyword">var</span> <a href="../../../../pkg/go.pact.im/x/netchan.html#name-ErrClosed" class="ident">ErrClosed</a> = <a href="../../../../pkg/errors.html" class="ident i1">errors</a>.<a href="../../../errors/errors.go.html#line-64" class="ident">New</a>(<span class="lit-string">"netchan: closed"</span>)</code></span>
+<span class="codeline" id="line-18"><code></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">// chanAddr implements the [net.chanAddr] interface representing the network</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">// address of an in-memory [Listener]. Since connections are in-memory, chanAddr</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">// returns constant values indicating the connection uses channels.</span></code></span>
+<span class="codeline" id="line-22"><code><span class="keyword">type</span> <a href="../../../../pkg/go.pact.im/x/netchan.html#name-chanAddr" class="ident">chanAddr</a> <span class="keyword">struct</span>{}</code></span>
+<span class="codeline" id="line-23"><code></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">// Network returns the name of the network, which is always "chan".</span></code></span>
+<span class="codeline" id="line-25"><code><span class="keyword">func</span> (<a href="#line-22" class="ident">chanAddr</a>) <label for="r0" class="ident"><a href="../../../../use/go.pact.im/x/netchan..chanAddr^984f5.Network.html" class="ident">Network</a></label>() <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a> { <span class="keyword">return</span> <span class="lit-string">"chan"</span> }</code></span>
+<span class="codeline" id="line-26"><code></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">// String returns a string representation of the Addr, which is always "chan".</span></code></span>
+<span class="codeline" id="line-28"><code><span class="keyword">func</span> (<a href="#line-22" class="ident">chanAddr</a>) <label for="r1" class="ident"><a href="../../../../use/go.pact.im/x/netchan..chanAddr^984f5.String.html" class="ident">String</a></label>() <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a> { <span class="keyword">return</span> <span class="lit-string">"chan"</span> }</code></span>
+<span class="codeline" id="line-29"><code></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">// Listener implements the [net.Listener] interface using channels for</span></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">// accepting connections. Incoming connections are sent on an internal</span></code></span>
+<span class="codeline" id="line-32"><code><span class="comment">// channel and accepted by Accept calls. The Listener can be closed to</span></code></span>
+<span class="codeline" id="line-33"><code><span class="comment">// unblock Accept calls and signal shutdown.</span></code></span>
+<span class="codeline" id="line-34"><code><span class="keyword">type</span> <a href="../../../../pkg/go.pact.im/x/netchan.html#name-Listener" class="ident">Listener</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-35"><code>	<a href="../../../../use/go.pact.im/x/netchan..Listener.addr^a2593.html" class="ident">addr</a> <a href="../../../../pkg/net.html" class="ident i2">net</a>.<a href="../../../net/net.go.html#line-116" class="ident">Addr</a></code></span>
+<span class="codeline" id="line-36"><code>	<a href="../../../../use/go.pact.im/x/netchan..Listener.conn^08041.html" class="ident">conn</a> <span class="keyword">chan</span> <a href="../../../../pkg/net.html" class="ident i2">net</a>.<a href="../../../net/net.go.html#line-124" class="ident">Conn</a></code></span>
+<span class="codeline" id="line-37"><code>	<a href="../../../../use/go.pact.im/x/netchan..Listener.done^a4c3e.html" class="ident">done</a> <span class="keyword">chan</span> <span class="keyword">struct</span>{}</code></span>
+<span class="codeline" id="line-38"><code>	<a href="../../../../use/go.pact.im/x/netchan..Listener.once^20065.html" class="ident">once</a> <a href="../../../../pkg/sync.html" class="ident i3">sync</a>.<a href="../../../sync/once.go.html#line-20" class="ident">Once</a></code></span>
+<span class="codeline" id="line-39"><code>}</code></span>
+<span class="codeline" id="line-40"><code></code></span>
+<span class="codeline" id="line-41"><code><span class="comment">// NewListener returns a new Listener with the default address.</span></code></span>
+<span class="codeline" id="line-42"><code><span class="keyword">func</span> <label for="r2" class="ident"><a href="../../../../pkg/go.pact.im/x/netchan.html#name-NewListener" class="ident">NewListener</a></label>() *<a href="#line-34" class="ident">Listener</a> {</code></span>
+<span class="codeline" id="line-43"><code>	<span class="keyword">return</span> <a href="#line-48" class="ident">NewListenerAddr</a>(<a href="#line-22" class="ident">chanAddr</a>{})</code></span>
+<span class="codeline" id="line-44"><code>}</code></span>
+<span class="codeline" id="line-45"><code></code></span>
+<span class="codeline" id="line-46"><code><span class="comment">// NewListenerAddr returns a new Listener instance with the specified network</span></code></span>
+<span class="codeline" id="line-47"><code><span class="comment">// address.</span></code></span>
+<span class="codeline" id="line-48"><code><span class="keyword">func</span> <label for="r3" class="ident"><a href="../../../../pkg/go.pact.im/x/netchan.html#name-NewListenerAddr" class="ident">NewListenerAddr</a></label>(<label for="r4" class="ident">addr</label> <a href="../../../../pkg/net.html" class="ident i2">net</a>.<a href="../../../net/net.go.html#line-116" class="ident">Addr</a>) *<a href="#line-34" class="ident">Listener</a> {</code></span>
+<span class="codeline" id="line-49"><code>	<span class="keyword">return</span> &amp;<a href="#line-34" class="ident">Listener</a>{</code></span>
+<span class="codeline" id="line-50"><code>		<a href="#line-35" class="ident">addr</a>: <label for="r4" class="ident">addr</label>,</code></span>
+<span class="codeline" id="line-51"><code>		<a href="#line-36" class="ident">conn</a>: <a href="../../../runtime/chan.go.html#line-75">make</a>(<span class="keyword">chan</span> <a href="../../../../pkg/net.html" class="ident i2">net</a>.<a href="../../../net/net.go.html#line-124" class="ident">Conn</a>),</code></span>
+<span class="codeline" id="line-52"><code>		<a href="#line-37" class="ident">done</a>: <a href="../../../runtime/chan.go.html#line-75">make</a>(<span class="keyword">chan</span> <span class="keyword">struct</span>{}),</code></span>
+<span class="codeline" id="line-53"><code>	}</code></span>
+<span class="codeline" id="line-54"><code>}</code></span>
+<span class="codeline" id="line-55"><code></code></span>
+<span class="codeline" id="line-56"><code><span class="comment">// Accept waits for and returns the next connection sent to the listener’s</span></code></span>
+<span class="codeline" id="line-57"><code><span class="comment">// connection channel. If the listener is closed, Accept returns [ErrClosed].</span></code></span>
+<span class="codeline" id="line-58"><code><span class="keyword">func</span> (<label for="r5" class="ident">l</label> *<a href="#line-34" class="ident">Listener</a>) <label for="r6" class="ident"><a href="../../../../use/go.pact.im/x/netchan..Listener.Accept.html" class="ident">Accept</a></label>() (<a href="../../../../pkg/net.html" class="ident i2">net</a>.<a href="../../../net/net.go.html#line-124" class="ident">Conn</a>, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-59"><code>	<a href="../../../runtime/chan.go.html#line-804"><span class="keyword">select</span></a> {</code></span>
+<span class="codeline" id="line-60"><code>	<span class="comment">// Accept should return an error after Close.</span></code></span>
+<span class="codeline" id="line-61"><code>	<span class="keyword">case</span> <a href="../../../runtime/chan.go.html#line-508">&lt;-</a><label for="r5" class="ident">l</label>.<a href="#line-37" class="ident">done</a>:</code></span>
+<span class="codeline" id="line-62"><code>		<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="#line-17" class="ident">ErrClosed</a></code></span>
+<span class="codeline" id="line-63"><code>	<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-64"><code>	}</code></span>
+<span class="codeline" id="line-65"><code><label for="r7" class="ident">accept</label>:</code></span>
+<span class="codeline" id="line-66"><code>	<a href="../../../runtime/select.go.html#line-122"><span class="keyword">select</span></a> {</code></span>
+<span class="codeline" id="line-67"><code>	<span class="keyword">case</span> <label for="r8" class="ident">conn</label>, <label for="r9" class="ident">ok</label> := <a href="../../../runtime/chan.go.html#line-513">&lt;-</a><label for="r5" class="ident">l</label>.<a href="#line-36" class="ident">conn</a>:</code></span>
+<span class="codeline" id="line-68"><code>		<span class="comment">// Handle unlikely case of close(l.C()).</span></code></span>
+<span class="codeline" id="line-69"><code>		<span class="keyword">if</span> !<label for="r9" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-70"><code>			<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="#line-17" class="ident">ErrClosed</a></code></span>
+<span class="codeline" id="line-71"><code>		}</code></span>
+<span class="codeline" id="line-72"><code>		<span class="comment">// Allow sending nil connection to wait for Accept call.</span></code></span>
+<span class="codeline" id="line-73"><code>		<span class="keyword">if</span> <label for="r8" class="ident">conn</label> == <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-74"><code>			<span class="keyword">goto</span> <label for="r7" class="ident">accept</label></code></span>
+<span class="codeline" id="line-75"><code>		}</code></span>
+<span class="codeline" id="line-76"><code>		<span class="keyword">return</span> <label for="r8" class="ident">conn</label>, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-77"><code>	<span class="comment">// Unblock Accept when Close is called.</span></code></span>
+<span class="codeline" id="line-78"><code>	<span class="keyword">case</span> <a href="../../../runtime/chan.go.html#line-508">&lt;-</a><label for="r5" class="ident">l</label>.<a href="#line-37" class="ident">done</a>:</code></span>
+<span class="codeline" id="line-79"><code>		<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="#line-17" class="ident">ErrClosed</a></code></span>
+<span class="codeline" id="line-80"><code>	}</code></span>
+<span class="codeline" id="line-81"><code>}</code></span>
+<span class="codeline" id="line-82"><code></code></span>
+<span class="codeline" id="line-83"><code><span class="comment">// Addr implements the [net.Listener] interface.</span></code></span>
+<span class="codeline" id="line-84"><code><span class="keyword">func</span> (<label for="r10" class="ident">l</label> *<a href="#line-34" class="ident">Listener</a>) <label for="r11" class="ident"><a href="../../../../use/go.pact.im/x/netchan..Listener.Addr.html" class="ident">Addr</a></label>() <a href="../../../../pkg/net.html" class="ident i2">net</a>.<a href="../../../net/net.go.html#line-116" class="ident">Addr</a> {</code></span>
+<span class="codeline" id="line-85"><code>	<span class="keyword">return</span> <a href="#line-22" class="ident">chanAddr</a>{}</code></span>
+<span class="codeline" id="line-86"><code>}</code></span>
+<span class="codeline" id="line-87"><code></code></span>
+<span class="codeline" id="line-88"><code><span class="comment">// Close closes the listener and unblocks all Accept calls.</span></code></span>
+<span class="codeline" id="line-89"><code><span class="keyword">func</span> (<label for="r12" class="ident">l</label> *<a href="#line-34" class="ident">Listener</a>) <label for="r13" class="ident"><a href="../../../../use/go.pact.im/x/netchan..Listener.Close.html" class="ident">Close</a></label>() <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-90"><code>	<label for="r12" class="ident">l</label>.<a href="#line-38" class="ident">once</a>.<a href="../../../sync/once.go.html#line-52" class="ident">Do</a>(<span class="keyword">func</span>() { <a href="../../../../pkg/builtin.html#name-close" class="ident">close</a>(<label for="r12" class="ident">l</label>.<a href="#line-37" class="ident">done</a>) })</code></span>
+<span class="codeline" id="line-91"><code>	<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-92"><code>}</code></span>
+<span class="codeline" id="line-93"><code></code></span>
+<span class="codeline" id="line-94"><code><span class="comment">// C returns the internal channel used to send [net.Conn] connections to the</span></code></span>
+<span class="codeline" id="line-95"><code><span class="comment">// Accept callers. The returned channel should not be closed; use Close method</span></code></span>
+<span class="codeline" id="line-96"><code><span class="comment">// to unblock Accept instead.</span></code></span>
+<span class="codeline" id="line-97"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-98"><code><span class="comment">// Sending a nil connection on this channel is allowed and can be used</span></code></span>
+<span class="codeline" id="line-99"><code><span class="comment">// to wait for the Accept caller to be ready.</span></code></span>
+<span class="codeline" id="line-100"><code><span class="keyword">func</span> (<label for="r14" class="ident">l</label> *<a href="#line-34" class="ident">Listener</a>) <label for="r15" class="ident"><a href="../../../../use/go.pact.im/x/netchan..Listener.C.html" class="ident">C</a></label>() <span class="keyword">chan</span> <a href="../../../../pkg/net.html" class="ident i2">net</a>.<a href="../../../net/net.go.html#line-124" class="ident">Conn</a> {</code></span>
+<span class="codeline" id="line-101"><code>	<span class="keyword">return</span> <label for="r14" class="ident">l</label>.<a href="#line-36" class="ident">conn</a></code></span>
+<span class="codeline" id="line-102"><code>}</code></span>
+<span class="codeline" id="line-103"><code></code></span>
+<span class="codeline" id="line-104"><code><span class="comment">// Done returns a channel that is closed when the Listener is closed.</span></code></span>
+<span class="codeline" id="line-105"><code><span class="keyword">func</span> (<label for="r16" class="ident">l</label> *<a href="#line-34" class="ident">Listener</a>) <label for="r17" class="ident"><a href="../../../../use/go.pact.im/x/netchan..Listener.Done.html" class="ident">Done</a></label>() &lt;-<span class="keyword">chan</span> <span class="keyword">struct</span>{} {</code></span>
+<span class="codeline" id="line-106"><code>	<span class="keyword">return</span> <label for="r16" class="ident">l</label>.<a href="#line-37" class="ident">done</a></code></span>
+<span class="codeline" id="line-107"><code>}</code></span>
+<span class="codeline" id="line-108"><code></code></span>
+<span class="codeline" id="line-109"><code><span class="comment">// Dial creates a new in-memory connection pair using net.Pipe and sends the</span></code></span>
+<span class="codeline" id="line-110"><code><span class="comment">// server side connection to the Listener’s internal connection channel.</span></code></span>
+<span class="codeline" id="line-111"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-112"><code><span class="comment">// It returns the client side connection, which can be used to communicate</span></code></span>
+<span class="codeline" id="line-113"><code><span class="comment">// with the accepted connection on the Listener side.</span></code></span>
+<span class="codeline" id="line-114"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-115"><code><span class="comment">// Dial blocks until the server side connection is accepted by a call to Accept,</span></code></span>
+<span class="codeline" id="line-116"><code><span class="comment">// or until the Listener is closed or the provided context is canceled.</span></code></span>
+<span class="codeline" id="line-117"><code><span class="keyword">func</span> (<label for="r18" class="ident">l</label> *<a href="#line-34" class="ident">Listener</a>) <label for="r19" class="ident"><a href="../../../../use/go.pact.im/x/netchan..Listener.Dial.html" class="ident">Dial</a></label>(<label for="r20" class="ident">ctx</label> <a href="../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../context/context.go.html#line-71" class="ident">Context</a>) (<a href="../../../../pkg/net.html" class="ident i2">net</a>.<a href="../../../net/net.go.html#line-124" class="ident">Conn</a>, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-118"><code>	<label for="r21" class="ident">clientConn</label>, <label for="r22" class="ident">serverConn</label> := <a href="../../../../pkg/net.html" class="ident i2">net</a>.<a href="../../../net/pipe.go.html#line-113" class="ident">Pipe</a>()</code></span>
+<span class="codeline" id="line-119"><code>	<a href="../../../runtime/select.go.html#line-122"><span class="keyword">select</span></a> {</code></span>
+<span class="codeline" id="line-120"><code>	<span class="keyword">case</span> <label for="r18" class="ident">l</label>.<a href="#line-36" class="ident">conn</a> <a href="../../../runtime/chan.go.html#line-176">&lt;-</a> <label for="r22" class="ident">serverConn</label>:</code></span>
+<span class="codeline" id="line-121"><code>		<span class="keyword">return</span> <label for="r21" class="ident">clientConn</label>, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-122"><code>	<span class="keyword">case</span> <a href="../../../runtime/chan.go.html#line-508">&lt;-</a><label for="r18" class="ident">l</label>.<a href="#line-37" class="ident">done</a>:</code></span>
+<span class="codeline" id="line-123"><code>		<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="#line-17" class="ident">ErrClosed</a></code></span>
+<span class="codeline" id="line-124"><code>	<span class="keyword">case</span> <a href="../../../runtime/chan.go.html#line-508">&lt;-</a><label for="r20" class="ident">ctx</label>.<a href="../../../context/context.go.html#line-108" class="ident">Done</a>():</code></span>
+<span class="codeline" id="line-125"><code>		<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r20" class="ident">ctx</label>.<a href="../../../context/context.go.html#line-115" class="ident">Err</a>()</code></span>
+<span class="codeline" id="line-126"><code>	}</code></span>
+<span class="codeline" id="line-127"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: config.go in package google.golang.org/grpc/internal/balancer/gracefulswitch</title>
+<link href="../../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	config.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../../pkg/google.golang.org/grpc/internal/balancer/gracefulswitch.html">google.golang.org/grpc/internal/balancer/gracefulswitch</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">/*</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment"> * Copyright 2024 gRPC authors.</span></code></span>
+<span class="codeline" id="line-4"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-5"><code><span class="comment"> * Licensed under the Apache License, Version 2.0 (the "License");</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment"> * you may not use this file except in compliance with the License.</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment"> * You may obtain a copy of the License at</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment"> *     http://www.apache.org/licenses/LICENSE-2.0</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment"> * Unless required by applicable law or agreed to in writing, software</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment"> * distributed under the License is distributed on an "AS IS" BASIS,</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment"> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment"> * See the License for the specific language governing permissions and</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment"> * limitations under the License.</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment"> */</span></code></span>
+<span class="codeline" id="line-18"><code></code></span>
+<span class="codeline" id="line-19"><code><span class="keyword">package</span> gracefulswitch</code></span>
+<span class="codeline" id="line-20"><code></code></span>
+<span class="codeline" id="line-21"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-22"><code>	<label for="i0"><span class="lit-string i0">"encoding/json"</span></label></code></span>
+<span class="codeline" id="line-23"><code>	<label for="i1"><span class="lit-string i1">"fmt"</span></label></code></span>
+<span class="codeline" id="line-24"><code></code></span>
+<span class="codeline" id="line-25"><code>	<label for="i2"><span class="lit-string i2">"google.golang.org/grpc/balancer"</span></label></code></span>
+<span class="codeline" id="line-26"><code>	<label for="i3"><span class="lit-string i3">"google.golang.org/grpc/serviceconfig"</span></label></code></span>
+<span class="codeline" id="line-27"><code>)</code></span>
+<span class="codeline" id="line-28"><code></code></span>
+<span class="codeline" id="line-29"><code><span class="keyword">type</span> <a href="../../../../../../pkg/google.golang.org/grpc/internal/balancer/gracefulswitch.html#name-lbConfig" class="ident">lbConfig</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-30"><code>	<a href="../../../../../../pkg/google.golang.org/grpc/serviceconfig.html" class="ident i3">serviceconfig</a>.<a href="../../../serviceconfig/serviceconfig.go.html#line-35" class="ident">LoadBalancingConfig</a></code></span>
+<span class="codeline" id="line-31"><code></code></span>
+<span class="codeline" id="line-32"><code>	<a href="../../../../../../use/google.golang.org/grpc/internal/balancer/gracefulswitch..lbConfig^648a5.childBuilder^9b74d.html" class="ident">childBuilder</a> <a href="../../../../../../pkg/google.golang.org/grpc/balancer.html" class="ident i2">balancer</a>.<a href="../../../balancer/balancer.go.html#line-222" class="ident">Builder</a></code></span>
+<span class="codeline" id="line-33"><code>	<a href="../../../../../../use/google.golang.org/grpc/internal/balancer/gracefulswitch..lbConfig^648a5.childConfig^a23a5.html" class="ident">childConfig</a>  <a href="../../../../../../pkg/google.golang.org/grpc/serviceconfig.html" class="ident i3">serviceconfig</a>.<a href="../../../serviceconfig/serviceconfig.go.html#line-35" class="ident">LoadBalancingConfig</a></code></span>
+<span class="codeline" id="line-34"><code>}</code></span>
+<span class="codeline" id="line-35"><code></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">// ChildName returns the name of the child balancer of the gracefulswitch</span></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">// Balancer.</span></code></span>
+<span class="codeline" id="line-38"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../../../pkg/google.golang.org/grpc/internal/balancer/gracefulswitch.html#name-ChildName" class="ident">ChildName</a></label>(<label for="r1" class="ident">l</label> <a href="../../../../../../pkg/google.golang.org/grpc/serviceconfig.html" class="ident i3">serviceconfig</a>.<a href="../../../serviceconfig/serviceconfig.go.html#line-35" class="ident">LoadBalancingConfig</a>) <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-39"><code>	<span class="keyword">return</span> <label for="r1" class="ident">l</label>.(*<a href="#line-29" class="ident">lbConfig</a>).<a href="#line-32" class="ident">childBuilder</a>.<a href="../../../balancer/balancer.go.html#line-227" class="ident">Name</a>()</code></span>
+<span class="codeline" id="line-40"><code>}</code></span>
+<span class="codeline" id="line-41"><code></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">// ParseConfig parses a child config list and returns a LB config for the</span></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">// gracefulswitch Balancer.</span></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-45"><code><span class="comment">// cfg is expected to be a json.RawMessage containing a JSON array of LB policy</span></code></span>
+<span class="codeline" id="line-46"><code><span class="comment">// names + configs as the format of the "loadBalancingConfig" field in</span></code></span>
+<span class="codeline" id="line-47"><code><span class="comment">// ServiceConfig.  It returns a type that should be passed to</span></code></span>
+<span class="codeline" id="line-48"><code><span class="comment">// UpdateClientConnState in the BalancerConfig field.</span></code></span>
+<span class="codeline" id="line-49"><code><span class="keyword">func</span> <label for="r2" class="ident"><a href="../../../../../../pkg/google.golang.org/grpc/internal/balancer/gracefulswitch.html#name-ParseConfig" class="ident">ParseConfig</a></label>(<label for="r3" class="ident">cfg</label> <a href="../../../../../../pkg/encoding/json.html" class="ident i0">json</a>.<a href="../../../../../encoding/json/stream.go.html#line-261" class="ident">RawMessage</a>) (<a href="../../../../../../pkg/google.golang.org/grpc/serviceconfig.html" class="ident i3">serviceconfig</a>.<a href="../../../serviceconfig/serviceconfig.go.html#line-35" class="ident">LoadBalancingConfig</a>, <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-50"><code>	<span class="keyword">var</span> <label for="r4" class="ident">lbCfg</label> []<span class="keyword">map</span>[<a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>]<a href="../../../../../../pkg/encoding/json.html" class="ident i0">json</a>.<a href="../../../../../encoding/json/stream.go.html#line-261" class="ident">RawMessage</a></code></span>
+<span class="codeline" id="line-51"><code>	<span class="keyword">if</span> <label for="r5" class="ident">err</label> := <a href="../../../../../../pkg/encoding/json.html" class="ident i0">json</a>.<a href="../../../../../encoding/json/decode.go.html#line-102" class="ident">Unmarshal</a>(<label for="r3" class="ident">cfg</label>, &amp;<label for="r4" class="ident">lbCfg</label>); <label for="r5" class="ident">err</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-52"><code>		<span class="keyword">return</span> <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r5" class="ident">err</label></code></span>
+<span class="codeline" id="line-53"><code>	}</code></span>
+<span class="codeline" id="line-54"><code>	<span class="keyword">for</span> <label for="r6" class="ident">i</label>, <label for="r7" class="ident">e</label> := <span class="keyword">range</span> <label for="r4" class="ident">lbCfg</label> {</code></span>
+<span class="codeline" id="line-55"><code>		<span class="keyword">if</span> <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r7" class="ident">e</label>) != <span class="lit-number">1</span> {</code></span>
+<span class="codeline" id="line-56"><code>			<span class="keyword">return</span> <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../../../../pkg/fmt.html" class="ident i1">fmt</a>.<a href="../../../../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"expected a JSON struct with one entry; received entry %v at index %d"</span>, <label for="r7" class="ident">e</label>, <label for="r6" class="ident">i</label>)</code></span>
+<span class="codeline" id="line-57"><code>		}</code></span>
+<span class="codeline" id="line-58"><code></code></span>
+<span class="codeline" id="line-59"><code>		<span class="keyword">var</span> <label for="r8" class="ident">name</label> <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-60"><code>		<span class="keyword">var</span> <label for="r9" class="ident">jsonCfg</label> <a href="../../../../../../pkg/encoding/json.html" class="ident i0">json</a>.<a href="../../../../../encoding/json/stream.go.html#line-261" class="ident">RawMessage</a></code></span>
+<span class="codeline" id="line-61"><code>		<span class="keyword">for</span> <label for="r8" class="ident">name</label>, <label for="r9" class="ident">jsonCfg</label> = <span class="keyword">range</span> <label for="r7" class="ident">e</label> {</code></span>
+<span class="codeline" id="line-62"><code>		}</code></span>
+<span class="codeline" id="line-63"><code></code></span>
+<span class="codeline" id="line-64"><code>		<label for="r10" class="ident">builder</label> := <a href="../../../../../../pkg/google.golang.org/grpc/balancer.html" class="ident i2">balancer</a>.<a href="../../../balancer/balancer.go.html#line-85" class="ident">Get</a>(<label for="r8" class="ident">name</label>)</code></span>
+<span class="codeline" id="line-65"><code>		<span class="keyword">if</span> <label for="r10" class="ident">builder</label> == <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-66"><code>			<span class="comment">// Skip unregistered balancer names.</span></code></span>
+<span class="codeline" id="line-67"><code>			<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-68"><code>		}</code></span>
+<span class="codeline" id="line-69"><code></code></span>
+<span class="codeline" id="line-70"><code>		<label for="r11" class="ident">parser</label>, <label for="r12" class="ident">ok</label> := <label for="r10" class="ident">builder</label>.(<a href="../../../../../../pkg/google.golang.org/grpc/balancer.html" class="ident i2">balancer</a>.<a href="../../../balancer/balancer.go.html#line-231" class="ident">ConfigParser</a>)</code></span>
+<span class="codeline" id="line-71"><code>		<span class="keyword">if</span> !<label for="r12" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-72"><code>			<span class="comment">// This is a valid child with no config.</span></code></span>
+<span class="codeline" id="line-73"><code>			<span class="keyword">return</span> &amp;<a href="#line-29" class="ident">lbConfig</a>{<a href="#line-32" class="ident">childBuilder</a>: <label for="r10" class="ident">builder</label>}, <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-74"><code>		}</code></span>
+<span class="codeline" id="line-75"><code></code></span>
+<span class="codeline" id="line-76"><code>		<label for="r13" class="ident">cfg</label>, <label for="r14" class="ident">err</label> := <label for="r11" class="ident">parser</label>.<a href="../../../balancer/balancer.go.html#line-235" class="ident">ParseConfig</a>(<label for="r9" class="ident">jsonCfg</label>)</code></span>
+<span class="codeline" id="line-77"><code>		<span class="keyword">if</span> <label for="r14" class="ident">err</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-78"><code>			<span class="keyword">return</span> <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../../../../pkg/fmt.html" class="ident i1">fmt</a>.<a href="../../../../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"error parsing config for policy %q: %v"</span>, <label for="r8" class="ident">name</label>, <label for="r14" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-79"><code>		}</code></span>
+<span class="codeline" id="line-80"><code>		<span class="keyword">return</span> &amp;<a href="#line-29" class="ident">lbConfig</a>{<a href="#line-32" class="ident">childBuilder</a>: <label for="r10" class="ident">builder</label>, <a href="#line-33" class="ident">childConfig</a>: <label for="r13" class="ident">cfg</label>}, <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-81"><code>	}</code></span>
+<span class="codeline" id="line-82"><code></code></span>
+<span class="codeline" id="line-83"><code>	<span class="keyword">return</span> <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../../../../pkg/fmt.html" class="ident i1">fmt</a>.<a href="../../../../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"no supported policies found in config: %v"</span>, <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>(<label for="r3" class="ident">cfg</label>))</code></span>
+<span class="codeline" id="line-84"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

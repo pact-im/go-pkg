@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: flightrecorder.go in package runtime/trace</title>
+<link href="../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	flightrecorder.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../pkg/runtime/trace.html">runtime/trace</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3,
+input[id=i4]:checked ~pre .i4
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+<input id="i4" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2025 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> trace</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-8"><code>	<label for="i0"><span class="lit-string i0">"fmt"</span></label></code></span>
+<span class="codeline" id="line-9"><code>	<label for="i1"><span class="lit-string i1">"io"</span></label></code></span>
+<span class="codeline" id="line-10"><code>	<label for="i2"><span class="lit-string i2">"sync"</span></label></code></span>
+<span class="codeline" id="line-11"><code>	<label for="i3"><span class="lit-string i3">"time"</span></label></code></span>
+<span class="codeline" id="line-12"><code>	<a href="../../../pkg/unsafe.html" class="ident i4">_</a> <label for="i4"><span class="lit-string i4">"unsafe"</span></label> <span class="comment">// added for go linkname usage</span></code></span>
+<span class="codeline" id="line-13"><code>)</code></span>
+<span class="codeline" id="line-14"><code></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">// FlightRecorder represents a single consumer of a Go execution</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">// trace.</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">// It tracks a moving window over the execution trace produced by</span></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">// the runtime, always containing the most recent trace data.</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">// At most one flight recorder may be active at any given time,</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">// though flight recording is allowed to be concurrently active</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">// with a trace consumer using trace.Start.</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">// This restriction of only a single flight recorder may be removed</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">// in the future.</span></code></span>
+<span class="codeline" id="line-25"><code><span class="keyword">type</span> <a href="../../../pkg/runtime/trace.html#name-FlightRecorder" class="ident">FlightRecorder</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-26"><code>	<a href="../../../use/runtime/trace..FlightRecorder.err^d9eb2.html" class="ident">err</a> <a href="../../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-27"><code></code></span>
+<span class="codeline" id="line-28"><code>	<span class="comment">// State specific to the recorder.</span></code></span>
+<span class="codeline" id="line-29"><code>	<a href="../../../use/runtime/trace..FlightRecorder.header^1e058.html" class="ident">header</a> [<span class="lit-number">16</span>]<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
+<span class="codeline" id="line-30"><code>	<a href="../../../use/runtime/trace..FlightRecorder.active^96879.html" class="ident">active</a> <a href="recorder.go.html#line-98" class="ident">rawGeneration</a></code></span>
+<span class="codeline" id="line-31"><code>	<a href="../../../use/runtime/trace..FlightRecorder.ringMu^c5c4b.html" class="ident">ringMu</a> <a href="../../../pkg/sync.html" class="ident i2">sync</a>.<a href="../../sync/mutex.go.html#line-30" class="ident">Mutex</a></code></span>
+<span class="codeline" id="line-32"><code>	<a href="../../../use/runtime/trace..FlightRecorder.ring^16b97.html" class="ident">ring</a>   []<a href="recorder.go.html#line-98" class="ident">rawGeneration</a></code></span>
+<span class="codeline" id="line-33"><code>	<a href="../../../use/runtime/trace..FlightRecorder.freq^d762b.html" class="ident">freq</a>   <a href="recorder.go.html#line-113" class="ident">frequency</a> <span class="comment">// timestamp conversion factor, from the runtime</span></code></span>
+<span class="codeline" id="line-34"><code></code></span>
+<span class="codeline" id="line-35"><code>	<span class="comment">// Externally-set options.</span></code></span>
+<span class="codeline" id="line-36"><code>	<a href="../../../use/runtime/trace..FlightRecorder.targetSize^741bf.html" class="ident">targetSize</a>   <a href="../../../pkg/builtin.html#name-uint64" class="ident">uint64</a></code></span>
+<span class="codeline" id="line-37"><code>	<a href="../../../use/runtime/trace..FlightRecorder.targetPeriod^a7cbf.html" class="ident">targetPeriod</a> <a href="../../../pkg/time.html" class="ident i3">time</a>.<a href="../../time/time.go.html#line-911" class="ident">Duration</a></code></span>
+<span class="codeline" id="line-38"><code></code></span>
+<span class="codeline" id="line-39"><code>	<a href="../../../use/runtime/trace..FlightRecorder.enabled^fb9cf.html" class="ident">enabled</a> <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a>       <span class="comment">// whether the flight recorder is enabled.</span></code></span>
+<span class="codeline" id="line-40"><code>	<a href="../../../use/runtime/trace..FlightRecorder.writing^ee871.html" class="ident">writing</a> <a href="../../../pkg/sync.html" class="ident i2">sync</a>.<a href="../../sync/mutex.go.html#line-30" class="ident">Mutex</a> <span class="comment">// protects concurrent calls to WriteTo</span></code></span>
+<span class="codeline" id="line-41"><code></code></span>
+<span class="codeline" id="line-42"><code>	<span class="comment">// The values of targetSize and targetPeriod we've committed to since the last Start.</span></code></span>
+<span class="codeline" id="line-43"><code>	<a href="../../../use/runtime/trace..FlightRecorder.wantSize^0366b.html" class="ident">wantSize</a> <a href="../../../pkg/builtin.html#name-uint64" class="ident">uint64</a></code></span>
+<span class="codeline" id="line-44"><code>	<a href="../../../use/runtime/trace..FlightRecorder.wantDur^a8eeb.html" class="ident">wantDur</a>  <a href="../../../pkg/time.html" class="ident i3">time</a>.<a href="../../time/time.go.html#line-911" class="ident">Duration</a></code></span>
+<span class="codeline" id="line-45"><code>}</code></span>
+<span class="codeline" id="line-46"><code></code></span>
+<span class="codeline" id="line-47"><code><span class="comment">// NewFlightRecorder creates a new flight recorder from the provided configuration.</span></code></span>
+<span class="codeline" id="line-48"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../pkg/runtime/trace.html#name-NewFlightRecorder" class="ident">NewFlightRecorder</a></label>(<label for="r1" class="ident">cfg</label> <a href="#line-156" class="ident">FlightRecorderConfig</a>) *<a href="#line-25" class="ident">FlightRecorder</a> {</code></span>
+<span class="codeline" id="line-49"><code>	<label for="r2" class="ident">fr</label> := <a href="../../../pkg/builtin.html#name-new" class="ident">new</a>(<a href="#line-25" class="ident">FlightRecorder</a>)</code></span>
+<span class="codeline" id="line-50"><code>	<span class="keyword">if</span> <label for="r1" class="ident">cfg</label>.<a href="#line-175" class="ident">MaxBytes</a> != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-51"><code>		<label for="r2" class="ident">fr</label>.<a href="#line-36" class="ident">targetSize</a> = <label for="r1" class="ident">cfg</label>.<a href="#line-175" class="ident">MaxBytes</a></code></span>
+<span class="codeline" id="line-52"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-53"><code>		<label for="r2" class="ident">fr</label>.<a href="#line-36" class="ident">targetSize</a> = <span class="lit-number">10</span> &lt;&lt; <span class="lit-number">20</span> <span class="comment">// 10 MiB.</span></code></span>
+<span class="codeline" id="line-54"><code>	}</code></span>
+<span class="codeline" id="line-55"><code></code></span>
+<span class="codeline" id="line-56"><code>	<span class="keyword">if</span> <label for="r1" class="ident">cfg</label>.<a href="#line-165" class="ident">MinAge</a> != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-57"><code>		<label for="r2" class="ident">fr</label>.<a href="#line-37" class="ident">targetPeriod</a> = <label for="r1" class="ident">cfg</label>.<a href="#line-165" class="ident">MinAge</a></code></span>
+<span class="codeline" id="line-58"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-59"><code>		<label for="r2" class="ident">fr</label>.<a href="#line-37" class="ident">targetPeriod</a> = <span class="lit-number">10</span> * <a href="../../../pkg/time.html" class="ident i3">time</a>.<a href="../../time/time.go.html#line-934" class="ident">Second</a></code></span>
+<span class="codeline" id="line-60"><code>	}</code></span>
+<span class="codeline" id="line-61"><code>	<span class="keyword">return</span> <label for="r2" class="ident">fr</label></code></span>
+<span class="codeline" id="line-62"><code>}</code></span>
+<span class="codeline" id="line-63"><code></code></span>
+<span class="codeline" id="line-64"><code><span class="comment">// Start activates the flight recorder and begins recording trace data.</span></code></span>
+<span class="codeline" id="line-65"><code><span class="comment">// Only one call to trace.Start may be active at any given time.</span></code></span>
+<span class="codeline" id="line-66"><code><span class="comment">// In addition, currently only one flight recorder may be active in the program.</span></code></span>
+<span class="codeline" id="line-67"><code><span class="comment">// Returns an error if the flight recorder cannot be started or is already started.</span></code></span>
+<span class="codeline" id="line-68"><code><span class="keyword">func</span> (<label for="r3" class="ident">fr</label> *<a href="#line-25" class="ident">FlightRecorder</a>) <label for="r4" class="ident"><a href="../../../use/runtime/trace..FlightRecorder.Start.html" class="ident">Start</a></label>() <a href="../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-69"><code>	<span class="keyword">if</span> <label for="r3" class="ident">fr</label>.<a href="#line-39" class="ident">enabled</a> {</code></span>
+<span class="codeline" id="line-70"><code>		<span class="keyword">return</span> <a href="../../../pkg/fmt.html" class="ident i0">fmt</a>.<a href="../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"cannot enable a enabled flight recorder"</span>)</code></span>
+<span class="codeline" id="line-71"><code>	}</code></span>
+<span class="codeline" id="line-72"><code>	<label for="r3" class="ident">fr</label>.<a href="#line-43" class="ident">wantSize</a> = <label for="r3" class="ident">fr</label>.<a href="#line-36" class="ident">targetSize</a></code></span>
+<span class="codeline" id="line-73"><code>	<label for="r3" class="ident">fr</label>.<a href="#line-44" class="ident">wantDur</a> = <label for="r3" class="ident">fr</label>.<a href="#line-37" class="ident">targetPeriod</a></code></span>
+<span class="codeline" id="line-74"><code>	<label for="r3" class="ident">fr</label>.<a href="#line-26" class="ident">err</a> = <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-75"><code>	<label for="r3" class="ident">fr</label>.<a href="#line-33" class="ident">freq</a> = <a href="recorder.go.html#line-113" class="ident">frequency</a>(<span class="lit-number">1.0</span> / (<a href="../../../pkg/builtin.html#name-float64" class="ident">float64</a>(<a href="#line-179" class="ident">runtime_traceClockUnitsPerSecond</a>()) / <span class="lit-number">1e9</span>))</code></span>
+<span class="codeline" id="line-76"><code></code></span>
+<span class="codeline" id="line-77"><code>	<span class="comment">// Start tracing, data is sent to a recorder which forwards it to our own</span></code></span>
+<span class="codeline" id="line-78"><code><span class="comment">	// storage.</span></code></span>
+<span class="codeline" id="line-79"><code>	<span class="keyword">if</span> <label for="r5" class="ident">err</label> := <a href="subscribe.go.html#line-17" class="ident">tracing</a>.<a href="subscribe.go.html#line-29" class="ident">subscribeFlightRecorder</a>(&amp;<a href="recorder.go.html#line-15" class="ident">recorder</a>{<a href="recorder.go.html#line-16" class="ident">r</a>: <label for="r3" class="ident">fr</label>}); <label for="r5" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-80"><code>		<span class="keyword">return</span> <label for="r5" class="ident">err</label></code></span>
+<span class="codeline" id="line-81"><code>	}</code></span>
+<span class="codeline" id="line-82"><code></code></span>
+<span class="codeline" id="line-83"><code>	<label for="r3" class="ident">fr</label>.<a href="#line-39" class="ident">enabled</a> = <a href="../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-84"><code>	<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-85"><code>}</code></span>
+<span class="codeline" id="line-86"><code></code></span>
+<span class="codeline" id="line-87"><code><span class="comment">// Stop ends recording of trace data. It blocks until any concurrent WriteTo calls complete.</span></code></span>
+<span class="codeline" id="line-88"><code><span class="keyword">func</span> (<label for="r6" class="ident">fr</label> *<a href="#line-25" class="ident">FlightRecorder</a>) <label for="r7" class="ident"><a href="../../../use/runtime/trace..FlightRecorder.Stop.html" class="ident">Stop</a></label>() {</code></span>
+<span class="codeline" id="line-89"><code>	<span class="keyword">if</span> !<label for="r6" class="ident">fr</label>.<a href="#line-39" class="ident">enabled</a> {</code></span>
+<span class="codeline" id="line-90"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-91"><code>	}</code></span>
+<span class="codeline" id="line-92"><code>	<label for="r6" class="ident">fr</label>.<a href="#line-39" class="ident">enabled</a> = <a href="../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-93"><code>	<a href="subscribe.go.html#line-17" class="ident">tracing</a>.<a href="subscribe.go.html#line-50" class="ident">unsubscribeFlightRecorder</a>()</code></span>
+<span class="codeline" id="line-94"><code></code></span>
+<span class="codeline" id="line-95"><code>	<span class="comment">// Reset all state. No need to lock because the reader has already exited.</span></code></span>
+<span class="codeline" id="line-96"><code>	<label for="r6" class="ident">fr</label>.<a href="#line-30" class="ident">active</a> = <a href="recorder.go.html#line-98" class="ident">rawGeneration</a>{}</code></span>
+<span class="codeline" id="line-97"><code>	<label for="r6" class="ident">fr</label>.<a href="#line-32" class="ident">ring</a> = <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-98"><code>}</code></span>
+<span class="codeline" id="line-99"><code></code></span>
+<span class="codeline" id="line-100"><code><span class="comment">// Enabled returns true if the flight recorder is active.</span></code></span>
+<span class="codeline" id="line-101"><code><span class="comment">// Specifically, it will return true if Start did not return an error, and Stop has not yet been called.</span></code></span>
+<span class="codeline" id="line-102"><code><span class="comment">// It is safe to call from multiple goroutines simultaneously.</span></code></span>
+<span class="codeline" id="line-103"><code><span class="keyword">func</span> (<label for="r8" class="ident">fr</label> *<a href="#line-25" class="ident">FlightRecorder</a>) <label for="r9" class="ident"><a href="../../../use/runtime/trace..FlightRecorder.Enabled.html" class="ident">Enabled</a></label>() <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a> { <span class="keyword">return</span> <label for="r8" class="ident">fr</label>.<a href="#line-39" class="ident">enabled</a> }</code></span>
+<span class="codeline" id="line-104"><code></code></span>
+<span class="codeline" id="line-105"><code><span class="comment">// WriteTo snapshots the moving window tracked by the flight recorder.</span></code></span>
+<span class="codeline" id="line-106"><code><span class="comment">// The snapshot is expected to contain data that is up-to-date as of when WriteTo is called,</span></code></span>
+<span class="codeline" id="line-107"><code><span class="comment">// though this is not a hard guarantee.</span></code></span>
+<span class="codeline" id="line-108"><code><span class="comment">// Only one goroutine may execute WriteTo at a time.</span></code></span>
+<span class="codeline" id="line-109"><code><span class="comment">// An error is returned upon failure to write to w, if another WriteTo call is already in-progress,</span></code></span>
+<span class="codeline" id="line-110"><code><span class="comment">// or if the flight recorder is inactive.</span></code></span>
+<span class="codeline" id="line-111"><code><span class="keyword">func</span> (<label for="r10" class="ident">fr</label> *<a href="#line-25" class="ident">FlightRecorder</a>) <label for="r11" class="ident"><a href="../../../use/runtime/trace..FlightRecorder.WriteTo.html" class="ident">WriteTo</a></label>(<label for="r12" class="ident">w</label> <a href="../../../pkg/io.html" class="ident i1">io</a>.<a href="../../io/io.go.html#line-99" class="ident">Writer</a>) (<label for="r13" class="ident">n</label> <a href="../../../pkg/builtin.html#name-int64" class="ident">int64</a>, <label for="r14" class="ident">err</label> <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-112"><code>	<span class="keyword">if</span> !<label for="r10" class="ident">fr</label>.<a href="#line-39" class="ident">enabled</a> {</code></span>
+<span class="codeline" id="line-113"><code>		<span class="keyword">return</span> <span class="lit-number">0</span>, <a href="../../../pkg/fmt.html" class="ident i0">fmt</a>.<a href="../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"cannot snapshot a disabled flight recorder"</span>)</code></span>
+<span class="codeline" id="line-114"><code>	}</code></span>
+<span class="codeline" id="line-115"><code>	<span class="keyword">if</span> !<label for="r10" class="ident">fr</label>.<a href="#line-40" class="ident">writing</a>.<a href="../../sync/mutex.go.html#line-54" class="ident">TryLock</a>() {</code></span>
+<span class="codeline" id="line-116"><code>		<span class="comment">// Indicates that a call to WriteTo was made while one was already in progress.</span></code></span>
+<span class="codeline" id="line-117"><code><span class="comment">		// If the caller of WriteTo sees this error, they should use the result from the other call to WriteTo.</span></code></span>
+<span class="codeline" id="line-118"><code>		<span class="keyword">return</span> <span class="lit-number">0</span>, <a href="../../../pkg/fmt.html" class="ident i0">fmt</a>.<a href="../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"call to WriteTo for trace.FlightRecorder already in progress"</span>)</code></span>
+<span class="codeline" id="line-119"><code>	}</code></span>
+<span class="codeline" id="line-120"><code>	<span class="keyword">defer</span> <label for="r10" class="ident">fr</label>.<a href="#line-40" class="ident">writing</a>.<a href="../../sync/mutex.go.html#line-64" class="ident">Unlock</a>()</code></span>
+<span class="codeline" id="line-121"><code></code></span>
+<span class="codeline" id="line-122"><code>	<span class="comment">// Force a global buffer flush.</span></code></span>
+<span class="codeline" id="line-123"><code>	<a href="#line-182" class="ident">runtime_traceAdvance</a>(<a href="../../../pkg/builtin.html#name-false" class="ident">false</a>)</code></span>
+<span class="codeline" id="line-124"><code></code></span>
+<span class="codeline" id="line-125"><code>	<span class="comment">// Now that everything has been flushed and written, grab whatever we have.</span></code></span>
+<span class="codeline" id="line-126"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-127"><code><span class="comment">	// N.B. traceAdvance blocks until the tracer goroutine has actually written everything</span></code></span>
+<span class="codeline" id="line-128"><code><span class="comment">	// out, which means the generation we just flushed must have been already been observed</span></code></span>
+<span class="codeline" id="line-129"><code><span class="comment">	// by the recorder goroutine. Because we flushed twice, the first flush is guaranteed to</span></code></span>
+<span class="codeline" id="line-130"><code><span class="comment">	// have been both completed *and* processed by the recorder goroutine.</span></code></span>
+<span class="codeline" id="line-131"><code>	<label for="r10" class="ident">fr</label>.<a href="#line-31" class="ident">ringMu</a>.<a href="../../sync/mutex.go.html#line-45" class="ident">Lock</a>()</code></span>
+<span class="codeline" id="line-132"><code>	<label for="r15" class="ident">gens</label> := <label for="r10" class="ident">fr</label>.<a href="#line-32" class="ident">ring</a></code></span>
+<span class="codeline" id="line-133"><code>	<label for="r10" class="ident">fr</label>.<a href="#line-31" class="ident">ringMu</a>.<a href="../../sync/mutex.go.html#line-64" class="ident">Unlock</a>()</code></span>
+<span class="codeline" id="line-134"><code></code></span>
+<span class="codeline" id="line-135"><code>	<span class="comment">// Write the header.</span></code></span>
+<span class="codeline" id="line-136"><code>	<label for="r16" class="ident">nw</label>, <label for="r14" class="ident">err</label> := <label for="r12" class="ident">w</label>.<a href="../../io/io.go.html#line-100" class="ident">Write</a>(<label for="r10" class="ident">fr</label>.<a href="#line-29" class="ident">header</a>[:])</code></span>
+<span class="codeline" id="line-137"><code>	<span class="keyword">if</span> <label for="r14" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-138"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-int64" class="ident">int64</a>(<label for="r16" class="ident">nw</label>), <label for="r14" class="ident">err</label></code></span>
+<span class="codeline" id="line-139"><code>	}</code></span>
+<span class="codeline" id="line-140"><code>	<label for="r13" class="ident">n</label> += <a href="../../../pkg/builtin.html#name-int64" class="ident">int64</a>(<label for="r16" class="ident">nw</label>)</code></span>
+<span class="codeline" id="line-141"><code></code></span>
+<span class="codeline" id="line-142"><code>	<span class="comment">// Write all the data.</span></code></span>
+<span class="codeline" id="line-143"><code>	<span class="keyword">for</span> <label for="r17" class="ident">_</label>, <label for="r18" class="ident">gen</label> := <span class="keyword">range</span> <label for="r15" class="ident">gens</label> {</code></span>
+<span class="codeline" id="line-144"><code>		<span class="keyword">for</span> <label for="r19" class="ident">_</label>, <label for="r20" class="ident">batch</label> := <span class="keyword">range</span> <label for="r18" class="ident">gen</label>.<a href="recorder.go.html#line-102" class="ident">batches</a> {</code></span>
+<span class="codeline" id="line-145"><code>			<span class="comment">// Write batch data.</span></code></span>
+<span class="codeline" id="line-146"><code>			<label for="r16" class="ident">nw</label>, <label for="r14" class="ident">err</label> = <label for="r12" class="ident">w</label>.<a href="../../io/io.go.html#line-100" class="ident">Write</a>(<label for="r20" class="ident">batch</label>.<a href="batch.go.html#line-20" class="ident">data</a>)</code></span>
+<span class="codeline" id="line-147"><code>			<label for="r13" class="ident">n</label> += <a href="../../../pkg/builtin.html#name-int64" class="ident">int64</a>(<label for="r16" class="ident">nw</label>)</code></span>
+<span class="codeline" id="line-148"><code>			<span class="keyword">if</span> <label for="r14" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-149"><code>				<span class="keyword">return</span> <label for="r13" class="ident">n</label>, <label for="r14" class="ident">err</label></code></span>
+<span class="codeline" id="line-150"><code>			}</code></span>
+<span class="codeline" id="line-151"><code>		}</code></span>
+<span class="codeline" id="line-152"><code>	}</code></span>
+<span class="codeline" id="line-153"><code>	<span class="keyword">return</span> <label for="r13" class="ident">n</label>, <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-154"><code>}</code></span>
+<span class="codeline" id="line-155"><code></code></span>
+<span class="codeline" id="line-156"><code><span class="keyword">type</span> <a href="../../../pkg/runtime/trace.html#name-FlightRecorderConfig" class="ident">FlightRecorderConfig</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-157"><code>	<span class="comment">// MinAge is a lower bound on the age of an event in the flight recorder's window.</span></code></span>
+<span class="codeline" id="line-158"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-159"><code><span class="comment">	// The flight recorder will strive to promptly discard events older than the minimum age,</span></code></span>
+<span class="codeline" id="line-160"><code><span class="comment">	// but older events may appear in the window snapshot. The age setting will always be</span></code></span>
+<span class="codeline" id="line-161"><code><span class="comment">	// overridden by MaxSize.</span></code></span>
+<span class="codeline" id="line-162"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-163"><code><span class="comment">	// If this is 0, the minimum age is implementation defined, but can be assumed to be on the order</span></code></span>
+<span class="codeline" id="line-164"><code><span class="comment">	// of seconds.</span></code></span>
+<span class="codeline" id="line-165"><code>	<a href="../../../use/runtime/trace..FlightRecorderConfig.MinAge.html" class="ident">MinAge</a> <a href="../../../pkg/time.html" class="ident i3">time</a>.<a href="../../time/time.go.html#line-911" class="ident">Duration</a></code></span>
+<span class="codeline" id="line-166"><code></code></span>
+<span class="codeline" id="line-167"><code>	<span class="comment">// MaxBytes is an upper bound on the size of the window in bytes.</span></code></span>
+<span class="codeline" id="line-168"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-169"><code><span class="comment">	// This setting takes precedence over MinAge.</span></code></span>
+<span class="codeline" id="line-170"><code><span class="comment">	// However, it does not make any guarantees on the size of the data WriteTo will write,</span></code></span>
+<span class="codeline" id="line-171"><code><span class="comment">	// nor does it guarantee memory overheads will always stay below MaxBytes. Treat it</span></code></span>
+<span class="codeline" id="line-172"><code><span class="comment">	// as a hint.</span></code></span>
+<span class="codeline" id="line-173"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-174"><code><span class="comment">	// If this is 0, the maximum size is implementation defined.</span></code></span>
+<span class="codeline" id="line-175"><code>	<a href="../../../use/runtime/trace..FlightRecorderConfig.MaxBytes.html" class="ident">MaxBytes</a> <a href="../../../pkg/builtin.html#name-uint64" class="ident">uint64</a></code></span>
+<span class="codeline" id="line-176"><code>}</code></span>
+<span class="codeline" id="line-177"><code></code></span>
+<span class="codeline" id="line-178"><code><span class="comment">//go:linkname runtime_traceClockUnitsPerSecond</span></code></span>
+<span class="codeline" id="line-179"><code><span class="keyword">func</span> <label for="r21" class="ident"><a href="../../../pkg/runtime/trace.html#name-runtime_traceClockUnitsPerSecond" class="ident">runtime_traceClockUnitsPerSecond</a></label>() <a href="../../../pkg/builtin.html#name-uint64" class="ident">uint64</a></code></span>
+<span class="codeline" id="line-180"><code></code></span>
+<span class="codeline" id="line-181"><code><span class="comment">//go:linkname runtime_traceAdvance runtime.traceAdvance</span></code></span>
+<span class="codeline" id="line-182"><code><span class="keyword">func</span> <label for="r22" class="ident"><a href="../../../pkg/runtime/trace.html#name-runtime_traceAdvance" class="ident">runtime_traceAdvance</a></label>(<label for="r23" class="ident">stopTrace</label> <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a>)</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

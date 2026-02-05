@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: http_util.go in package google.golang.org/grpc/internal/transport</title>
+<link href="../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	http_util.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../pkg/google.golang.org/grpc/internal/transport.html">google.golang.org/grpc/internal/transport</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30],
+input[id=r31]:checked ~pre label[for=r31],
+input[id=r32]:checked ~pre label[for=r32],
+input[id=r33]:checked ~pre label[for=r33],
+input[id=r34]:checked ~pre label[for=r34],
+input[id=r35]:checked ~pre label[for=r35],
+input[id=r36]:checked ~pre label[for=r36],
+input[id=r37]:checked ~pre label[for=r37],
+input[id=r38]:checked ~pre label[for=r38],
+input[id=r39]:checked ~pre label[for=r39],
+input[id=r40]:checked ~pre label[for=r40],
+input[id=r41]:checked ~pre label[for=r41],
+input[id=r42]:checked ~pre label[for=r42],
+input[id=r43]:checked ~pre label[for=r43],
+input[id=r44]:checked ~pre label[for=r44],
+input[id=r45]:checked ~pre label[for=r45],
+input[id=r46]:checked ~pre label[for=r46],
+input[id=r47]:checked ~pre label[for=r47],
+input[id=r48]:checked ~pre label[for=r48],
+input[id=r49]:checked ~pre label[for=r49],
+input[id=r50]:checked ~pre label[for=r50],
+input[id=r51]:checked ~pre label[for=r51],
+input[id=r52]:checked ~pre label[for=r52],
+input[id=r53]:checked ~pre label[for=r53],
+input[id=r54]:checked ~pre label[for=r54],
+input[id=r55]:checked ~pre label[for=r55],
+input[id=r56]:checked ~pre label[for=r56],
+input[id=r57]:checked ~pre label[for=r57],
+input[id=r58]:checked ~pre label[for=r58],
+input[id=r59]:checked ~pre label[for=r59],
+input[id=r60]:checked ~pre label[for=r60],
+input[id=r61]:checked ~pre label[for=r61],
+input[id=r62]:checked ~pre label[for=r62],
+input[id=r63]:checked ~pre label[for=r63],
+input[id=r64]:checked ~pre label[for=r64],
+input[id=r65]:checked ~pre label[for=r65],
+input[id=r66]:checked ~pre label[for=r66],
+input[id=r67]:checked ~pre label[for=r67],
+input[id=r68]:checked ~pre label[for=r68],
+input[id=r69]:checked ~pre label[for=r69],
+input[id=r70]:checked ~pre label[for=r70],
+input[id=r71]:checked ~pre label[for=r71],
+input[id=r72]:checked ~pre label[for=r72],
+input[id=r73]:checked ~pre label[for=r73],
+input[id=r74]:checked ~pre label[for=r74],
+input[id=r75]:checked ~pre label[for=r75],
+input[id=r76]:checked ~pre label[for=r76],
+input[id=r77]:checked ~pre label[for=r77],
+input[id=r78]:checked ~pre label[for=r78],
+input[id=r79]:checked ~pre label[for=r79],
+input[id=r80]:checked ~pre label[for=r80],
+input[id=r81]:checked ~pre label[for=r81],
+input[id=r82]:checked ~pre label[for=r82],
+input[id=r83]:checked ~pre label[for=r83],
+input[id=r84]:checked ~pre label[for=r84],
+input[id=r85]:checked ~pre label[for=r85],
+input[id=r86]:checked ~pre label[for=r86],
+input[id=r87]:checked ~pre label[for=r87],
+input[id=r88]:checked ~pre label[for=r88],
+input[id=r89]:checked ~pre label[for=r89],
+input[id=r90]:checked ~pre label[for=r90],
+input[id=r91]:checked ~pre label[for=r91],
+input[id=r92]:checked ~pre label[for=r92],
+input[id=r93]:checked ~pre label[for=r93],
+input[id=r94]:checked ~pre label[for=r94],
+input[id=r95]:checked ~pre label[for=r95],
+input[id=r96]:checked ~pre label[for=r96],
+input[id=r97]:checked ~pre label[for=r97],
+input[id=r98]:checked ~pre label[for=r98],
+input[id=r99]:checked ~pre label[for=r99],
+input[id=r100]:checked ~pre label[for=r100],
+input[id=r101]:checked ~pre label[for=r101],
+input[id=r102]:checked ~pre label[for=r102],
+input[id=r103]:checked ~pre label[for=r103]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3,
+input[id=i4]:checked ~pre .i4,
+input[id=i5]:checked ~pre .i5,
+input[id=i6]:checked ~pre .i6,
+input[id=i7]:checked ~pre .i7,
+input[id=i8]:checked ~pre .i8,
+input[id=i9]:checked ~pre .i9,
+input[id=i10]:checked ~pre .i10,
+input[id=i11]:checked ~pre .i11,
+input[id=i12]:checked ~pre .i12,
+input[id=i13]:checked ~pre .i13,
+input[id=i14]:checked ~pre .i14,
+input[id=i15]:checked ~pre .i15,
+input[id=i16]:checked ~pre .i16
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="r31" type="radio" name="g"/>
+<input id="r32" type="radio" name="g"/>
+<input id="r33" type="radio" name="g"/>
+<input id="r34" type="radio" name="g"/>
+<input id="r35" type="radio" name="g"/>
+<input id="r36" type="radio" name="g"/>
+<input id="r37" type="radio" name="g"/>
+<input id="r38" type="radio" name="g"/>
+<input id="r39" type="radio" name="g"/>
+<input id="r40" type="radio" name="g"/>
+<input id="r41" type="radio" name="g"/>
+<input id="r42" type="radio" name="g"/>
+<input id="r43" type="radio" name="g"/>
+<input id="r44" type="radio" name="g"/>
+<input id="r45" type="radio" name="g"/>
+<input id="r46" type="radio" name="g"/>
+<input id="r47" type="radio" name="g"/>
+<input id="r48" type="radio" name="g"/>
+<input id="r49" type="radio" name="g"/>
+<input id="r50" type="radio" name="g"/>
+<input id="r51" type="radio" name="g"/>
+<input id="r52" type="radio" name="g"/>
+<input id="r53" type="radio" name="g"/>
+<input id="r54" type="radio" name="g"/>
+<input id="r55" type="radio" name="g"/>
+<input id="r56" type="radio" name="g"/>
+<input id="r57" type="radio" name="g"/>
+<input id="r58" type="radio" name="g"/>
+<input id="r59" type="radio" name="g"/>
+<input id="r60" type="radio" name="g"/>
+<input id="r61" type="radio" name="g"/>
+<input id="r62" type="radio" name="g"/>
+<input id="r63" type="radio" name="g"/>
+<input id="r64" type="radio" name="g"/>
+<input id="r65" type="radio" name="g"/>
+<input id="r66" type="radio" name="g"/>
+<input id="r67" type="radio" name="g"/>
+<input id="r68" type="radio" name="g"/>
+<input id="r69" type="radio" name="g"/>
+<input id="r70" type="radio" name="g"/>
+<input id="r71" type="radio" name="g"/>
+<input id="r72" type="radio" name="g"/>
+<input id="r73" type="radio" name="g"/>
+<input id="r74" type="radio" name="g"/>
+<input id="r75" type="radio" name="g"/>
+<input id="r76" type="radio" name="g"/>
+<input id="r77" type="radio" name="g"/>
+<input id="r78" type="radio" name="g"/>
+<input id="r79" type="radio" name="g"/>
+<input id="r80" type="radio" name="g"/>
+<input id="r81" type="radio" name="g"/>
+<input id="r82" type="radio" name="g"/>
+<input id="r83" type="radio" name="g"/>
+<input id="r84" type="radio" name="g"/>
+<input id="r85" type="radio" name="g"/>
+<input id="r86" type="radio" name="g"/>
+<input id="r87" type="radio" name="g"/>
+<input id="r88" type="radio" name="g"/>
+<input id="r89" type="radio" name="g"/>
+<input id="r90" type="radio" name="g"/>
+<input id="r91" type="radio" name="g"/>
+<input id="r92" type="radio" name="g"/>
+<input id="r93" type="radio" name="g"/>
+<input id="r94" type="radio" name="g"/>
+<input id="r95" type="radio" name="g"/>
+<input id="r96" type="radio" name="g"/>
+<input id="r97" type="radio" name="g"/>
+<input id="r98" type="radio" name="g"/>
+<input id="r99" type="radio" name="g"/>
+<input id="r100" type="radio" name="g"/>
+<input id="r101" type="radio" name="g"/>
+<input id="r102" type="radio" name="g"/>
+<input id="r103" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+<input id="i4" type="radio" name="i"/>
+<input id="i5" type="radio" name="i"/>
+<input id="i6" type="radio" name="i"/>
+<input id="i7" type="radio" name="i"/>
+<input id="i8" type="radio" name="i"/>
+<input id="i9" type="radio" name="i"/>
+<input id="i10" type="radio" name="i"/>
+<input id="i11" type="radio" name="i"/>
+<input id="i12" type="radio" name="i"/>
+<input id="i13" type="radio" name="i"/>
+<input id="i14" type="radio" name="i"/>
+<input id="i15" type="radio" name="i"/>
+<input id="i16" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">/*</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment"> * Copyright 2014 gRPC authors.</span></code></span>
+<span class="codeline" id="line-4"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-5"><code><span class="comment"> * Licensed under the Apache License, Version 2.0 (the "License");</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment"> * you may not use this file except in compliance with the License.</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment"> * You may obtain a copy of the License at</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment"> *     http://www.apache.org/licenses/LICENSE-2.0</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment"> * Unless required by applicable law or agreed to in writing, software</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment"> * distributed under the License is distributed on an "AS IS" BASIS,</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment"> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment"> * See the License for the specific language governing permissions and</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment"> * limitations under the License.</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment"> */</span></code></span>
+<span class="codeline" id="line-18"><code></code></span>
+<span class="codeline" id="line-19"><code><span class="keyword">package</span> transport</code></span>
+<span class="codeline" id="line-20"><code></code></span>
+<span class="codeline" id="line-21"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-22"><code>	<label for="i0"><span class="lit-string i0">"bufio"</span></label></code></span>
+<span class="codeline" id="line-23"><code>	<label for="i1"><span class="lit-string i1">"encoding/base64"</span></label></code></span>
+<span class="codeline" id="line-24"><code>	<label for="i2"><span class="lit-string i2">"errors"</span></label></code></span>
+<span class="codeline" id="line-25"><code>	<label for="i3"><span class="lit-string i3">"fmt"</span></label></code></span>
+<span class="codeline" id="line-26"><code>	<label for="i4"><span class="lit-string i4">"io"</span></label></code></span>
+<span class="codeline" id="line-27"><code>	<label for="i5"><span class="lit-string i5">"math"</span></label></code></span>
+<span class="codeline" id="line-28"><code>	<label for="i6"><span class="lit-string i6">"net"</span></label></code></span>
+<span class="codeline" id="line-29"><code>	<label for="i7"><span class="lit-string i7">"net/http"</span></label></code></span>
+<span class="codeline" id="line-30"><code>	<label for="i8"><span class="lit-string i8">"net/url"</span></label></code></span>
+<span class="codeline" id="line-31"><code>	<label for="i9"><span class="lit-string i9">"strconv"</span></label></code></span>
+<span class="codeline" id="line-32"><code>	<label for="i10"><span class="lit-string i10">"strings"</span></label></code></span>
+<span class="codeline" id="line-33"><code>	<label for="i11"><span class="lit-string i11">"sync"</span></label></code></span>
+<span class="codeline" id="line-34"><code>	<label for="i12"><span class="lit-string i12">"time"</span></label></code></span>
+<span class="codeline" id="line-35"><code>	<label for="i13"><span class="lit-string i13">"unicode/utf8"</span></label></code></span>
+<span class="codeline" id="line-36"><code></code></span>
+<span class="codeline" id="line-37"><code>	<label for="i14"><span class="lit-string i14">"golang.org/x/net/http2"</span></label></code></span>
+<span class="codeline" id="line-38"><code>	<label for="i15"><span class="lit-string i15">"golang.org/x/net/http2/hpack"</span></label></code></span>
+<span class="codeline" id="line-39"><code>	<label for="i16"><span class="lit-string i16">"google.golang.org/grpc/codes"</span></label></code></span>
+<span class="codeline" id="line-40"><code>)</code></span>
+<span class="codeline" id="line-41"><code></code></span>
+<span class="codeline" id="line-42"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-43"><code>	<span class="comment">// http2MaxFrameLen specifies the max length of a HTTP2 frame.</span></code></span>
+<span class="codeline" id="line-44"><code>	<a href="../../../../../pkg/google.golang.org/grpc/internal/transport.html#name-http2MaxFrameLen" class="ident">http2MaxFrameLen</a> = <span class="lit-number">16384</span> <span class="comment">// 16KB frame</span></code></span>
+<span class="codeline" id="line-45"><code>	<span class="comment">// https://httpwg.org/specs/rfc7540.html#SettingValues</span></code></span>
+<span class="codeline" id="line-46"><code>	<a href="../../../../../pkg/google.golang.org/grpc/internal/transport.html#name-http2InitHeaderTableSize" class="ident">http2InitHeaderTableSize</a> = <span class="lit-number">4096</span></code></span>
+<span class="codeline" id="line-47"><code>)</code></span>
+<span class="codeline" id="line-48"><code></code></span>
+<span class="codeline" id="line-49"><code><span class="keyword">var</span> (</code></span>
+<span class="codeline" id="line-50"><code>	<a href="../../../../../pkg/google.golang.org/grpc/internal/transport.html#name-clientPreface" class="ident">clientPreface</a>   = []<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>(<a href="../../../../../pkg/golang.org/x/net/http2.html" class="ident i14">http2</a>.<a href="../../../../golang.org/x/net/http2/http2.go.html#line-67" class="ident">ClientPreface</a>)</code></span>
+<span class="codeline" id="line-51"><code>	<a href="../../../../../pkg/google.golang.org/grpc/internal/transport.html#name-http2ErrConvTab" class="ident">http2ErrConvTab</a> = <span class="keyword">map</span>[<a href="../../../../../pkg/golang.org/x/net/http2.html" class="ident i14">http2</a>.<a href="../../../../golang.org/x/net/http2/errors.go.html#line-13" class="ident">ErrCode</a>]<a href="../../../../../pkg/google.golang.org/grpc/codes.html" class="ident i16">codes</a>.<a href="../../codes/codes.go.html#line-35" class="ident">Code</a>{</code></span>
+<span class="codeline" id="line-52"><code>		<a href="../../../../../pkg/golang.org/x/net/http2.html" class="ident i14">http2</a>.<a href="../../../../golang.org/x/net/http2/errors.go.html#line-16" class="ident">ErrCodeNo</a>:                 <a href="../../../../../pkg/google.golang.org/grpc/codes.html" class="ident i16">codes</a>.<a href="../../codes/codes.go.html#line-174" class="ident">Internal</a>,</code></span>
+<span class="codeline" id="line-53"><code>		<a href="../../../../../pkg/golang.org/x/net/http2.html" class="ident i14">http2</a>.<a href="../../../../golang.org/x/net/http2/errors.go.html#line-17" class="ident">ErrCodeProtocol</a>:           <a href="../../../../../pkg/google.golang.org/grpc/codes.html" class="ident i16">codes</a>.<a href="../../codes/codes.go.html#line-174" class="ident">Internal</a>,</code></span>
+<span class="codeline" id="line-54"><code>		<a href="../../../../../pkg/golang.org/x/net/http2.html" class="ident i14">http2</a>.<a href="../../../../golang.org/x/net/http2/errors.go.html#line-18" class="ident">ErrCodeInternal</a>:           <a href="../../../../../pkg/google.golang.org/grpc/codes.html" class="ident i16">codes</a>.<a href="../../codes/codes.go.html#line-174" class="ident">Internal</a>,</code></span>
+<span class="codeline" id="line-55"><code>		<a href="../../../../../pkg/golang.org/x/net/http2.html" class="ident i14">http2</a>.<a href="../../../../golang.org/x/net/http2/errors.go.html#line-19" class="ident">ErrCodeFlowControl</a>:        <a href="../../../../../pkg/google.golang.org/grpc/codes.html" class="ident i16">codes</a>.<a href="../../codes/codes.go.html#line-104" class="ident">ResourceExhausted</a>,</code></span>
+<span class="codeline" id="line-56"><code>		<a href="../../../../../pkg/golang.org/x/net/http2.html" class="ident i14">http2</a>.<a href="../../../../golang.org/x/net/http2/errors.go.html#line-20" class="ident">ErrCodeSettingsTimeout</a>:    <a href="../../../../../pkg/google.golang.org/grpc/codes.html" class="ident i16">codes</a>.<a href="../../codes/codes.go.html#line-174" class="ident">Internal</a>,</code></span>
+<span class="codeline" id="line-57"><code>		<a href="../../../../../pkg/golang.org/x/net/http2.html" class="ident i14">http2</a>.<a href="../../../../golang.org/x/net/http2/errors.go.html#line-21" class="ident">ErrCodeStreamClosed</a>:       <a href="../../../../../pkg/google.golang.org/grpc/codes.html" class="ident i16">codes</a>.<a href="../../codes/codes.go.html#line-174" class="ident">Internal</a>,</code></span>
+<span class="codeline" id="line-58"><code>		<a href="../../../../../pkg/golang.org/x/net/http2.html" class="ident i14">http2</a>.<a href="../../../../golang.org/x/net/http2/errors.go.html#line-22" class="ident">ErrCodeFrameSize</a>:          <a href="../../../../../pkg/google.golang.org/grpc/codes.html" class="ident i16">codes</a>.<a href="../../codes/codes.go.html#line-174" class="ident">Internal</a>,</code></span>
+<span class="codeline" id="line-59"><code>		<a href="../../../../../pkg/golang.org/x/net/http2.html" class="ident i14">http2</a>.<a href="../../../../golang.org/x/net/http2/errors.go.html#line-23" class="ident">ErrCodeRefusedStream</a>:      <a href="../../../../../pkg/google.golang.org/grpc/codes.html" class="ident i16">codes</a>.<a href="../../codes/codes.go.html#line-186" class="ident">Unavailable</a>,</code></span>
+<span class="codeline" id="line-60"><code>		<a href="../../../../../pkg/golang.org/x/net/http2.html" class="ident i14">http2</a>.<a href="../../../../golang.org/x/net/http2/errors.go.html#line-24" class="ident">ErrCodeCancel</a>:             <a href="../../../../../pkg/google.golang.org/grpc/codes.html" class="ident i16">codes</a>.<a href="../../codes/codes.go.html#line-45" class="ident">Canceled</a>,</code></span>
+<span class="codeline" id="line-61"><code>		<a href="../../../../../pkg/golang.org/x/net/http2.html" class="ident i14">http2</a>.<a href="../../../../golang.org/x/net/http2/errors.go.html#line-25" class="ident">ErrCodeCompression</a>:        <a href="../../../../../pkg/google.golang.org/grpc/codes.html" class="ident i16">codes</a>.<a href="../../codes/codes.go.html#line-174" class="ident">Internal</a>,</code></span>
+<span class="codeline" id="line-62"><code>		<a href="../../../../../pkg/golang.org/x/net/http2.html" class="ident i14">http2</a>.<a href="../../../../golang.org/x/net/http2/errors.go.html#line-26" class="ident">ErrCodeConnect</a>:            <a href="../../../../../pkg/google.golang.org/grpc/codes.html" class="ident i16">codes</a>.<a href="../../codes/codes.go.html#line-174" class="ident">Internal</a>,</code></span>
+<span class="codeline" id="line-63"><code>		<a href="../../../../../pkg/golang.org/x/net/http2.html" class="ident i14">http2</a>.<a href="../../../../golang.org/x/net/http2/errors.go.html#line-27" class="ident">ErrCodeEnhanceYourCalm</a>:    <a href="../../../../../pkg/google.golang.org/grpc/codes.html" class="ident i16">codes</a>.<a href="../../codes/codes.go.html#line-104" class="ident">ResourceExhausted</a>,</code></span>
+<span class="codeline" id="line-64"><code>		<a href="../../../../../pkg/golang.org/x/net/http2.html" class="ident i14">http2</a>.<a href="../../../../golang.org/x/net/http2/errors.go.html#line-28" class="ident">ErrCodeInadequateSecurity</a>: <a href="../../../../../pkg/google.golang.org/grpc/codes.html" class="ident i16">codes</a>.<a href="../../codes/codes.go.html#line-96" class="ident">PermissionDenied</a>,</code></span>
+<span class="codeline" id="line-65"><code>		<a href="../../../../../pkg/golang.org/x/net/http2.html" class="ident i14">http2</a>.<a href="../../../../golang.org/x/net/http2/errors.go.html#line-29" class="ident">ErrCodeHTTP11Required</a>:     <a href="../../../../../pkg/google.golang.org/grpc/codes.html" class="ident i16">codes</a>.<a href="../../codes/codes.go.html#line-174" class="ident">Internal</a>,</code></span>
+<span class="codeline" id="line-66"><code>	}</code></span>
+<span class="codeline" id="line-67"><code>	<span class="comment">// HTTPStatusConvTab is the HTTP status code to gRPC error code conversion table.</span></code></span>
+<span class="codeline" id="line-68"><code>	<a href="../../../../../pkg/google.golang.org/grpc/internal/transport.html#name-HTTPStatusConvTab" class="ident">HTTPStatusConvTab</a> = <span class="keyword">map</span>[<a href="../../../../../pkg/builtin.html#name-int" class="ident">int</a>]<a href="../../../../../pkg/google.golang.org/grpc/codes.html" class="ident i16">codes</a>.<a href="../../codes/codes.go.html#line-35" class="ident">Code</a>{</code></span>
+<span class="codeline" id="line-69"><code>		<span class="comment">// 400 Bad Request - INTERNAL.</span></code></span>
+<span class="codeline" id="line-70"><code>		<a href="../../../../../pkg/net/http.html" class="ident i7">http</a>.<a href="../../../../net/http/status.go.html#line-36" class="ident">StatusBadRequest</a>: <a href="../../../../../pkg/google.golang.org/grpc/codes.html" class="ident i16">codes</a>.<a href="../../codes/codes.go.html#line-174" class="ident">Internal</a>,</code></span>
+<span class="codeline" id="line-71"><code>		<span class="comment">// 401 Unauthorized  - UNAUTHENTICATED.</span></code></span>
+<span class="codeline" id="line-72"><code>		<a href="../../../../../pkg/net/http.html" class="ident i7">http</a>.<a href="../../../../net/http/status.go.html#line-37" class="ident">StatusUnauthorized</a>: <a href="../../../../../pkg/google.golang.org/grpc/codes.html" class="ident i16">codes</a>.<a href="../../codes/codes.go.html#line-199" class="ident">Unauthenticated</a>,</code></span>
+<span class="codeline" id="line-73"><code>		<span class="comment">// 403 Forbidden - PERMISSION_DENIED.</span></code></span>
+<span class="codeline" id="line-74"><code>		<a href="../../../../../pkg/net/http.html" class="ident i7">http</a>.<a href="../../../../net/http/status.go.html#line-39" class="ident">StatusForbidden</a>: <a href="../../../../../pkg/google.golang.org/grpc/codes.html" class="ident i16">codes</a>.<a href="../../codes/codes.go.html#line-96" class="ident">PermissionDenied</a>,</code></span>
+<span class="codeline" id="line-75"><code>		<span class="comment">// 404 Not Found - UNIMPLEMENTED.</span></code></span>
+<span class="codeline" id="line-76"><code>		<a href="../../../../../pkg/net/http.html" class="ident i7">http</a>.<a href="../../../../net/http/status.go.html#line-40" class="ident">StatusNotFound</a>: <a href="../../../../../pkg/google.golang.org/grpc/codes.html" class="ident i16">codes</a>.<a href="../../codes/codes.go.html#line-166" class="ident">Unimplemented</a>,</code></span>
+<span class="codeline" id="line-77"><code>		<span class="comment">// 429 Too Many Requests - UNAVAILABLE.</span></code></span>
+<span class="codeline" id="line-78"><code>		<a href="../../../../../pkg/net/http.html" class="ident i7">http</a>.<a href="../../../../net/http/status.go.html#line-62" class="ident">StatusTooManyRequests</a>: <a href="../../../../../pkg/google.golang.org/grpc/codes.html" class="ident i16">codes</a>.<a href="../../codes/codes.go.html#line-186" class="ident">Unavailable</a>,</code></span>
+<span class="codeline" id="line-79"><code>		<span class="comment">// 502 Bad Gateway - UNAVAILABLE.</span></code></span>
+<span class="codeline" id="line-80"><code>		<a href="../../../../../pkg/net/http.html" class="ident i7">http</a>.<a href="../../../../net/http/status.go.html#line-68" class="ident">StatusBadGateway</a>: <a href="../../../../../pkg/google.golang.org/grpc/codes.html" class="ident i16">codes</a>.<a href="../../codes/codes.go.html#line-186" class="ident">Unavailable</a>,</code></span>
+<span class="codeline" id="line-81"><code>		<span class="comment">// 503 Service Unavailable - UNAVAILABLE.</span></code></span>
+<span class="codeline" id="line-82"><code>		<a href="../../../../../pkg/net/http.html" class="ident i7">http</a>.<a href="../../../../net/http/status.go.html#line-69" class="ident">StatusServiceUnavailable</a>: <a href="../../../../../pkg/google.golang.org/grpc/codes.html" class="ident i16">codes</a>.<a href="../../codes/codes.go.html#line-186" class="ident">Unavailable</a>,</code></span>
+<span class="codeline" id="line-83"><code>		<span class="comment">// 504 Gateway timeout - UNAVAILABLE.</span></code></span>
+<span class="codeline" id="line-84"><code>		<a href="../../../../../pkg/net/http.html" class="ident i7">http</a>.<a href="../../../../net/http/status.go.html#line-70" class="ident">StatusGatewayTimeout</a>: <a href="../../../../../pkg/google.golang.org/grpc/codes.html" class="ident i16">codes</a>.<a href="../../codes/codes.go.html#line-186" class="ident">Unavailable</a>,</code></span>
+<span class="codeline" id="line-85"><code>	}</code></span>
+<span class="codeline" id="line-86"><code>)</code></span>
+<span class="codeline" id="line-87"><code></code></span>
+<span class="codeline" id="line-88"><code><span class="keyword">var</span> <a href="../../../../../pkg/google.golang.org/grpc/internal/transport.html#name-grpcStatusDetailsBinHeader" class="ident">grpcStatusDetailsBinHeader</a> = <span class="lit-string">"grpc-status-details-bin"</span></code></span>
+<span class="codeline" id="line-89"><code></code></span>
+<span class="codeline" id="line-90"><code><span class="comment">// isReservedHeader checks whether hdr belongs to HTTP2 headers</span></code></span>
+<span class="codeline" id="line-91"><code><span class="comment">// reserved by gRPC protocol. Any other headers are classified as the</span></code></span>
+<span class="codeline" id="line-92"><code><span class="comment">// user-specified metadata.</span></code></span>
+<span class="codeline" id="line-93"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../../pkg/google.golang.org/grpc/internal/transport.html#name-isReservedHeader" class="ident">isReservedHeader</a></label>(<label for="r1" class="ident">hdr</label> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-94"><code>	<span class="keyword">if</span> <label for="r1" class="ident">hdr</label> != <span class="lit-string">""</span> &amp;&amp; <label for="r1" class="ident">hdr</label>[<span class="lit-number">0</span>] == <span class="lit-number">':'</span> {</code></span>
+<span class="codeline" id="line-95"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-96"><code>	}</code></span>
+<span class="codeline" id="line-97"><code>	<span class="keyword">switch</span> <label for="r1" class="ident">hdr</label> {</code></span>
+<span class="codeline" id="line-98"><code>	<span class="keyword">case</span> <span class="lit-string">"content-type"</span>,</code></span>
+<span class="codeline" id="line-99"><code>		<span class="lit-string">"user-agent"</span>,</code></span>
+<span class="codeline" id="line-100"><code>		<span class="lit-string">"grpc-message-type"</span>,</code></span>
+<span class="codeline" id="line-101"><code>		<span class="lit-string">"grpc-encoding"</span>,</code></span>
+<span class="codeline" id="line-102"><code>		<span class="lit-string">"grpc-message"</span>,</code></span>
+<span class="codeline" id="line-103"><code>		<span class="lit-string">"grpc-status"</span>,</code></span>
+<span class="codeline" id="line-104"><code>		<span class="lit-string">"grpc-timeout"</span>,</code></span>
+<span class="codeline" id="line-105"><code>		<span class="comment">// Intentionally exclude grpc-previous-rpc-attempts and</span></code></span>
+<span class="codeline" id="line-106"><code><span class="comment">		// grpc-retry-pushback-ms, which are "reserved", but their API</span></code></span>
+<span class="codeline" id="line-107"><code><span class="comment">		// intentionally works via metadata.</span></code></span>
+<span class="codeline" id="line-108"><code>		<span class="lit-string">"te"</span>:</code></span>
+<span class="codeline" id="line-109"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-110"><code>	<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-111"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-112"><code>	}</code></span>
+<span class="codeline" id="line-113"><code>}</code></span>
+<span class="codeline" id="line-114"><code></code></span>
+<span class="codeline" id="line-115"><code><span class="comment">// isWhitelistedHeader checks whether hdr should be propagated into metadata</span></code></span>
+<span class="codeline" id="line-116"><code><span class="comment">// visible to users, even though it is classified as "reserved", above.</span></code></span>
+<span class="codeline" id="line-117"><code><span class="keyword">func</span> <label for="r2" class="ident"><a href="../../../../../pkg/google.golang.org/grpc/internal/transport.html#name-isWhitelistedHeader" class="ident">isWhitelistedHeader</a></label>(<label for="r3" class="ident">hdr</label> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-118"><code>	<span class="keyword">switch</span> <label for="r3" class="ident">hdr</label> {</code></span>
+<span class="codeline" id="line-119"><code>	<span class="keyword">case</span> <span class="lit-string">":authority"</span>, <span class="lit-string">"user-agent"</span>:</code></span>
+<span class="codeline" id="line-120"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-121"><code>	<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-122"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-123"><code>	}</code></span>
+<span class="codeline" id="line-124"><code>}</code></span>
+<span class="codeline" id="line-125"><code></code></span>
+<span class="codeline" id="line-126"><code><span class="keyword">const</span> <a href="../../../../../pkg/google.golang.org/grpc/internal/transport.html#name-binHdrSuffix" class="ident">binHdrSuffix</a> = <span class="lit-string">"-bin"</span></code></span>
+<span class="codeline" id="line-127"><code></code></span>
+<span class="codeline" id="line-128"><code><span class="keyword">func</span> <label for="r4" class="ident"><a href="../../../../../pkg/google.golang.org/grpc/internal/transport.html#name-encodeBinHeader" class="ident">encodeBinHeader</a></label>(<label for="r5" class="ident">v</label> []<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-129"><code>	<span class="keyword">return</span> <a href="../../../../../pkg/encoding/base64.html" class="ident i1">base64</a>.<a href="../../../../encoding/base64/base64.go.html#line-128" class="ident">RawStdEncoding</a>.<a href="../../../../encoding/base64/base64.go.html#line-206" class="ident">EncodeToString</a>(<label for="r5" class="ident">v</label>)</code></span>
+<span class="codeline" id="line-130"><code>}</code></span>
+<span class="codeline" id="line-131"><code></code></span>
+<span class="codeline" id="line-132"><code><span class="keyword">func</span> <label for="r6" class="ident"><a href="../../../../../pkg/google.golang.org/grpc/internal/transport.html#name-decodeBinHeader" class="ident">decodeBinHeader</a></label>(<label for="r7" class="ident">v</label> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>) ([]<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-133"><code>	<span class="keyword">if</span> <a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r7" class="ident">v</label>)%<span class="lit-number">4</span> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-134"><code>		<span class="comment">// Input was padded, or padding was not necessary.</span></code></span>
+<span class="codeline" id="line-135"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/encoding/base64.html" class="ident i1">base64</a>.<a href="../../../../encoding/base64/base64.go.html#line-119" class="ident">StdEncoding</a>.<a href="../../../../encoding/base64/base64.go.html#line-429" class="ident">DecodeString</a>(<label for="r7" class="ident">v</label>)</code></span>
+<span class="codeline" id="line-136"><code>	}</code></span>
+<span class="codeline" id="line-137"><code>	<span class="keyword">return</span> <a href="../../../../../pkg/encoding/base64.html" class="ident i1">base64</a>.<a href="../../../../encoding/base64/base64.go.html#line-128" class="ident">RawStdEncoding</a>.<a href="../../../../encoding/base64/base64.go.html#line-429" class="ident">DecodeString</a>(<label for="r7" class="ident">v</label>)</code></span>
+<span class="codeline" id="line-138"><code>}</code></span>
+<span class="codeline" id="line-139"><code></code></span>
+<span class="codeline" id="line-140"><code><span class="keyword">func</span> <label for="r8" class="ident"><a href="../../../../../pkg/google.golang.org/grpc/internal/transport.html#name-encodeMetadataHeader" class="ident">encodeMetadataHeader</a></label>(<label for="r9" class="ident">k</label>, <label for="r10" class="ident">v</label> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-141"><code>	<span class="keyword">if</span> <a href="../../../../../pkg/strings.html" class="ident i10">strings</a>.<a href="../../../../strings/strings.go.html#line-525" class="ident">HasSuffix</a>(<label for="r9" class="ident">k</label>, <a href="#line-126" class="ident">binHdrSuffix</a>) {</code></span>
+<span class="codeline" id="line-142"><code>		<span class="keyword">return</span> <a href="#line-128" class="ident">encodeBinHeader</a>(([]<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>)(<label for="r10" class="ident">v</label>))</code></span>
+<span class="codeline" id="line-143"><code>	}</code></span>
+<span class="codeline" id="line-144"><code>	<span class="keyword">return</span> <label for="r10" class="ident">v</label></code></span>
+<span class="codeline" id="line-145"><code>}</code></span>
+<span class="codeline" id="line-146"><code></code></span>
+<span class="codeline" id="line-147"><code><span class="keyword">func</span> <label for="r11" class="ident"><a href="../../../../../pkg/google.golang.org/grpc/internal/transport.html#name-decodeMetadataHeader" class="ident">decodeMetadataHeader</a></label>(<label for="r12" class="ident">k</label>, <label for="r13" class="ident">v</label> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>) (<a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>, <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-148"><code>	<span class="keyword">if</span> <a href="../../../../../pkg/strings.html" class="ident i10">strings</a>.<a href="../../../../strings/strings.go.html#line-525" class="ident">HasSuffix</a>(<label for="r12" class="ident">k</label>, <a href="#line-126" class="ident">binHdrSuffix</a>) {</code></span>
+<span class="codeline" id="line-149"><code>		<label for="r14" class="ident">b</label>, <label for="r15" class="ident">err</label> := <a href="#line-132" class="ident">decodeBinHeader</a>(<label for="r13" class="ident">v</label>)</code></span>
+<span class="codeline" id="line-150"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>(<label for="r14" class="ident">b</label>), <label for="r15" class="ident">err</label></code></span>
+<span class="codeline" id="line-151"><code>	}</code></span>
+<span class="codeline" id="line-152"><code>	<span class="keyword">return</span> <label for="r13" class="ident">v</label>, <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-153"><code>}</code></span>
+<span class="codeline" id="line-154"><code></code></span>
+<span class="codeline" id="line-155"><code><span class="keyword">type</span> <a href="../../../../../pkg/google.golang.org/grpc/internal/transport.html#name-timeoutUnit" class="ident">timeoutUnit</a> <a href="../../../../../pkg/builtin.html#name-uint8" class="ident">uint8</a></code></span>
+<span class="codeline" id="line-156"><code></code></span>
+<span class="codeline" id="line-157"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-158"><code>	<a href="../../../../../pkg/google.golang.org/grpc/internal/transport.html#name-hour" class="ident">hour</a>        <a href="#line-155" class="ident">timeoutUnit</a> = <span class="lit-number">'H'</span></code></span>
+<span class="codeline" id="line-159"><code>	<a href="../../../../../pkg/google.golang.org/grpc/internal/transport.html#name-minute" class="ident">minute</a>      <a href="#line-155" class="ident">timeoutUnit</a> = <span class="lit-number">'M'</span></code></span>
+<span class="codeline" id="line-160"><code>	<a href="../../../../../pkg/google.golang.org/grpc/internal/transport.html#name-second" class="ident">second</a>      <a href="#line-155" class="ident">timeoutUnit</a> = <span class="lit-number">'S'</span></code></span>
+<span class="codeline" id="line-161"><code>	<a href="../../../../../pkg/google.golang.org/grpc/internal/transport.html#name-millisecond" class="ident">millisecond</a> <a href="#line-155" class="ident">timeoutUnit</a> = <span class="lit-number">'m'</span></code></span>
+<span class="codeline" id="line-162"><code>	<a href="../../../../../pkg/google.golang.org/grpc/internal/transport.html#name-microsecond" class="ident">microsecond</a> <a href="#line-155" class="ident">timeoutUnit</a> = <span class="lit-number">'u'</span></code></span>
+<span class="codeline" id="line-163"><code>	<a href="../../../../../pkg/google.golang.org/grpc/internal/transport.html#name-nanosecond" class="ident">nanosecond</a>  <a href="#line-155" class="ident">timeoutUnit</a> = <span class="lit-number">'n'</span></code></span>
+<span class="codeline" id="line-164"><code>)</code></span>
+<span class="codeline" id="line-165"><code></code></span>
+<span class="codeline" id="line-166"><code><span class="keyword">func</span> <label for="r16" class="ident"><a href="../../../../../pkg/google.golang.org/grpc/internal/transport.html#name-timeoutUnitToDuration" class="ident">timeoutUnitToDuration</a></label>(<label for="r17" class="ident">u</label> <a href="#line-155" class="ident">timeoutUnit</a>) (<label for="r18" class="ident">d</label> <a href="../../../../../pkg/time.html" class="ident i12">time</a>.<a href="../../../../time/time.go.html#line-911" class="ident">Duration</a>, <label for="r19" class="ident">ok</label> <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a>) {</code></span>
+<span class="codeline" id="line-167"><code>	<span class="keyword">switch</span> <label for="r17" class="ident">u</label> {</code></span>
+<span class="codeline" id="line-168"><code>	<span class="keyword">case</span> <a href="#line-158" class="ident">hour</a>:</code></span>
+<span class="codeline" id="line-169"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/time.html" class="ident i12">time</a>.<a href="../../../../time/time.go.html#line-936" class="ident">Hour</a>, <a href="../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-170"><code>	<span class="keyword">case</span> <a href="#line-159" class="ident">minute</a>:</code></span>
+<span class="codeline" id="line-171"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/time.html" class="ident i12">time</a>.<a href="../../../../time/time.go.html#line-935" class="ident">Minute</a>, <a href="../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-172"><code>	<span class="keyword">case</span> <a href="#line-160" class="ident">second</a>:</code></span>
+<span class="codeline" id="line-173"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/time.html" class="ident i12">time</a>.<a href="../../../../time/time.go.html#line-934" class="ident">Second</a>, <a href="../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-174"><code>	<span class="keyword">case</span> <a href="#line-161" class="ident">millisecond</a>:</code></span>
+<span class="codeline" id="line-175"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/time.html" class="ident i12">time</a>.<a href="../../../../time/time.go.html#line-933" class="ident">Millisecond</a>, <a href="../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-176"><code>	<span class="keyword">case</span> <a href="#line-162" class="ident">microsecond</a>:</code></span>
+<span class="codeline" id="line-177"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/time.html" class="ident i12">time</a>.<a href="../../../../time/time.go.html#line-932" class="ident">Microsecond</a>, <a href="../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-178"><code>	<span class="keyword">case</span> <a href="#line-163" class="ident">nanosecond</a>:</code></span>
+<span class="codeline" id="line-179"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/time.html" class="ident i12">time</a>.<a href="../../../../time/time.go.html#line-931" class="ident">Nanosecond</a>, <a href="../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-180"><code>	<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-181"><code>	}</code></span>
+<span class="codeline" id="line-182"><code>	<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-183"><code>}</code></span>
+<span class="codeline" id="line-184"><code></code></span>
+<span class="codeline" id="line-185"><code><span class="keyword">func</span> <label for="r20" class="ident"><a href="../../../../../pkg/google.golang.org/grpc/internal/transport.html#name-decodeTimeout" class="ident">decodeTimeout</a></label>(<label for="r21" class="ident">s</label> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>) (<a href="../../../../../pkg/time.html" class="ident i12">time</a>.<a href="../../../../time/time.go.html#line-911" class="ident">Duration</a>, <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-186"><code>	<label for="r22" class="ident">size</label> := <a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r21" class="ident">s</label>)</code></span>
+<span class="codeline" id="line-187"><code>	<span class="keyword">if</span> <label for="r22" class="ident">size</label> &lt; <span class="lit-number">2</span> {</code></span>
+<span class="codeline" id="line-188"><code>		<span class="keyword">return</span> <span class="lit-number">0</span>, <a href="../../../../../pkg/fmt.html" class="ident i3">fmt</a>.<a href="../../../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"transport: timeout string is too short: %q"</span>, <label for="r21" class="ident">s</label>)</code></span>
+<span class="codeline" id="line-189"><code>	}</code></span>
+<span class="codeline" id="line-190"><code>	<span class="keyword">if</span> <label for="r22" class="ident">size</label> &gt; <span class="lit-number">9</span> {</code></span>
+<span class="codeline" id="line-191"><code>		<span class="comment">// Spec allows for 8 digits plus the unit.</span></code></span>
+<span class="codeline" id="line-192"><code>		<span class="keyword">return</span> <span class="lit-number">0</span>, <a href="../../../../../pkg/fmt.html" class="ident i3">fmt</a>.<a href="../../../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"transport: timeout string is too long: %q"</span>, <label for="r21" class="ident">s</label>)</code></span>
+<span class="codeline" id="line-193"><code>	}</code></span>
+<span class="codeline" id="line-194"><code>	<label for="r23" class="ident">unit</label> := <a href="#line-155" class="ident">timeoutUnit</a>(<label for="r21" class="ident">s</label>[<label for="r22" class="ident">size</label>-<span class="lit-number">1</span>])</code></span>
+<span class="codeline" id="line-195"><code>	<label for="r24" class="ident">d</label>, <label for="r25" class="ident">ok</label> := <a href="#line-166" class="ident">timeoutUnitToDuration</a>(<label for="r23" class="ident">unit</label>)</code></span>
+<span class="codeline" id="line-196"><code>	<span class="keyword">if</span> !<label for="r25" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-197"><code>		<span class="keyword">return</span> <span class="lit-number">0</span>, <a href="../../../../../pkg/fmt.html" class="ident i3">fmt</a>.<a href="../../../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"transport: timeout unit is not recognized: %q"</span>, <label for="r21" class="ident">s</label>)</code></span>
+<span class="codeline" id="line-198"><code>	}</code></span>
+<span class="codeline" id="line-199"><code>	<label for="r26" class="ident">t</label>, <label for="r27" class="ident">err</label> := <a href="../../../../../pkg/strconv.html" class="ident i9">strconv</a>.<a href="../../../../strconv/atoi.go.html#line-73" class="ident">ParseUint</a>(<label for="r21" class="ident">s</label>[:<label for="r22" class="ident">size</label>-<span class="lit-number">1</span>], <span class="lit-number">10</span>, <span class="lit-number">64</span>)</code></span>
+<span class="codeline" id="line-200"><code>	<span class="keyword">if</span> <label for="r27" class="ident">err</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-201"><code>		<span class="keyword">return</span> <span class="lit-number">0</span>, <label for="r27" class="ident">err</label></code></span>
+<span class="codeline" id="line-202"><code>	}</code></span>
+<span class="codeline" id="line-203"><code>	<span class="keyword">const</span> <label for="r28" class="ident">maxHours</label> = <a href="../../../../../pkg/math.html" class="ident i5">math</a>.<a href="../../../../math/const.go.html#line-50" class="ident">MaxInt64</a> / <a href="../../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<a href="../../../../../pkg/time.html" class="ident i12">time</a>.<a href="../../../../time/time.go.html#line-936" class="ident">Hour</a>)</code></span>
+<span class="codeline" id="line-204"><code>	<span class="keyword">if</span> <label for="r24" class="ident">d</label> == <a href="../../../../../pkg/time.html" class="ident i12">time</a>.<a href="../../../../time/time.go.html#line-936" class="ident">Hour</a> &amp;&amp; <label for="r26" class="ident">t</label> &gt; <label for="r28" class="ident">maxHours</label> {</code></span>
+<span class="codeline" id="line-205"><code>		<span class="comment">// This timeout would overflow math.MaxInt64; clamp it.</span></code></span>
+<span class="codeline" id="line-206"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/time.html" class="ident i12">time</a>.<a href="../../../../time/time.go.html#line-911" class="ident">Duration</a>(<a href="../../../../../pkg/math.html" class="ident i5">math</a>.<a href="../../../../math/const.go.html#line-50" class="ident">MaxInt64</a>), <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-207"><code>	}</code></span>
+<span class="codeline" id="line-208"><code>	<span class="keyword">return</span> <label for="r24" class="ident">d</label> * <a href="../../../../../pkg/time.html" class="ident i12">time</a>.<a href="../../../../time/time.go.html#line-911" class="ident">Duration</a>(<label for="r26" class="ident">t</label>), <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-209"><code>}</code></span>
+<span class="codeline" id="line-210"><code></code></span>
+<span class="codeline" id="line-211"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-212"><code>	<a href="../../../../../pkg/google.golang.org/grpc/internal/transport.html#name-spaceByte" class="ident">spaceByte</a>   = <span class="lit-number">' '</span></code></span>
+<span class="codeline" id="line-213"><code>	<a href="../../../../../pkg/google.golang.org/grpc/internal/transport.html#name-tildeByte" class="ident">tildeByte</a>   = <span class="lit-number">'~'</span></code></span>
+<span class="codeline" id="line-214"><code>	<a href="../../../../../pkg/google.golang.org/grpc/internal/transport.html#name-percentByte" class="ident">percentByte</a> = <span class="lit-number">'%'</span></code></span>
+<span class="codeline" id="line-215"><code>)</code></span>
+<span class="codeline" id="line-216"><code></code></span>
+<span class="codeline" id="line-217"><code><span class="comment">// encodeGrpcMessage is used to encode status code in header field</span></code></span>
+<span class="codeline" id="line-218"><code><span class="comment">// "grpc-message". It does percent encoding and also replaces invalid utf-8</span></code></span>
+<span class="codeline" id="line-219"><code><span class="comment">// characters with Unicode replacement character.</span></code></span>
+<span class="codeline" id="line-220"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-221"><code><span class="comment">// It checks to see if each individual byte in msg is an allowable byte, and</span></code></span>
+<span class="codeline" id="line-222"><code><span class="comment">// then either percent encoding or passing it through. When percent encoding,</span></code></span>
+<span class="codeline" id="line-223"><code><span class="comment">// the byte is converted into hexadecimal notation with a '%' prepended.</span></code></span>
+<span class="codeline" id="line-224"><code><span class="keyword">func</span> <label for="r29" class="ident"><a href="../../../../../pkg/google.golang.org/grpc/internal/transport.html#name-encodeGrpcMessage" class="ident">encodeGrpcMessage</a></label>(<label for="r30" class="ident">msg</label> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-225"><code>	<span class="keyword">if</span> <label for="r30" class="ident">msg</label> == <span class="lit-string">""</span> {</code></span>
+<span class="codeline" id="line-226"><code>		<span class="keyword">return</span> <span class="lit-string">""</span></code></span>
+<span class="codeline" id="line-227"><code>	}</code></span>
+<span class="codeline" id="line-228"><code>	<label for="r31" class="ident">lenMsg</label> := <a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r30" class="ident">msg</label>)</code></span>
+<span class="codeline" id="line-229"><code>	<span class="keyword">for</span> <label for="r32" class="ident">i</label> := <span class="lit-number">0</span>; <label for="r32" class="ident">i</label> &lt; <label for="r31" class="ident">lenMsg</label>; <label for="r32" class="ident">i</label>++ {</code></span>
+<span class="codeline" id="line-230"><code>		<label for="r33" class="ident">c</label> := <label for="r30" class="ident">msg</label>[<label for="r32" class="ident">i</label>]</code></span>
+<span class="codeline" id="line-231"><code>		<span class="keyword">if</span> !(<label for="r33" class="ident">c</label> &gt;= <a href="#line-212" class="ident">spaceByte</a> &amp;&amp; <label for="r33" class="ident">c</label> &lt;= <a href="#line-213" class="ident">tildeByte</a> &amp;&amp; <label for="r33" class="ident">c</label> != <a href="#line-214" class="ident">percentByte</a>) {</code></span>
+<span class="codeline" id="line-232"><code>			<span class="keyword">return</span> <a href="#line-238" class="ident">encodeGrpcMessageUnchecked</a>(<label for="r30" class="ident">msg</label>)</code></span>
+<span class="codeline" id="line-233"><code>		}</code></span>
+<span class="codeline" id="line-234"><code>	}</code></span>
+<span class="codeline" id="line-235"><code>	<span class="keyword">return</span> <label for="r30" class="ident">msg</label></code></span>
+<span class="codeline" id="line-236"><code>}</code></span>
+<span class="codeline" id="line-237"><code></code></span>
+<span class="codeline" id="line-238"><code><span class="keyword">func</span> <label for="r34" class="ident"><a href="../../../../../pkg/google.golang.org/grpc/internal/transport.html#name-encodeGrpcMessageUnchecked" class="ident">encodeGrpcMessageUnchecked</a></label>(<label for="r35" class="ident">msg</label> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-239"><code>	<span class="keyword">var</span> <label for="r36" class="ident">sb</label> <a href="../../../../../pkg/strings.html" class="ident i10">strings</a>.<a href="../../../../strings/builder.go.html#line-17" class="ident">Builder</a></code></span>
+<span class="codeline" id="line-240"><code>	<span class="keyword">for</span> <a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r35" class="ident">msg</label>) &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-241"><code>		<label for="r37" class="ident">r</label>, <label for="r38" class="ident">size</label> := <a href="../../../../../pkg/unicode/utf8.html" class="ident i13">utf8</a>.<a href="../../../../unicode/utf8/utf8.go.html#line-205" class="ident">DecodeRuneInString</a>(<label for="r35" class="ident">msg</label>)</code></span>
+<span class="codeline" id="line-242"><code>		<span class="keyword">for</span> <label for="r39" class="ident">_</label>, <label for="r40" class="ident">b</label> := <span class="keyword">range</span> []<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>(<a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>(<label for="r37" class="ident">r</label>)) {</code></span>
+<span class="codeline" id="line-243"><code>			<span class="keyword">if</span> <label for="r38" class="ident">size</label> &gt; <span class="lit-number">1</span> {</code></span>
+<span class="codeline" id="line-244"><code>				<span class="comment">// If size &gt; 1, r is not ascii. Always do percent encoding.</span></code></span>
+<span class="codeline" id="line-245"><code>				<a href="../../../../../pkg/fmt.html" class="ident i3">fmt</a>.<a href="../../../../fmt/print.go.html#line-222" class="ident">Fprintf</a>(&amp;<label for="r36" class="ident">sb</label>, <span class="lit-string">"%%%02X"</span>, <label for="r40" class="ident">b</label>)</code></span>
+<span class="codeline" id="line-246"><code>				<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-247"><code>			}</code></span>
+<span class="codeline" id="line-248"><code></code></span>
+<span class="codeline" id="line-249"><code>			<span class="comment">// The for loop is necessary even if size == 1. r could be</span></code></span>
+<span class="codeline" id="line-250"><code><span class="comment">			// utf8.RuneError.</span></code></span>
+<span class="codeline" id="line-251"><code><span class="comment">			//</span></code></span>
+<span class="codeline" id="line-252"><code><span class="comment">			// fmt.Sprintf("%%%02X", utf8.RuneError) gives "%FFFD".</span></code></span>
+<span class="codeline" id="line-253"><code>			<span class="keyword">if</span> <label for="r40" class="ident">b</label> &gt;= <a href="#line-212" class="ident">spaceByte</a> &amp;&amp; <label for="r40" class="ident">b</label> &lt;= <a href="#line-213" class="ident">tildeByte</a> &amp;&amp; <label for="r40" class="ident">b</label> != <a href="#line-214" class="ident">percentByte</a> {</code></span>
+<span class="codeline" id="line-254"><code>				<label for="r36" class="ident">sb</label>.<a href="../../../../strings/builder.go.html#line-95" class="ident">WriteByte</a>(<label for="r40" class="ident">b</label>)</code></span>
+<span class="codeline" id="line-255"><code>			} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-256"><code>				<a href="../../../../../pkg/fmt.html" class="ident i3">fmt</a>.<a href="../../../../fmt/print.go.html#line-222" class="ident">Fprintf</a>(&amp;<label for="r36" class="ident">sb</label>, <span class="lit-string">"%%%02X"</span>, <label for="r40" class="ident">b</label>)</code></span>
+<span class="codeline" id="line-257"><code>			}</code></span>
+<span class="codeline" id="line-258"><code>		}</code></span>
+<span class="codeline" id="line-259"><code>		<label for="r35" class="ident">msg</label> = <label for="r35" class="ident">msg</label>[<label for="r38" class="ident">size</label>:]</code></span>
+<span class="codeline" id="line-260"><code>	}</code></span>
+<span class="codeline" id="line-261"><code>	<span class="keyword">return</span> <label for="r36" class="ident">sb</label>.<a href="../../../../strings/builder.go.html#line-46" class="ident">String</a>()</code></span>
+<span class="codeline" id="line-262"><code>}</code></span>
+<span class="codeline" id="line-263"><code></code></span>
+<span class="codeline" id="line-264"><code><span class="comment">// decodeGrpcMessage decodes the msg encoded by encodeGrpcMessage.</span></code></span>
+<span class="codeline" id="line-265"><code><span class="keyword">func</span> <label for="r41" class="ident"><a href="../../../../../pkg/google.golang.org/grpc/internal/transport.html#name-decodeGrpcMessage" class="ident">decodeGrpcMessage</a></label>(<label for="r42" class="ident">msg</label> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-266"><code>	<span class="keyword">if</span> <label for="r42" class="ident">msg</label> == <span class="lit-string">""</span> {</code></span>
+<span class="codeline" id="line-267"><code>		<span class="keyword">return</span> <span class="lit-string">""</span></code></span>
+<span class="codeline" id="line-268"><code>	}</code></span>
+<span class="codeline" id="line-269"><code>	<label for="r43" class="ident">lenMsg</label> := <a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r42" class="ident">msg</label>)</code></span>
+<span class="codeline" id="line-270"><code>	<span class="keyword">for</span> <label for="r44" class="ident">i</label> := <span class="lit-number">0</span>; <label for="r44" class="ident">i</label> &lt; <label for="r43" class="ident">lenMsg</label>; <label for="r44" class="ident">i</label>++ {</code></span>
+<span class="codeline" id="line-271"><code>		<span class="keyword">if</span> <label for="r42" class="ident">msg</label>[<label for="r44" class="ident">i</label>] == <a href="#line-214" class="ident">percentByte</a> &amp;&amp; <label for="r44" class="ident">i</label>+<span class="lit-number">2</span> &lt; <label for="r43" class="ident">lenMsg</label> {</code></span>
+<span class="codeline" id="line-272"><code>			<span class="keyword">return</span> <a href="#line-278" class="ident">decodeGrpcMessageUnchecked</a>(<label for="r42" class="ident">msg</label>)</code></span>
+<span class="codeline" id="line-273"><code>		}</code></span>
+<span class="codeline" id="line-274"><code>	}</code></span>
+<span class="codeline" id="line-275"><code>	<span class="keyword">return</span> <label for="r42" class="ident">msg</label></code></span>
+<span class="codeline" id="line-276"><code>}</code></span>
+<span class="codeline" id="line-277"><code></code></span>
+<span class="codeline" id="line-278"><code><span class="keyword">func</span> <label for="r45" class="ident"><a href="../../../../../pkg/google.golang.org/grpc/internal/transport.html#name-decodeGrpcMessageUnchecked" class="ident">decodeGrpcMessageUnchecked</a></label>(<label for="r46" class="ident">msg</label> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-279"><code>	<span class="keyword">var</span> <label for="r47" class="ident">sb</label> <a href="../../../../../pkg/strings.html" class="ident i10">strings</a>.<a href="../../../../strings/builder.go.html#line-17" class="ident">Builder</a></code></span>
+<span class="codeline" id="line-280"><code>	<label for="r48" class="ident">lenMsg</label> := <a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r46" class="ident">msg</label>)</code></span>
+<span class="codeline" id="line-281"><code>	<span class="keyword">for</span> <label for="r49" class="ident">i</label> := <span class="lit-number">0</span>; <label for="r49" class="ident">i</label> &lt; <label for="r48" class="ident">lenMsg</label>; <label for="r49" class="ident">i</label>++ {</code></span>
+<span class="codeline" id="line-282"><code>		<label for="r50" class="ident">c</label> := <label for="r46" class="ident">msg</label>[<label for="r49" class="ident">i</label>]</code></span>
+<span class="codeline" id="line-283"><code>		<span class="keyword">if</span> <label for="r50" class="ident">c</label> == <a href="#line-214" class="ident">percentByte</a> &amp;&amp; <label for="r49" class="ident">i</label>+<span class="lit-number">2</span> &lt; <label for="r48" class="ident">lenMsg</label> {</code></span>
+<span class="codeline" id="line-284"><code>			<label for="r51" class="ident">parsed</label>, <label for="r52" class="ident">err</label> := <a href="../../../../../pkg/strconv.html" class="ident i9">strconv</a>.<a href="../../../../strconv/atoi.go.html#line-73" class="ident">ParseUint</a>(<label for="r46" class="ident">msg</label>[<label for="r49" class="ident">i</label>+<span class="lit-number">1</span>:<label for="r49" class="ident">i</label>+<span class="lit-number">3</span>], <span class="lit-number">16</span>, <span class="lit-number">8</span>)</code></span>
+<span class="codeline" id="line-285"><code>			<span class="keyword">if</span> <label for="r52" class="ident">err</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-286"><code>				<label for="r47" class="ident">sb</label>.<a href="../../../../strings/builder.go.html#line-95" class="ident">WriteByte</a>(<label for="r50" class="ident">c</label>)</code></span>
+<span class="codeline" id="line-287"><code>			} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-288"><code>				<label for="r47" class="ident">sb</label>.<a href="../../../../strings/builder.go.html#line-95" class="ident">WriteByte</a>(<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>(<label for="r51" class="ident">parsed</label>))</code></span>
+<span class="codeline" id="line-289"><code>				<label for="r49" class="ident">i</label> += <span class="lit-number">2</span></code></span>
+<span class="codeline" id="line-290"><code>			}</code></span>
+<span class="codeline" id="line-291"><code>		} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-292"><code>			<label for="r47" class="ident">sb</label>.<a href="../../../../strings/builder.go.html#line-95" class="ident">WriteByte</a>(<label for="r50" class="ident">c</label>)</code></span>
+<span class="codeline" id="line-293"><code>		}</code></span>
+<span class="codeline" id="line-294"><code>	}</code></span>
+<span class="codeline" id="line-295"><code>	<span class="keyword">return</span> <label for="r47" class="ident">sb</label>.<a href="../../../../strings/builder.go.html#line-46" class="ident">String</a>()</code></span>
+<span class="codeline" id="line-296"><code>}</code></span>
+<span class="codeline" id="line-297"><code></code></span>
+<span class="codeline" id="line-298"><code><span class="keyword">type</span> <a href="../../../../../pkg/google.golang.org/grpc/internal/transport.html#name-bufWriter" class="ident">bufWriter</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-299"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/transport..bufWriter^47f49.pool^27cac.html" class="ident">pool</a>      *<a href="../../../../../pkg/sync.html" class="ident i11">sync</a>.<a href="../../../../sync/pool.go.html#line-51" class="ident">Pool</a></code></span>
+<span class="codeline" id="line-300"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/transport..bufWriter^47f49.buf^3ef31.html" class="ident">buf</a>       []<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
+<span class="codeline" id="line-301"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/transport..bufWriter^47f49.offset^c1d60.html" class="ident">offset</a>    <a href="../../../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-302"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/transport..bufWriter^47f49.batchSize^f072a.html" class="ident">batchSize</a> <a href="../../../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-303"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/transport..bufWriter^47f49.conn^08041.html" class="ident">conn</a>      <a href="../../../../../pkg/net.html" class="ident i6">net</a>.<a href="../../../../net/net.go.html#line-124" class="ident">Conn</a></code></span>
+<span class="codeline" id="line-304"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/transport..bufWriter^47f49.err^d9eb2.html" class="ident">err</a>       <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-305"><code>}</code></span>
+<span class="codeline" id="line-306"><code></code></span>
+<span class="codeline" id="line-307"><code><span class="keyword">func</span> <label for="r53" class="ident"><a href="../../../../../pkg/google.golang.org/grpc/internal/transport.html#name-newBufWriter" class="ident">newBufWriter</a></label>(<label for="r54" class="ident">conn</label> <a href="../../../../../pkg/net.html" class="ident i6">net</a>.<a href="../../../../net/net.go.html#line-124" class="ident">Conn</a>, <label for="r55" class="ident">batchSize</label> <a href="../../../../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r56" class="ident">pool</label> *<a href="../../../../../pkg/sync.html" class="ident i11">sync</a>.<a href="../../../../sync/pool.go.html#line-51" class="ident">Pool</a>) *<a href="#line-298" class="ident">bufWriter</a> {</code></span>
+<span class="codeline" id="line-308"><code>	<label for="r57" class="ident">w</label> := &amp;<a href="#line-298" class="ident">bufWriter</a>{</code></span>
+<span class="codeline" id="line-309"><code>		<a href="#line-302" class="ident">batchSize</a>: <label for="r55" class="ident">batchSize</label>,</code></span>
+<span class="codeline" id="line-310"><code>		<a href="#line-303" class="ident">conn</a>:      <label for="r54" class="ident">conn</label>,</code></span>
+<span class="codeline" id="line-311"><code>		<a href="#line-299" class="ident">pool</a>:      <label for="r56" class="ident">pool</label>,</code></span>
+<span class="codeline" id="line-312"><code>	}</code></span>
+<span class="codeline" id="line-313"><code>	<span class="comment">// this indicates that we should use non shared buf</span></code></span>
+<span class="codeline" id="line-314"><code>	<span class="keyword">if</span> <label for="r56" class="ident">pool</label> == <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-315"><code>		<label for="r57" class="ident">w</label>.<a href="#line-300" class="ident">buf</a> = <a href="../../../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r55" class="ident">batchSize</label>)</code></span>
+<span class="codeline" id="line-316"><code>	}</code></span>
+<span class="codeline" id="line-317"><code>	<span class="keyword">return</span> <label for="r57" class="ident">w</label></code></span>
+<span class="codeline" id="line-318"><code>}</code></span>
+<span class="codeline" id="line-319"><code></code></span>
+<span class="codeline" id="line-320"><code><span class="keyword">func</span> (<label for="r58" class="ident">w</label> *<a href="#line-298" class="ident">bufWriter</a>) <label for="r59" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/transport..bufWriter^47f49.Write.html" class="ident">Write</a></label>(<label for="r60" class="ident">b</label> []<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) (<a href="../../../../../pkg/builtin.html#name-int" class="ident">int</a>, <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-321"><code>	<span class="keyword">if</span> <label for="r58" class="ident">w</label>.<a href="#line-304" class="ident">err</a> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-322"><code>		<span class="keyword">return</span> <span class="lit-number">0</span>, <label for="r58" class="ident">w</label>.<a href="#line-304" class="ident">err</a></code></span>
+<span class="codeline" id="line-323"><code>	}</code></span>
+<span class="codeline" id="line-324"><code>	<span class="keyword">if</span> <label for="r58" class="ident">w</label>.<a href="#line-302" class="ident">batchSize</a> == <span class="lit-number">0</span> { <span class="comment">// Buffer has been disabled.</span></code></span>
+<span class="codeline" id="line-325"><code>		<label for="r61" class="ident">n</label>, <label for="r62" class="ident">err</label> := <label for="r58" class="ident">w</label>.<a href="#line-303" class="ident">conn</a>.<a href="../../../../net/net.go.html#line-133" class="ident">Write</a>(<label for="r60" class="ident">b</label>)</code></span>
+<span class="codeline" id="line-326"><code>		<span class="keyword">return</span> <label for="r61" class="ident">n</label>, <a href="#line-384" class="ident">toIOError</a>(<label for="r62" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-327"><code>	}</code></span>
+<span class="codeline" id="line-328"><code>	<span class="keyword">if</span> <label for="r58" class="ident">w</label>.<a href="#line-300" class="ident">buf</a> == <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-329"><code>		<label for="r63" class="ident">b</label> := <label for="r58" class="ident">w</label>.<a href="#line-299" class="ident">pool</a>.<a href="../../../../sync/pool.go.html#line-131" class="ident">Get</a>().(*[]<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>)</code></span>
+<span class="codeline" id="line-330"><code>		<label for="r58" class="ident">w</label>.<a href="#line-300" class="ident">buf</a> = *<label for="r63" class="ident">b</label></code></span>
+<span class="codeline" id="line-331"><code>	}</code></span>
+<span class="codeline" id="line-332"><code>	<label for="r64" class="ident">written</label> := <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-333"><code>	<span class="keyword">for</span> <a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r60" class="ident">b</label>) &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-334"><code>		<label for="r65" class="ident">copied</label> := <a href="../../../../../pkg/builtin.html#name-copy" class="ident">copy</a>(<label for="r58" class="ident">w</label>.<a href="#line-300" class="ident">buf</a>[<label for="r58" class="ident">w</label>.<a href="#line-301" class="ident">offset</a>:], <label for="r60" class="ident">b</label>)</code></span>
+<span class="codeline" id="line-335"><code>		<label for="r60" class="ident">b</label> = <label for="r60" class="ident">b</label>[<label for="r65" class="ident">copied</label>:]</code></span>
+<span class="codeline" id="line-336"><code>		<label for="r64" class="ident">written</label> += <label for="r65" class="ident">copied</label></code></span>
+<span class="codeline" id="line-337"><code>		<label for="r58" class="ident">w</label>.<a href="#line-301" class="ident">offset</a> += <label for="r65" class="ident">copied</label></code></span>
+<span class="codeline" id="line-338"><code>		<span class="keyword">if</span> <label for="r58" class="ident">w</label>.<a href="#line-301" class="ident">offset</a> &lt; <label for="r58" class="ident">w</label>.<a href="#line-302" class="ident">batchSize</a> {</code></span>
+<span class="codeline" id="line-339"><code>			<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-340"><code>		}</code></span>
+<span class="codeline" id="line-341"><code>		<span class="keyword">if</span> <label for="r66" class="ident">err</label> := <label for="r58" class="ident">w</label>.<a href="#line-359" class="ident">flushKeepBuffer</a>(); <label for="r66" class="ident">err</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-342"><code>			<span class="keyword">return</span> <label for="r64" class="ident">written</label>, <label for="r66" class="ident">err</label></code></span>
+<span class="codeline" id="line-343"><code>		}</code></span>
+<span class="codeline" id="line-344"><code>	}</code></span>
+<span class="codeline" id="line-345"><code>	<span class="keyword">return</span> <label for="r64" class="ident">written</label>, <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-346"><code>}</code></span>
+<span class="codeline" id="line-347"><code></code></span>
+<span class="codeline" id="line-348"><code><span class="keyword">func</span> (<label for="r67" class="ident">w</label> *<a href="#line-298" class="ident">bufWriter</a>) <label for="r68" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/transport..bufWriter^47f49.Flush.html" class="ident">Flush</a></label>() <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-349"><code>	<label for="r69" class="ident">err</label> := <label for="r67" class="ident">w</label>.<a href="#line-359" class="ident">flushKeepBuffer</a>()</code></span>
+<span class="codeline" id="line-350"><code>	<span class="comment">// Only release the buffer if we are in a "shared" mode</span></code></span>
+<span class="codeline" id="line-351"><code>	<span class="keyword">if</span> <label for="r67" class="ident">w</label>.<a href="#line-300" class="ident">buf</a> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> &amp;&amp; <label for="r67" class="ident">w</label>.<a href="#line-299" class="ident">pool</a> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-352"><code>		<label for="r70" class="ident">b</label> := <label for="r67" class="ident">w</label>.<a href="#line-300" class="ident">buf</a></code></span>
+<span class="codeline" id="line-353"><code>		<label for="r67" class="ident">w</label>.<a href="#line-299" class="ident">pool</a>.<a href="../../../../sync/pool.go.html#line-99" class="ident">Put</a>(&amp;<label for="r70" class="ident">b</label>)</code></span>
+<span class="codeline" id="line-354"><code>		<label for="r67" class="ident">w</label>.<a href="#line-300" class="ident">buf</a> = <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-355"><code>	}</code></span>
+<span class="codeline" id="line-356"><code>	<span class="keyword">return</span> <label for="r69" class="ident">err</label></code></span>
+<span class="codeline" id="line-357"><code>}</code></span>
+<span class="codeline" id="line-358"><code></code></span>
+<span class="codeline" id="line-359"><code><span class="keyword">func</span> (<label for="r71" class="ident">w</label> *<a href="#line-298" class="ident">bufWriter</a>) <label for="r72" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/transport..bufWriter^47f49.flushKeepBuffer^3667b.html" class="ident">flushKeepBuffer</a></label>() <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-360"><code>	<span class="keyword">if</span> <label for="r71" class="ident">w</label>.<a href="#line-304" class="ident">err</a> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-361"><code>		<span class="keyword">return</span> <label for="r71" class="ident">w</label>.<a href="#line-304" class="ident">err</a></code></span>
+<span class="codeline" id="line-362"><code>	}</code></span>
+<span class="codeline" id="line-363"><code>	<span class="keyword">if</span> <label for="r71" class="ident">w</label>.<a href="#line-301" class="ident">offset</a> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-364"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-365"><code>	}</code></span>
+<span class="codeline" id="line-366"><code>	_, <label for="r71" class="ident">w</label>.<a href="#line-304" class="ident">err</a> = <label for="r71" class="ident">w</label>.<a href="#line-303" class="ident">conn</a>.<a href="../../../../net/net.go.html#line-133" class="ident">Write</a>(<label for="r71" class="ident">w</label>.<a href="#line-300" class="ident">buf</a>[:<label for="r71" class="ident">w</label>.<a href="#line-301" class="ident">offset</a>])</code></span>
+<span class="codeline" id="line-367"><code>	<label for="r71" class="ident">w</label>.<a href="#line-304" class="ident">err</a> = <a href="#line-384" class="ident">toIOError</a>(<label for="r71" class="ident">w</label>.<a href="#line-304" class="ident">err</a>)</code></span>
+<span class="codeline" id="line-368"><code>	<label for="r71" class="ident">w</label>.<a href="#line-301" class="ident">offset</a> = <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-369"><code>	<span class="keyword">return</span> <label for="r71" class="ident">w</label>.<a href="#line-304" class="ident">err</a></code></span>
+<span class="codeline" id="line-370"><code>}</code></span>
+<span class="codeline" id="line-371"><code></code></span>
+<span class="codeline" id="line-372"><code><span class="keyword">type</span> <a href="../../../../../pkg/google.golang.org/grpc/internal/transport.html#name-ioError" class="ident">ioError</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-373"><code>	<a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-374"><code>}</code></span>
+<span class="codeline" id="line-375"><code></code></span>
+<span class="codeline" id="line-376"><code><span class="keyword">func</span> (<label for="r73" class="ident">i</label> <a href="#line-372" class="ident">ioError</a>) <label for="r74" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/transport..ioError^32747.Unwrap.html" class="ident">Unwrap</a></label>() <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-377"><code>	<span class="keyword">return</span> <label for="r73" class="ident">i</label>.<a href="#line-373" class="ident">error</a></code></span>
+<span class="codeline" id="line-378"><code>}</code></span>
+<span class="codeline" id="line-379"><code></code></span>
+<span class="codeline" id="line-380"><code><span class="keyword">func</span> <label for="r75" class="ident"><a href="../../../../../pkg/google.golang.org/grpc/internal/transport.html#name-isIOError" class="ident">isIOError</a></label>(<label for="r76" class="ident">err</label> <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-381"><code>	<span class="keyword">return</span> <a href="../../../../../pkg/errors.html" class="ident i2">errors</a>.<a href="../../../../errors/wrap.go.html#line-97" class="ident">As</a>(<label for="r76" class="ident">err</label>, &amp;<a href="#line-372" class="ident">ioError</a>{})</code></span>
+<span class="codeline" id="line-382"><code>}</code></span>
+<span class="codeline" id="line-383"><code></code></span>
+<span class="codeline" id="line-384"><code><span class="keyword">func</span> <label for="r77" class="ident"><a href="../../../../../pkg/google.golang.org/grpc/internal/transport.html#name-toIOError" class="ident">toIOError</a></label>(<label for="r78" class="ident">err</label> <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>) <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-385"><code>	<span class="keyword">if</span> <label for="r78" class="ident">err</label> == <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-386"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-387"><code>	}</code></span>
+<span class="codeline" id="line-388"><code>	<span class="keyword">return</span> <a href="#line-372" class="ident">ioError</a>{<a href="#line-373" class="ident">error</a>: <label for="r78" class="ident">err</label>}</code></span>
+<span class="codeline" id="line-389"><code>}</code></span>
+<span class="codeline" id="line-390"><code></code></span>
+<span class="codeline" id="line-391"><code><span class="keyword">type</span> <a href="../../../../../pkg/google.golang.org/grpc/internal/transport.html#name-framer" class="ident">framer</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-392"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/transport..framer^2424e.writer^b9300.html" class="ident">writer</a> *<a href="#line-298" class="ident">bufWriter</a></code></span>
+<span class="codeline" id="line-393"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/transport..framer^2424e.fr^67ad8.html" class="ident">fr</a>     *<a href="../../../../../pkg/golang.org/x/net/http2.html" class="ident i14">http2</a>.<a href="../../../../golang.org/x/net/http2/frame.go.html#line-270" class="ident">Framer</a></code></span>
+<span class="codeline" id="line-394"><code>}</code></span>
+<span class="codeline" id="line-395"><code></code></span>
+<span class="codeline" id="line-396"><code><span class="keyword">var</span> <a href="../../../../../pkg/google.golang.org/grpc/internal/transport.html#name-writeBufferPoolMap" class="ident">writeBufferPoolMap</a> = <a href="../../../../../pkg/builtin.html#name-make" class="ident">make</a>(<span class="keyword">map</span>[<a href="../../../../../pkg/builtin.html#name-int" class="ident">int</a>]*<a href="../../../../../pkg/sync.html" class="ident i11">sync</a>.<a href="../../../../sync/pool.go.html#line-51" class="ident">Pool</a>)</code></span>
+<span class="codeline" id="line-397"><code><span class="keyword">var</span> <a href="../../../../../pkg/google.golang.org/grpc/internal/transport.html#name-writeBufferMutex" class="ident">writeBufferMutex</a> <a href="../../../../../pkg/sync.html" class="ident i11">sync</a>.<a href="../../../../sync/mutex.go.html#line-30" class="ident">Mutex</a></code></span>
+<span class="codeline" id="line-398"><code></code></span>
+<span class="codeline" id="line-399"><code><span class="keyword">func</span> <label for="r79" class="ident"><a href="../../../../../pkg/google.golang.org/grpc/internal/transport.html#name-newFramer" class="ident">newFramer</a></label>(<label for="r80" class="ident">conn</label> <a href="../../../../../pkg/net.html" class="ident i6">net</a>.<a href="../../../../net/net.go.html#line-124" class="ident">Conn</a>, <label for="r81" class="ident">writeBufferSize</label>, <label for="r82" class="ident">readBufferSize</label> <a href="../../../../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r83" class="ident">sharedWriteBuffer</label> <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a>, <label for="r84" class="ident">maxHeaderListSize</label> <a href="../../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a>) *<a href="#line-391" class="ident">framer</a> {</code></span>
+<span class="codeline" id="line-400"><code>	<span class="keyword">if</span> <label for="r81" class="ident">writeBufferSize</label> &lt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-401"><code>		<label for="r81" class="ident">writeBufferSize</label> = <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-402"><code>	}</code></span>
+<span class="codeline" id="line-403"><code>	<span class="keyword">var</span> <label for="r85" class="ident">r</label> <a href="../../../../../pkg/io.html" class="ident i4">io</a>.<a href="../../../../io/io.go.html#line-86" class="ident">Reader</a> = <label for="r80" class="ident">conn</label></code></span>
+<span class="codeline" id="line-404"><code>	<span class="keyword">if</span> <label for="r82" class="ident">readBufferSize</label> &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-405"><code>		<label for="r85" class="ident">r</label> = <a href="../../../../../pkg/bufio.html" class="ident i0">bufio</a>.<a href="../../../../bufio/bufio.go.html#line-50" class="ident">NewReaderSize</a>(<label for="r85" class="ident">r</label>, <label for="r82" class="ident">readBufferSize</label>)</code></span>
+<span class="codeline" id="line-406"><code>	}</code></span>
+<span class="codeline" id="line-407"><code>	<span class="keyword">var</span> <label for="r86" class="ident">pool</label> *<a href="../../../../../pkg/sync.html" class="ident i11">sync</a>.<a href="../../../../sync/pool.go.html#line-51" class="ident">Pool</a></code></span>
+<span class="codeline" id="line-408"><code>	<span class="keyword">if</span> <label for="r83" class="ident">sharedWriteBuffer</label> {</code></span>
+<span class="codeline" id="line-409"><code>		<label for="r86" class="ident">pool</label> = <a href="#line-425" class="ident">getWriteBufferPool</a>(<label for="r81" class="ident">writeBufferSize</label>)</code></span>
+<span class="codeline" id="line-410"><code>	}</code></span>
+<span class="codeline" id="line-411"><code>	<label for="r87" class="ident">w</label> := <a href="#line-307" class="ident">newBufWriter</a>(<label for="r80" class="ident">conn</label>, <label for="r81" class="ident">writeBufferSize</label>, <label for="r86" class="ident">pool</label>)</code></span>
+<span class="codeline" id="line-412"><code>	<label for="r88" class="ident">f</label> := &amp;<a href="#line-391" class="ident">framer</a>{</code></span>
+<span class="codeline" id="line-413"><code>		<a href="#line-392" class="ident">writer</a>: <label for="r87" class="ident">w</label>,</code></span>
+<span class="codeline" id="line-414"><code>		<a href="#line-393" class="ident">fr</a>:     <a href="../../../../../pkg/golang.org/x/net/http2.html" class="ident i14">http2</a>.<a href="../../../../golang.org/x/net/http2/frame.go.html#line-435" class="ident">NewFramer</a>(<label for="r87" class="ident">w</label>, <label for="r85" class="ident">r</label>),</code></span>
+<span class="codeline" id="line-415"><code>	}</code></span>
+<span class="codeline" id="line-416"><code>	<label for="r88" class="ident">f</label>.<a href="#line-393" class="ident">fr</a>.<a href="../../../../golang.org/x/net/http2/frame.go.html#line-460" class="ident">SetMaxReadFrameSize</a>(<a href="#line-44" class="ident">http2MaxFrameLen</a>)</code></span>
+<span class="codeline" id="line-417"><code>	<span class="comment">// Opt-in to Frame reuse API on framer to reduce garbage.</span></code></span>
+<span class="codeline" id="line-418"><code><span class="comment">	// Frames aren't safe to read from after a subsequent call to ReadFrame.</span></code></span>
+<span class="codeline" id="line-419"><code>	<label for="r88" class="ident">f</label>.<a href="#line-393" class="ident">fr</a>.<a href="../../../../golang.org/x/net/http2/frame.go.html#line-416" class="ident">SetReuseFrames</a>()</code></span>
+<span class="codeline" id="line-420"><code>	<label for="r88" class="ident">f</label>.<a href="#line-393" class="ident">fr</a>.<a href="../../../../golang.org/x/net/http2/frame.go.html#line-322" class="ident">MaxHeaderListSize</a> = <label for="r84" class="ident">maxHeaderListSize</label></code></span>
+<span class="codeline" id="line-421"><code>	<label for="r88" class="ident">f</label>.<a href="#line-393" class="ident">fr</a>.<a href="../../../../golang.org/x/net/http2/frame.go.html#line-316" class="ident">ReadMetaHeaders</a> = <a href="../../../../../pkg/golang.org/x/net/http2/hpack.html" class="ident i15">hpack</a>.<a href="../../../../golang.org/x/net/http2/hpack/hpack.go.html#line-102" class="ident">NewDecoder</a>(<a href="#line-46" class="ident">http2InitHeaderTableSize</a>, <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>)</code></span>
+<span class="codeline" id="line-422"><code>	<span class="keyword">return</span> <label for="r88" class="ident">f</label></code></span>
+<span class="codeline" id="line-423"><code>}</code></span>
+<span class="codeline" id="line-424"><code></code></span>
+<span class="codeline" id="line-425"><code><span class="keyword">func</span> <label for="r89" class="ident"><a href="../../../../../pkg/google.golang.org/grpc/internal/transport.html#name-getWriteBufferPool" class="ident">getWriteBufferPool</a></label>(<label for="r90" class="ident">size</label> <a href="../../../../../pkg/builtin.html#name-int" class="ident">int</a>) *<a href="../../../../../pkg/sync.html" class="ident i11">sync</a>.<a href="../../../../sync/pool.go.html#line-51" class="ident">Pool</a> {</code></span>
+<span class="codeline" id="line-426"><code>	<a href="#line-397" class="ident">writeBufferMutex</a>.<a href="../../../../sync/mutex.go.html#line-45" class="ident">Lock</a>()</code></span>
+<span class="codeline" id="line-427"><code>	<span class="keyword">defer</span> <a href="#line-397" class="ident">writeBufferMutex</a>.<a href="../../../../sync/mutex.go.html#line-64" class="ident">Unlock</a>()</code></span>
+<span class="codeline" id="line-428"><code>	<label for="r91" class="ident">pool</label>, <label for="r92" class="ident">ok</label> := <a href="#line-396" class="ident">writeBufferPoolMap</a>[<label for="r90" class="ident">size</label>]</code></span>
+<span class="codeline" id="line-429"><code>	<span class="keyword">if</span> <label for="r92" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-430"><code>		<span class="keyword">return</span> <label for="r91" class="ident">pool</label></code></span>
+<span class="codeline" id="line-431"><code>	}</code></span>
+<span class="codeline" id="line-432"><code>	<label for="r91" class="ident">pool</label> = &amp;<a href="../../../../../pkg/sync.html" class="ident i11">sync</a>.<a href="../../../../sync/pool.go.html#line-51" class="ident">Pool</a>{</code></span>
+<span class="codeline" id="line-433"><code>		<a href="../../../../sync/pool.go.html#line-63" class="ident">New</a>: <span class="keyword">func</span>() <a href="../../../../../pkg/builtin.html#name-any" class="ident">any</a> {</code></span>
+<span class="codeline" id="line-434"><code>			<label for="r93" class="ident">b</label> := <a href="../../../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r90" class="ident">size</label>)</code></span>
+<span class="codeline" id="line-435"><code>			<span class="keyword">return</span> &amp;<label for="r93" class="ident">b</label></code></span>
+<span class="codeline" id="line-436"><code>		},</code></span>
+<span class="codeline" id="line-437"><code>	}</code></span>
+<span class="codeline" id="line-438"><code>	<a href="#line-396" class="ident">writeBufferPoolMap</a>[<label for="r90" class="ident">size</label>] = <label for="r91" class="ident">pool</label></code></span>
+<span class="codeline" id="line-439"><code>	<span class="keyword">return</span> <label for="r91" class="ident">pool</label></code></span>
+<span class="codeline" id="line-440"><code>}</code></span>
+<span class="codeline" id="line-441"><code></code></span>
+<span class="codeline" id="line-442"><code><span class="comment">// ParseDialTarget returns the network and address to pass to dialer.</span></code></span>
+<span class="codeline" id="line-443"><code><span class="keyword">func</span> <label for="r94" class="ident"><a href="../../../../../pkg/google.golang.org/grpc/internal/transport.html#name-ParseDialTarget" class="ident">ParseDialTarget</a></label>(<label for="r95" class="ident">target</label> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>) (<a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>, <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>) {</code></span>
+<span class="codeline" id="line-444"><code>	<label for="r96" class="ident">net</label> := <span class="lit-string">"tcp"</span></code></span>
+<span class="codeline" id="line-445"><code>	<label for="r97" class="ident">m1</label> := <a href="../../../../../pkg/strings.html" class="ident i10">strings</a>.<a href="../../../../strings/strings.go.html#line-1277" class="ident">Index</a>(<label for="r95" class="ident">target</label>, <span class="lit-string">":"</span>)</code></span>
+<span class="codeline" id="line-446"><code>	<label for="r98" class="ident">m2</label> := <a href="../../../../../pkg/strings.html" class="ident i10">strings</a>.<a href="../../../../strings/strings.go.html#line-1277" class="ident">Index</a>(<label for="r95" class="ident">target</label>, <span class="lit-string">":/"</span>)</code></span>
+<span class="codeline" id="line-447"><code>	<span class="comment">// handle unix:addr which will fail with url.Parse</span></code></span>
+<span class="codeline" id="line-448"><code>	<span class="keyword">if</span> <label for="r97" class="ident">m1</label> &gt;= <span class="lit-number">0</span> &amp;&amp; <label for="r98" class="ident">m2</label> &lt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-449"><code>		<span class="keyword">if</span> <label for="r99" class="ident">n</label> := <label for="r95" class="ident">target</label>[<span class="lit-number">0</span>:<label for="r97" class="ident">m1</label>]; <label for="r99" class="ident">n</label> == <span class="lit-string">"unix"</span> {</code></span>
+<span class="codeline" id="line-450"><code>			<span class="keyword">return</span> <label for="r99" class="ident">n</label>, <label for="r95" class="ident">target</label>[<label for="r97" class="ident">m1</label>+<span class="lit-number">1</span>:]</code></span>
+<span class="codeline" id="line-451"><code>		}</code></span>
+<span class="codeline" id="line-452"><code>	}</code></span>
+<span class="codeline" id="line-453"><code>	<span class="keyword">if</span> <label for="r98" class="ident">m2</label> &gt;= <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-454"><code>		<label for="r100" class="ident">t</label>, <label for="r101" class="ident">err</label> := <a href="../../../../../pkg/net/url.html" class="ident i8">url</a>.<a href="../../../../net/url/url.go.html#line-479" class="ident">Parse</a>(<label for="r95" class="ident">target</label>)</code></span>
+<span class="codeline" id="line-455"><code>		<span class="keyword">if</span> <label for="r101" class="ident">err</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-456"><code>			<span class="keyword">return</span> <label for="r96" class="ident">net</label>, <label for="r95" class="ident">target</label></code></span>
+<span class="codeline" id="line-457"><code>		}</code></span>
+<span class="codeline" id="line-458"><code>		<label for="r102" class="ident">scheme</label> := <label for="r100" class="ident">t</label>.<a href="../../../../net/url/url.go.html#line-376" class="ident">Scheme</a></code></span>
+<span class="codeline" id="line-459"><code>		<label for="r103" class="ident">addr</label> := <label for="r100" class="ident">t</label>.<a href="../../../../net/url/url.go.html#line-380" class="ident">Path</a></code></span>
+<span class="codeline" id="line-460"><code>		<span class="keyword">if</span> <label for="r102" class="ident">scheme</label> == <span class="lit-string">"unix"</span> {</code></span>
+<span class="codeline" id="line-461"><code>			<span class="keyword">if</span> <label for="r103" class="ident">addr</label> == <span class="lit-string">""</span> {</code></span>
+<span class="codeline" id="line-462"><code>				<label for="r103" class="ident">addr</label> = <label for="r100" class="ident">t</label>.<a href="../../../../net/url/url.go.html#line-379" class="ident">Host</a></code></span>
+<span class="codeline" id="line-463"><code>			}</code></span>
+<span class="codeline" id="line-464"><code>			<span class="keyword">return</span> <label for="r102" class="ident">scheme</label>, <label for="r103" class="ident">addr</label></code></span>
+<span class="codeline" id="line-465"><code>		}</code></span>
+<span class="codeline" id="line-466"><code>	}</code></span>
+<span class="codeline" id="line-467"><code>	<span class="keyword">return</span> <label for="r96" class="ident">net</label>, <label for="r95" class="ident">target</label></code></span>
+<span class="codeline" id="line-468"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

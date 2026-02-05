@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: config.go in package golang.org/x/net/http2</title>
+<link href="../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	config.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../pkg/golang.org/x/net/http2.html">golang.org/x/net/http2</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2024 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> http2</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-8"><code>	<label for="i0"><span class="lit-string i0">"math"</span></label></code></span>
+<span class="codeline" id="line-9"><code>	<label for="i1"><span class="lit-string i1">"net/http"</span></label></code></span>
+<span class="codeline" id="line-10"><code>	<label for="i2"><span class="lit-string i2">"time"</span></label></code></span>
+<span class="codeline" id="line-11"><code>)</code></span>
+<span class="codeline" id="line-12"><code></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">// http2Config is a package-internal version of net/http.HTTP2Config.</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">// http.HTTP2Config was added in Go 1.24.</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">// When running with a version of net/http that includes HTTP2Config,</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">// we merge the configuration with the fields in Transport or Server</span></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">// to produce an http2Config.</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">// Zero valued fields in http2Config are interpreted as in the</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">// net/http.HTTPConfig documentation.</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">// Precedence order for reconciling configurations is:</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">//   - Use the net/http.{Server,Transport}.HTTP2Config value, when non-zero.</span></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">//   - Otherwise use the http2.{Server.Transport} value.</span></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">//   - If the resulting value is zero or out of range, use a default.</span></code></span>
+<span class="codeline" id="line-28"><code><span class="keyword">type</span> <a href="../../../../../pkg/golang.org/x/net/http2.html#name-http2Config" class="ident">http2Config</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-29"><code>	<a href="../../../../../use/golang.org/x/net/http2..http2Config^c4bd2.MaxConcurrentStreams.html" class="ident">MaxConcurrentStreams</a>         <a href="../../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a></code></span>
+<span class="codeline" id="line-30"><code>	<a href="../../../../../use/golang.org/x/net/http2..http2Config^c4bd2.MaxDecoderHeaderTableSize.html" class="ident">MaxDecoderHeaderTableSize</a>    <a href="../../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a></code></span>
+<span class="codeline" id="line-31"><code>	<a href="../../../../../use/golang.org/x/net/http2..http2Config^c4bd2.MaxEncoderHeaderTableSize.html" class="ident">MaxEncoderHeaderTableSize</a>    <a href="../../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a></code></span>
+<span class="codeline" id="line-32"><code>	<a href="../../../../../use/golang.org/x/net/http2..http2Config^c4bd2.MaxReadFrameSize.html" class="ident">MaxReadFrameSize</a>             <a href="../../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a></code></span>
+<span class="codeline" id="line-33"><code>	<a href="../../../../../use/golang.org/x/net/http2..http2Config^c4bd2.MaxUploadBufferPerConnection.html" class="ident">MaxUploadBufferPerConnection</a> <a href="../../../../../pkg/builtin.html#name-int32" class="ident">int32</a></code></span>
+<span class="codeline" id="line-34"><code>	<a href="../../../../../use/golang.org/x/net/http2..http2Config^c4bd2.MaxUploadBufferPerStream.html" class="ident">MaxUploadBufferPerStream</a>     <a href="../../../../../pkg/builtin.html#name-int32" class="ident">int32</a></code></span>
+<span class="codeline" id="line-35"><code>	<a href="../../../../../use/golang.org/x/net/http2..http2Config^c4bd2.SendPingTimeout.html" class="ident">SendPingTimeout</a>              <a href="../../../../../pkg/time.html" class="ident i2">time</a>.<a href="../../../../time/time.go.html#line-911" class="ident">Duration</a></code></span>
+<span class="codeline" id="line-36"><code>	<a href="../../../../../use/golang.org/x/net/http2..http2Config^c4bd2.PingTimeout.html" class="ident">PingTimeout</a>                  <a href="../../../../../pkg/time.html" class="ident i2">time</a>.<a href="../../../../time/time.go.html#line-911" class="ident">Duration</a></code></span>
+<span class="codeline" id="line-37"><code>	<a href="../../../../../use/golang.org/x/net/http2..http2Config^c4bd2.WriteByteTimeout.html" class="ident">WriteByteTimeout</a>             <a href="../../../../../pkg/time.html" class="ident i2">time</a>.<a href="../../../../time/time.go.html#line-911" class="ident">Duration</a></code></span>
+<span class="codeline" id="line-38"><code>	<a href="../../../../../use/golang.org/x/net/http2..http2Config^c4bd2.PermitProhibitedCipherSuites.html" class="ident">PermitProhibitedCipherSuites</a> <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-39"><code>	<a href="../../../../../use/golang.org/x/net/http2..http2Config^c4bd2.CountError.html" class="ident">CountError</a>                   <span class="keyword">func</span>(errType <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>)</code></span>
+<span class="codeline" id="line-40"><code>}</code></span>
+<span class="codeline" id="line-41"><code></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">// configFromServer merges configuration settings from</span></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">// net/http.Server.HTTP2Config and http2.Server.</span></code></span>
+<span class="codeline" id="line-44"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../../pkg/golang.org/x/net/http2.html#name-configFromServer" class="ident">configFromServer</a></label>(<label for="r1" class="ident">h1</label> *<a href="../../../../../pkg/net/http.html" class="ident i1">http</a>.<a href="../../../../net/http/server.go.html#line-2993" class="ident">Server</a>, <label for="r2" class="ident">h2</label> *<a href="server.go.html#line-92" class="ident">Server</a>) <a href="#line-28" class="ident">http2Config</a> {</code></span>
+<span class="codeline" id="line-45"><code>	<label for="r3" class="ident">conf</label> := <a href="#line-28" class="ident">http2Config</a>{</code></span>
+<span class="codeline" id="line-46"><code>		<a href="#line-29" class="ident">MaxConcurrentStreams</a>:         <label for="r2" class="ident">h2</label>.<a href="server.go.html#line-105" class="ident">MaxConcurrentStreams</a>,</code></span>
+<span class="codeline" id="line-47"><code>		<a href="#line-31" class="ident">MaxEncoderHeaderTableSize</a>:    <label for="r2" class="ident">h2</label>.<a href="server.go.html#line-118" class="ident">MaxEncoderHeaderTableSize</a>,</code></span>
+<span class="codeline" id="line-48"><code>		<a href="#line-30" class="ident">MaxDecoderHeaderTableSize</a>:    <label for="r2" class="ident">h2</label>.<a href="server.go.html#line-112" class="ident">MaxDecoderHeaderTableSize</a>,</code></span>
+<span class="codeline" id="line-49"><code>		<a href="#line-32" class="ident">MaxReadFrameSize</a>:             <label for="r2" class="ident">h2</label>.<a href="server.go.html#line-124" class="ident">MaxReadFrameSize</a>,</code></span>
+<span class="codeline" id="line-50"><code>		<a href="#line-33" class="ident">MaxUploadBufferPerConnection</a>: <label for="r2" class="ident">h2</label>.<a href="server.go.html#line-157" class="ident">MaxUploadBufferPerConnection</a>,</code></span>
+<span class="codeline" id="line-51"><code>		<a href="#line-34" class="ident">MaxUploadBufferPerStream</a>:     <label for="r2" class="ident">h2</label>.<a href="server.go.html#line-163" class="ident">MaxUploadBufferPerStream</a>,</code></span>
+<span class="codeline" id="line-52"><code>		<a href="#line-35" class="ident">SendPingTimeout</a>:              <label for="r2" class="ident">h2</label>.<a href="server.go.html#line-139" class="ident">ReadIdleTimeout</a>,</code></span>
+<span class="codeline" id="line-53"><code>		<a href="#line-36" class="ident">PingTimeout</a>:                  <label for="r2" class="ident">h2</label>.<a href="server.go.html#line-144" class="ident">PingTimeout</a>,</code></span>
+<span class="codeline" id="line-54"><code>		<a href="#line-37" class="ident">WriteByteTimeout</a>:             <label for="r2" class="ident">h2</label>.<a href="server.go.html#line-150" class="ident">WriteByteTimeout</a>,</code></span>
+<span class="codeline" id="line-55"><code>		<a href="#line-38" class="ident">PermitProhibitedCipherSuites</a>: <label for="r2" class="ident">h2</label>.<a href="server.go.html#line-128" class="ident">PermitProhibitedCipherSuites</a>,</code></span>
+<span class="codeline" id="line-56"><code>		<a href="#line-39" class="ident">CountError</a>:                   <label for="r2" class="ident">h2</label>.<a href="server.go.html#line-173" class="ident">CountError</a>,</code></span>
+<span class="codeline" id="line-57"><code>	}</code></span>
+<span class="codeline" id="line-58"><code>	<a href="#line-124" class="ident">fillNetHTTPConfig</a>(&amp;<label for="r3" class="ident">conf</label>, <label for="r1" class="ident">h1</label>.<a href="../../../../net/http/server.go.html#line-3093" class="ident">HTTP2</a>)</code></span>
+<span class="codeline" id="line-59"><code>	<a href="#line-96" class="ident">setConfigDefaults</a>(&amp;<label for="r3" class="ident">conf</label>, <a href="../../../../../pkg/builtin.html#name-true" class="ident">true</a>)</code></span>
+<span class="codeline" id="line-60"><code>	<span class="keyword">return</span> <label for="r3" class="ident">conf</label></code></span>
+<span class="codeline" id="line-61"><code>}</code></span>
+<span class="codeline" id="line-62"><code></code></span>
+<span class="codeline" id="line-63"><code><span class="comment">// configFromTransport merges configuration settings from h2 and h2.t1.HTTP2</span></code></span>
+<span class="codeline" id="line-64"><code><span class="comment">// (the net/http Transport).</span></code></span>
+<span class="codeline" id="line-65"><code><span class="keyword">func</span> <label for="r4" class="ident"><a href="../../../../../pkg/golang.org/x/net/http2.html#name-configFromTransport" class="ident">configFromTransport</a></label>(<label for="r5" class="ident">h2</label> *<a href="transport.go.html#line-66" class="ident">Transport</a>) <a href="#line-28" class="ident">http2Config</a> {</code></span>
+<span class="codeline" id="line-66"><code>	<label for="r6" class="ident">conf</label> := <a href="#line-28" class="ident">http2Config</a>{</code></span>
+<span class="codeline" id="line-67"><code>		<a href="#line-31" class="ident">MaxEncoderHeaderTableSize</a>: <label for="r5" class="ident">h2</label>.<a href="transport.go.html#line-137" class="ident">MaxEncoderHeaderTableSize</a>,</code></span>
+<span class="codeline" id="line-68"><code>		<a href="#line-30" class="ident">MaxDecoderHeaderTableSize</a>: <label for="r5" class="ident">h2</label>.<a href="transport.go.html#line-131" class="ident">MaxDecoderHeaderTableSize</a>,</code></span>
+<span class="codeline" id="line-69"><code>		<a href="#line-32" class="ident">MaxReadFrameSize</a>:          <label for="r5" class="ident">h2</label>.<a href="transport.go.html#line-124" class="ident">MaxReadFrameSize</a>,</code></span>
+<span class="codeline" id="line-70"><code>		<a href="#line-35" class="ident">SendPingTimeout</a>:           <label for="r5" class="ident">h2</label>.<a href="transport.go.html#line-161" class="ident">ReadIdleTimeout</a>,</code></span>
+<span class="codeline" id="line-71"><code>		<a href="#line-36" class="ident">PingTimeout</a>:               <label for="r5" class="ident">h2</label>.<a href="transport.go.html#line-166" class="ident">PingTimeout</a>,</code></span>
+<span class="codeline" id="line-72"><code>		<a href="#line-37" class="ident">WriteByteTimeout</a>:          <label for="r5" class="ident">h2</label>.<a href="transport.go.html#line-171" class="ident">WriteByteTimeout</a>,</code></span>
+<span class="codeline" id="line-73"><code>	}</code></span>
+<span class="codeline" id="line-74"><code></code></span>
+<span class="codeline" id="line-75"><code>	<span class="comment">// Unlike most config fields, where out-of-range values revert to the default,</span></code></span>
+<span class="codeline" id="line-76"><code><span class="comment">	// Transport.MaxReadFrameSize clips.</span></code></span>
+<span class="codeline" id="line-77"><code>	<span class="keyword">if</span> <label for="r6" class="ident">conf</label>.<a href="#line-32" class="ident">MaxReadFrameSize</a> &lt; <a href="frame.go.html#line-409" class="ident">minMaxFrameSize</a> {</code></span>
+<span class="codeline" id="line-78"><code>		<label for="r6" class="ident">conf</label>.<a href="#line-32" class="ident">MaxReadFrameSize</a> = <a href="frame.go.html#line-409" class="ident">minMaxFrameSize</a></code></span>
+<span class="codeline" id="line-79"><code>	} <span class="keyword">else</span> <span class="keyword">if</span> <label for="r6" class="ident">conf</label>.<a href="#line-32" class="ident">MaxReadFrameSize</a> &gt; <a href="frame.go.html#line-410" class="ident">maxFrameSize</a> {</code></span>
+<span class="codeline" id="line-80"><code>		<label for="r6" class="ident">conf</label>.<a href="#line-32" class="ident">MaxReadFrameSize</a> = <a href="frame.go.html#line-410" class="ident">maxFrameSize</a></code></span>
+<span class="codeline" id="line-81"><code>	}</code></span>
+<span class="codeline" id="line-82"><code></code></span>
+<span class="codeline" id="line-83"><code>	<span class="keyword">if</span> <label for="r5" class="ident">h2</label>.<a href="transport.go.html#line-182" class="ident">t1</a> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-84"><code>		<a href="#line-124" class="ident">fillNetHTTPConfig</a>(&amp;<label for="r6" class="ident">conf</label>, <label for="r5" class="ident">h2</label>.<a href="transport.go.html#line-182" class="ident">t1</a>.<a href="../../../../net/http/transport.go.html#line-301" class="ident">HTTP2</a>)</code></span>
+<span class="codeline" id="line-85"><code>	}</code></span>
+<span class="codeline" id="line-86"><code>	<a href="#line-96" class="ident">setConfigDefaults</a>(&amp;<label for="r6" class="ident">conf</label>, <a href="../../../../../pkg/builtin.html#name-false" class="ident">false</a>)</code></span>
+<span class="codeline" id="line-87"><code>	<span class="keyword">return</span> <label for="r6" class="ident">conf</label></code></span>
+<span class="codeline" id="line-88"><code>}</code></span>
+<span class="codeline" id="line-89"><code></code></span>
+<span class="codeline" id="line-90"><code><span class="keyword">func</span> <label for="r7" class="ident"><a href="../../../../../pkg/golang.org/x/net/http2.html#name-setDefault" class="ident">setDefault</a></label>[<label for="r8" class="ident">T</label> ~<a href="../../../../../pkg/builtin.html#name-int" class="ident">int</a> | ~<a href="../../../../../pkg/builtin.html#name-int32" class="ident">int32</a> | ~<a href="../../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a> | ~<a href="../../../../../pkg/builtin.html#name-int64" class="ident">int64</a>](<label for="r9" class="ident">v</label> *<label for="r8" class="ident">T</label>, <label for="r10" class="ident">minval</label>, <label for="r11" class="ident">maxval</label>, <label for="r12" class="ident">defval</label> <label for="r8" class="ident">T</label>) {</code></span>
+<span class="codeline" id="line-91"><code>	<span class="keyword">if</span> *<label for="r9" class="ident">v</label> &lt; <label for="r10" class="ident">minval</label> || *<label for="r9" class="ident">v</label> &gt; <label for="r11" class="ident">maxval</label> {</code></span>
+<span class="codeline" id="line-92"><code>		*<label for="r9" class="ident">v</label> = <label for="r12" class="ident">defval</label></code></span>
+<span class="codeline" id="line-93"><code>	}</code></span>
+<span class="codeline" id="line-94"><code>}</code></span>
+<span class="codeline" id="line-95"><code></code></span>
+<span class="codeline" id="line-96"><code><span class="keyword">func</span> <label for="r13" class="ident"><a href="../../../../../pkg/golang.org/x/net/http2.html#name-setConfigDefaults" class="ident">setConfigDefaults</a></label>(<label for="r14" class="ident">conf</label> *<a href="#line-28" class="ident">http2Config</a>, <label for="r15" class="ident">server</label> <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a>) {</code></span>
+<span class="codeline" id="line-97"><code>	<a href="#line-90" class="ident">setDefault</a>(&amp;<label for="r14" class="ident">conf</label>.<a href="#line-29" class="ident">MaxConcurrentStreams</a>, <span class="lit-number">1</span>, <a href="../../../../../pkg/math.html" class="ident i0">math</a>.<a href="../../../../math/const.go.html#line-55" class="ident">MaxUint32</a>, <a href="server.go.html#line-60" class="ident">defaultMaxStreams</a>)</code></span>
+<span class="codeline" id="line-98"><code>	<a href="#line-90" class="ident">setDefault</a>(&amp;<label for="r14" class="ident">conf</label>.<a href="#line-31" class="ident">MaxEncoderHeaderTableSize</a>, <span class="lit-number">1</span>, <a href="../../../../../pkg/math.html" class="ident i0">math</a>.<a href="../../../../math/const.go.html#line-55" class="ident">MaxUint32</a>, <a href="http2.go.html#line-78" class="ident">initialHeaderTableSize</a>)</code></span>
+<span class="codeline" id="line-99"><code>	<a href="#line-90" class="ident">setDefault</a>(&amp;<label for="r14" class="ident">conf</label>.<a href="#line-30" class="ident">MaxDecoderHeaderTableSize</a>, <span class="lit-number">1</span>, <a href="../../../../../pkg/math.html" class="ident i0">math</a>.<a href="../../../../math/const.go.html#line-55" class="ident">MaxUint32</a>, <a href="http2.go.html#line-78" class="ident">initialHeaderTableSize</a>)</code></span>
+<span class="codeline" id="line-100"><code>	<span class="keyword">if</span> <label for="r15" class="ident">server</label> {</code></span>
+<span class="codeline" id="line-101"><code>		<a href="#line-90" class="ident">setDefault</a>(&amp;<label for="r14" class="ident">conf</label>.<a href="#line-33" class="ident">MaxUploadBufferPerConnection</a>, <a href="http2.go.html#line-80" class="ident">initialWindowSize</a>, <a href="../../../../../pkg/math.html" class="ident i0">math</a>.<a href="../../../../math/const.go.html#line-48" class="ident">MaxInt32</a>, <span class="lit-number">1</span>&lt;&lt;<span class="lit-number">20</span>)</code></span>
+<span class="codeline" id="line-102"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-103"><code>		<a href="#line-90" class="ident">setDefault</a>(&amp;<label for="r14" class="ident">conf</label>.<a href="#line-33" class="ident">MaxUploadBufferPerConnection</a>, <a href="http2.go.html#line-80" class="ident">initialWindowSize</a>, <a href="../../../../../pkg/math.html" class="ident i0">math</a>.<a href="../../../../math/const.go.html#line-48" class="ident">MaxInt32</a>, <a href="transport.go.html#line-43" class="ident">transportDefaultConnFlow</a>)</code></span>
+<span class="codeline" id="line-104"><code>	}</code></span>
+<span class="codeline" id="line-105"><code>	<span class="keyword">if</span> <label for="r15" class="ident">server</label> {</code></span>
+<span class="codeline" id="line-106"><code>		<a href="#line-90" class="ident">setDefault</a>(&amp;<label for="r14" class="ident">conf</label>.<a href="#line-34" class="ident">MaxUploadBufferPerStream</a>, <span class="lit-number">1</span>, <a href="../../../../../pkg/math.html" class="ident i0">math</a>.<a href="../../../../math/const.go.html#line-48" class="ident">MaxInt32</a>, <span class="lit-number">1</span>&lt;&lt;<span class="lit-number">20</span>)</code></span>
+<span class="codeline" id="line-107"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-108"><code>		<a href="#line-90" class="ident">setDefault</a>(&amp;<label for="r14" class="ident">conf</label>.<a href="#line-34" class="ident">MaxUploadBufferPerStream</a>, <span class="lit-number">1</span>, <a href="../../../../../pkg/math.html" class="ident i0">math</a>.<a href="../../../../math/const.go.html#line-48" class="ident">MaxInt32</a>, <a href="transport.go.html#line-48" class="ident">transportDefaultStreamFlow</a>)</code></span>
+<span class="codeline" id="line-109"><code>	}</code></span>
+<span class="codeline" id="line-110"><code>	<a href="#line-90" class="ident">setDefault</a>(&amp;<label for="r14" class="ident">conf</label>.<a href="#line-32" class="ident">MaxReadFrameSize</a>, <a href="frame.go.html#line-409" class="ident">minMaxFrameSize</a>, <a href="frame.go.html#line-410" class="ident">maxFrameSize</a>, <a href="http2.go.html#line-82" class="ident">defaultMaxReadFrameSize</a>)</code></span>
+<span class="codeline" id="line-111"><code>	<a href="#line-90" class="ident">setDefault</a>(&amp;<label for="r14" class="ident">conf</label>.<a href="#line-36" class="ident">PingTimeout</a>, <span class="lit-number">1</span>, <a href="../../../../../pkg/math.html" class="ident i0">math</a>.<a href="../../../../math/const.go.html#line-50" class="ident">MaxInt64</a>, <span class="lit-number">15</span>*<a href="../../../../../pkg/time.html" class="ident i2">time</a>.<a href="../../../../time/time.go.html#line-934" class="ident">Second</a>)</code></span>
+<span class="codeline" id="line-112"><code>}</code></span>
+<span class="codeline" id="line-113"><code></code></span>
+<span class="codeline" id="line-114"><code><span class="comment">// adjustHTTP1MaxHeaderSize converts a limit in bytes on the size of an HTTP/1 header</span></code></span>
+<span class="codeline" id="line-115"><code><span class="comment">// to an HTTP/2 MAX_HEADER_LIST_SIZE value.</span></code></span>
+<span class="codeline" id="line-116"><code><span class="keyword">func</span> <label for="r16" class="ident"><a href="../../../../../pkg/golang.org/x/net/http2.html#name-adjustHTTP1MaxHeaderSize" class="ident">adjustHTTP1MaxHeaderSize</a></label>(<label for="r17" class="ident">n</label> <a href="../../../../../pkg/builtin.html#name-int64" class="ident">int64</a>) <a href="../../../../../pkg/builtin.html#name-int64" class="ident">int64</a> {</code></span>
+<span class="codeline" id="line-117"><code>	<span class="comment">// http2's count is in a slightly different unit and includes 32 bytes per pair.</span></code></span>
+<span class="codeline" id="line-118"><code><span class="comment">	// So, take the net/http.Server value and pad it up a bit, assuming 10 headers.</span></code></span>
+<span class="codeline" id="line-119"><code>	<span class="keyword">const</span> <label for="r18" class="ident">perFieldOverhead</label> = <span class="lit-number">32</span> <span class="comment">// per http2 spec</span></code></span>
+<span class="codeline" id="line-120"><code>	<span class="keyword">const</span> <label for="r19" class="ident">typicalHeaders</label> = <span class="lit-number">10</span>   <span class="comment">// conservative</span></code></span>
+<span class="codeline" id="line-121"><code>	<span class="keyword">return</span> <label for="r17" class="ident">n</label> + <label for="r19" class="ident">typicalHeaders</label>*<label for="r18" class="ident">perFieldOverhead</label></code></span>
+<span class="codeline" id="line-122"><code>}</code></span>
+<span class="codeline" id="line-123"><code></code></span>
+<span class="codeline" id="line-124"><code><span class="keyword">func</span> <label for="r20" class="ident"><a href="../../../../../pkg/golang.org/x/net/http2.html#name-fillNetHTTPConfig" class="ident">fillNetHTTPConfig</a></label>(<label for="r21" class="ident">conf</label> *<a href="#line-28" class="ident">http2Config</a>, <label for="r22" class="ident">h2</label> *<a href="../../../../../pkg/net/http.html" class="ident i1">http</a>.<a href="../../../../net/http/http.go.html#line-236" class="ident">HTTP2Config</a>) {</code></span>
+<span class="codeline" id="line-125"><code>	<span class="keyword">if</span> <label for="r22" class="ident">h2</label> == <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-126"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-127"><code>	}</code></span>
+<span class="codeline" id="line-128"><code>	<span class="keyword">if</span> <label for="r22" class="ident">h2</label>.<a href="../../../../net/http/http.go.html#line-240" class="ident">MaxConcurrentStreams</a> != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-129"><code>		<label for="r21" class="ident">conf</label>.<a href="#line-29" class="ident">MaxConcurrentStreams</a> = <a href="../../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a>(<label for="r22" class="ident">h2</label>.<a href="../../../../net/http/http.go.html#line-240" class="ident">MaxConcurrentStreams</a>)</code></span>
+<span class="codeline" id="line-130"><code>	}</code></span>
+<span class="codeline" id="line-131"><code>	<span class="keyword">if</span> <label for="r22" class="ident">h2</label>.<a href="../../../../net/http/http.go.html#line-253" class="ident">MaxEncoderHeaderTableSize</a> != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-132"><code>		<label for="r21" class="ident">conf</label>.<a href="#line-31" class="ident">MaxEncoderHeaderTableSize</a> = <a href="../../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a>(<label for="r22" class="ident">h2</label>.<a href="../../../../net/http/http.go.html#line-253" class="ident">MaxEncoderHeaderTableSize</a>)</code></span>
+<span class="codeline" id="line-133"><code>	}</code></span>
+<span class="codeline" id="line-134"><code>	<span class="keyword">if</span> <label for="r22" class="ident">h2</label>.<a href="../../../../net/http/http.go.html#line-247" class="ident">MaxDecoderHeaderTableSize</a> != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-135"><code>		<label for="r21" class="ident">conf</label>.<a href="#line-30" class="ident">MaxDecoderHeaderTableSize</a> = <a href="../../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a>(<label for="r22" class="ident">h2</label>.<a href="../../../../net/http/http.go.html#line-247" class="ident">MaxDecoderHeaderTableSize</a>)</code></span>
+<span class="codeline" id="line-136"><code>	}</code></span>
+<span class="codeline" id="line-137"><code>	<span class="keyword">if</span> <label for="r22" class="ident">h2</label>.<a href="../../../../net/http/http.go.html#line-240" class="ident">MaxConcurrentStreams</a> != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-138"><code>		<label for="r21" class="ident">conf</label>.<a href="#line-29" class="ident">MaxConcurrentStreams</a> = <a href="../../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a>(<label for="r22" class="ident">h2</label>.<a href="../../../../net/http/http.go.html#line-240" class="ident">MaxConcurrentStreams</a>)</code></span>
+<span class="codeline" id="line-139"><code>	}</code></span>
+<span class="codeline" id="line-140"><code>	<span class="keyword">if</span> <label for="r22" class="ident">h2</label>.<a href="../../../../net/http/http.go.html#line-259" class="ident">MaxReadFrameSize</a> != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-141"><code>		<label for="r21" class="ident">conf</label>.<a href="#line-32" class="ident">MaxReadFrameSize</a> = <a href="../../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a>(<label for="r22" class="ident">h2</label>.<a href="../../../../net/http/http.go.html#line-259" class="ident">MaxReadFrameSize</a>)</code></span>
+<span class="codeline" id="line-142"><code>	}</code></span>
+<span class="codeline" id="line-143"><code>	<span class="keyword">if</span> <label for="r22" class="ident">h2</label>.<a href="../../../../net/http/http.go.html#line-265" class="ident">MaxReceiveBufferPerConnection</a> != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-144"><code>		<label for="r21" class="ident">conf</label>.<a href="#line-33" class="ident">MaxUploadBufferPerConnection</a> = <a href="../../../../../pkg/builtin.html#name-int32" class="ident">int32</a>(<label for="r22" class="ident">h2</label>.<a href="../../../../net/http/http.go.html#line-265" class="ident">MaxReceiveBufferPerConnection</a>)</code></span>
+<span class="codeline" id="line-145"><code>	}</code></span>
+<span class="codeline" id="line-146"><code>	<span class="keyword">if</span> <label for="r22" class="ident">h2</label>.<a href="../../../../net/http/http.go.html#line-271" class="ident">MaxReceiveBufferPerStream</a> != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-147"><code>		<label for="r21" class="ident">conf</label>.<a href="#line-34" class="ident">MaxUploadBufferPerStream</a> = <a href="../../../../../pkg/builtin.html#name-int32" class="ident">int32</a>(<label for="r22" class="ident">h2</label>.<a href="../../../../net/http/http.go.html#line-271" class="ident">MaxReceiveBufferPerStream</a>)</code></span>
+<span class="codeline" id="line-148"><code>	}</code></span>
+<span class="codeline" id="line-149"><code>	<span class="keyword">if</span> <label for="r22" class="ident">h2</label>.<a href="../../../../net/http/http.go.html#line-276" class="ident">SendPingTimeout</a> != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-150"><code>		<label for="r21" class="ident">conf</label>.<a href="#line-35" class="ident">SendPingTimeout</a> = <label for="r22" class="ident">h2</label>.<a href="../../../../net/http/http.go.html#line-276" class="ident">SendPingTimeout</a></code></span>
+<span class="codeline" id="line-151"><code>	}</code></span>
+<span class="codeline" id="line-152"><code>	<span class="keyword">if</span> <label for="r22" class="ident">h2</label>.<a href="../../../../net/http/http.go.html#line-281" class="ident">PingTimeout</a> != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-153"><code>		<label for="r21" class="ident">conf</label>.<a href="#line-36" class="ident">PingTimeout</a> = <label for="r22" class="ident">h2</label>.<a href="../../../../net/http/http.go.html#line-281" class="ident">PingTimeout</a></code></span>
+<span class="codeline" id="line-154"><code>	}</code></span>
+<span class="codeline" id="line-155"><code>	<span class="keyword">if</span> <label for="r22" class="ident">h2</label>.<a href="../../../../net/http/http.go.html#line-286" class="ident">WriteByteTimeout</a> != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-156"><code>		<label for="r21" class="ident">conf</label>.<a href="#line-37" class="ident">WriteByteTimeout</a> = <label for="r22" class="ident">h2</label>.<a href="../../../../net/http/http.go.html#line-286" class="ident">WriteByteTimeout</a></code></span>
+<span class="codeline" id="line-157"><code>	}</code></span>
+<span class="codeline" id="line-158"><code>	<span class="keyword">if</span> <label for="r22" class="ident">h2</label>.<a href="../../../../net/http/http.go.html#line-290" class="ident">PermitProhibitedCipherSuites</a> {</code></span>
+<span class="codeline" id="line-159"><code>		<label for="r21" class="ident">conf</label>.<a href="#line-38" class="ident">PermitProhibitedCipherSuites</a> = <a href="../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-160"><code>	}</code></span>
+<span class="codeline" id="line-161"><code>	<span class="keyword">if</span> <label for="r22" class="ident">h2</label>.<a href="../../../../net/http/http.go.html#line-296" class="ident">CountError</a> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-162"><code>		<label for="r21" class="ident">conf</label>.<a href="#line-39" class="ident">CountError</a> = <label for="r22" class="ident">h2</label>.<a href="../../../../net/http/http.go.html#line-296" class="ident">CountError</a></code></span>
+<span class="codeline" id="line-163"><code>	}</code></span>
+<span class="codeline" id="line-164"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

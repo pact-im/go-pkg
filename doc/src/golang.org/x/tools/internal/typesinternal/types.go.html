@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: types.go in package golang.org/x/tools/internal/typesinternal</title>
+<link href="../../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	types.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../../pkg/golang.org/x/tools/internal/typesinternal.html">golang.org/x/tools/internal/typesinternal</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30],
+input[id=r31]:checked ~pre label[for=r31],
+input[id=r32]:checked ~pre label[for=r32],
+input[id=r33]:checked ~pre label[for=r33]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3,
+input[id=i4]:checked ~pre .i4,
+input[id=i5]:checked ~pre .i5
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="r31" type="radio" name="g"/>
+<input id="r32" type="radio" name="g"/>
+<input id="r33" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+<input id="i4" type="radio" name="i"/>
+<input id="i5" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2020 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<div class="anchor" id="doc"><span class="codeline" id="line-5"><code><span class="comment">// Package typesinternal provides access to internal go/types APIs that are not</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment">// yet exported.</span></code></span></div><span class="codeline" id="line-7"><code><span class="keyword">package</span> typesinternal</code></span>
+<span class="codeline" id="line-8"><code></code></span>
+<span class="codeline" id="line-9"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-10"><code>	<label for="i0"><span class="lit-string i0">"go/ast"</span></label></code></span>
+<span class="codeline" id="line-11"><code>	<label for="i1"><span class="lit-string i1">"go/token"</span></label></code></span>
+<span class="codeline" id="line-12"><code>	<label for="i2"><span class="lit-string i2">"go/types"</span></label></code></span>
+<span class="codeline" id="line-13"><code>	<label for="i3"><span class="lit-string i3">"reflect"</span></label></code></span>
+<span class="codeline" id="line-14"><code>	<label for="i4"><span class="lit-string i4">"unsafe"</span></label></code></span>
+<span class="codeline" id="line-15"><code></code></span>
+<span class="codeline" id="line-16"><code>	<label for="i5"><span class="lit-string i5">"golang.org/x/tools/internal/aliases"</span></label></code></span>
+<span class="codeline" id="line-17"><code>)</code></span>
+<span class="codeline" id="line-18"><code></code></span>
+<span class="codeline" id="line-19"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../../../pkg/golang.org/x/tools/internal/typesinternal.html#name-SetUsesCgo" class="ident">SetUsesCgo</a></label>(<label for="r1" class="ident">conf</label> *<a href="../../../../../../pkg/go/types.html" class="ident i2">types</a>.<a href="../../../../../go/types/api.go.html#line-122" class="ident">Config</a>) <a href="../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-20"><code>	<label for="r2" class="ident">v</label> := <a href="../../../../../../pkg/reflect.html" class="ident i3">reflect</a>.<a href="../../../../../reflect/value.go.html#line-3050" class="ident">ValueOf</a>(<label for="r1" class="ident">conf</label>).<a href="../../../../../reflect/value.go.html#line-1215" class="ident">Elem</a>()</code></span>
+<span class="codeline" id="line-21"><code></code></span>
+<span class="codeline" id="line-22"><code>	<label for="r3" class="ident">f</label> := <label for="r2" class="ident">v</label>.<a href="../../../../../reflect/value.go.html#line-1337" class="ident">FieldByName</a>(<span class="lit-string">"go115UsesCgo"</span>)</code></span>
+<span class="codeline" id="line-23"><code>	<span class="keyword">if</span> !<label for="r3" class="ident">f</label>.<a href="../../../../../reflect/value.go.html#line-1630" class="ident">IsValid</a>() {</code></span>
+<span class="codeline" id="line-24"><code>		<label for="r3" class="ident">f</label> = <label for="r2" class="ident">v</label>.<a href="../../../../../reflect/value.go.html#line-1337" class="ident">FieldByName</a>(<span class="lit-string">"UsesCgo"</span>)</code></span>
+<span class="codeline" id="line-25"><code>		<span class="keyword">if</span> !<label for="r3" class="ident">f</label>.<a href="../../../../../reflect/value.go.html#line-1630" class="ident">IsValid</a>() {</code></span>
+<span class="codeline" id="line-26"><code>			<span class="keyword">return</span> <a href="../../../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-27"><code>		}</code></span>
+<span class="codeline" id="line-28"><code>	}</code></span>
+<span class="codeline" id="line-29"><code></code></span>
+<span class="codeline" id="line-30"><code>	<label for="r4" class="ident">addr</label> := <a href="../../../../../../pkg/unsafe.html" class="ident i4">unsafe</a>.<a href="../../../../../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r3" class="ident">f</label>.<a href="../../../../../reflect/value.go.html#line-2544" class="ident">UnsafeAddr</a>())</code></span>
+<span class="codeline" id="line-31"><code>	*(*<a href="../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a>)(<label for="r4" class="ident">addr</label>) = <a href="../../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-32"><code></code></span>
+<span class="codeline" id="line-33"><code>	<span class="keyword">return</span> <a href="../../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-34"><code>}</code></span>
+<span class="codeline" id="line-35"><code></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">// ErrorCodeStartEnd extracts additional information from types.Error values</span></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">// generated by Go version 1.16 and later: the error code, start position, and</span></code></span>
+<span class="codeline" id="line-38"><code><span class="comment">// end position. If all positions are valid, start &lt;= err.Pos &lt;= end.</span></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-40"><code><span class="comment">// If the data could not be read, the final result parameter will be false.</span></code></span>
+<span class="codeline" id="line-41"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">// TODO(adonovan): eliminate start/end when proposal #71803 is accepted.</span></code></span>
+<span class="codeline" id="line-43"><code><span class="keyword">func</span> <label for="r5" class="ident"><a href="../../../../../../pkg/golang.org/x/tools/internal/typesinternal.html#name-ErrorCodeStartEnd" class="ident">ErrorCodeStartEnd</a></label>(<label for="r6" class="ident">err</label> <a href="../../../../../../pkg/go/types.html" class="ident i2">types</a>.<a href="../../../../../go/types/api.go.html#line-51" class="ident">Error</a>) (<label for="r7" class="ident">code</label> <a href="errorcode.go.html#line-9" class="ident">ErrorCode</a>, <label for="r8" class="ident">start</label>, <label for="r9" class="ident">end</label> <a href="../../../../../../pkg/go/token.html" class="ident i1">token</a>.<a href="../../../../../go/token/position.go.html#line-83" class="ident">Pos</a>, <label for="r10" class="ident">ok</label> <a href="../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a>) {</code></span>
+<span class="codeline" id="line-44"><code>	<span class="keyword">var</span> <label for="r11" class="ident">data</label> [<span class="lit-number">3</span>]<a href="../../../../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-45"><code>	<span class="comment">// By coincidence all of these fields are ints, which simplifies things.</span></code></span>
+<span class="codeline" id="line-46"><code>	<label for="r12" class="ident">v</label> := <a href="../../../../../../pkg/reflect.html" class="ident i3">reflect</a>.<a href="../../../../../reflect/value.go.html#line-3050" class="ident">ValueOf</a>(<label for="r6" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-47"><code>	<span class="keyword">for</span> <label for="r13" class="ident">i</label>, <label for="r14" class="ident">name</label> := <span class="keyword">range</span> []<a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"go116code"</span>, <span class="lit-string">"go116start"</span>, <span class="lit-string">"go116end"</span>} {</code></span>
+<span class="codeline" id="line-48"><code>		<label for="r15" class="ident">f</label> := <label for="r12" class="ident">v</label>.<a href="../../../../../reflect/value.go.html#line-1337" class="ident">FieldByName</a>(<label for="r14" class="ident">name</label>)</code></span>
+<span class="codeline" id="line-49"><code>		<span class="keyword">if</span> !<label for="r15" class="ident">f</label>.<a href="../../../../../reflect/value.go.html#line-1630" class="ident">IsValid</a>() {</code></span>
+<span class="codeline" id="line-50"><code>			<span class="keyword">return</span> <span class="lit-number">0</span>, <span class="lit-number">0</span>, <span class="lit-number">0</span>, <a href="../../../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-51"><code>		}</code></span>
+<span class="codeline" id="line-52"><code>		<label for="r11" class="ident">data</label>[<label for="r13" class="ident">i</label>] = <a href="../../../../../../pkg/builtin.html#name-int" class="ident">int</a>(<label for="r15" class="ident">f</label>.<a href="../../../../../reflect/value.go.html#line-1439" class="ident">Int</a>())</code></span>
+<span class="codeline" id="line-53"><code>	}</code></span>
+<span class="codeline" id="line-54"><code>	<span class="keyword">return</span> <a href="errorcode.go.html#line-9" class="ident">ErrorCode</a>(<label for="r11" class="ident">data</label>[<span class="lit-number">0</span>]), <a href="../../../../../../pkg/go/token.html" class="ident i1">token</a>.<a href="../../../../../go/token/position.go.html#line-83" class="ident">Pos</a>(<label for="r11" class="ident">data</label>[<span class="lit-number">1</span>]), <a href="../../../../../../pkg/go/token.html" class="ident i1">token</a>.<a href="../../../../../go/token/position.go.html#line-83" class="ident">Pos</a>(<label for="r11" class="ident">data</label>[<span class="lit-number">2</span>]), <a href="../../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-55"><code>}</code></span>
+<span class="codeline" id="line-56"><code></code></span>
+<span class="codeline" id="line-57"><code><span class="comment">// NameRelativeTo returns a types.Qualifier that qualifies members of</span></code></span>
+<span class="codeline" id="line-58"><code><span class="comment">// all packages other than pkg, using only the package name.</span></code></span>
+<span class="codeline" id="line-59"><code><span class="comment">// (By contrast, [types.RelativeTo] uses the complete package path,</span></code></span>
+<span class="codeline" id="line-60"><code><span class="comment">// which is often excessive.)</span></code></span>
+<span class="codeline" id="line-61"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-62"><code><span class="comment">// If pkg is nil, it is equivalent to [*types.Package.Name].</span></code></span>
+<span class="codeline" id="line-63"><code><span class="keyword">func</span> <label for="r16" class="ident"><a href="../../../../../../pkg/golang.org/x/tools/internal/typesinternal.html#name-NameRelativeTo" class="ident">NameRelativeTo</a></label>(<label for="r17" class="ident">pkg</label> *<a href="../../../../../../pkg/go/types.html" class="ident i2">types</a>.<a href="../../../../../go/types/package.go.html#line-15" class="ident">Package</a>) <a href="../../../../../../pkg/go/types.html" class="ident i2">types</a>.<a href="../../../../../go/types/typestring.go.html#line-31" class="ident">Qualifier</a> {</code></span>
+<span class="codeline" id="line-64"><code>	<span class="keyword">return</span> <span class="keyword">func</span>(<label for="r18" class="ident">other</label> *<a href="../../../../../../pkg/go/types.html" class="ident i2">types</a>.<a href="../../../../../go/types/package.go.html#line-15" class="ident">Package</a>) <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-65"><code>		<span class="keyword">if</span> <label for="r17" class="ident">pkg</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> &amp;&amp; <label for="r17" class="ident">pkg</label> == <label for="r18" class="ident">other</label> {</code></span>
+<span class="codeline" id="line-66"><code>			<span class="keyword">return</span> <span class="lit-string">""</span> <span class="comment">// same package; unqualified</span></code></span>
+<span class="codeline" id="line-67"><code>		}</code></span>
+<span class="codeline" id="line-68"><code>		<span class="keyword">return</span> <label for="r18" class="ident">other</label>.<a href="../../../../../go/types/package.go.html#line-37" class="ident">Name</a>()</code></span>
+<span class="codeline" id="line-69"><code>	}</code></span>
+<span class="codeline" id="line-70"><code>}</code></span>
+<span class="codeline" id="line-71"><code></code></span>
+<span class="codeline" id="line-72"><code><span class="comment">// TypeNameFor returns the type name symbol for the specified type, if</span></code></span>
+<span class="codeline" id="line-73"><code><span class="comment">// it is a [*types.Alias], [*types.Named], [*types.TypeParam], or a</span></code></span>
+<span class="codeline" id="line-74"><code><span class="comment">// [*types.Basic] representing a type.</span></code></span>
+<span class="codeline" id="line-75"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-76"><code><span class="comment">// For all other types, and for Basic types representing a builtin,</span></code></span>
+<span class="codeline" id="line-77"><code><span class="comment">// constant, or nil, it returns nil. Be careful not to convert the</span></code></span>
+<span class="codeline" id="line-78"><code><span class="comment">// resulting nil pointer to a [types.Object]!</span></code></span>
+<span class="codeline" id="line-79"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-80"><code><span class="comment">// If t is the type of a constant, it may be an "untyped" type, which</span></code></span>
+<span class="codeline" id="line-81"><code><span class="comment">// has no TypeName. To access the name of such types (e.g. "untyped</span></code></span>
+<span class="codeline" id="line-82"><code><span class="comment">// int"), use [types.Basic.Name].</span></code></span>
+<span class="codeline" id="line-83"><code><span class="keyword">func</span> <label for="r19" class="ident"><a href="../../../../../../pkg/golang.org/x/tools/internal/typesinternal.html#name-TypeNameFor" class="ident">TypeNameFor</a></label>(<label for="r20" class="ident">t</label> <a href="../../../../../../pkg/go/types.html" class="ident i2">types</a>.<a href="../../../../../go/types/type.go.html#line-9" class="ident">Type</a>) *<a href="../../../../../../pkg/go/types.html" class="ident i2">types</a>.<a href="../../../../../go/types/object.go.html#line-282" class="ident">TypeName</a> {</code></span>
+<span class="codeline" id="line-84"><code>	<span class="keyword">switch</span> t := <label for="r20" class="ident">t</label>.(<span class="keyword">type</span>) {</code></span>
+<span class="codeline" id="line-85"><code>	<span class="keyword">case</span> *<a href="../../../../../../pkg/go/types.html" class="ident i2">types</a>.<a href="../../../../../go/types/alias.go.html#line-46" class="ident">Alias</a>:</code></span>
+<span class="codeline" id="line-86"><code>		<span class="keyword">return</span> <label for="r21" class="ident">t</label>.<a href="../../../../../go/types/alias.go.html#line-66" class="ident">Obj</a>()</code></span>
+<span class="codeline" id="line-87"><code>	<span class="keyword">case</span> *<a href="../../../../../../pkg/go/types.html" class="ident i2">types</a>.<a href="../../../../../go/types/named.go.html#line-109" class="ident">Named</a>:</code></span>
+<span class="codeline" id="line-88"><code>		<span class="keyword">return</span> <label for="r22" class="ident">t</label>.<a href="../../../../../go/types/named.go.html#line-307" class="ident">Obj</a>()</code></span>
+<span class="codeline" id="line-89"><code>	<span class="keyword">case</span> *<a href="../../../../../../pkg/go/types.html" class="ident i2">types</a>.<a href="../../../../../go/types/typeparam.go.html#line-25" class="ident">TypeParam</a>:</code></span>
+<span class="codeline" id="line-90"><code>		<span class="keyword">return</span> <label for="r23" class="ident">t</label>.<a href="../../../../../go/types/typeparam.go.html#line-66" class="ident">Obj</a>()</code></span>
+<span class="codeline" id="line-91"><code>	<span class="keyword">case</span> *<a href="../../../../../../pkg/go/types.html" class="ident i2">types</a>.<a href="../../../../../go/types/basic.go.html#line-69" class="ident">Basic</a>:</code></span>
+<span class="codeline" id="line-92"><code>		<span class="comment">// See issues #71886 and #66890 for some history.</span></code></span>
+<span class="codeline" id="line-93"><code>		<span class="keyword">if</span> <label for="r24" class="ident">tname</label>, <label for="r25" class="ident">ok</label> := <a href="../../../../../../pkg/go/types.html" class="ident i2">types</a>.<a href="../../../../../go/types/universe.go.html#line-19" class="ident">Universe</a>.<a href="../../../../../go/types/scope.go.html#line-73" class="ident">Lookup</a>(<label for="r26" class="ident">t</label>.<a href="../../../../../go/types/basic.go.html#line-82" class="ident">Name</a>()).(*<a href="../../../../../../pkg/go/types.html" class="ident i2">types</a>.<a href="../../../../../go/types/object.go.html#line-282" class="ident">TypeName</a>); <label for="r25" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-94"><code>			<span class="keyword">return</span> <label for="r24" class="ident">tname</label></code></span>
+<span class="codeline" id="line-95"><code>		}</code></span>
+<span class="codeline" id="line-96"><code>	}</code></span>
+<span class="codeline" id="line-97"><code>	<span class="keyword">return</span> <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-98"><code>}</code></span>
+<span class="codeline" id="line-99"><code></code></span>
+<span class="codeline" id="line-100"><code><span class="comment">// A NamedOrAlias is a [types.Type] that is named (as</span></code></span>
+<span class="codeline" id="line-101"><code><span class="comment">// defined by the spec) and capable of bearing type parameters: it</span></code></span>
+<span class="codeline" id="line-102"><code><span class="comment">// abstracts aliases ([types.Alias]) and defined types</span></code></span>
+<span class="codeline" id="line-103"><code><span class="comment">// ([types.Named]).</span></code></span>
+<span class="codeline" id="line-104"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-105"><code><span class="comment">// Every type declared by an explicit "type" declaration is a</span></code></span>
+<span class="codeline" id="line-106"><code><span class="comment">// NamedOrAlias. (Built-in type symbols may additionally</span></code></span>
+<span class="codeline" id="line-107"><code><span class="comment">// have type [types.Basic], which is not a NamedOrAlias,</span></code></span>
+<span class="codeline" id="line-108"><code><span class="comment">// though the spec regards them as "named"; see [TypeNameFor].)</span></code></span>
+<span class="codeline" id="line-109"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-110"><code><span class="comment">// NamedOrAlias cannot expose the Origin method, because</span></code></span>
+<span class="codeline" id="line-111"><code><span class="comment">// [types.Alias.Origin] and [types.Named.Origin] have different</span></code></span>
+<span class="codeline" id="line-112"><code><span class="comment">// (covariant) result types; use [Origin] instead.</span></code></span>
+<span class="codeline" id="line-113"><code><span class="keyword">type</span> <a href="../../../../../../pkg/golang.org/x/tools/internal/typesinternal.html#name-NamedOrAlias" class="ident">NamedOrAlias</a> <span class="keyword">interface</span> {</code></span>
+<span class="codeline" id="line-114"><code>	<a href="../../../../../../pkg/go/types.html" class="ident i2">types</a>.<a href="../../../../../go/types/type.go.html#line-9" class="ident">Type</a></code></span>
+<span class="codeline" id="line-115"><code>	<a href="../../../../../../imp/golang.org/x/tools/internal/typesinternal.NamedOrAlias.html#name-Obj" class="ident">Obj</a>() *<a href="../../../../../../pkg/go/types.html" class="ident i2">types</a>.<a href="../../../../../go/types/object.go.html#line-282" class="ident">TypeName</a></code></span>
+<span class="codeline" id="line-116"><code>	<a href="../../../../../../imp/golang.org/x/tools/internal/typesinternal.NamedOrAlias.html#name-TypeArgs" class="ident">TypeArgs</a>() *<a href="../../../../../../pkg/go/types.html" class="ident i2">types</a>.<a href="../../../../../go/types/typelists.go.html#line-31" class="ident">TypeList</a></code></span>
+<span class="codeline" id="line-117"><code>	<a href="../../../../../../imp/golang.org/x/tools/internal/typesinternal.NamedOrAlias.html#name-TypeParams" class="ident">TypeParams</a>() *<a href="../../../../../../pkg/go/types.html" class="ident i2">types</a>.<a href="../../../../../go/types/typelists.go.html#line-11" class="ident">TypeParamList</a></code></span>
+<span class="codeline" id="line-118"><code>	<a href="../../../../../../imp/golang.org/x/tools/internal/typesinternal.NamedOrAlias.html#name-SetTypeParams" class="ident">SetTypeParams</a>(tparams []*<a href="../../../../../../pkg/go/types.html" class="ident i2">types</a>.<a href="../../../../../go/types/typeparam.go.html#line-25" class="ident">TypeParam</a>)</code></span>
+<span class="codeline" id="line-119"><code>}</code></span>
+<span class="codeline" id="line-120"><code></code></span>
+<span class="codeline" id="line-121"><code><span class="keyword">var</span> (</code></span>
+<span class="codeline" id="line-122"><code>	_ <a href="#line-113" class="ident">NamedOrAlias</a> = (*<a href="../../../../../../pkg/go/types.html" class="ident i2">types</a>.<a href="../../../../../go/types/alias.go.html#line-46" class="ident">Alias</a>)(<a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>)</code></span>
+<span class="codeline" id="line-123"><code>	_ <a href="#line-113" class="ident">NamedOrAlias</a> = (*<a href="../../../../../../pkg/go/types.html" class="ident i2">types</a>.<a href="../../../../../go/types/named.go.html#line-109" class="ident">Named</a>)(<a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>)</code></span>
+<span class="codeline" id="line-124"><code>)</code></span>
+<span class="codeline" id="line-125"><code></code></span>
+<span class="codeline" id="line-126"><code><span class="comment">// Origin returns the generic type of the Named or Alias type t if it</span></code></span>
+<span class="codeline" id="line-127"><code><span class="comment">// is instantiated, otherwise it returns t.</span></code></span>
+<span class="codeline" id="line-128"><code><span class="keyword">func</span> <label for="r27" class="ident"><a href="../../../../../../pkg/golang.org/x/tools/internal/typesinternal.html#name-Origin" class="ident">Origin</a></label>(<label for="r28" class="ident">t</label> <a href="#line-113" class="ident">NamedOrAlias</a>) <a href="#line-113" class="ident">NamedOrAlias</a> {</code></span>
+<span class="codeline" id="line-129"><code>	<span class="keyword">switch</span> t := <label for="r28" class="ident">t</label>.(<span class="keyword">type</span>) {</code></span>
+<span class="codeline" id="line-130"><code>	<span class="keyword">case</span> *<a href="../../../../../../pkg/go/types.html" class="ident i2">types</a>.<a href="../../../../../go/types/alias.go.html#line-46" class="ident">Alias</a>:</code></span>
+<span class="codeline" id="line-131"><code>		<span class="keyword">return</span> <a href="../../../../../../pkg/golang.org/x/tools/internal/aliases.html" class="ident i5">aliases</a>.<a href="../aliases/aliases_go122.go.html#line-54" class="ident">Origin</a>(<label for="r29" class="ident">t</label>)</code></span>
+<span class="codeline" id="line-132"><code>	<span class="keyword">case</span> *<a href="../../../../../../pkg/go/types.html" class="ident i2">types</a>.<a href="../../../../../go/types/named.go.html#line-109" class="ident">Named</a>:</code></span>
+<span class="codeline" id="line-133"><code>		<span class="keyword">return</span> <label for="r30" class="ident">t</label>.<a href="../../../../../go/types/named.go.html#line-316" class="ident">Origin</a>()</code></span>
+<span class="codeline" id="line-134"><code>	}</code></span>
+<span class="codeline" id="line-135"><code>	<span class="keyword">return</span> <label for="r28" class="ident">t</label></code></span>
+<span class="codeline" id="line-136"><code>}</code></span>
+<span class="codeline" id="line-137"><code></code></span>
+<span class="codeline" id="line-138"><code><span class="comment">// IsPackageLevel reports whether obj is a package-level symbol.</span></code></span>
+<span class="codeline" id="line-139"><code><span class="keyword">func</span> <label for="r31" class="ident"><a href="../../../../../../pkg/golang.org/x/tools/internal/typesinternal.html#name-IsPackageLevel" class="ident">IsPackageLevel</a></label>(<label for="r32" class="ident">obj</label> <a href="../../../../../../pkg/go/types.html" class="ident i2">types</a>.<a href="../../../../../go/types/object.go.html#line-29" class="ident">Object</a>) <a href="../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-140"><code>	<span class="keyword">return</span> <label for="r32" class="ident">obj</label>.<a href="../../../../../go/types/object.go.html#line-32" class="ident">Pkg</a>() != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> &amp;&amp; <label for="r32" class="ident">obj</label>.<a href="../../../../../go/types/object.go.html#line-30" class="ident">Parent</a>() == <label for="r32" class="ident">obj</label>.<a href="../../../../../go/types/object.go.html#line-32" class="ident">Pkg</a>().<a href="../../../../../go/types/package.go.html#line-52" class="ident">Scope</a>()</code></span>
+<span class="codeline" id="line-141"><code>}</code></span>
+<span class="codeline" id="line-142"><code></code></span>
+<span class="codeline" id="line-143"><code><span class="comment">// NewTypesInfo returns a *types.Info with all maps populated.</span></code></span>
+<span class="codeline" id="line-144"><code><span class="keyword">func</span> <label for="r33" class="ident"><a href="../../../../../../pkg/golang.org/x/tools/internal/typesinternal.html#name-NewTypesInfo" class="ident">NewTypesInfo</a></label>() *<a href="../../../../../../pkg/go/types.html" class="ident i2">types</a>.<a href="../../../../../go/types/api.go.html#line-212" class="ident">Info</a> {</code></span>
+<span class="codeline" id="line-145"><code>	<span class="keyword">return</span> &amp;<a href="../../../../../../pkg/go/types.html" class="ident i2">types</a>.<a href="../../../../../go/types/api.go.html#line-212" class="ident">Info</a>{</code></span>
+<span class="codeline" id="line-146"><code>		<a href="../../../../../go/types/api.go.html#line-238" class="ident">Types</a>:        <span class="keyword">map</span>[<a href="../../../../../../pkg/go/ast.html" class="ident i0">ast</a>.<a href="../../../../../go/ast/ast.go.html#line-42" class="ident">Expr</a>]<a href="../../../../../../pkg/go/types.html" class="ident i2">types</a>.<a href="../../../../../go/types/api.go.html#line-391" class="ident">TypeAndValue</a>{},</code></span>
+<span class="codeline" id="line-147"><code>		<a href="../../../../../go/types/api.go.html#line-252" class="ident">Instances</a>:    <span class="keyword">map</span>[*<a href="../../../../../../pkg/go/ast.html" class="ident i0">ast</a>.<a href="../../../../../go/ast/ast.go.html#line-291" class="ident">Ident</a>]<a href="../../../../../../pkg/go/types.html" class="ident i2">types</a>.<a href="../../../../../go/types/api.go.html#line-453" class="ident">Instance</a>{},</code></span>
+<span class="codeline" id="line-148"><code>		<a href="../../../../../go/types/api.go.html#line-266" class="ident">Defs</a>:         <span class="keyword">map</span>[*<a href="../../../../../../pkg/go/ast.html" class="ident i0">ast</a>.<a href="../../../../../go/ast/ast.go.html#line-291" class="ident">Ident</a>]<a href="../../../../../../pkg/go/types.html" class="ident i2">types</a>.<a href="../../../../../go/types/object.go.html#line-29" class="ident">Object</a>{},</code></span>
+<span class="codeline" id="line-149"><code>		<a href="../../../../../go/types/api.go.html#line-273" class="ident">Uses</a>:         <span class="keyword">map</span>[*<a href="../../../../../../pkg/go/ast.html" class="ident i0">ast</a>.<a href="../../../../../go/ast/ast.go.html#line-291" class="ident">Ident</a>]<a href="../../../../../../pkg/go/types.html" class="ident i2">types</a>.<a href="../../../../../go/types/object.go.html#line-29" class="ident">Object</a>{},</code></span>
+<span class="codeline" id="line-150"><code>		<a href="../../../../../go/types/api.go.html#line-284" class="ident">Implicits</a>:    <span class="keyword">map</span>[<a href="../../../../../../pkg/go/ast.html" class="ident i0">ast</a>.<a href="../../../../../go/ast/ast.go.html#line-36" class="ident">Node</a>]<a href="../../../../../../pkg/go/types.html" class="ident i2">types</a>.<a href="../../../../../go/types/object.go.html#line-29" class="ident">Object</a>{},</code></span>
+<span class="codeline" id="line-151"><code>		<a href="../../../../../go/types/api.go.html#line-288" class="ident">Selections</a>:   <span class="keyword">map</span>[*<a href="../../../../../../pkg/go/ast.html" class="ident i0">ast</a>.<a href="../../../../../go/ast/ast.go.html#line-347" class="ident">SelectorExpr</a>]*<a href="../../../../../../pkg/go/types.html" class="ident i2">types</a>.<a href="../../../../../go/types/selection.go.html#line-75" class="ident">Selection</a>{},</code></span>
+<span class="codeline" id="line-152"><code>		<a href="../../../../../go/types/api.go.html#line-323" class="ident">Scopes</a>:       <span class="keyword">map</span>[<a href="../../../../../../pkg/go/ast.html" class="ident i0">ast</a>.<a href="../../../../../go/ast/ast.go.html#line-36" class="ident">Node</a>]*<a href="../../../../../../pkg/go/types.html" class="ident i2">types</a>.<a href="../../../../../go/types/scope.go.html#line-25" class="ident">Scope</a>{},</code></span>
+<span class="codeline" id="line-153"><code>		<a href="../../../../../go/types/api.go.html#line-337" class="ident">FileVersions</a>: <span class="keyword">map</span>[*<a href="../../../../../../pkg/go/ast.html" class="ident i0">ast</a>.<a href="../../../../../go/ast/ast.go.html#line-1057" class="ident">File</a>]<a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>{},</code></span>
+<span class="codeline" id="line-154"><code>	}</code></span>
+<span class="codeline" id="line-155"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

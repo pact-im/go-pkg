@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: watchdog.go in package go.pact.im/x/flaky</title>
+<link href="../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	watchdog.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../pkg/go.pact.im/x/flaky.html">go.pact.im/x/flaky</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="keyword">package</span> flaky</code></span>
+<span class="codeline" id="line-2"><code></code></span>
+<span class="codeline" id="line-3"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-4"><code>	<label for="i0"><span class="lit-string i0">"context"</span></label></code></span>
+<span class="codeline" id="line-5"><code></code></span>
+<span class="codeline" id="line-6"><code>	<label for="i1"><span class="lit-string i1">"go.pact.im/x/clock"</span></label></code></span>
+<span class="codeline" id="line-7"><code>)</code></span>
+<span class="codeline" id="line-8"><code></code></span>
+<span class="codeline" id="line-9"><code><span class="comment">// WatchdogExecutor is an executor that keeps executing an operation on schedule</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment">// using the underlying executor until an error is returned or context expires.</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment">// It allow monitoring a resource that should not fail.</span></code></span>
+<span class="codeline" id="line-12"><code><span class="keyword">type</span> <a href="../../../../pkg/go.pact.im/x/flaky.html#name-WatchdogExecutor" class="ident">WatchdogExecutor</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-13"><code>	<a href="../../../../use/go.pact.im/x/flaky..WatchdogExecutor.exec^2706c.html" class="ident">exec</a> *<a href="schedule.go.html#line-111" class="ident">ScheduleExecutor</a></code></span>
+<span class="codeline" id="line-14"><code>}</code></span>
+<span class="codeline" id="line-15"><code></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">// Watchdog executes an operation on the given schedule using the executor until</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">// an error is returned or the context expires. It allow monitoring a resource</span></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">// that should not fail.</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">// Note that it returns a nil error iff context expires. Otherwise an error from</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">// the executor indicates an operation failure.</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">// This design allows interrupting execution using the context but the tradeoff</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">// is that an error is discarded. That is mostly noticeable when the executor</span></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">// retries operations and a context expires after a failure. In that case the</span></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">// error would not be propagated to the watchdog user.</span></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">// Unlike a simple loop that executes the given executor and waits a certain</span></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">// amount of time, watchdog enforces the use of a configurable schedule.</span></code></span>
+<span class="codeline" id="line-30"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../pkg/go.pact.im/x/flaky.html#name-Watchdog" class="ident">Watchdog</a></label>(<label for="r1" class="ident">e</label> <a href="flaky.go.html#line-12" class="ident">Executor</a>, <label for="r2" class="ident">s</label> <a href="schedule.go.html#line-22" class="ident">Schedule</a>) *<a href="#line-12" class="ident">WatchdogExecutor</a> {</code></span>
+<span class="codeline" id="line-31"><code>	<span class="keyword">return</span> &amp;<a href="#line-12" class="ident">WatchdogExecutor</a>{</code></span>
+<span class="codeline" id="line-32"><code>		<a href="#line-13" class="ident">exec</a>: <a href="schedule.go.html#line-119" class="ident">WithSchedule</a>(<label for="r1" class="ident">e</label>, <label for="r2" class="ident">s</label>),</code></span>
+<span class="codeline" id="line-33"><code>	}</code></span>
+<span class="codeline" id="line-34"><code>}</code></span>
+<span class="codeline" id="line-35"><code></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">// WithClock returns a copy of the executor that uses the given clock.</span></code></span>
+<span class="codeline" id="line-37"><code><span class="keyword">func</span> (<label for="r3" class="ident">w</label> *<a href="#line-12" class="ident">WatchdogExecutor</a>) <label for="r4" class="ident"><a href="../../../../use/go.pact.im/x/flaky..WatchdogExecutor.WithClock.html" class="ident">WithClock</a></label>(<label for="r5" class="ident">c</label> *<a href="../../../../pkg/go.pact.im/x/clock.html" class="ident i1">clock</a>.<a href="../clock/clock.go.html#line-56" class="ident">Clock</a>) *<a href="#line-12" class="ident">WatchdogExecutor</a> {</code></span>
+<span class="codeline" id="line-38"><code>	<span class="keyword">return</span> &amp;<a href="#line-12" class="ident">WatchdogExecutor</a>{</code></span>
+<span class="codeline" id="line-39"><code>		<a href="#line-13" class="ident">exec</a>: <label for="r3" class="ident">w</label>.<a href="#line-13" class="ident">exec</a>.<a href="schedule.go.html#line-128" class="ident">WithClock</a>(<label for="r5" class="ident">c</label>),</code></span>
+<span class="codeline" id="line-40"><code>	}</code></span>
+<span class="codeline" id="line-41"><code>}</code></span>
+<span class="codeline" id="line-42"><code></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">// Execute implements the Executor interface.</span></code></span>
+<span class="codeline" id="line-44"><code><span class="keyword">func</span> (<label for="r6" class="ident">w</label> *<a href="#line-12" class="ident">WatchdogExecutor</a>) <label for="r7" class="ident"><a href="../../../../use/go.pact.im/x/flaky..WatchdogExecutor.Execute.html" class="ident">Execute</a></label>(<label for="r8" class="ident">ctx</label> <a href="../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../context/context.go.html#line-71" class="ident">Context</a>, <label for="r9" class="ident">f</label> <a href="flaky.go.html#line-9" class="ident">Op</a>) <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-45"><code>	<span class="keyword">for</span> {</code></span>
+<span class="codeline" id="line-46"><code>		<label for="r10" class="ident">err</label> := <label for="r6" class="ident">w</label>.<a href="#line-13" class="ident">exec</a>.<a href="schedule.go.html#line-140" class="ident">Execute</a>(<label for="r8" class="ident">ctx</label>, <label for="r9" class="ident">f</label>)</code></span>
+<span class="codeline" id="line-47"><code>		<span class="keyword">if</span> <label for="r8" class="ident">ctx</label>.<a href="../../../context/context.go.html#line-115" class="ident">Err</a>() != <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-48"><code>			<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-49"><code>		}</code></span>
+<span class="codeline" id="line-50"><code>		<span class="keyword">if</span> <label for="r10" class="ident">err</label> != <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-51"><code>			<span class="keyword">return</span> <label for="r10" class="ident">err</label></code></span>
+<span class="codeline" id="line-52"><code>		}</code></span>
+<span class="codeline" id="line-53"><code>	}</code></span>
+<span class="codeline" id="line-54"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

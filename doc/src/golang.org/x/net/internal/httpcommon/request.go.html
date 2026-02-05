@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: request.go in package golang.org/x/net/internal/httpcommon</title>
+<link href="../../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	request.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../../pkg/golang.org/x/net/internal/httpcommon.html">golang.org/x/net/internal/httpcommon</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30],
+input[id=r31]:checked ~pre label[for=r31],
+input[id=r32]:checked ~pre label[for=r32],
+input[id=r33]:checked ~pre label[for=r33],
+input[id=r34]:checked ~pre label[for=r34],
+input[id=r35]:checked ~pre label[for=r35],
+input[id=r36]:checked ~pre label[for=r36],
+input[id=r37]:checked ~pre label[for=r37],
+input[id=r38]:checked ~pre label[for=r38],
+input[id=r39]:checked ~pre label[for=r39],
+input[id=r40]:checked ~pre label[for=r40],
+input[id=r41]:checked ~pre label[for=r41],
+input[id=r42]:checked ~pre label[for=r42],
+input[id=r43]:checked ~pre label[for=r43],
+input[id=r44]:checked ~pre label[for=r44],
+input[id=r45]:checked ~pre label[for=r45],
+input[id=r46]:checked ~pre label[for=r46],
+input[id=r47]:checked ~pre label[for=r47],
+input[id=r48]:checked ~pre label[for=r48],
+input[id=r49]:checked ~pre label[for=r49],
+input[id=r50]:checked ~pre label[for=r50],
+input[id=r51]:checked ~pre label[for=r51],
+input[id=r52]:checked ~pre label[for=r52],
+input[id=r53]:checked ~pre label[for=r53],
+input[id=r54]:checked ~pre label[for=r54],
+input[id=r55]:checked ~pre label[for=r55],
+input[id=r56]:checked ~pre label[for=r56],
+input[id=r57]:checked ~pre label[for=r57],
+input[id=r58]:checked ~pre label[for=r58],
+input[id=r59]:checked ~pre label[for=r59],
+input[id=r60]:checked ~pre label[for=r60],
+input[id=r61]:checked ~pre label[for=r61],
+input[id=r62]:checked ~pre label[for=r62],
+input[id=r63]:checked ~pre label[for=r63],
+input[id=r64]:checked ~pre label[for=r64],
+input[id=r65]:checked ~pre label[for=r65],
+input[id=r66]:checked ~pre label[for=r66],
+input[id=r67]:checked ~pre label[for=r67],
+input[id=r68]:checked ~pre label[for=r68],
+input[id=r69]:checked ~pre label[for=r69],
+input[id=r70]:checked ~pre label[for=r70],
+input[id=r71]:checked ~pre label[for=r71],
+input[id=r72]:checked ~pre label[for=r72],
+input[id=r73]:checked ~pre label[for=r73],
+input[id=r74]:checked ~pre label[for=r74],
+input[id=r75]:checked ~pre label[for=r75],
+input[id=r76]:checked ~pre label[for=r76]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3,
+input[id=i4]:checked ~pre .i4,
+input[id=i5]:checked ~pre .i5,
+input[id=i6]:checked ~pre .i6,
+input[id=i7]:checked ~pre .i7,
+input[id=i8]:checked ~pre .i8,
+input[id=i9]:checked ~pre .i9,
+input[id=i10]:checked ~pre .i10
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="r31" type="radio" name="g"/>
+<input id="r32" type="radio" name="g"/>
+<input id="r33" type="radio" name="g"/>
+<input id="r34" type="radio" name="g"/>
+<input id="r35" type="radio" name="g"/>
+<input id="r36" type="radio" name="g"/>
+<input id="r37" type="radio" name="g"/>
+<input id="r38" type="radio" name="g"/>
+<input id="r39" type="radio" name="g"/>
+<input id="r40" type="radio" name="g"/>
+<input id="r41" type="radio" name="g"/>
+<input id="r42" type="radio" name="g"/>
+<input id="r43" type="radio" name="g"/>
+<input id="r44" type="radio" name="g"/>
+<input id="r45" type="radio" name="g"/>
+<input id="r46" type="radio" name="g"/>
+<input id="r47" type="radio" name="g"/>
+<input id="r48" type="radio" name="g"/>
+<input id="r49" type="radio" name="g"/>
+<input id="r50" type="radio" name="g"/>
+<input id="r51" type="radio" name="g"/>
+<input id="r52" type="radio" name="g"/>
+<input id="r53" type="radio" name="g"/>
+<input id="r54" type="radio" name="g"/>
+<input id="r55" type="radio" name="g"/>
+<input id="r56" type="radio" name="g"/>
+<input id="r57" type="radio" name="g"/>
+<input id="r58" type="radio" name="g"/>
+<input id="r59" type="radio" name="g"/>
+<input id="r60" type="radio" name="g"/>
+<input id="r61" type="radio" name="g"/>
+<input id="r62" type="radio" name="g"/>
+<input id="r63" type="radio" name="g"/>
+<input id="r64" type="radio" name="g"/>
+<input id="r65" type="radio" name="g"/>
+<input id="r66" type="radio" name="g"/>
+<input id="r67" type="radio" name="g"/>
+<input id="r68" type="radio" name="g"/>
+<input id="r69" type="radio" name="g"/>
+<input id="r70" type="radio" name="g"/>
+<input id="r71" type="radio" name="g"/>
+<input id="r72" type="radio" name="g"/>
+<input id="r73" type="radio" name="g"/>
+<input id="r74" type="radio" name="g"/>
+<input id="r75" type="radio" name="g"/>
+<input id="r76" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+<input id="i4" type="radio" name="i"/>
+<input id="i5" type="radio" name="i"/>
+<input id="i6" type="radio" name="i"/>
+<input id="i7" type="radio" name="i"/>
+<input id="i8" type="radio" name="i"/>
+<input id="i9" type="radio" name="i"/>
+<input id="i10" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2025 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> httpcommon</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-8"><code>	<label for="i0"><span class="lit-string i0">"context"</span></label></code></span>
+<span class="codeline" id="line-9"><code>	<label for="i1"><span class="lit-string i1">"errors"</span></label></code></span>
+<span class="codeline" id="line-10"><code>	<label for="i2"><span class="lit-string i2">"fmt"</span></label></code></span>
+<span class="codeline" id="line-11"><code>	<label for="i3"><span class="lit-string i3">"net/http/httptrace"</span></label></code></span>
+<span class="codeline" id="line-12"><code>	<label for="i4"><span class="lit-string i4">"net/textproto"</span></label></code></span>
+<span class="codeline" id="line-13"><code>	<label for="i5"><span class="lit-string i5">"net/url"</span></label></code></span>
+<span class="codeline" id="line-14"><code>	<label for="i6"><span class="lit-string i6">"sort"</span></label></code></span>
+<span class="codeline" id="line-15"><code>	<label for="i7"><span class="lit-string i7">"strconv"</span></label></code></span>
+<span class="codeline" id="line-16"><code>	<label for="i8"><span class="lit-string i8">"strings"</span></label></code></span>
+<span class="codeline" id="line-17"><code></code></span>
+<span class="codeline" id="line-18"><code>	<label for="i9"><span class="lit-string i9">"golang.org/x/net/http/httpguts"</span></label></code></span>
+<span class="codeline" id="line-19"><code>	<label for="i10"><span class="lit-string i10">"golang.org/x/net/http2/hpack"</span></label></code></span>
+<span class="codeline" id="line-20"><code>)</code></span>
+<span class="codeline" id="line-21"><code></code></span>
+<span class="codeline" id="line-22"><code><span class="keyword">var</span> (</code></span>
+<span class="codeline" id="line-23"><code>	<a href="../../../../../../pkg/golang.org/x/net/internal/httpcommon.html#name-ErrRequestHeaderListSize" class="ident">ErrRequestHeaderListSize</a> = <a href="../../../../../../pkg/errors.html" class="ident i1">errors</a>.<a href="../../../../../errors/errors.go.html#line-64" class="ident">New</a>(<span class="lit-string">"request header list larger than peer's advertised limit"</span>)</code></span>
+<span class="codeline" id="line-24"><code>)</code></span>
+<span class="codeline" id="line-25"><code></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">// Request is a subset of http.Request.</span></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">// It'd be simpler to pass an *http.Request, of course, but we can't depend on net/http</span></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">// without creating a dependency cycle.</span></code></span>
+<span class="codeline" id="line-29"><code><span class="keyword">type</span> <a href="../../../../../../pkg/golang.org/x/net/internal/httpcommon.html#name-Request" class="ident">Request</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-30"><code>	<a href="../../../../../../use/golang.org/x/net/internal/httpcommon..Request.URL.html" class="ident">URL</a>                 *<a href="../../../../../../pkg/net/url.html" class="ident i5">url</a>.<a href="../../../../../net/url/url.go.html#line-375" class="ident">URL</a></code></span>
+<span class="codeline" id="line-31"><code>	<a href="../../../../../../use/golang.org/x/net/internal/httpcommon..Request.Method.html" class="ident">Method</a>              <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-32"><code>	<a href="../../../../../../use/golang.org/x/net/internal/httpcommon..Request.Host.html" class="ident">Host</a>                <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-33"><code>	<a href="../../../../../../use/golang.org/x/net/internal/httpcommon..Request.Header.html" class="ident">Header</a>              <span class="keyword">map</span>[<a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>][]<a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-34"><code>	<a href="../../../../../../use/golang.org/x/net/internal/httpcommon..Request.Trailer.html" class="ident">Trailer</a>             <span class="keyword">map</span>[<a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>][]<a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-35"><code>	<a href="../../../../../../use/golang.org/x/net/internal/httpcommon..Request.ActualContentLength.html" class="ident">ActualContentLength</a> <a href="../../../../../../pkg/builtin.html#name-int64" class="ident">int64</a> <span class="comment">// 0 means 0, -1 means unknown</span></code></span>
+<span class="codeline" id="line-36"><code>}</code></span>
+<span class="codeline" id="line-37"><code></code></span>
+<span class="codeline" id="line-38"><code><span class="comment">// EncodeHeadersParam is parameters to EncodeHeaders.</span></code></span>
+<span class="codeline" id="line-39"><code><span class="keyword">type</span> <a href="../../../../../../pkg/golang.org/x/net/internal/httpcommon.html#name-EncodeHeadersParam" class="ident">EncodeHeadersParam</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-40"><code>	<a href="../../../../../../use/golang.org/x/net/internal/httpcommon..EncodeHeadersParam.Request.html" class="ident">Request</a> <a href="#line-29" class="ident">Request</a></code></span>
+<span class="codeline" id="line-41"><code></code></span>
+<span class="codeline" id="line-42"><code>	<span class="comment">// AddGzipHeader indicates that an "accept-encoding: gzip" header should be</span></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">	// added to the request.</span></code></span>
+<span class="codeline" id="line-44"><code>	<a href="../../../../../../use/golang.org/x/net/internal/httpcommon..EncodeHeadersParam.AddGzipHeader.html" class="ident">AddGzipHeader</a> <a href="../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-45"><code></code></span>
+<span class="codeline" id="line-46"><code>	<span class="comment">// PeerMaxHeaderListSize, when non-zero, is the peer's MAX_HEADER_LIST_SIZE setting.</span></code></span>
+<span class="codeline" id="line-47"><code>	<a href="../../../../../../use/golang.org/x/net/internal/httpcommon..EncodeHeadersParam.PeerMaxHeaderListSize.html" class="ident">PeerMaxHeaderListSize</a> <a href="../../../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a></code></span>
+<span class="codeline" id="line-48"><code></code></span>
+<span class="codeline" id="line-49"><code>	<span class="comment">// DefaultUserAgent is the User-Agent header to send when the request</span></code></span>
+<span class="codeline" id="line-50"><code><span class="comment">	// neither contains a User-Agent nor disables it.</span></code></span>
+<span class="codeline" id="line-51"><code>	<a href="../../../../../../use/golang.org/x/net/internal/httpcommon..EncodeHeadersParam.DefaultUserAgent.html" class="ident">DefaultUserAgent</a> <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-52"><code>}</code></span>
+<span class="codeline" id="line-53"><code></code></span>
+<span class="codeline" id="line-54"><code><span class="comment">// EncodeHeadersParam is the result of EncodeHeaders.</span></code></span>
+<span class="codeline" id="line-55"><code><span class="keyword">type</span> <a href="../../../../../../pkg/golang.org/x/net/internal/httpcommon.html#name-EncodeHeadersResult" class="ident">EncodeHeadersResult</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-56"><code>	<a href="../../../../../../use/golang.org/x/net/internal/httpcommon..EncodeHeadersResult.HasBody.html" class="ident">HasBody</a>     <a href="../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-57"><code>	<a href="../../../../../../use/golang.org/x/net/internal/httpcommon..EncodeHeadersResult.HasTrailers.html" class="ident">HasTrailers</a> <a href="../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-58"><code>}</code></span>
+<span class="codeline" id="line-59"><code></code></span>
+<span class="codeline" id="line-60"><code><span class="comment">// EncodeHeaders constructs request headers common to HTTP/2 and HTTP/3.</span></code></span>
+<span class="codeline" id="line-61"><code><span class="comment">// It validates a request and calls headerf with each pseudo-header and header</span></code></span>
+<span class="codeline" id="line-62"><code><span class="comment">// for the request.</span></code></span>
+<span class="codeline" id="line-63"><code><span class="comment">// The headerf function is called with the validated, canonicalized header name.</span></code></span>
+<span class="codeline" id="line-64"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../../../pkg/golang.org/x/net/internal/httpcommon.html#name-EncodeHeaders" class="ident">EncodeHeaders</a></label>(<label for="r1" class="ident">ctx</label> <a href="../../../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../../../context/context.go.html#line-71" class="ident">Context</a>, <label for="r2" class="ident">param</label> <a href="#line-39" class="ident">EncodeHeadersParam</a>, <label for="r3" class="ident">headerf</label> <span class="keyword">func</span>(<label for="r4" class="ident">name</label>, <label for="r5" class="ident">value</label> <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>)) (<label for="r6" class="ident">res</label> <a href="#line-55" class="ident">EncodeHeadersResult</a>, <label for="r7" class="ident">_</label> <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-65"><code>	<label for="r8" class="ident">req</label> := <label for="r2" class="ident">param</label>.<a href="#line-40" class="ident">Request</a></code></span>
+<span class="codeline" id="line-66"><code></code></span>
+<span class="codeline" id="line-67"><code>	<span class="comment">// Check for invalid connection-level headers.</span></code></span>
+<span class="codeline" id="line-68"><code>	<span class="keyword">if</span> <label for="r9" class="ident">err</label> := <a href="#line-298" class="ident">checkConnHeaders</a>(<label for="r8" class="ident">req</label>.<a href="#line-33" class="ident">Header</a>); <label for="r9" class="ident">err</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-69"><code>		<span class="keyword">return</span> <label for="r6" class="ident">res</label>, <label for="r9" class="ident">err</label></code></span>
+<span class="codeline" id="line-70"><code>	}</code></span>
+<span class="codeline" id="line-71"><code></code></span>
+<span class="codeline" id="line-72"><code>	<span class="keyword">if</span> <label for="r8" class="ident">req</label>.<a href="#line-30" class="ident">URL</a> == <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-73"><code>		<span class="keyword">return</span> <label for="r6" class="ident">res</label>, <a href="../../../../../../pkg/errors.html" class="ident i1">errors</a>.<a href="../../../../../errors/errors.go.html#line-64" class="ident">New</a>(<span class="lit-string">"Request.URL is nil"</span>)</code></span>
+<span class="codeline" id="line-74"><code>	}</code></span>
+<span class="codeline" id="line-75"><code></code></span>
+<span class="codeline" id="line-76"><code>	<label for="r10" class="ident">host</label> := <label for="r8" class="ident">req</label>.<a href="#line-32" class="ident">Host</a></code></span>
+<span class="codeline" id="line-77"><code>	<span class="keyword">if</span> <label for="r10" class="ident">host</label> == <span class="lit-string">""</span> {</code></span>
+<span class="codeline" id="line-78"><code>		<label for="r10" class="ident">host</label> = <label for="r8" class="ident">req</label>.<a href="#line-30" class="ident">URL</a>.<a href="../../../../../net/url/url.go.html#line-379" class="ident">Host</a></code></span>
+<span class="codeline" id="line-79"><code>	}</code></span>
+<span class="codeline" id="line-80"><code>	<label for="r10" class="ident">host</label>, <label for="r11" class="ident">err</label> := <a href="../../../../../../pkg/golang.org/x/net/http/httpguts.html" class="ident i9">httpguts</a>.<a href="../../http/httpguts/httplex.go.html#line-324" class="ident">PunycodeHostPort</a>(<label for="r10" class="ident">host</label>)</code></span>
+<span class="codeline" id="line-81"><code>	<span class="keyword">if</span> <label for="r11" class="ident">err</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-82"><code>		<span class="keyword">return</span> <label for="r6" class="ident">res</label>, <label for="r11" class="ident">err</label></code></span>
+<span class="codeline" id="line-83"><code>	}</code></span>
+<span class="codeline" id="line-84"><code>	<span class="keyword">if</span> !<a href="../../../../../../pkg/golang.org/x/net/http/httpguts.html" class="ident i9">httpguts</a>.<a href="../../http/httpguts/httplex.go.html#line-209" class="ident">ValidHostHeader</a>(<label for="r10" class="ident">host</label>) {</code></span>
+<span class="codeline" id="line-85"><code>		<span class="keyword">return</span> <label for="r6" class="ident">res</label>, <a href="../../../../../../pkg/errors.html" class="ident i1">errors</a>.<a href="../../../../../errors/errors.go.html#line-64" class="ident">New</a>(<span class="lit-string">"invalid Host header"</span>)</code></span>
+<span class="codeline" id="line-86"><code>	}</code></span>
+<span class="codeline" id="line-87"><code></code></span>
+<span class="codeline" id="line-88"><code>	<span class="comment">// isNormalConnect is true if this is a non-extended CONNECT request.</span></code></span>
+<span class="codeline" id="line-89"><code>	<label for="r12" class="ident">isNormalConnect</label> := <a href="../../../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-90"><code>	<span class="keyword">var</span> <label for="r13" class="ident">protocol</label> <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-91"><code>	<span class="keyword">if</span> <label for="r14" class="ident">vv</label> := <label for="r8" class="ident">req</label>.<a href="#line-33" class="ident">Header</a>[<span class="lit-string">":protocol"</span>]; <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r14" class="ident">vv</label>) &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-92"><code>		<label for="r13" class="ident">protocol</label> = <label for="r14" class="ident">vv</label>[<span class="lit-number">0</span>]</code></span>
+<span class="codeline" id="line-93"><code>	}</code></span>
+<span class="codeline" id="line-94"><code>	<span class="keyword">if</span> <label for="r8" class="ident">req</label>.<a href="#line-31" class="ident">Method</a> == <span class="lit-string">"CONNECT"</span> &amp;&amp; <label for="r13" class="ident">protocol</label> == <span class="lit-string">""</span> {</code></span>
+<span class="codeline" id="line-95"><code>		<label for="r12" class="ident">isNormalConnect</label> = <a href="../../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-96"><code>	} <span class="keyword">else</span> <span class="keyword">if</span> <label for="r13" class="ident">protocol</label> != <span class="lit-string">""</span> &amp;&amp; <label for="r8" class="ident">req</label>.<a href="#line-31" class="ident">Method</a> != <span class="lit-string">"CONNECT"</span> {</code></span>
+<span class="codeline" id="line-97"><code>		<span class="keyword">return</span> <label for="r6" class="ident">res</label>, <a href="../../../../../../pkg/errors.html" class="ident i1">errors</a>.<a href="../../../../../errors/errors.go.html#line-64" class="ident">New</a>(<span class="lit-string">"invalid :protocol header in non-CONNECT request"</span>)</code></span>
+<span class="codeline" id="line-98"><code>	}</code></span>
+<span class="codeline" id="line-99"><code></code></span>
+<span class="codeline" id="line-100"><code>	<span class="comment">// Validate the path, except for non-extended CONNECT requests which have no path.</span></code></span>
+<span class="codeline" id="line-101"><code>	<span class="keyword">var</span> <label for="r15" class="ident">path</label> <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-102"><code>	<span class="keyword">if</span> !<label for="r12" class="ident">isNormalConnect</label> {</code></span>
+<span class="codeline" id="line-103"><code>		<label for="r15" class="ident">path</label> = <label for="r8" class="ident">req</label>.<a href="#line-30" class="ident">URL</a>.<a href="../../../../../net/url/url.go.html#line-1186" class="ident">RequestURI</a>()</code></span>
+<span class="codeline" id="line-104"><code>		<span class="keyword">if</span> !<a href="#line-341" class="ident">validPseudoPath</a>(<label for="r15" class="ident">path</label>) {</code></span>
+<span class="codeline" id="line-105"><code>			<label for="r16" class="ident">orig</label> := <label for="r15" class="ident">path</label></code></span>
+<span class="codeline" id="line-106"><code>			<label for="r15" class="ident">path</label> = <a href="../../../../../../pkg/strings.html" class="ident i8">strings</a>.<a href="../../../../../strings/strings.go.html#line-1129" class="ident">TrimPrefix</a>(<label for="r15" class="ident">path</label>, <label for="r8" class="ident">req</label>.<a href="#line-30" class="ident">URL</a>.<a href="../../../../../net/url/url.go.html#line-376" class="ident">Scheme</a>+<span class="lit-string">"://"</span>+<label for="r10" class="ident">host</label>)</code></span>
+<span class="codeline" id="line-107"><code>			<span class="keyword">if</span> !<a href="#line-341" class="ident">validPseudoPath</a>(<label for="r15" class="ident">path</label>) {</code></span>
+<span class="codeline" id="line-108"><code>				<span class="keyword">if</span> <label for="r8" class="ident">req</label>.<a href="#line-30" class="ident">URL</a>.<a href="../../../../../net/url/url.go.html#line-377" class="ident">Opaque</a> != <span class="lit-string">""</span> {</code></span>
+<span class="codeline" id="line-109"><code>					<span class="keyword">return</span> <label for="r6" class="ident">res</label>, <a href="../../../../../../pkg/fmt.html" class="ident i2">fmt</a>.<a href="../../../../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"invalid request :path %q from URL.Opaque = %q"</span>, <label for="r16" class="ident">orig</label>, <label for="r8" class="ident">req</label>.<a href="#line-30" class="ident">URL</a>.<a href="../../../../../net/url/url.go.html#line-377" class="ident">Opaque</a>)</code></span>
+<span class="codeline" id="line-110"><code>				} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-111"><code>					<span class="keyword">return</span> <label for="r6" class="ident">res</label>, <a href="../../../../../../pkg/fmt.html" class="ident i2">fmt</a>.<a href="../../../../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"invalid request :path %q"</span>, <label for="r16" class="ident">orig</label>)</code></span>
+<span class="codeline" id="line-112"><code>				}</code></span>
+<span class="codeline" id="line-113"><code>			}</code></span>
+<span class="codeline" id="line-114"><code>		}</code></span>
+<span class="codeline" id="line-115"><code>	}</code></span>
+<span class="codeline" id="line-116"><code></code></span>
+<span class="codeline" id="line-117"><code>	<span class="comment">// Check for any invalid headers+trailers and return an error before we</span></code></span>
+<span class="codeline" id="line-118"><code><span class="comment">	// potentially pollute our hpack state. (We want to be able to</span></code></span>
+<span class="codeline" id="line-119"><code><span class="comment">	// continue to reuse the hpack encoder for future requests)</span></code></span>
+<span class="codeline" id="line-120"><code>	<span class="keyword">if</span> <label for="r17" class="ident">err</label> := <a href="#line-345" class="ident">validateHeaders</a>(<label for="r8" class="ident">req</label>.<a href="#line-33" class="ident">Header</a>); <label for="r17" class="ident">err</label> != <span class="lit-string">""</span> {</code></span>
+<span class="codeline" id="line-121"><code>		<span class="keyword">return</span> <label for="r6" class="ident">res</label>, <a href="../../../../../../pkg/fmt.html" class="ident i2">fmt</a>.<a href="../../../../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"invalid HTTP header %s"</span>, <label for="r17" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-122"><code>	}</code></span>
+<span class="codeline" id="line-123"><code>	<span class="keyword">if</span> <label for="r18" class="ident">err</label> := <a href="#line-345" class="ident">validateHeaders</a>(<label for="r8" class="ident">req</label>.<a href="#line-34" class="ident">Trailer</a>); <label for="r18" class="ident">err</label> != <span class="lit-string">""</span> {</code></span>
+<span class="codeline" id="line-124"><code>		<span class="keyword">return</span> <label for="r6" class="ident">res</label>, <a href="../../../../../../pkg/fmt.html" class="ident i2">fmt</a>.<a href="../../../../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"invalid HTTP trailer %s"</span>, <label for="r18" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-125"><code>	}</code></span>
+<span class="codeline" id="line-126"><code></code></span>
+<span class="codeline" id="line-127"><code>	<label for="r19" class="ident">trailers</label>, <label for="r11" class="ident">err</label> := <a href="#line-311" class="ident">commaSeparatedTrailers</a>(<label for="r8" class="ident">req</label>.<a href="#line-34" class="ident">Trailer</a>)</code></span>
+<span class="codeline" id="line-128"><code>	<span class="keyword">if</span> <label for="r11" class="ident">err</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-129"><code>		<span class="keyword">return</span> <label for="r6" class="ident">res</label>, <label for="r11" class="ident">err</label></code></span>
+<span class="codeline" id="line-130"><code>	}</code></span>
+<span class="codeline" id="line-131"><code></code></span>
+<span class="codeline" id="line-132"><code>	<label for="r20" class="ident">enumerateHeaders</label> := <span class="keyword">func</span>(<label for="r21" class="ident">f</label> <span class="keyword">func</span>(<label for="r22" class="ident">name</label>, <label for="r23" class="ident">value</label> <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>)) {</code></span>
+<span class="codeline" id="line-133"><code>		<span class="comment">// 8.1.2.3 Request Pseudo-Header Fields</span></code></span>
+<span class="codeline" id="line-134"><code><span class="comment">		// The :path pseudo-header field includes the path and query parts of the</span></code></span>
+<span class="codeline" id="line-135"><code><span class="comment">		// target URI (the path-absolute production and optionally a '?' character</span></code></span>
+<span class="codeline" id="line-136"><code><span class="comment">		// followed by the query production, see Sections 3.3 and 3.4 of</span></code></span>
+<span class="codeline" id="line-137"><code><span class="comment">		// [RFC3986]).</span></code></span>
+<span class="codeline" id="line-138"><code>		<label for="r21" class="ident">f</label>(<span class="lit-string">":authority"</span>, <label for="r10" class="ident">host</label>)</code></span>
+<span class="codeline" id="line-139"><code>		<label for="r24" class="ident">m</label> := <label for="r8" class="ident">req</label>.<a href="#line-31" class="ident">Method</a></code></span>
+<span class="codeline" id="line-140"><code>		<span class="keyword">if</span> <label for="r24" class="ident">m</label> == <span class="lit-string">""</span> {</code></span>
+<span class="codeline" id="line-141"><code>			<label for="r24" class="ident">m</label> = <span class="lit-string">"GET"</span></code></span>
+<span class="codeline" id="line-142"><code>		}</code></span>
+<span class="codeline" id="line-143"><code>		<label for="r21" class="ident">f</label>(<span class="lit-string">":method"</span>, <label for="r24" class="ident">m</label>)</code></span>
+<span class="codeline" id="line-144"><code>		<span class="keyword">if</span> !<label for="r12" class="ident">isNormalConnect</label> {</code></span>
+<span class="codeline" id="line-145"><code>			<label for="r21" class="ident">f</label>(<span class="lit-string">":path"</span>, <label for="r15" class="ident">path</label>)</code></span>
+<span class="codeline" id="line-146"><code>			<label for="r21" class="ident">f</label>(<span class="lit-string">":scheme"</span>, <label for="r8" class="ident">req</label>.<a href="#line-30" class="ident">URL</a>.<a href="../../../../../net/url/url.go.html#line-376" class="ident">Scheme</a>)</code></span>
+<span class="codeline" id="line-147"><code>		}</code></span>
+<span class="codeline" id="line-148"><code>		<span class="keyword">if</span> <label for="r13" class="ident">protocol</label> != <span class="lit-string">""</span> {</code></span>
+<span class="codeline" id="line-149"><code>			<label for="r21" class="ident">f</label>(<span class="lit-string">":protocol"</span>, <label for="r13" class="ident">protocol</label>)</code></span>
+<span class="codeline" id="line-150"><code>		}</code></span>
+<span class="codeline" id="line-151"><code>		<span class="keyword">if</span> <label for="r19" class="ident">trailers</label> != <span class="lit-string">""</span> {</code></span>
+<span class="codeline" id="line-152"><code>			<label for="r21" class="ident">f</label>(<span class="lit-string">"trailer"</span>, <label for="r19" class="ident">trailers</label>)</code></span>
+<span class="codeline" id="line-153"><code>		}</code></span>
+<span class="codeline" id="line-154"><code></code></span>
+<span class="codeline" id="line-155"><code>		<span class="keyword">var</span> <label for="r25" class="ident">didUA</label> <a href="../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-156"><code>		<span class="keyword">for</span> <label for="r26" class="ident">k</label>, <label for="r27" class="ident">vv</label> := <span class="keyword">range</span> <label for="r8" class="ident">req</label>.<a href="#line-33" class="ident">Header</a> {</code></span>
+<span class="codeline" id="line-157"><code>			<span class="keyword">if</span> <a href="ascii.go.html#line-15" class="ident">asciiEqualFold</a>(<label for="r26" class="ident">k</label>, <span class="lit-string">"host"</span>) || <a href="ascii.go.html#line-15" class="ident">asciiEqualFold</a>(<label for="r26" class="ident">k</label>, <span class="lit-string">"content-length"</span>) {</code></span>
+<span class="codeline" id="line-158"><code>				<span class="comment">// Host is :authority, already sent.</span></code></span>
+<span class="codeline" id="line-159"><code><span class="comment">				// Content-Length is automatic, set below.</span></code></span>
+<span class="codeline" id="line-160"><code>				<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-161"><code>			} <span class="keyword">else</span> <span class="keyword">if</span> <a href="ascii.go.html#line-15" class="ident">asciiEqualFold</a>(<label for="r26" class="ident">k</label>, <span class="lit-string">"connection"</span>) ||</code></span>
+<span class="codeline" id="line-162"><code>				<a href="ascii.go.html#line-15" class="ident">asciiEqualFold</a>(<label for="r26" class="ident">k</label>, <span class="lit-string">"proxy-connection"</span>) ||</code></span>
+<span class="codeline" id="line-163"><code>				<a href="ascii.go.html#line-15" class="ident">asciiEqualFold</a>(<label for="r26" class="ident">k</label>, <span class="lit-string">"transfer-encoding"</span>) ||</code></span>
+<span class="codeline" id="line-164"><code>				<a href="ascii.go.html#line-15" class="ident">asciiEqualFold</a>(<label for="r26" class="ident">k</label>, <span class="lit-string">"upgrade"</span>) ||</code></span>
+<span class="codeline" id="line-165"><code>				<a href="ascii.go.html#line-15" class="ident">asciiEqualFold</a>(<label for="r26" class="ident">k</label>, <span class="lit-string">"keep-alive"</span>) {</code></span>
+<span class="codeline" id="line-166"><code>				<span class="comment">// Per 8.1.2.2 Connection-Specific Header</span></code></span>
+<span class="codeline" id="line-167"><code><span class="comment">				// Fields, don't send connection-specific</span></code></span>
+<span class="codeline" id="line-168"><code><span class="comment">				// fields. We have already checked if any</span></code></span>
+<span class="codeline" id="line-169"><code><span class="comment">				// are error-worthy so just ignore the rest.</span></code></span>
+<span class="codeline" id="line-170"><code>				<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-171"><code>			} <span class="keyword">else</span> <span class="keyword">if</span> <a href="ascii.go.html#line-15" class="ident">asciiEqualFold</a>(<label for="r26" class="ident">k</label>, <span class="lit-string">"user-agent"</span>) {</code></span>
+<span class="codeline" id="line-172"><code>				<span class="comment">// Match Go's http1 behavior: at most one</span></code></span>
+<span class="codeline" id="line-173"><code><span class="comment">				// User-Agent. If set to nil or empty string,</span></code></span>
+<span class="codeline" id="line-174"><code><span class="comment">				// then omit it. Otherwise if not mentioned,</span></code></span>
+<span class="codeline" id="line-175"><code><span class="comment">				// include the default (below).</span></code></span>
+<span class="codeline" id="line-176"><code>				<label for="r25" class="ident">didUA</label> = <a href="../../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-177"><code>				<span class="keyword">if</span> <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r27" class="ident">vv</label>) &lt; <span class="lit-number">1</span> {</code></span>
+<span class="codeline" id="line-178"><code>					<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-179"><code>				}</code></span>
+<span class="codeline" id="line-180"><code>				<label for="r27" class="ident">vv</label> = <label for="r27" class="ident">vv</label>[:<span class="lit-number">1</span>]</code></span>
+<span class="codeline" id="line-181"><code>				<span class="keyword">if</span> <label for="r27" class="ident">vv</label>[<span class="lit-number">0</span>] == <span class="lit-string">""</span> {</code></span>
+<span class="codeline" id="line-182"><code>					<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-183"><code>				}</code></span>
+<span class="codeline" id="line-184"><code>			} <span class="keyword">else</span> <span class="keyword">if</span> <a href="ascii.go.html#line-15" class="ident">asciiEqualFold</a>(<label for="r26" class="ident">k</label>, <span class="lit-string">"cookie"</span>) {</code></span>
+<span class="codeline" id="line-185"><code>				<span class="comment">// Per 8.1.2.5 To allow for better compression efficiency, the</span></code></span>
+<span class="codeline" id="line-186"><code><span class="comment">				// Cookie header field MAY be split into separate header fields,</span></code></span>
+<span class="codeline" id="line-187"><code><span class="comment">				// each with one or more cookie-pairs.</span></code></span>
+<span class="codeline" id="line-188"><code>				<span class="keyword">for</span> <label for="r28" class="ident">_</label>, <label for="r29" class="ident">v</label> := <span class="keyword">range</span> <label for="r27" class="ident">vv</label> {</code></span>
+<span class="codeline" id="line-189"><code>					<span class="keyword">for</span> {</code></span>
+<span class="codeline" id="line-190"><code>						<label for="r30" class="ident">p</label> := <a href="../../../../../../pkg/strings.html" class="ident i8">strings</a>.<a href="../../../../../strings/strings.go.html#line-119" class="ident">IndexByte</a>(<label for="r29" class="ident">v</label>, <span class="lit-number">';'</span>)</code></span>
+<span class="codeline" id="line-191"><code>						<span class="keyword">if</span> <label for="r30" class="ident">p</label> &lt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-192"><code>							<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-193"><code>						}</code></span>
+<span class="codeline" id="line-194"><code>						<label for="r21" class="ident">f</label>(<span class="lit-string">"cookie"</span>, <label for="r29" class="ident">v</label>[:<label for="r30" class="ident">p</label>])</code></span>
+<span class="codeline" id="line-195"><code>						<label for="r30" class="ident">p</label>++</code></span>
+<span class="codeline" id="line-196"><code>						<span class="comment">// strip space after semicolon if any.</span></code></span>
+<span class="codeline" id="line-197"><code>						<span class="keyword">for</span> <label for="r30" class="ident">p</label>+<span class="lit-number">1</span> &lt;= <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r29" class="ident">v</label>) &amp;&amp; <label for="r29" class="ident">v</label>[<label for="r30" class="ident">p</label>] == <span class="lit-number">' '</span> {</code></span>
+<span class="codeline" id="line-198"><code>							<label for="r30" class="ident">p</label>++</code></span>
+<span class="codeline" id="line-199"><code>						}</code></span>
+<span class="codeline" id="line-200"><code>						<label for="r29" class="ident">v</label> = <label for="r29" class="ident">v</label>[<label for="r30" class="ident">p</label>:]</code></span>
+<span class="codeline" id="line-201"><code>					}</code></span>
+<span class="codeline" id="line-202"><code>					<span class="keyword">if</span> <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r29" class="ident">v</label>) &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-203"><code>						<label for="r21" class="ident">f</label>(<span class="lit-string">"cookie"</span>, <label for="r29" class="ident">v</label>)</code></span>
+<span class="codeline" id="line-204"><code>					}</code></span>
+<span class="codeline" id="line-205"><code>				}</code></span>
+<span class="codeline" id="line-206"><code>				<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-207"><code>			} <span class="keyword">else</span> <span class="keyword">if</span> <label for="r26" class="ident">k</label> == <span class="lit-string">":protocol"</span> {</code></span>
+<span class="codeline" id="line-208"><code>				<span class="comment">// :protocol pseudo-header was already sent above.</span></code></span>
+<span class="codeline" id="line-209"><code>				<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-210"><code>			}</code></span>
+<span class="codeline" id="line-211"><code></code></span>
+<span class="codeline" id="line-212"><code>			<span class="keyword">for</span> <label for="r31" class="ident">_</label>, <label for="r32" class="ident">v</label> := <span class="keyword">range</span> <label for="r27" class="ident">vv</label> {</code></span>
+<span class="codeline" id="line-213"><code>				<label for="r21" class="ident">f</label>(<label for="r26" class="ident">k</label>, <label for="r32" class="ident">v</label>)</code></span>
+<span class="codeline" id="line-214"><code>			}</code></span>
+<span class="codeline" id="line-215"><code>		}</code></span>
+<span class="codeline" id="line-216"><code>		<span class="keyword">if</span> <a href="#line-366" class="ident">shouldSendReqContentLength</a>(<label for="r8" class="ident">req</label>.<a href="#line-31" class="ident">Method</a>, <label for="r8" class="ident">req</label>.<a href="#line-35" class="ident">ActualContentLength</a>) {</code></span>
+<span class="codeline" id="line-217"><code>			<label for="r21" class="ident">f</label>(<span class="lit-string">"content-length"</span>, <a href="../../../../../../pkg/strconv.html" class="ident i7">strconv</a>.<a href="../../../../../strconv/itoa.go.html#line-25" class="ident">FormatInt</a>(<label for="r8" class="ident">req</label>.<a href="#line-35" class="ident">ActualContentLength</a>, <span class="lit-number">10</span>))</code></span>
+<span class="codeline" id="line-218"><code>		}</code></span>
+<span class="codeline" id="line-219"><code>		<span class="keyword">if</span> <label for="r2" class="ident">param</label>.<a href="#line-44" class="ident">AddGzipHeader</a> {</code></span>
+<span class="codeline" id="line-220"><code>			<label for="r21" class="ident">f</label>(<span class="lit-string">"accept-encoding"</span>, <span class="lit-string">"gzip"</span>)</code></span>
+<span class="codeline" id="line-221"><code>		}</code></span>
+<span class="codeline" id="line-222"><code>		<span class="keyword">if</span> !<label for="r25" class="ident">didUA</label> {</code></span>
+<span class="codeline" id="line-223"><code>			<label for="r21" class="ident">f</label>(<span class="lit-string">"user-agent"</span>, <label for="r2" class="ident">param</label>.<a href="#line-51" class="ident">DefaultUserAgent</a>)</code></span>
+<span class="codeline" id="line-224"><code>		}</code></span>
+<span class="codeline" id="line-225"><code>	}</code></span>
+<span class="codeline" id="line-226"><code></code></span>
+<span class="codeline" id="line-227"><code>	<span class="comment">// Do a first pass over the headers counting bytes to ensure</span></code></span>
+<span class="codeline" id="line-228"><code><span class="comment">	// we don't exceed cc.peerMaxHeaderListSize. This is done as a</span></code></span>
+<span class="codeline" id="line-229"><code><span class="comment">	// separate pass before encoding the headers to prevent</span></code></span>
+<span class="codeline" id="line-230"><code><span class="comment">	// modifying the hpack state.</span></code></span>
+<span class="codeline" id="line-231"><code>	<span class="keyword">if</span> <label for="r2" class="ident">param</label>.<a href="#line-47" class="ident">PeerMaxHeaderListSize</a> &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-232"><code>		<label for="r33" class="ident">hlSize</label> := <a href="../../../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-233"><code>		<label for="r20" class="ident">enumerateHeaders</label>(<span class="keyword">func</span>(<label for="r34" class="ident">name</label>, <label for="r35" class="ident">value</label> <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>) {</code></span>
+<span class="codeline" id="line-234"><code>			<label for="r36" class="ident">hf</label> := <a href="../../../../../../pkg/golang.org/x/net/http2/hpack.html" class="ident i10">hpack</a>.<a href="../../http2/hpack/hpack.go.html#line-36" class="ident">HeaderField</a>{<a href="../../http2/hpack/hpack.go.html#line-37" class="ident">Name</a>: <label for="r34" class="ident">name</label>, <a href="../../http2/hpack/hpack.go.html#line-37" class="ident">Value</a>: <label for="r35" class="ident">value</label>}</code></span>
+<span class="codeline" id="line-235"><code>			<label for="r33" class="ident">hlSize</label> += <a href="../../../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<label for="r36" class="ident">hf</label>.<a href="../../http2/hpack/hpack.go.html#line-61" class="ident">Size</a>())</code></span>
+<span class="codeline" id="line-236"><code>		})</code></span>
+<span class="codeline" id="line-237"><code></code></span>
+<span class="codeline" id="line-238"><code>		<span class="keyword">if</span> <label for="r33" class="ident">hlSize</label> &gt; <label for="r2" class="ident">param</label>.<a href="#line-47" class="ident">PeerMaxHeaderListSize</a> {</code></span>
+<span class="codeline" id="line-239"><code>			<span class="keyword">return</span> <label for="r6" class="ident">res</label>, <a href="#line-23" class="ident">ErrRequestHeaderListSize</a></code></span>
+<span class="codeline" id="line-240"><code>		}</code></span>
+<span class="codeline" id="line-241"><code>	}</code></span>
+<span class="codeline" id="line-242"><code></code></span>
+<span class="codeline" id="line-243"><code>	<label for="r37" class="ident">trace</label> := <a href="../../../../../../pkg/net/http/httptrace.html" class="ident i3">httptrace</a>.<a href="../../../../../net/http/httptrace/trace.go.html#line-24" class="ident">ContextClientTrace</a>(<label for="r1" class="ident">ctx</label>)</code></span>
+<span class="codeline" id="line-244"><code></code></span>
+<span class="codeline" id="line-245"><code>	<span class="comment">// Header list size is ok. Write the headers.</span></code></span>
+<span class="codeline" id="line-246"><code>	<label for="r20" class="ident">enumerateHeaders</label>(<span class="keyword">func</span>(<label for="r38" class="ident">name</label>, <label for="r39" class="ident">value</label> <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>) {</code></span>
+<span class="codeline" id="line-247"><code>		<label for="r38" class="ident">name</label>, <label for="r40" class="ident">ascii</label> := <a href="headermap.go.html#line-93" class="ident">LowerHeader</a>(<label for="r38" class="ident">name</label>)</code></span>
+<span class="codeline" id="line-248"><code>		<span class="keyword">if</span> !<label for="r40" class="ident">ascii</label> {</code></span>
+<span class="codeline" id="line-249"><code>			<span class="comment">// Skip writing invalid headers. Per RFC 7540, Section 8.1.2, header</span></code></span>
+<span class="codeline" id="line-250"><code><span class="comment">			// field names have to be ASCII characters (just as in HTTP/1.x).</span></code></span>
+<span class="codeline" id="line-251"><code>			<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-252"><code>		}</code></span>
+<span class="codeline" id="line-253"><code></code></span>
+<span class="codeline" id="line-254"><code>		<label for="r3" class="ident">headerf</label>(<label for="r38" class="ident">name</label>, <label for="r39" class="ident">value</label>)</code></span>
+<span class="codeline" id="line-255"><code></code></span>
+<span class="codeline" id="line-256"><code>		<span class="keyword">if</span> <label for="r37" class="ident">trace</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> &amp;&amp; <label for="r37" class="ident">trace</label>.<a href="../../../../../net/http/httptrace/trace.go.html#line-148" class="ident">WroteHeaderField</a> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-257"><code>			<label for="r37" class="ident">trace</label>.<a href="../../../../../net/http/httptrace/trace.go.html#line-148" class="ident">WroteHeaderField</a>(<label for="r38" class="ident">name</label>, []<a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>{<label for="r39" class="ident">value</label>})</code></span>
+<span class="codeline" id="line-258"><code>		}</code></span>
+<span class="codeline" id="line-259"><code>	})</code></span>
+<span class="codeline" id="line-260"><code></code></span>
+<span class="codeline" id="line-261"><code>	<label for="r6" class="ident">res</label>.<a href="#line-56" class="ident">HasBody</a> = <label for="r8" class="ident">req</label>.<a href="#line-35" class="ident">ActualContentLength</a> != <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-262"><code>	<label for="r6" class="ident">res</label>.<a href="#line-57" class="ident">HasTrailers</a> = <label for="r19" class="ident">trailers</label> != <span class="lit-string">""</span></code></span>
+<span class="codeline" id="line-263"><code>	<span class="keyword">return</span> <label for="r6" class="ident">res</label>, <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-264"><code>}</code></span>
+<span class="codeline" id="line-265"><code></code></span>
+<span class="codeline" id="line-266"><code><span class="comment">// IsRequestGzip reports whether we should add an Accept-Encoding: gzip header</span></code></span>
+<span class="codeline" id="line-267"><code><span class="comment">// for a request.</span></code></span>
+<span class="codeline" id="line-268"><code><span class="keyword">func</span> <label for="r41" class="ident"><a href="../../../../../../pkg/golang.org/x/net/internal/httpcommon.html#name-IsRequestGzip" class="ident">IsRequestGzip</a></label>(<label for="r42" class="ident">method</label> <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r43" class="ident">header</label> <span class="keyword">map</span>[<a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>][]<a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r44" class="ident">disableCompression</label> <a href="../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a>) <a href="../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-269"><code>	<span class="comment">// TODO(bradfitz): this is a copy of the logic in net/http. Unify somewhere?</span></code></span>
+<span class="codeline" id="line-270"><code>	<span class="keyword">if</span> !<label for="r44" class="ident">disableCompression</label> &amp;&amp;</code></span>
+<span class="codeline" id="line-271"><code>		<a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r43" class="ident">header</label>[<span class="lit-string">"Accept-Encoding"</span>]) == <span class="lit-number">0</span> &amp;&amp;</code></span>
+<span class="codeline" id="line-272"><code>		<a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r43" class="ident">header</label>[<span class="lit-string">"Range"</span>]) == <span class="lit-number">0</span> &amp;&amp;</code></span>
+<span class="codeline" id="line-273"><code>		<label for="r42" class="ident">method</label> != <span class="lit-string">"HEAD"</span> {</code></span>
+<span class="codeline" id="line-274"><code>		<span class="comment">// Request gzip only, not deflate. Deflate is ambiguous and</span></code></span>
+<span class="codeline" id="line-275"><code><span class="comment">		// not as universally supported anyway.</span></code></span>
+<span class="codeline" id="line-276"><code><span class="comment">		// See: https://zlib.net/zlib_faq.html#faq39</span></code></span>
+<span class="codeline" id="line-277"><code><span class="comment">		//</span></code></span>
+<span class="codeline" id="line-278"><code><span class="comment">		// Note that we don't request this for HEAD requests,</span></code></span>
+<span class="codeline" id="line-279"><code><span class="comment">		// due to a bug in nginx:</span></code></span>
+<span class="codeline" id="line-280"><code><span class="comment">		//   http://trac.nginx.org/nginx/ticket/358</span></code></span>
+<span class="codeline" id="line-281"><code><span class="comment">		//   https://golang.org/issue/5522</span></code></span>
+<span class="codeline" id="line-282"><code><span class="comment">		//</span></code></span>
+<span class="codeline" id="line-283"><code><span class="comment">		// We don't request gzip if the request is for a range, since</span></code></span>
+<span class="codeline" id="line-284"><code><span class="comment">		// auto-decoding a portion of a gzipped document will just fail</span></code></span>
+<span class="codeline" id="line-285"><code><span class="comment">		// anyway. See https://golang.org/issue/8923</span></code></span>
+<span class="codeline" id="line-286"><code>		<span class="keyword">return</span> <a href="../../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-287"><code>	}</code></span>
+<span class="codeline" id="line-288"><code>	<span class="keyword">return</span> <a href="../../../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-289"><code>}</code></span>
+<span class="codeline" id="line-290"><code></code></span>
+<span class="codeline" id="line-291"><code><span class="comment">// checkConnHeaders checks whether req has any invalid connection-level headers.</span></code></span>
+<span class="codeline" id="line-292"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-293"><code><span class="comment">// https://www.rfc-editor.org/rfc/rfc9114.html#section-4.2-3</span></code></span>
+<span class="codeline" id="line-294"><code><span class="comment">// https://www.rfc-editor.org/rfc/rfc9113.html#section-8.2.2-1</span></code></span>
+<span class="codeline" id="line-295"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-296"><code><span class="comment">// Certain headers are special-cased as okay but not transmitted later.</span></code></span>
+<span class="codeline" id="line-297"><code><span class="comment">// For example, we allow "Transfer-Encoding: chunked", but drop the header when encoding.</span></code></span>
+<span class="codeline" id="line-298"><code><span class="keyword">func</span> <label for="r45" class="ident"><a href="../../../../../../pkg/golang.org/x/net/internal/httpcommon.html#name-checkConnHeaders" class="ident">checkConnHeaders</a></label>(<label for="r46" class="ident">h</label> <span class="keyword">map</span>[<a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>][]<a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-299"><code>	<span class="keyword">if</span> <label for="r47" class="ident">vv</label> := <label for="r46" class="ident">h</label>[<span class="lit-string">"Upgrade"</span>]; <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r47" class="ident">vv</label>) &gt; <span class="lit-number">0</span> &amp;&amp; (<label for="r47" class="ident">vv</label>[<span class="lit-number">0</span>] != <span class="lit-string">""</span> &amp;&amp; <label for="r47" class="ident">vv</label>[<span class="lit-number">0</span>] != <span class="lit-string">"chunked"</span>) {</code></span>
+<span class="codeline" id="line-300"><code>		<span class="keyword">return</span> <a href="../../../../../../pkg/fmt.html" class="ident i2">fmt</a>.<a href="../../../../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"invalid Upgrade request header: %q"</span>, <label for="r47" class="ident">vv</label>)</code></span>
+<span class="codeline" id="line-301"><code>	}</code></span>
+<span class="codeline" id="line-302"><code>	<span class="keyword">if</span> <label for="r48" class="ident">vv</label> := <label for="r46" class="ident">h</label>[<span class="lit-string">"Transfer-Encoding"</span>]; <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r48" class="ident">vv</label>) &gt; <span class="lit-number">0</span> &amp;&amp; (<a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r48" class="ident">vv</label>) &gt; <span class="lit-number">1</span> || <label for="r48" class="ident">vv</label>[<span class="lit-number">0</span>] != <span class="lit-string">""</span> &amp;&amp; <label for="r48" class="ident">vv</label>[<span class="lit-number">0</span>] != <span class="lit-string">"chunked"</span>) {</code></span>
+<span class="codeline" id="line-303"><code>		<span class="keyword">return</span> <a href="../../../../../../pkg/fmt.html" class="ident i2">fmt</a>.<a href="../../../../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"invalid Transfer-Encoding request header: %q"</span>, <label for="r48" class="ident">vv</label>)</code></span>
+<span class="codeline" id="line-304"><code>	}</code></span>
+<span class="codeline" id="line-305"><code>	<span class="keyword">if</span> <label for="r49" class="ident">vv</label> := <label for="r46" class="ident">h</label>[<span class="lit-string">"Connection"</span>]; <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r49" class="ident">vv</label>) &gt; <span class="lit-number">0</span> &amp;&amp; (<a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r49" class="ident">vv</label>) &gt; <span class="lit-number">1</span> || <label for="r49" class="ident">vv</label>[<span class="lit-number">0</span>] != <span class="lit-string">""</span> &amp;&amp; !<a href="ascii.go.html#line-15" class="ident">asciiEqualFold</a>(<label for="r49" class="ident">vv</label>[<span class="lit-number">0</span>], <span class="lit-string">"close"</span>) &amp;&amp; !<a href="ascii.go.html#line-15" class="ident">asciiEqualFold</a>(<label for="r49" class="ident">vv</label>[<span class="lit-number">0</span>], <span class="lit-string">"keep-alive"</span>)) {</code></span>
+<span class="codeline" id="line-306"><code>		<span class="keyword">return</span> <a href="../../../../../../pkg/fmt.html" class="ident i2">fmt</a>.<a href="../../../../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"invalid Connection request header: %q"</span>, <label for="r49" class="ident">vv</label>)</code></span>
+<span class="codeline" id="line-307"><code>	}</code></span>
+<span class="codeline" id="line-308"><code>	<span class="keyword">return</span> <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-309"><code>}</code></span>
+<span class="codeline" id="line-310"><code></code></span>
+<span class="codeline" id="line-311"><code><span class="keyword">func</span> <label for="r50" class="ident"><a href="../../../../../../pkg/golang.org/x/net/internal/httpcommon.html#name-commaSeparatedTrailers" class="ident">commaSeparatedTrailers</a></label>(<label for="r51" class="ident">trailer</label> <span class="keyword">map</span>[<a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>][]<a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>) (<a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>, <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-312"><code>	<label for="r52" class="ident">keys</label> := <a href="../../../../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>, <span class="lit-number">0</span>, <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r51" class="ident">trailer</label>))</code></span>
+<span class="codeline" id="line-313"><code>	<span class="keyword">for</span> <label for="r53" class="ident">k</label> := <span class="keyword">range</span> <label for="r51" class="ident">trailer</label> {</code></span>
+<span class="codeline" id="line-314"><code>		<label for="r53" class="ident">k</label> = <a href="headermap.go.html#line-102" class="ident">CanonicalHeader</a>(<label for="r53" class="ident">k</label>)</code></span>
+<span class="codeline" id="line-315"><code>		<span class="keyword">switch</span> <label for="r53" class="ident">k</label> {</code></span>
+<span class="codeline" id="line-316"><code>		<span class="keyword">case</span> <span class="lit-string">"Transfer-Encoding"</span>, <span class="lit-string">"Trailer"</span>, <span class="lit-string">"Content-Length"</span>:</code></span>
+<span class="codeline" id="line-317"><code>			<span class="keyword">return</span> <span class="lit-string">""</span>, <a href="../../../../../../pkg/fmt.html" class="ident i2">fmt</a>.<a href="../../../../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"invalid Trailer key %q"</span>, <label for="r53" class="ident">k</label>)</code></span>
+<span class="codeline" id="line-318"><code>		}</code></span>
+<span class="codeline" id="line-319"><code>		<label for="r52" class="ident">keys</label> = <a href="../../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r52" class="ident">keys</label>, <label for="r53" class="ident">k</label>)</code></span>
+<span class="codeline" id="line-320"><code>	}</code></span>
+<span class="codeline" id="line-321"><code>	<span class="keyword">if</span> <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r52" class="ident">keys</label>) &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-322"><code>		<a href="../../../../../../pkg/sort.html" class="ident i6">sort</a>.<a href="../../../../../sort/sort.go.html#line-181" class="ident">Strings</a>(<label for="r52" class="ident">keys</label>)</code></span>
+<span class="codeline" id="line-323"><code>		<span class="keyword">return</span> <a href="../../../../../../pkg/strings.html" class="ident i8">strings</a>.<a href="../../../../../strings/strings.go.html#line-487" class="ident">Join</a>(<label for="r52" class="ident">keys</label>, <span class="lit-string">","</span>), <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-324"><code>	}</code></span>
+<span class="codeline" id="line-325"><code>	<span class="keyword">return</span> <span class="lit-string">""</span>, <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-326"><code>}</code></span>
+<span class="codeline" id="line-327"><code></code></span>
+<span class="codeline" id="line-328"><code><span class="comment">// validPseudoPath reports whether v is a valid :path pseudo-header</span></code></span>
+<span class="codeline" id="line-329"><code><span class="comment">// value. It must be either:</span></code></span>
+<span class="codeline" id="line-330"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-331"><code><span class="comment">//   - a non-empty string starting with '/'</span></code></span>
+<span class="codeline" id="line-332"><code><span class="comment">//   - the string '*', for OPTIONS requests.</span></code></span>
+<span class="codeline" id="line-333"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-334"><code><span class="comment">// For now this is only used a quick check for deciding when to clean</span></code></span>
+<span class="codeline" id="line-335"><code><span class="comment">// up Opaque URLs before sending requests from the Transport.</span></code></span>
+<span class="codeline" id="line-336"><code><span class="comment">// See golang.org/issue/16847</span></code></span>
+<span class="codeline" id="line-337"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-338"><code><span class="comment">// We used to enforce that the path also didn't start with "//", but</span></code></span>
+<span class="codeline" id="line-339"><code><span class="comment">// Google's GFE accepts such paths and Chrome sends them, so ignore</span></code></span>
+<span class="codeline" id="line-340"><code><span class="comment">// that part of the spec. See golang.org/issue/19103.</span></code></span>
+<span class="codeline" id="line-341"><code><span class="keyword">func</span> <label for="r54" class="ident"><a href="../../../../../../pkg/golang.org/x/net/internal/httpcommon.html#name-validPseudoPath" class="ident">validPseudoPath</a></label>(<label for="r55" class="ident">v</label> <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-342"><code>	<span class="keyword">return</span> (<a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r55" class="ident">v</label>) &gt; <span class="lit-number">0</span> &amp;&amp; <label for="r55" class="ident">v</label>[<span class="lit-number">0</span>] == <span class="lit-number">'/'</span>) || <label for="r55" class="ident">v</label> == <span class="lit-string">"*"</span></code></span>
+<span class="codeline" id="line-343"><code>}</code></span>
+<span class="codeline" id="line-344"><code></code></span>
+<span class="codeline" id="line-345"><code><span class="keyword">func</span> <label for="r56" class="ident"><a href="../../../../../../pkg/golang.org/x/net/internal/httpcommon.html#name-validateHeaders" class="ident">validateHeaders</a></label>(<label for="r57" class="ident">hdrs</label> <span class="keyword">map</span>[<a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>][]<a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-346"><code>	<span class="keyword">for</span> <label for="r58" class="ident">k</label>, <label for="r59" class="ident">vv</label> := <span class="keyword">range</span> <label for="r57" class="ident">hdrs</label> {</code></span>
+<span class="codeline" id="line-347"><code>		<span class="keyword">if</span> !<a href="../../../../../../pkg/golang.org/x/net/http/httpguts.html" class="ident i9">httpguts</a>.<a href="../../http/httpguts/httplex.go.html#line-196" class="ident">ValidHeaderFieldName</a>(<label for="r58" class="ident">k</label>) &amp;&amp; <label for="r58" class="ident">k</label> != <span class="lit-string">":protocol"</span> {</code></span>
+<span class="codeline" id="line-348"><code>			<span class="keyword">return</span> <a href="../../../../../../pkg/fmt.html" class="ident i2">fmt</a>.<a href="../../../../../fmt/print.go.html#line-237" class="ident">Sprintf</a>(<span class="lit-string">"name %q"</span>, <label for="r58" class="ident">k</label>)</code></span>
+<span class="codeline" id="line-349"><code>		}</code></span>
+<span class="codeline" id="line-350"><code>		<span class="keyword">for</span> <label for="r60" class="ident">_</label>, <label for="r61" class="ident">v</label> := <span class="keyword">range</span> <label for="r59" class="ident">vv</label> {</code></span>
+<span class="codeline" id="line-351"><code>			<span class="keyword">if</span> !<a href="../../../../../../pkg/golang.org/x/net/http/httpguts.html" class="ident i9">httpguts</a>.<a href="../../http/httpguts/httplex.go.html#line-303" class="ident">ValidHeaderFieldValue</a>(<label for="r61" class="ident">v</label>) {</code></span>
+<span class="codeline" id="line-352"><code>				<span class="comment">// Don't include the value in the error,</span></code></span>
+<span class="codeline" id="line-353"><code><span class="comment">				// because it may be sensitive.</span></code></span>
+<span class="codeline" id="line-354"><code>				<span class="keyword">return</span> <a href="../../../../../../pkg/fmt.html" class="ident i2">fmt</a>.<a href="../../../../../fmt/print.go.html#line-237" class="ident">Sprintf</a>(<span class="lit-string">"value for header %q"</span>, <label for="r58" class="ident">k</label>)</code></span>
+<span class="codeline" id="line-355"><code>			}</code></span>
+<span class="codeline" id="line-356"><code>		}</code></span>
+<span class="codeline" id="line-357"><code>	}</code></span>
+<span class="codeline" id="line-358"><code>	<span class="keyword">return</span> <span class="lit-string">""</span></code></span>
+<span class="codeline" id="line-359"><code>}</code></span>
+<span class="codeline" id="line-360"><code></code></span>
+<span class="codeline" id="line-361"><code><span class="comment">// shouldSendReqContentLength reports whether we should send</span></code></span>
+<span class="codeline" id="line-362"><code><span class="comment">// a "content-length" request header. This logic is basically a copy of the net/http</span></code></span>
+<span class="codeline" id="line-363"><code><span class="comment">// transferWriter.shouldSendContentLength.</span></code></span>
+<span class="codeline" id="line-364"><code><span class="comment">// The contentLength is the corrected contentLength (so 0 means actually 0, not unknown).</span></code></span>
+<span class="codeline" id="line-365"><code><span class="comment">// -1 means unknown.</span></code></span>
+<span class="codeline" id="line-366"><code><span class="keyword">func</span> <label for="r62" class="ident"><a href="../../../../../../pkg/golang.org/x/net/internal/httpcommon.html#name-shouldSendReqContentLength" class="ident">shouldSendReqContentLength</a></label>(<label for="r63" class="ident">method</label> <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r64" class="ident">contentLength</label> <a href="../../../../../../pkg/builtin.html#name-int64" class="ident">int64</a>) <a href="../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-367"><code>	<span class="keyword">if</span> <label for="r64" class="ident">contentLength</label> &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-368"><code>		<span class="keyword">return</span> <a href="../../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-369"><code>	}</code></span>
+<span class="codeline" id="line-370"><code>	<span class="keyword">if</span> <label for="r64" class="ident">contentLength</label> &lt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-371"><code>		<span class="keyword">return</span> <a href="../../../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-372"><code>	}</code></span>
+<span class="codeline" id="line-373"><code>	<span class="comment">// For zero bodies, whether we send a content-length depends on the method.</span></code></span>
+<span class="codeline" id="line-374"><code><span class="comment">	// It also kinda doesn't matter for http2 either way, with END_STREAM.</span></code></span>
+<span class="codeline" id="line-375"><code>	<span class="keyword">switch</span> <label for="r63" class="ident">method</label> {</code></span>
+<span class="codeline" id="line-376"><code>	<span class="keyword">case</span> <span class="lit-string">"POST"</span>, <span class="lit-string">"PUT"</span>, <span class="lit-string">"PATCH"</span>:</code></span>
+<span class="codeline" id="line-377"><code>		<span class="keyword">return</span> <a href="../../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-378"><code>	<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-379"><code>		<span class="keyword">return</span> <a href="../../../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-380"><code>	}</code></span>
+<span class="codeline" id="line-381"><code>}</code></span>
+<span class="codeline" id="line-382"><code></code></span>
+<span class="codeline" id="line-383"><code><span class="comment">// ServerRequestParam is parameters to NewServerRequest.</span></code></span>
+<span class="codeline" id="line-384"><code><span class="keyword">type</span> <a href="../../../../../../pkg/golang.org/x/net/internal/httpcommon.html#name-ServerRequestParam" class="ident">ServerRequestParam</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-385"><code>	<a href="../../../../../../use/golang.org/x/net/internal/httpcommon..ServerRequestParam.Method.html" class="ident">Method</a>                  <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-386"><code>	<a href="../../../../../../use/golang.org/x/net/internal/httpcommon..ServerRequestParam.Scheme.html" class="ident">Scheme</a>, <a href="../../../../../../use/golang.org/x/net/internal/httpcommon..ServerRequestParam.Authority.html" class="ident">Authority</a>, <a href="../../../../../../use/golang.org/x/net/internal/httpcommon..ServerRequestParam.Path.html" class="ident">Path</a> <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-387"><code>	<a href="../../../../../../use/golang.org/x/net/internal/httpcommon..ServerRequestParam.Protocol.html" class="ident">Protocol</a>                <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-388"><code>	<a href="../../../../../../use/golang.org/x/net/internal/httpcommon..ServerRequestParam.Header.html" class="ident">Header</a>                  <span class="keyword">map</span>[<a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>][]<a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-389"><code>}</code></span>
+<span class="codeline" id="line-390"><code></code></span>
+<span class="codeline" id="line-391"><code><span class="comment">// ServerRequestResult is the result of NewServerRequest.</span></code></span>
+<span class="codeline" id="line-392"><code><span class="keyword">type</span> <a href="../../../../../../pkg/golang.org/x/net/internal/httpcommon.html#name-ServerRequestResult" class="ident">ServerRequestResult</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-393"><code>	<span class="comment">// Various http.Request fields.</span></code></span>
+<span class="codeline" id="line-394"><code>	<a href="../../../../../../use/golang.org/x/net/internal/httpcommon..ServerRequestResult.URL.html" class="ident">URL</a>        *<a href="../../../../../../pkg/net/url.html" class="ident i5">url</a>.<a href="../../../../../net/url/url.go.html#line-375" class="ident">URL</a></code></span>
+<span class="codeline" id="line-395"><code>	<a href="../../../../../../use/golang.org/x/net/internal/httpcommon..ServerRequestResult.RequestURI.html" class="ident">RequestURI</a> <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-396"><code>	<a href="../../../../../../use/golang.org/x/net/internal/httpcommon..ServerRequestResult.Trailer.html" class="ident">Trailer</a>    <span class="keyword">map</span>[<a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>][]<a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-397"><code></code></span>
+<span class="codeline" id="line-398"><code>	<a href="../../../../../../use/golang.org/x/net/internal/httpcommon..ServerRequestResult.NeedsContinue.html" class="ident">NeedsContinue</a> <a href="../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> <span class="comment">// client provided an "Expect: 100-continue" header</span></code></span>
+<span class="codeline" id="line-399"><code></code></span>
+<span class="codeline" id="line-400"><code>	<span class="comment">// If the request should be rejected, this is a short string suitable for passing</span></code></span>
+<span class="codeline" id="line-401"><code><span class="comment">	// to the http2 package's CountError function.</span></code></span>
+<span class="codeline" id="line-402"><code><span class="comment">	// It might be a bit odd to return errors this way rather than returing an error,</span></code></span>
+<span class="codeline" id="line-403"><code><span class="comment">	// but this ensures we don't forget to include a CountError reason.</span></code></span>
+<span class="codeline" id="line-404"><code>	<a href="../../../../../../use/golang.org/x/net/internal/httpcommon..ServerRequestResult.InvalidReason.html" class="ident">InvalidReason</a> <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-405"><code>}</code></span>
+<span class="codeline" id="line-406"><code></code></span>
+<span class="codeline" id="line-407"><code><span class="keyword">func</span> <label for="r65" class="ident"><a href="../../../../../../pkg/golang.org/x/net/internal/httpcommon.html#name-NewServerRequest" class="ident">NewServerRequest</a></label>(<label for="r66" class="ident">rp</label> <a href="#line-384" class="ident">ServerRequestParam</a>) <a href="#line-392" class="ident">ServerRequestResult</a> {</code></span>
+<span class="codeline" id="line-408"><code>	<label for="r67" class="ident">needsContinue</label> := <a href="../../../../../../pkg/golang.org/x/net/http/httpguts.html" class="ident i9">httpguts</a>.<a href="../../http/httpguts/httplex.go.html#line-101" class="ident">HeaderValuesContainsToken</a>(<label for="r66" class="ident">rp</label>.<a href="#line-388" class="ident">Header</a>[<span class="lit-string">"Expect"</span>], <span class="lit-string">"100-continue"</span>)</code></span>
+<span class="codeline" id="line-409"><code>	<span class="keyword">if</span> <label for="r67" class="ident">needsContinue</label> {</code></span>
+<span class="codeline" id="line-410"><code>		<a href="../../../../../../pkg/builtin.html#name-delete" class="ident">delete</a>(<label for="r66" class="ident">rp</label>.<a href="#line-388" class="ident">Header</a>, <span class="lit-string">"Expect"</span>)</code></span>
+<span class="codeline" id="line-411"><code>	}</code></span>
+<span class="codeline" id="line-412"><code>	<span class="comment">// Merge Cookie headers into one "; "-delimited value.</span></code></span>
+<span class="codeline" id="line-413"><code>	<span class="keyword">if</span> <label for="r68" class="ident">cookies</label> := <label for="r66" class="ident">rp</label>.<a href="#line-388" class="ident">Header</a>[<span class="lit-string">"Cookie"</span>]; <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r68" class="ident">cookies</label>) &gt; <span class="lit-number">1</span> {</code></span>
+<span class="codeline" id="line-414"><code>		<label for="r66" class="ident">rp</label>.<a href="#line-388" class="ident">Header</a>[<span class="lit-string">"Cookie"</span>] = []<a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>{<a href="../../../../../../pkg/strings.html" class="ident i8">strings</a>.<a href="../../../../../strings/strings.go.html#line-487" class="ident">Join</a>(<label for="r68" class="ident">cookies</label>, <span class="lit-string">"; "</span>)}</code></span>
+<span class="codeline" id="line-415"><code>	}</code></span>
+<span class="codeline" id="line-416"><code></code></span>
+<span class="codeline" id="line-417"><code>	<span class="comment">// Setup Trailers</span></code></span>
+<span class="codeline" id="line-418"><code>	<span class="keyword">var</span> <label for="r69" class="ident">trailer</label> <span class="keyword">map</span>[<a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>][]<a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-419"><code>	<span class="keyword">for</span> <label for="r70" class="ident">_</label>, <label for="r71" class="ident">v</label> := <span class="keyword">range</span> <label for="r66" class="ident">rp</label>.<a href="#line-388" class="ident">Header</a>[<span class="lit-string">"Trailer"</span>] {</code></span>
+<span class="codeline" id="line-420"><code>		<span class="keyword">for</span> <label for="r72" class="ident">_</label>, <label for="r73" class="ident">key</label> := <span class="keyword">range</span> <a href="../../../../../../pkg/strings.html" class="ident i8">strings</a>.<a href="../../../../../strings/strings.go.html#line-361" class="ident">Split</a>(<label for="r71" class="ident">v</label>, <span class="lit-string">","</span>) {</code></span>
+<span class="codeline" id="line-421"><code>			<label for="r73" class="ident">key</label> = <a href="../../../../../../pkg/net/textproto.html" class="ident i4">textproto</a>.<a href="../../../../../net/textproto/reader.go.html#line-652" class="ident">CanonicalMIMEHeaderKey</a>(<a href="../../../../../../pkg/net/textproto.html" class="ident i4">textproto</a>.<a href="../../../../../net/textproto/textproto.go.html#line-127" class="ident">TrimString</a>(<label for="r73" class="ident">key</label>))</code></span>
+<span class="codeline" id="line-422"><code>			<span class="keyword">switch</span> <label for="r73" class="ident">key</label> {</code></span>
+<span class="codeline" id="line-423"><code>			<span class="keyword">case</span> <span class="lit-string">"Transfer-Encoding"</span>, <span class="lit-string">"Trailer"</span>, <span class="lit-string">"Content-Length"</span>:</code></span>
+<span class="codeline" id="line-424"><code>				<span class="comment">// Bogus. (copy of http1 rules)</span></code></span>
+<span class="codeline" id="line-425"><code><span class="comment">				// Ignore.</span></code></span>
+<span class="codeline" id="line-426"><code>			<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-427"><code>				<span class="keyword">if</span> <label for="r69" class="ident">trailer</label> == <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-428"><code>					<label for="r69" class="ident">trailer</label> = <a href="../../../../../../pkg/builtin.html#name-make" class="ident">make</a>(<span class="keyword">map</span>[<a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>][]<a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>)</code></span>
+<span class="codeline" id="line-429"><code>				}</code></span>
+<span class="codeline" id="line-430"><code>				<label for="r69" class="ident">trailer</label>[<label for="r73" class="ident">key</label>] = <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-431"><code>			}</code></span>
+<span class="codeline" id="line-432"><code>		}</code></span>
+<span class="codeline" id="line-433"><code>	}</code></span>
+<span class="codeline" id="line-434"><code>	<a href="../../../../../../pkg/builtin.html#name-delete" class="ident">delete</a>(<label for="r66" class="ident">rp</label>.<a href="#line-388" class="ident">Header</a>, <span class="lit-string">"Trailer"</span>)</code></span>
+<span class="codeline" id="line-435"><code></code></span>
+<span class="codeline" id="line-436"><code>	<span class="comment">// "':authority' MUST NOT include the deprecated userinfo subcomponent</span></code></span>
+<span class="codeline" id="line-437"><code><span class="comment">	// for "http" or "https" schemed URIs."</span></code></span>
+<span class="codeline" id="line-438"><code><span class="comment">	// https://www.rfc-editor.org/rfc/rfc9113.html#section-8.3.1-2.3.8</span></code></span>
+<span class="codeline" id="line-439"><code>	<span class="keyword">if</span> <a href="../../../../../../pkg/strings.html" class="ident i8">strings</a>.<a href="../../../../../strings/strings.go.html#line-119" class="ident">IndexByte</a>(<label for="r66" class="ident">rp</label>.<a href="#line-386" class="ident">Authority</a>, <span class="lit-number">'@'</span>) != -<span class="lit-number">1</span> &amp;&amp; (<label for="r66" class="ident">rp</label>.<a href="#line-386" class="ident">Scheme</a> == <span class="lit-string">"http"</span> || <label for="r66" class="ident">rp</label>.<a href="#line-386" class="ident">Scheme</a> == <span class="lit-string">"https"</span>) {</code></span>
+<span class="codeline" id="line-440"><code>		<span class="keyword">return</span> <a href="#line-392" class="ident">ServerRequestResult</a>{</code></span>
+<span class="codeline" id="line-441"><code>			<a href="#line-404" class="ident">InvalidReason</a>: <span class="lit-string">"userinfo_in_authority"</span>,</code></span>
+<span class="codeline" id="line-442"><code>		}</code></span>
+<span class="codeline" id="line-443"><code>	}</code></span>
+<span class="codeline" id="line-444"><code></code></span>
+<span class="codeline" id="line-445"><code>	<span class="keyword">var</span> <label for="r74" class="ident">url_</label> *<a href="../../../../../../pkg/net/url.html" class="ident i5">url</a>.<a href="../../../../../net/url/url.go.html#line-375" class="ident">URL</a></code></span>
+<span class="codeline" id="line-446"><code>	<span class="keyword">var</span> <label for="r75" class="ident">requestURI</label> <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-447"><code>	<span class="keyword">if</span> <label for="r66" class="ident">rp</label>.<a href="#line-385" class="ident">Method</a> == <span class="lit-string">"CONNECT"</span> &amp;&amp; <label for="r66" class="ident">rp</label>.<a href="#line-387" class="ident">Protocol</a> == <span class="lit-string">""</span> {</code></span>
+<span class="codeline" id="line-448"><code>		<label for="r74" class="ident">url_</label> = &amp;<a href="../../../../../../pkg/net/url.html" class="ident i5">url</a>.<a href="../../../../../net/url/url.go.html#line-375" class="ident">URL</a>{<a href="../../../../../net/url/url.go.html#line-379" class="ident">Host</a>: <label for="r66" class="ident">rp</label>.<a href="#line-386" class="ident">Authority</a>}</code></span>
+<span class="codeline" id="line-449"><code>		<label for="r75" class="ident">requestURI</label> = <label for="r66" class="ident">rp</label>.<a href="#line-386" class="ident">Authority</a> <span class="comment">// mimic HTTP/1 server behavior</span></code></span>
+<span class="codeline" id="line-450"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-451"><code>		<span class="keyword">var</span> <label for="r76" class="ident">err</label> <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-452"><code>		<label for="r74" class="ident">url_</label>, <label for="r76" class="ident">err</label> = <a href="../../../../../../pkg/net/url.html" class="ident i5">url</a>.<a href="../../../../../net/url/url.go.html#line-500" class="ident">ParseRequestURI</a>(<label for="r66" class="ident">rp</label>.<a href="#line-386" class="ident">Path</a>)</code></span>
+<span class="codeline" id="line-453"><code>		<span class="keyword">if</span> <label for="r76" class="ident">err</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-454"><code>			<span class="keyword">return</span> <a href="#line-392" class="ident">ServerRequestResult</a>{</code></span>
+<span class="codeline" id="line-455"><code>				<a href="#line-404" class="ident">InvalidReason</a>: <span class="lit-string">"bad_path"</span>,</code></span>
+<span class="codeline" id="line-456"><code>			}</code></span>
+<span class="codeline" id="line-457"><code>		}</code></span>
+<span class="codeline" id="line-458"><code>		<label for="r75" class="ident">requestURI</label> = <label for="r66" class="ident">rp</label>.<a href="#line-386" class="ident">Path</a></code></span>
+<span class="codeline" id="line-459"><code>	}</code></span>
+<span class="codeline" id="line-460"><code></code></span>
+<span class="codeline" id="line-461"><code>	<span class="keyword">return</span> <a href="#line-392" class="ident">ServerRequestResult</a>{</code></span>
+<span class="codeline" id="line-462"><code>		<a href="#line-394" class="ident">URL</a>:           <label for="r74" class="ident">url_</label>,</code></span>
+<span class="codeline" id="line-463"><code>		<a href="#line-398" class="ident">NeedsContinue</a>: <label for="r67" class="ident">needsContinue</label>,</code></span>
+<span class="codeline" id="line-464"><code>		<a href="#line-395" class="ident">RequestURI</a>:    <label for="r75" class="ident">requestURI</label>,</code></span>
+<span class="codeline" id="line-465"><code>		<a href="#line-396" class="ident">Trailer</a>:       <label for="r69" class="ident">trailer</label>,</code></span>
+<span class="codeline" id="line-466"><code>	}</code></span>
+<span class="codeline" id="line-467"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

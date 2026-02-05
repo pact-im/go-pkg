@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: handler.go in package log/slog</title>
+<link href="../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	handler.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../pkg/log/slog.html">log/slog</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30],
+input[id=r31]:checked ~pre label[for=r31],
+input[id=r32]:checked ~pre label[for=r32],
+input[id=r33]:checked ~pre label[for=r33],
+input[id=r34]:checked ~pre label[for=r34],
+input[id=r35]:checked ~pre label[for=r35],
+input[id=r36]:checked ~pre label[for=r36],
+input[id=r37]:checked ~pre label[for=r37],
+input[id=r38]:checked ~pre label[for=r38],
+input[id=r39]:checked ~pre label[for=r39],
+input[id=r40]:checked ~pre label[for=r40],
+input[id=r41]:checked ~pre label[for=r41],
+input[id=r42]:checked ~pre label[for=r42],
+input[id=r43]:checked ~pre label[for=r43],
+input[id=r44]:checked ~pre label[for=r44],
+input[id=r45]:checked ~pre label[for=r45],
+input[id=r46]:checked ~pre label[for=r46],
+input[id=r47]:checked ~pre label[for=r47],
+input[id=r48]:checked ~pre label[for=r48],
+input[id=r49]:checked ~pre label[for=r49],
+input[id=r50]:checked ~pre label[for=r50],
+input[id=r51]:checked ~pre label[for=r51],
+input[id=r52]:checked ~pre label[for=r52],
+input[id=r53]:checked ~pre label[for=r53],
+input[id=r54]:checked ~pre label[for=r54],
+input[id=r55]:checked ~pre label[for=r55],
+input[id=r56]:checked ~pre label[for=r56],
+input[id=r57]:checked ~pre label[for=r57],
+input[id=r58]:checked ~pre label[for=r58],
+input[id=r59]:checked ~pre label[for=r59],
+input[id=r60]:checked ~pre label[for=r60],
+input[id=r61]:checked ~pre label[for=r61],
+input[id=r62]:checked ~pre label[for=r62],
+input[id=r63]:checked ~pre label[for=r63],
+input[id=r64]:checked ~pre label[for=r64],
+input[id=r65]:checked ~pre label[for=r65],
+input[id=r66]:checked ~pre label[for=r66],
+input[id=r67]:checked ~pre label[for=r67],
+input[id=r68]:checked ~pre label[for=r68],
+input[id=r69]:checked ~pre label[for=r69],
+input[id=r70]:checked ~pre label[for=r70],
+input[id=r71]:checked ~pre label[for=r71],
+input[id=r72]:checked ~pre label[for=r72],
+input[id=r73]:checked ~pre label[for=r73],
+input[id=r74]:checked ~pre label[for=r74],
+input[id=r75]:checked ~pre label[for=r75],
+input[id=r76]:checked ~pre label[for=r76],
+input[id=r77]:checked ~pre label[for=r77],
+input[id=r78]:checked ~pre label[for=r78],
+input[id=r79]:checked ~pre label[for=r79],
+input[id=r80]:checked ~pre label[for=r80],
+input[id=r81]:checked ~pre label[for=r81],
+input[id=r82]:checked ~pre label[for=r82],
+input[id=r83]:checked ~pre label[for=r83],
+input[id=r84]:checked ~pre label[for=r84],
+input[id=r85]:checked ~pre label[for=r85],
+input[id=r86]:checked ~pre label[for=r86],
+input[id=r87]:checked ~pre label[for=r87],
+input[id=r88]:checked ~pre label[for=r88],
+input[id=r89]:checked ~pre label[for=r89],
+input[id=r90]:checked ~pre label[for=r90],
+input[id=r91]:checked ~pre label[for=r91],
+input[id=r92]:checked ~pre label[for=r92],
+input[id=r93]:checked ~pre label[for=r93],
+input[id=r94]:checked ~pre label[for=r94],
+input[id=r95]:checked ~pre label[for=r95],
+input[id=r96]:checked ~pre label[for=r96],
+input[id=r97]:checked ~pre label[for=r97],
+input[id=r98]:checked ~pre label[for=r98],
+input[id=r99]:checked ~pre label[for=r99],
+input[id=r100]:checked ~pre label[for=r100],
+input[id=r101]:checked ~pre label[for=r101],
+input[id=r102]:checked ~pre label[for=r102],
+input[id=r103]:checked ~pre label[for=r103],
+input[id=r104]:checked ~pre label[for=r104],
+input[id=r105]:checked ~pre label[for=r105],
+input[id=r106]:checked ~pre label[for=r106],
+input[id=r107]:checked ~pre label[for=r107],
+input[id=r108]:checked ~pre label[for=r108],
+input[id=r109]:checked ~pre label[for=r109],
+input[id=r110]:checked ~pre label[for=r110],
+input[id=r111]:checked ~pre label[for=r111],
+input[id=r112]:checked ~pre label[for=r112],
+input[id=r113]:checked ~pre label[for=r113],
+input[id=r114]:checked ~pre label[for=r114],
+input[id=r115]:checked ~pre label[for=r115],
+input[id=r116]:checked ~pre label[for=r116],
+input[id=r117]:checked ~pre label[for=r117],
+input[id=r118]:checked ~pre label[for=r118],
+input[id=r119]:checked ~pre label[for=r119],
+input[id=r120]:checked ~pre label[for=r120],
+input[id=r121]:checked ~pre label[for=r121],
+input[id=r122]:checked ~pre label[for=r122],
+input[id=r123]:checked ~pre label[for=r123],
+input[id=r124]:checked ~pre label[for=r124],
+input[id=r125]:checked ~pre label[for=r125],
+input[id=r126]:checked ~pre label[for=r126],
+input[id=r127]:checked ~pre label[for=r127],
+input[id=r128]:checked ~pre label[for=r128],
+input[id=r129]:checked ~pre label[for=r129],
+input[id=r130]:checked ~pre label[for=r130],
+input[id=r131]:checked ~pre label[for=r131]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3,
+input[id=i4]:checked ~pre .i4,
+input[id=i5]:checked ~pre .i5,
+input[id=i6]:checked ~pre .i6,
+input[id=i7]:checked ~pre .i7,
+input[id=i8]:checked ~pre .i8
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="r31" type="radio" name="g"/>
+<input id="r32" type="radio" name="g"/>
+<input id="r33" type="radio" name="g"/>
+<input id="r34" type="radio" name="g"/>
+<input id="r35" type="radio" name="g"/>
+<input id="r36" type="radio" name="g"/>
+<input id="r37" type="radio" name="g"/>
+<input id="r38" type="radio" name="g"/>
+<input id="r39" type="radio" name="g"/>
+<input id="r40" type="radio" name="g"/>
+<input id="r41" type="radio" name="g"/>
+<input id="r42" type="radio" name="g"/>
+<input id="r43" type="radio" name="g"/>
+<input id="r44" type="radio" name="g"/>
+<input id="r45" type="radio" name="g"/>
+<input id="r46" type="radio" name="g"/>
+<input id="r47" type="radio" name="g"/>
+<input id="r48" type="radio" name="g"/>
+<input id="r49" type="radio" name="g"/>
+<input id="r50" type="radio" name="g"/>
+<input id="r51" type="radio" name="g"/>
+<input id="r52" type="radio" name="g"/>
+<input id="r53" type="radio" name="g"/>
+<input id="r54" type="radio" name="g"/>
+<input id="r55" type="radio" name="g"/>
+<input id="r56" type="radio" name="g"/>
+<input id="r57" type="radio" name="g"/>
+<input id="r58" type="radio" name="g"/>
+<input id="r59" type="radio" name="g"/>
+<input id="r60" type="radio" name="g"/>
+<input id="r61" type="radio" name="g"/>
+<input id="r62" type="radio" name="g"/>
+<input id="r63" type="radio" name="g"/>
+<input id="r64" type="radio" name="g"/>
+<input id="r65" type="radio" name="g"/>
+<input id="r66" type="radio" name="g"/>
+<input id="r67" type="radio" name="g"/>
+<input id="r68" type="radio" name="g"/>
+<input id="r69" type="radio" name="g"/>
+<input id="r70" type="radio" name="g"/>
+<input id="r71" type="radio" name="g"/>
+<input id="r72" type="radio" name="g"/>
+<input id="r73" type="radio" name="g"/>
+<input id="r74" type="radio" name="g"/>
+<input id="r75" type="radio" name="g"/>
+<input id="r76" type="radio" name="g"/>
+<input id="r77" type="radio" name="g"/>
+<input id="r78" type="radio" name="g"/>
+<input id="r79" type="radio" name="g"/>
+<input id="r80" type="radio" name="g"/>
+<input id="r81" type="radio" name="g"/>
+<input id="r82" type="radio" name="g"/>
+<input id="r83" type="radio" name="g"/>
+<input id="r84" type="radio" name="g"/>
+<input id="r85" type="radio" name="g"/>
+<input id="r86" type="radio" name="g"/>
+<input id="r87" type="radio" name="g"/>
+<input id="r88" type="radio" name="g"/>
+<input id="r89" type="radio" name="g"/>
+<input id="r90" type="radio" name="g"/>
+<input id="r91" type="radio" name="g"/>
+<input id="r92" type="radio" name="g"/>
+<input id="r93" type="radio" name="g"/>
+<input id="r94" type="radio" name="g"/>
+<input id="r95" type="radio" name="g"/>
+<input id="r96" type="radio" name="g"/>
+<input id="r97" type="radio" name="g"/>
+<input id="r98" type="radio" name="g"/>
+<input id="r99" type="radio" name="g"/>
+<input id="r100" type="radio" name="g"/>
+<input id="r101" type="radio" name="g"/>
+<input id="r102" type="radio" name="g"/>
+<input id="r103" type="radio" name="g"/>
+<input id="r104" type="radio" name="g"/>
+<input id="r105" type="radio" name="g"/>
+<input id="r106" type="radio" name="g"/>
+<input id="r107" type="radio" name="g"/>
+<input id="r108" type="radio" name="g"/>
+<input id="r109" type="radio" name="g"/>
+<input id="r110" type="radio" name="g"/>
+<input id="r111" type="radio" name="g"/>
+<input id="r112" type="radio" name="g"/>
+<input id="r113" type="radio" name="g"/>
+<input id="r114" type="radio" name="g"/>
+<input id="r115" type="radio" name="g"/>
+<input id="r116" type="radio" name="g"/>
+<input id="r117" type="radio" name="g"/>
+<input id="r118" type="radio" name="g"/>
+<input id="r119" type="radio" name="g"/>
+<input id="r120" type="radio" name="g"/>
+<input id="r121" type="radio" name="g"/>
+<input id="r122" type="radio" name="g"/>
+<input id="r123" type="radio" name="g"/>
+<input id="r124" type="radio" name="g"/>
+<input id="r125" type="radio" name="g"/>
+<input id="r126" type="radio" name="g"/>
+<input id="r127" type="radio" name="g"/>
+<input id="r128" type="radio" name="g"/>
+<input id="r129" type="radio" name="g"/>
+<input id="r130" type="radio" name="g"/>
+<input id="r131" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+<input id="i4" type="radio" name="i"/>
+<input id="i5" type="radio" name="i"/>
+<input id="i6" type="radio" name="i"/>
+<input id="i7" type="radio" name="i"/>
+<input id="i8" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2022 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> slog</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-8"><code>	<label for="i0"><span class="lit-string i0">"context"</span></label></code></span>
+<span class="codeline" id="line-9"><code>	<label for="i1"><span class="lit-string i1">"fmt"</span></label></code></span>
+<span class="codeline" id="line-10"><code>	<label for="i2"><span class="lit-string i2">"io"</span></label></code></span>
+<span class="codeline" id="line-11"><code>	<label for="i3"><span class="lit-string i3">"log/slog/internal/buffer"</span></label></code></span>
+<span class="codeline" id="line-12"><code>	<label for="i4"><span class="lit-string i4">"reflect"</span></label></code></span>
+<span class="codeline" id="line-13"><code>	<label for="i5"><span class="lit-string i5">"slices"</span></label></code></span>
+<span class="codeline" id="line-14"><code>	<label for="i6"><span class="lit-string i6">"strconv"</span></label></code></span>
+<span class="codeline" id="line-15"><code>	<label for="i7"><span class="lit-string i7">"sync"</span></label></code></span>
+<span class="codeline" id="line-16"><code>	<label for="i8"><span class="lit-string i8">"time"</span></label></code></span>
+<span class="codeline" id="line-17"><code>)</code></span>
+<span class="codeline" id="line-18"><code></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">// A Handler handles log records produced by a Logger.</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">// A typical handler may print log records to standard error,</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">// or write them to a file or database, or perhaps augment them</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">// with additional attributes and pass them on to another handler.</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">// Any of the Handler's methods may be called concurrently with itself</span></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">// or with other methods. It is the responsibility of the Handler to</span></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">// manage this concurrency.</span></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">// Users of the slog package should not invoke Handler methods directly.</span></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">// They should use the methods of [Logger] instead.</span></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-32"><code><span class="comment">// Before implementing your own handler, consult https://go.dev/s/slog-handler-guide.</span></code></span>
+<span class="codeline" id="line-33"><code><span class="keyword">type</span> <a href="../../../pkg/log/slog.html#name-Handler" class="ident">Handler</a> <span class="keyword">interface</span> {</code></span>
+<span class="codeline" id="line-34"><code>	<span class="comment">// Enabled reports whether the handler handles records at the given level.</span></code></span>
+<span class="codeline" id="line-35"><code><span class="comment">	// The handler ignores records whose level is lower.</span></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">	// It is called early, before any arguments are processed,</span></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">	// to save effort if the log event should be discarded.</span></code></span>
+<span class="codeline" id="line-38"><code><span class="comment">	// If called from a Logger method, the first argument is the context</span></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">	// passed to that method, or context.Background() if nil was passed</span></code></span>
+<span class="codeline" id="line-40"><code><span class="comment">	// or the method does not take a context.</span></code></span>
+<span class="codeline" id="line-41"><code><span class="comment">	// The context is passed so Enabled can use its values</span></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">	// to make a decision.</span></code></span>
+<span class="codeline" id="line-43"><code>	<a href="../../../imp/log/slog.Handler.html#name-Enabled" class="ident">Enabled</a>(<a href="../../../pkg/context.html" class="ident i0">context</a>.<a href="../../context/context.go.html#line-71" class="ident">Context</a>, <a href="level.go.html#line-17" class="ident">Level</a>) <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-44"><code></code></span>
+<span class="codeline" id="line-45"><code>	<span class="comment">// Handle handles the Record.</span></code></span>
+<span class="codeline" id="line-46"><code><span class="comment">	// It will only be called when Enabled returns true.</span></code></span>
+<span class="codeline" id="line-47"><code><span class="comment">	// The Context argument is as for Enabled.</span></code></span>
+<span class="codeline" id="line-48"><code><span class="comment">	// It is present solely to provide Handlers access to the context's values.</span></code></span>
+<span class="codeline" id="line-49"><code><span class="comment">	// Canceling the context should not affect record processing.</span></code></span>
+<span class="codeline" id="line-50"><code><span class="comment">	// (Among other things, log messages may be necessary to debug a</span></code></span>
+<span class="codeline" id="line-51"><code><span class="comment">	// cancellation-related problem.)</span></code></span>
+<span class="codeline" id="line-52"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-53"><code><span class="comment">	// Handle methods that produce output should observe the following rules:</span></code></span>
+<span class="codeline" id="line-54"><code><span class="comment">	//   - If r.Time is the zero time, ignore the time.</span></code></span>
+<span class="codeline" id="line-55"><code><span class="comment">	//   - If r.PC is zero, ignore it.</span></code></span>
+<span class="codeline" id="line-56"><code><span class="comment">	//   - Attr's values should be resolved.</span></code></span>
+<span class="codeline" id="line-57"><code><span class="comment">	//   - If an Attr's key and value are both the zero value, ignore the Attr.</span></code></span>
+<span class="codeline" id="line-58"><code><span class="comment">	//     This can be tested with attr.Equal(Attr{}).</span></code></span>
+<span class="codeline" id="line-59"><code><span class="comment">	//   - If a group's key is empty, inline the group's Attrs.</span></code></span>
+<span class="codeline" id="line-60"><code><span class="comment">	//   - If a group has no Attrs (even if it has a non-empty key),</span></code></span>
+<span class="codeline" id="line-61"><code><span class="comment">	//     ignore it.</span></code></span>
+<span class="codeline" id="line-62"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-63"><code><span class="comment">	// [Logger] discards any errors from Handle. Wrap the Handle method to</span></code></span>
+<span class="codeline" id="line-64"><code><span class="comment">	// process any errors from Handlers.</span></code></span>
+<span class="codeline" id="line-65"><code>	<a href="../../../imp/log/slog.Handler.html#name-Handle" class="ident">Handle</a>(<a href="../../../pkg/context.html" class="ident i0">context</a>.<a href="../../context/context.go.html#line-71" class="ident">Context</a>, <a href="record.go.html#line-20" class="ident">Record</a>) <a href="../../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-66"><code></code></span>
+<span class="codeline" id="line-67"><code>	<span class="comment">// WithAttrs returns a new Handler whose attributes consist of</span></code></span>
+<span class="codeline" id="line-68"><code><span class="comment">	// both the receiver's attributes and the arguments.</span></code></span>
+<span class="codeline" id="line-69"><code><span class="comment">	// The Handler owns the slice: it may retain, modify or discard it.</span></code></span>
+<span class="codeline" id="line-70"><code>	<a href="../../../imp/log/slog.Handler.html#name-WithAttrs" class="ident">WithAttrs</a>(attrs []<a href="attr.go.html#line-12" class="ident">Attr</a>) <a href="#line-33" class="ident">Handler</a></code></span>
+<span class="codeline" id="line-71"><code></code></span>
+<span class="codeline" id="line-72"><code>	<span class="comment">// WithGroup returns a new Handler with the given group appended to</span></code></span>
+<span class="codeline" id="line-73"><code><span class="comment">	// the receiver's existing groups.</span></code></span>
+<span class="codeline" id="line-74"><code><span class="comment">	// The keys of all subsequent attributes, whether added by With or in a</span></code></span>
+<span class="codeline" id="line-75"><code><span class="comment">	// Record, should be qualified by the sequence of group names.</span></code></span>
+<span class="codeline" id="line-76"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-77"><code><span class="comment">	// How this qualification happens is up to the Handler, so long as</span></code></span>
+<span class="codeline" id="line-78"><code><span class="comment">	// this Handler's attribute keys differ from those of another Handler</span></code></span>
+<span class="codeline" id="line-79"><code><span class="comment">	// with a different sequence of group names.</span></code></span>
+<span class="codeline" id="line-80"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-81"><code><span class="comment">	// A Handler should treat WithGroup as starting a Group of Attrs that ends</span></code></span>
+<span class="codeline" id="line-82"><code><span class="comment">	// at the end of the log event. That is,</span></code></span>
+<span class="codeline" id="line-83"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-84"><code><span class="comment">	//     logger.WithGroup("s").LogAttrs(ctx, level, msg, slog.Int("a", 1), slog.Int("b", 2))</span></code></span>
+<span class="codeline" id="line-85"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-86"><code><span class="comment">	// should behave like</span></code></span>
+<span class="codeline" id="line-87"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-88"><code><span class="comment">	//     logger.LogAttrs(ctx, level, msg, slog.Group("s", slog.Int("a", 1), slog.Int("b", 2)))</span></code></span>
+<span class="codeline" id="line-89"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-90"><code><span class="comment">	// If the name is empty, WithGroup returns the receiver.</span></code></span>
+<span class="codeline" id="line-91"><code>	<a href="../../../imp/log/slog.Handler.html#name-WithGroup" class="ident">WithGroup</a>(name <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="#line-33" class="ident">Handler</a></code></span>
+<span class="codeline" id="line-92"><code>}</code></span>
+<span class="codeline" id="line-93"><code></code></span>
+<span class="codeline" id="line-94"><code><span class="keyword">type</span> <a href="../../../pkg/log/slog.html#name-defaultHandler" class="ident">defaultHandler</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-95"><code>	<a href="../../../use/log/slog..defaultHandler^8656f.ch^34367.html" class="ident">ch</a> *<a href="#line-191" class="ident">commonHandler</a></code></span>
+<span class="codeline" id="line-96"><code>	<span class="comment">// internal.DefaultOutput, except for testing</span></code></span>
+<span class="codeline" id="line-97"><code>	<a href="../../../use/log/slog..defaultHandler^8656f.output^e0ee8.html" class="ident">output</a> <span class="keyword">func</span>(pc <a href="../../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>, data []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-98"><code>}</code></span>
+<span class="codeline" id="line-99"><code></code></span>
+<span class="codeline" id="line-100"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../pkg/log/slog.html#name-newDefaultHandler" class="ident">newDefaultHandler</a></label>(<label for="r1" class="ident">output</label> <span class="keyword">func</span>(<a href="../../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>, []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) *<a href="#line-94" class="ident">defaultHandler</a> {</code></span>
+<span class="codeline" id="line-101"><code>	<span class="keyword">return</span> &amp;<a href="#line-94" class="ident">defaultHandler</a>{</code></span>
+<span class="codeline" id="line-102"><code>		<a href="#line-95" class="ident">ch</a>:     &amp;<a href="#line-191" class="ident">commonHandler</a>{<a href="#line-192" class="ident">json</a>: <a href="../../../pkg/builtin.html#name-false" class="ident">false</a>},</code></span>
+<span class="codeline" id="line-103"><code>		<a href="#line-97" class="ident">output</a>: <label for="r1" class="ident">output</label>,</code></span>
+<span class="codeline" id="line-104"><code>	}</code></span>
+<span class="codeline" id="line-105"><code>}</code></span>
+<span class="codeline" id="line-106"><code></code></span>
+<span class="codeline" id="line-107"><code><span class="keyword">func</span> (*<a href="#line-94" class="ident">defaultHandler</a>) <label for="r2" class="ident"><a href="../../../use/log/slog..defaultHandler^8656f.Enabled.html" class="ident">Enabled</a></label>(<label for="r3" class="ident">_</label> <a href="../../../pkg/context.html" class="ident i0">context</a>.<a href="../../context/context.go.html#line-71" class="ident">Context</a>, <label for="r4" class="ident">l</label> <a href="level.go.html#line-17" class="ident">Level</a>) <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-108"><code>	<span class="keyword">return</span> <label for="r4" class="ident">l</label> &gt;= <a href="logger.go.html#line-20" class="ident">logLoggerLevel</a>.<a href="level.go.html#line-168" class="ident">Level</a>()</code></span>
+<span class="codeline" id="line-109"><code>}</code></span>
+<span class="codeline" id="line-110"><code></code></span>
+<span class="codeline" id="line-111"><code><span class="comment">// Collect the level, attributes and message in a string and</span></code></span>
+<span class="codeline" id="line-112"><code><span class="comment">// write it with the default log.Logger.</span></code></span>
+<span class="codeline" id="line-113"><code><span class="comment">// Let the log.Logger handle time and file/line.</span></code></span>
+<span class="codeline" id="line-114"><code><span class="keyword">func</span> (<label for="r5" class="ident">h</label> *<a href="#line-94" class="ident">defaultHandler</a>) <label for="r6" class="ident"><a href="../../../use/log/slog..defaultHandler^8656f.Handle.html" class="ident">Handle</a></label>(<label for="r7" class="ident">ctx</label> <a href="../../../pkg/context.html" class="ident i0">context</a>.<a href="../../context/context.go.html#line-71" class="ident">Context</a>, <label for="r8" class="ident">r</label> <a href="record.go.html#line-20" class="ident">Record</a>) <a href="../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-115"><code>	<label for="r9" class="ident">buf</label> := <a href="../../../pkg/log/slog/internal/buffer.html" class="ident i3">buffer</a>.<a href="internal/buffer/buffer.go.html#line-24" class="ident">New</a>()</code></span>
+<span class="codeline" id="line-116"><code>	<label for="r9" class="ident">buf</label>.<a href="internal/buffer/buffer.go.html#line-46" class="ident">WriteString</a>(<label for="r8" class="ident">r</label>.<a href="record.go.html#line-28" class="ident">Level</a>.<a href="level.go.html#line-59" class="ident">String</a>())</code></span>
+<span class="codeline" id="line-117"><code>	<label for="r9" class="ident">buf</label>.<a href="internal/buffer/buffer.go.html#line-51" class="ident">WriteByte</a>(<span class="lit-number">' '</span>)</code></span>
+<span class="codeline" id="line-118"><code>	<label for="r9" class="ident">buf</label>.<a href="internal/buffer/buffer.go.html#line-46" class="ident">WriteString</a>(<label for="r8" class="ident">r</label>.<a href="record.go.html#line-25" class="ident">Message</a>)</code></span>
+<span class="codeline" id="line-119"><code>	<label for="r10" class="ident">state</label> := <label for="r5" class="ident">h</label>.<a href="#line-95" class="ident">ch</a>.<a href="#line-396" class="ident">newHandleState</a>(<label for="r9" class="ident">buf</label>, <a href="../../../pkg/builtin.html#name-true" class="ident">true</a>, <span class="lit-string">" "</span>)</code></span>
+<span class="codeline" id="line-120"><code>	<span class="keyword">defer</span> <label for="r10" class="ident">state</label>.<a href="#line-411" class="ident">free</a>()</code></span>
+<span class="codeline" id="line-121"><code>	<label for="r10" class="ident">state</label>.<a href="#line-326" class="ident">appendNonBuiltIns</a>(<label for="r8" class="ident">r</label>)</code></span>
+<span class="codeline" id="line-122"><code>	<span class="keyword">return</span> <label for="r5" class="ident">h</label>.<a href="#line-97" class="ident">output</a>(<label for="r8" class="ident">r</label>.<a href="record.go.html#line-36" class="ident">PC</a>, *<label for="r9" class="ident">buf</label>)</code></span>
+<span class="codeline" id="line-123"><code>}</code></span>
+<span class="codeline" id="line-124"><code></code></span>
+<span class="codeline" id="line-125"><code><span class="keyword">func</span> (<label for="r11" class="ident">h</label> *<a href="#line-94" class="ident">defaultHandler</a>) <label for="r12" class="ident"><a href="../../../use/log/slog..defaultHandler^8656f.WithAttrs.html" class="ident">WithAttrs</a></label>(<label for="r13" class="ident">as</label> []<a href="attr.go.html#line-12" class="ident">Attr</a>) <a href="#line-33" class="ident">Handler</a> {</code></span>
+<span class="codeline" id="line-126"><code>	<span class="keyword">return</span> &amp;<a href="#line-94" class="ident">defaultHandler</a>{<label for="r11" class="ident">h</label>.<a href="#line-95" class="ident">ch</a>.<a href="#line-230" class="ident">withAttrs</a>(<label for="r13" class="ident">as</label>), <label for="r11" class="ident">h</label>.<a href="#line-97" class="ident">output</a>}</code></span>
+<span class="codeline" id="line-127"><code>}</code></span>
+<span class="codeline" id="line-128"><code></code></span>
+<span class="codeline" id="line-129"><code><span class="keyword">func</span> (<label for="r14" class="ident">h</label> *<a href="#line-94" class="ident">defaultHandler</a>) <label for="r15" class="ident"><a href="../../../use/log/slog..defaultHandler^8656f.WithGroup.html" class="ident">WithGroup</a></label>(<label for="r16" class="ident">name</label> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="#line-33" class="ident">Handler</a> {</code></span>
+<span class="codeline" id="line-130"><code>	<span class="keyword">return</span> &amp;<a href="#line-94" class="ident">defaultHandler</a>{<label for="r14" class="ident">h</label>.<a href="#line-95" class="ident">ch</a>.<a href="#line-262" class="ident">withGroup</a>(<label for="r16" class="ident">name</label>), <label for="r14" class="ident">h</label>.<a href="#line-97" class="ident">output</a>}</code></span>
+<span class="codeline" id="line-131"><code>}</code></span>
+<span class="codeline" id="line-132"><code></code></span>
+<span class="codeline" id="line-133"><code><span class="comment">// HandlerOptions are options for a [TextHandler] or [JSONHandler].</span></code></span>
+<span class="codeline" id="line-134"><code><span class="comment">// A zero HandlerOptions consists entirely of default values.</span></code></span>
+<span class="codeline" id="line-135"><code><span class="keyword">type</span> <a href="../../../pkg/log/slog.html#name-HandlerOptions" class="ident">HandlerOptions</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-136"><code>	<span class="comment">// AddSource causes the handler to compute the source code position</span></code></span>
+<span class="codeline" id="line-137"><code><span class="comment">	// of the log statement and add a SourceKey attribute to the output.</span></code></span>
+<span class="codeline" id="line-138"><code>	<a href="../../../use/log/slog..HandlerOptions.AddSource.html" class="ident">AddSource</a> <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-139"><code></code></span>
+<span class="codeline" id="line-140"><code>	<span class="comment">// Level reports the minimum record level that will be logged.</span></code></span>
+<span class="codeline" id="line-141"><code><span class="comment">	// The handler discards records with lower levels.</span></code></span>
+<span class="codeline" id="line-142"><code><span class="comment">	// If Level is nil, the handler assumes LevelInfo.</span></code></span>
+<span class="codeline" id="line-143"><code><span class="comment">	// The handler calls Level.Level for each record processed;</span></code></span>
+<span class="codeline" id="line-144"><code><span class="comment">	// to adjust the minimum level dynamically, use a LevelVar.</span></code></span>
+<span class="codeline" id="line-145"><code>	<a href="../../../use/log/slog..HandlerOptions.Level.html" class="ident">Level</a> <a href="level.go.html#line-210" class="ident">Leveler</a></code></span>
+<span class="codeline" id="line-146"><code></code></span>
+<span class="codeline" id="line-147"><code>	<span class="comment">// ReplaceAttr is called to rewrite each non-group attribute before it is logged.</span></code></span>
+<span class="codeline" id="line-148"><code><span class="comment">	// The attribute's value has been resolved (see [Value.Resolve]).</span></code></span>
+<span class="codeline" id="line-149"><code><span class="comment">	// If ReplaceAttr returns a zero Attr, the attribute is discarded.</span></code></span>
+<span class="codeline" id="line-150"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-151"><code><span class="comment">	// The built-in attributes with keys "time", "level", "source", and "msg"</span></code></span>
+<span class="codeline" id="line-152"><code><span class="comment">	// are passed to this function, except that time is omitted</span></code></span>
+<span class="codeline" id="line-153"><code><span class="comment">	// if zero, and source is omitted if AddSource is false.</span></code></span>
+<span class="codeline" id="line-154"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-155"><code><span class="comment">	// The first argument is a list of currently open groups that contain the</span></code></span>
+<span class="codeline" id="line-156"><code><span class="comment">	// Attr. It must not be retained or modified. ReplaceAttr is never called</span></code></span>
+<span class="codeline" id="line-157"><code><span class="comment">	// for Group attributes, only their contents. For example, the attribute</span></code></span>
+<span class="codeline" id="line-158"><code><span class="comment">	// list</span></code></span>
+<span class="codeline" id="line-159"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-160"><code><span class="comment">	//     Int("a", 1), Group("g", Int("b", 2)), Int("c", 3)</span></code></span>
+<span class="codeline" id="line-161"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-162"><code><span class="comment">	// results in consecutive calls to ReplaceAttr with the following arguments:</span></code></span>
+<span class="codeline" id="line-163"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-164"><code><span class="comment">	//     nil, Int("a", 1)</span></code></span>
+<span class="codeline" id="line-165"><code><span class="comment">	//     []string{"g"}, Int("b", 2)</span></code></span>
+<span class="codeline" id="line-166"><code><span class="comment">	//     nil, Int("c", 3)</span></code></span>
+<span class="codeline" id="line-167"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-168"><code><span class="comment">	// ReplaceAttr can be used to change the default keys of the built-in</span></code></span>
+<span class="codeline" id="line-169"><code><span class="comment">	// attributes, convert types (for example, to replace a `time.Time` with the</span></code></span>
+<span class="codeline" id="line-170"><code><span class="comment">	// integer seconds since the Unix epoch), sanitize personal information, or</span></code></span>
+<span class="codeline" id="line-171"><code><span class="comment">	// remove attributes from the output.</span></code></span>
+<span class="codeline" id="line-172"><code>	<a href="../../../use/log/slog..HandlerOptions.ReplaceAttr.html" class="ident">ReplaceAttr</a> <span class="keyword">func</span>(groups []<a href="../../../pkg/builtin.html#name-string" class="ident">string</a>, a <a href="attr.go.html#line-12" class="ident">Attr</a>) <a href="attr.go.html#line-12" class="ident">Attr</a></code></span>
+<span class="codeline" id="line-173"><code>}</code></span>
+<span class="codeline" id="line-174"><code></code></span>
+<span class="codeline" id="line-175"><code><span class="comment">// Keys for "built-in" attributes.</span></code></span>
+<span class="codeline" id="line-176"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-177"><code>	<span class="comment">// TimeKey is the key used by the built-in handlers for the time</span></code></span>
+<span class="codeline" id="line-178"><code><span class="comment">	// when the log method is called. The associated Value is a [time.Time].</span></code></span>
+<span class="codeline" id="line-179"><code>	<a href="../../../pkg/log/slog.html#name-TimeKey" class="ident">TimeKey</a> = <span class="lit-string">"time"</span></code></span>
+<span class="codeline" id="line-180"><code>	<span class="comment">// LevelKey is the key used by the built-in handlers for the level</span></code></span>
+<span class="codeline" id="line-181"><code><span class="comment">	// of the log call. The associated value is a [Level].</span></code></span>
+<span class="codeline" id="line-182"><code>	<a href="../../../pkg/log/slog.html#name-LevelKey" class="ident">LevelKey</a> = <span class="lit-string">"level"</span></code></span>
+<span class="codeline" id="line-183"><code>	<span class="comment">// MessageKey is the key used by the built-in handlers for the</span></code></span>
+<span class="codeline" id="line-184"><code><span class="comment">	// message of the log call. The associated value is a string.</span></code></span>
+<span class="codeline" id="line-185"><code>	<a href="../../../pkg/log/slog.html#name-MessageKey" class="ident">MessageKey</a> = <span class="lit-string">"msg"</span></code></span>
+<span class="codeline" id="line-186"><code>	<span class="comment">// SourceKey is the key used by the built-in handlers for the source file</span></code></span>
+<span class="codeline" id="line-187"><code><span class="comment">	// and line of the log call. The associated value is a *[Source].</span></code></span>
+<span class="codeline" id="line-188"><code>	<a href="../../../pkg/log/slog.html#name-SourceKey" class="ident">SourceKey</a> = <span class="lit-string">"source"</span></code></span>
+<span class="codeline" id="line-189"><code>)</code></span>
+<span class="codeline" id="line-190"><code></code></span>
+<span class="codeline" id="line-191"><code><span class="keyword">type</span> <a href="../../../pkg/log/slog.html#name-commonHandler" class="ident">commonHandler</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-192"><code>	<a href="../../../use/log/slog..commonHandler^60bab.json^02bd1.html" class="ident">json</a>              <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a> <span class="comment">// true =&gt; output JSON; false =&gt; output text</span></code></span>
+<span class="codeline" id="line-193"><code>	<a href="../../../use/log/slog..commonHandler^60bab.opts^d2a1e.html" class="ident">opts</a>              <a href="#line-135" class="ident">HandlerOptions</a></code></span>
+<span class="codeline" id="line-194"><code>	<a href="../../../use/log/slog..commonHandler^60bab.preformattedAttrs^071f3.html" class="ident">preformattedAttrs</a> []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
+<span class="codeline" id="line-195"><code>	<span class="comment">// groupPrefix is for the text handler only.</span></code></span>
+<span class="codeline" id="line-196"><code><span class="comment">	// It holds the prefix for groups that were already pre-formatted.</span></code></span>
+<span class="codeline" id="line-197"><code><span class="comment">	// A group will appear here when a call to WithGroup is followed by</span></code></span>
+<span class="codeline" id="line-198"><code><span class="comment">	// a call to WithAttrs.</span></code></span>
+<span class="codeline" id="line-199"><code>	<a href="../../../use/log/slog..commonHandler^60bab.groupPrefix^51a3f.html" class="ident">groupPrefix</a> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-200"><code>	<a href="../../../use/log/slog..commonHandler^60bab.groups^4ed37.html" class="ident">groups</a>      []<a href="../../../pkg/builtin.html#name-string" class="ident">string</a> <span class="comment">// all groups started from WithGroup</span></code></span>
+<span class="codeline" id="line-201"><code>	<a href="../../../use/log/slog..commonHandler^60bab.nOpenGroups^22544.html" class="ident">nOpenGroups</a> <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>      <span class="comment">// the number of groups opened in preformattedAttrs</span></code></span>
+<span class="codeline" id="line-202"><code>	<a href="../../../use/log/slog..commonHandler^60bab.mu^19503.html" class="ident">mu</a>          *<a href="../../../pkg/sync.html" class="ident i7">sync</a>.<a href="../../sync/mutex.go.html#line-30" class="ident">Mutex</a></code></span>
+<span class="codeline" id="line-203"><code>	<a href="../../../use/log/slog..commonHandler^60bab.w^50e72.html" class="ident">w</a>           <a href="../../../pkg/io.html" class="ident i2">io</a>.<a href="../../io/io.go.html#line-99" class="ident">Writer</a></code></span>
+<span class="codeline" id="line-204"><code>}</code></span>
+<span class="codeline" id="line-205"><code></code></span>
+<span class="codeline" id="line-206"><code><span class="keyword">func</span> (<label for="r17" class="ident">h</label> *<a href="#line-191" class="ident">commonHandler</a>) <label for="r18" class="ident"><a href="../../../use/log/slog..commonHandler^60bab.clone^b5d61.html" class="ident">clone</a></label>() *<a href="#line-191" class="ident">commonHandler</a> {</code></span>
+<span class="codeline" id="line-207"><code>	<span class="comment">// We can't use assignment because we can't copy the mutex.</span></code></span>
+<span class="codeline" id="line-208"><code>	<span class="keyword">return</span> &amp;<a href="#line-191" class="ident">commonHandler</a>{</code></span>
+<span class="codeline" id="line-209"><code>		<a href="#line-192" class="ident">json</a>:              <label for="r17" class="ident">h</label>.<a href="#line-192" class="ident">json</a>,</code></span>
+<span class="codeline" id="line-210"><code>		<a href="#line-193" class="ident">opts</a>:              <label for="r17" class="ident">h</label>.<a href="#line-193" class="ident">opts</a>,</code></span>
+<span class="codeline" id="line-211"><code>		<a href="#line-194" class="ident">preformattedAttrs</a>: <a href="../../../pkg/slices.html" class="ident i5">slices</a>.<a href="../../slices/slices.go.html#line-433" class="ident">Clip</a>(<label for="r17" class="ident">h</label>.<a href="#line-194" class="ident">preformattedAttrs</a>),</code></span>
+<span class="codeline" id="line-212"><code>		<a href="#line-199" class="ident">groupPrefix</a>:       <label for="r17" class="ident">h</label>.<a href="#line-199" class="ident">groupPrefix</a>,</code></span>
+<span class="codeline" id="line-213"><code>		<a href="#line-200" class="ident">groups</a>:            <a href="../../../pkg/slices.html" class="ident i5">slices</a>.<a href="../../slices/slices.go.html#line-433" class="ident">Clip</a>(<label for="r17" class="ident">h</label>.<a href="#line-200" class="ident">groups</a>),</code></span>
+<span class="codeline" id="line-214"><code>		<a href="#line-201" class="ident">nOpenGroups</a>:       <label for="r17" class="ident">h</label>.<a href="#line-201" class="ident">nOpenGroups</a>,</code></span>
+<span class="codeline" id="line-215"><code>		<a href="#line-203" class="ident">w</a>:                 <label for="r17" class="ident">h</label>.<a href="#line-203" class="ident">w</a>,</code></span>
+<span class="codeline" id="line-216"><code>		<a href="#line-202" class="ident">mu</a>:                <label for="r17" class="ident">h</label>.<a href="#line-202" class="ident">mu</a>, <span class="comment">// mutex shared among all clones of this handler</span></code></span>
+<span class="codeline" id="line-217"><code>	}</code></span>
+<span class="codeline" id="line-218"><code>}</code></span>
+<span class="codeline" id="line-219"><code></code></span>
+<span class="codeline" id="line-220"><code><span class="comment">// enabled reports whether l is greater than or equal to the</span></code></span>
+<span class="codeline" id="line-221"><code><span class="comment">// minimum level.</span></code></span>
+<span class="codeline" id="line-222"><code><span class="keyword">func</span> (<label for="r19" class="ident">h</label> *<a href="#line-191" class="ident">commonHandler</a>) <label for="r20" class="ident"><a href="../../../use/log/slog..commonHandler^60bab.enabled^fb9cf.html" class="ident">enabled</a></label>(<label for="r21" class="ident">l</label> <a href="level.go.html#line-17" class="ident">Level</a>) <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-223"><code>	<label for="r22" class="ident">minLevel</label> := <a href="level.go.html#line-45" class="ident">LevelInfo</a></code></span>
+<span class="codeline" id="line-224"><code>	<span class="keyword">if</span> <label for="r19" class="ident">h</label>.<a href="#line-193" class="ident">opts</a>.<a href="#line-145" class="ident">Level</a> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-225"><code>		<label for="r22" class="ident">minLevel</label> = <label for="r19" class="ident">h</label>.<a href="#line-193" class="ident">opts</a>.<a href="#line-145" class="ident">Level</a>.<a href="level.go.html#line-211" class="ident">Level</a>()</code></span>
+<span class="codeline" id="line-226"><code>	}</code></span>
+<span class="codeline" id="line-227"><code>	<span class="keyword">return</span> <label for="r21" class="ident">l</label> &gt;= <label for="r22" class="ident">minLevel</label></code></span>
+<span class="codeline" id="line-228"><code>}</code></span>
+<span class="codeline" id="line-229"><code></code></span>
+<span class="codeline" id="line-230"><code><span class="keyword">func</span> (<label for="r23" class="ident">h</label> *<a href="#line-191" class="ident">commonHandler</a>) <label for="r24" class="ident"><a href="../../../use/log/slog..commonHandler^60bab.withAttrs^08d7d.html" class="ident">withAttrs</a></label>(<label for="r25" class="ident">as</label> []<a href="attr.go.html#line-12" class="ident">Attr</a>) *<a href="#line-191" class="ident">commonHandler</a> {</code></span>
+<span class="codeline" id="line-231"><code>	<span class="comment">// We are going to ignore empty groups, so if the entire slice consists of</span></code></span>
+<span class="codeline" id="line-232"><code><span class="comment">	// them, there is nothing to do.</span></code></span>
+<span class="codeline" id="line-233"><code>	<span class="keyword">if</span> <a href="value.go.html#line-196" class="ident">countEmptyGroups</a>(<label for="r25" class="ident">as</label>) == <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r25" class="ident">as</label>) {</code></span>
+<span class="codeline" id="line-234"><code>		<span class="keyword">return</span> <label for="r23" class="ident">h</label></code></span>
+<span class="codeline" id="line-235"><code>	}</code></span>
+<span class="codeline" id="line-236"><code>	<label for="r26" class="ident">h2</label> := <label for="r23" class="ident">h</label>.<a href="#line-206" class="ident">clone</a>()</code></span>
+<span class="codeline" id="line-237"><code>	<span class="comment">// Pre-format the attributes as an optimization.</span></code></span>
+<span class="codeline" id="line-238"><code>	<label for="r27" class="ident">state</label> := <label for="r26" class="ident">h2</label>.<a href="#line-396" class="ident">newHandleState</a>((*<a href="../../../pkg/log/slog/internal/buffer.html" class="ident i3">buffer</a>.<a href="internal/buffer/buffer.go.html#line-14" class="ident">Buffer</a>)(&amp;<label for="r26" class="ident">h2</label>.<a href="#line-194" class="ident">preformattedAttrs</a>), <a href="../../../pkg/builtin.html#name-false" class="ident">false</a>, <span class="lit-string">""</span>)</code></span>
+<span class="codeline" id="line-239"><code>	<span class="keyword">defer</span> <label for="r27" class="ident">state</label>.<a href="#line-411" class="ident">free</a>()</code></span>
+<span class="codeline" id="line-240"><code>	<label for="r27" class="ident">state</label>.<a href="#line-387" class="ident">prefix</a>.<a href="internal/buffer/buffer.go.html#line-46" class="ident">WriteString</a>(<label for="r23" class="ident">h</label>.<a href="#line-199" class="ident">groupPrefix</a>)</code></span>
+<span class="codeline" id="line-241"><code>	<span class="keyword">if</span> <label for="r28" class="ident">pfa</label> := <label for="r26" class="ident">h2</label>.<a href="#line-194" class="ident">preformattedAttrs</a>; <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r28" class="ident">pfa</label>) &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-242"><code>		<label for="r27" class="ident">state</label>.<a href="#line-386" class="ident">sep</a> = <label for="r23" class="ident">h</label>.<a href="#line-372" class="ident">attrSep</a>()</code></span>
+<span class="codeline" id="line-243"><code>		<span class="keyword">if</span> <label for="r26" class="ident">h2</label>.<a href="#line-192" class="ident">json</a> &amp;&amp; <label for="r28" class="ident">pfa</label>[<a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r28" class="ident">pfa</label>)-<span class="lit-number">1</span>] == <span class="lit-number">'{'</span> {</code></span>
+<span class="codeline" id="line-244"><code>			<label for="r27" class="ident">state</label>.<a href="#line-386" class="ident">sep</a> = <span class="lit-string">""</span></code></span>
+<span class="codeline" id="line-245"><code>		}</code></span>
+<span class="codeline" id="line-246"><code>	}</code></span>
+<span class="codeline" id="line-247"><code>	<span class="comment">// Remember the position in the buffer, in case all attrs are empty.</span></code></span>
+<span class="codeline" id="line-248"><code>	<label for="r29" class="ident">pos</label> := <label for="r27" class="ident">state</label>.<a href="#line-384" class="ident">buf</a>.<a href="internal/buffer/buffer.go.html#line-60" class="ident">Len</a>()</code></span>
+<span class="codeline" id="line-249"><code>	<label for="r27" class="ident">state</label>.<a href="#line-422" class="ident">openGroups</a>()</code></span>
+<span class="codeline" id="line-250"><code>	<span class="keyword">if</span> !<label for="r27" class="ident">state</label>.<a href="#line-463" class="ident">appendAttrs</a>(<label for="r25" class="ident">as</label>) {</code></span>
+<span class="codeline" id="line-251"><code>		<label for="r27" class="ident">state</label>.<a href="#line-384" class="ident">buf</a>.<a href="internal/buffer/buffer.go.html#line-64" class="ident">SetLen</a>(<label for="r29" class="ident">pos</label>)</code></span>
+<span class="codeline" id="line-252"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-253"><code>		<span class="comment">// Remember the new prefix for later keys.</span></code></span>
+<span class="codeline" id="line-254"><code>		<label for="r26" class="ident">h2</label>.<a href="#line-199" class="ident">groupPrefix</a> = <label for="r27" class="ident">state</label>.<a href="#line-387" class="ident">prefix</a>.<a href="internal/buffer/buffer.go.html#line-56" class="ident">String</a>()</code></span>
+<span class="codeline" id="line-255"><code>		<span class="comment">// Remember how many opened groups are in preformattedAttrs,</span></code></span>
+<span class="codeline" id="line-256"><code><span class="comment">		// so we don't open them again when we handle a Record.</span></code></span>
+<span class="codeline" id="line-257"><code>		<label for="r26" class="ident">h2</label>.<a href="#line-201" class="ident">nOpenGroups</a> = <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r26" class="ident">h2</label>.<a href="#line-200" class="ident">groups</a>)</code></span>
+<span class="codeline" id="line-258"><code>	}</code></span>
+<span class="codeline" id="line-259"><code>	<span class="keyword">return</span> <label for="r26" class="ident">h2</label></code></span>
+<span class="codeline" id="line-260"><code>}</code></span>
+<span class="codeline" id="line-261"><code></code></span>
+<span class="codeline" id="line-262"><code><span class="keyword">func</span> (<label for="r30" class="ident">h</label> *<a href="#line-191" class="ident">commonHandler</a>) <label for="r31" class="ident"><a href="../../../use/log/slog..commonHandler^60bab.withGroup^af50e.html" class="ident">withGroup</a></label>(<label for="r32" class="ident">name</label> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>) *<a href="#line-191" class="ident">commonHandler</a> {</code></span>
+<span class="codeline" id="line-263"><code>	<label for="r33" class="ident">h2</label> := <label for="r30" class="ident">h</label>.<a href="#line-206" class="ident">clone</a>()</code></span>
+<span class="codeline" id="line-264"><code>	<label for="r33" class="ident">h2</label>.<a href="#line-200" class="ident">groups</a> = <a href="../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r33" class="ident">h2</label>.<a href="#line-200" class="ident">groups</a>, <label for="r32" class="ident">name</label>)</code></span>
+<span class="codeline" id="line-265"><code>	<span class="keyword">return</span> <label for="r33" class="ident">h2</label></code></span>
+<span class="codeline" id="line-266"><code>}</code></span>
+<span class="codeline" id="line-267"><code></code></span>
+<span class="codeline" id="line-268"><code><span class="comment">// handle is the internal implementation of Handler.Handle</span></code></span>
+<span class="codeline" id="line-269"><code><span class="comment">// used by TextHandler and JSONHandler.</span></code></span>
+<span class="codeline" id="line-270"><code><span class="keyword">func</span> (<label for="r34" class="ident">h</label> *<a href="#line-191" class="ident">commonHandler</a>) <label for="r35" class="ident"><a href="../../../use/log/slog..commonHandler^60bab.handle^c2a11.html" class="ident">handle</a></label>(<label for="r36" class="ident">r</label> <a href="record.go.html#line-20" class="ident">Record</a>) <a href="../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-271"><code>	<label for="r37" class="ident">state</label> := <label for="r34" class="ident">h</label>.<a href="#line-396" class="ident">newHandleState</a>(<a href="../../../pkg/log/slog/internal/buffer.html" class="ident i3">buffer</a>.<a href="internal/buffer/buffer.go.html#line-24" class="ident">New</a>(), <a href="../../../pkg/builtin.html#name-true" class="ident">true</a>, <span class="lit-string">""</span>)</code></span>
+<span class="codeline" id="line-272"><code>	<span class="keyword">defer</span> <label for="r37" class="ident">state</label>.<a href="#line-411" class="ident">free</a>()</code></span>
+<span class="codeline" id="line-273"><code>	<span class="keyword">if</span> <label for="r34" class="ident">h</label>.<a href="#line-192" class="ident">json</a> {</code></span>
+<span class="codeline" id="line-274"><code>		<label for="r37" class="ident">state</label>.<a href="#line-384" class="ident">buf</a>.<a href="internal/buffer/buffer.go.html#line-51" class="ident">WriteByte</a>(<span class="lit-number">'{'</span>)</code></span>
+<span class="codeline" id="line-275"><code>	}</code></span>
+<span class="codeline" id="line-276"><code>	<span class="comment">// Built-in attributes. They are not in a group.</span></code></span>
+<span class="codeline" id="line-277"><code>	<label for="r38" class="ident">stateGroups</label> := <label for="r37" class="ident">state</label>.<a href="#line-388" class="ident">groups</a></code></span>
+<span class="codeline" id="line-278"><code>	<label for="r37" class="ident">state</label>.<a href="#line-388" class="ident">groups</a> = <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> <span class="comment">// So ReplaceAttrs sees no groups instead of the pre groups.</span></code></span>
+<span class="codeline" id="line-279"><code>	<label for="r39" class="ident">rep</label> := <label for="r34" class="ident">h</label>.<a href="#line-193" class="ident">opts</a>.<a href="#line-172" class="ident">ReplaceAttr</a></code></span>
+<span class="codeline" id="line-280"><code>	<span class="comment">// time</span></code></span>
+<span class="codeline" id="line-281"><code>	<span class="keyword">if</span> !<label for="r36" class="ident">r</label>.<a href="record.go.html#line-22" class="ident">Time</a>.<a href="../../time/time.go.html#line-262" class="ident">IsZero</a>() {</code></span>
+<span class="codeline" id="line-282"><code>		<label for="r40" class="ident">key</label> := <a href="#line-179" class="ident">TimeKey</a></code></span>
+<span class="codeline" id="line-283"><code>		<label for="r41" class="ident">val</label> := <label for="r36" class="ident">r</label>.<a href="record.go.html#line-22" class="ident">Time</a>.<a href="../../time/time.go.html#line-1795" class="ident">Round</a>(<span class="lit-number">0</span>) <span class="comment">// strip monotonic to match Attr behavior</span></code></span>
+<span class="codeline" id="line-284"><code>		<span class="keyword">if</span> <label for="r39" class="ident">rep</label> == <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-285"><code>			<label for="r37" class="ident">state</label>.<a href="#line-537" class="ident">appendKey</a>(<label for="r40" class="ident">key</label>)</code></span>
+<span class="codeline" id="line-286"><code>			<label for="r37" class="ident">state</label>.<a href="#line-614" class="ident">appendTime</a>(<label for="r41" class="ident">val</label>)</code></span>
+<span class="codeline" id="line-287"><code>		} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-288"><code>			<label for="r37" class="ident">state</label>.<a href="#line-476" class="ident">appendAttr</a>(<a href="attr.go.html#line-50" class="ident">Time</a>(<label for="r40" class="ident">key</label>, <label for="r41" class="ident">val</label>))</code></span>
+<span class="codeline" id="line-289"><code>		}</code></span>
+<span class="codeline" id="line-290"><code>	}</code></span>
+<span class="codeline" id="line-291"><code>	<span class="comment">// level</span></code></span>
+<span class="codeline" id="line-292"><code>	<label for="r42" class="ident">key</label> := <a href="#line-182" class="ident">LevelKey</a></code></span>
+<span class="codeline" id="line-293"><code>	<label for="r43" class="ident">val</label> := <label for="r36" class="ident">r</label>.<a href="record.go.html#line-28" class="ident">Level</a></code></span>
+<span class="codeline" id="line-294"><code>	<span class="keyword">if</span> <label for="r39" class="ident">rep</label> == <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-295"><code>		<label for="r37" class="ident">state</label>.<a href="#line-537" class="ident">appendKey</a>(<label for="r42" class="ident">key</label>)</code></span>
+<span class="codeline" id="line-296"><code>		<label for="r37" class="ident">state</label>.<a href="#line-570" class="ident">appendString</a>(<label for="r43" class="ident">val</label>.<a href="level.go.html#line-59" class="ident">String</a>())</code></span>
+<span class="codeline" id="line-297"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-298"><code>		<label for="r37" class="ident">state</label>.<a href="#line-476" class="ident">appendAttr</a>(<a href="attr.go.html#line-93" class="ident">Any</a>(<label for="r42" class="ident">key</label>, <label for="r43" class="ident">val</label>))</code></span>
+<span class="codeline" id="line-299"><code>	}</code></span>
+<span class="codeline" id="line-300"><code>	<span class="comment">// source</span></code></span>
+<span class="codeline" id="line-301"><code>	<span class="keyword">if</span> <label for="r34" class="ident">h</label>.<a href="#line-193" class="ident">opts</a>.<a href="#line-138" class="ident">AddSource</a> {</code></span>
+<span class="codeline" id="line-302"><code>		<label for="r44" class="ident">src</label> := <label for="r36" class="ident">r</label>.<a href="record.go.html#line-220" class="ident">Source</a>()</code></span>
+<span class="codeline" id="line-303"><code>		<span class="keyword">if</span> <label for="r44" class="ident">src</label> == <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-304"><code>			<label for="r44" class="ident">src</label> = &amp;<a href="record.go.html#line-185" class="ident">Source</a>{}</code></span>
+<span class="codeline" id="line-305"><code>		}</code></span>
+<span class="codeline" id="line-306"><code>		<label for="r37" class="ident">state</label>.<a href="#line-476" class="ident">appendAttr</a>(<a href="attr.go.html#line-93" class="ident">Any</a>(<a href="#line-188" class="ident">SourceKey</a>, <label for="r44" class="ident">src</label>))</code></span>
+<span class="codeline" id="line-307"><code>	}</code></span>
+<span class="codeline" id="line-308"><code>	<label for="r42" class="ident">key</label> = <a href="#line-185" class="ident">MessageKey</a></code></span>
+<span class="codeline" id="line-309"><code>	<label for="r45" class="ident">msg</label> := <label for="r36" class="ident">r</label>.<a href="record.go.html#line-25" class="ident">Message</a></code></span>
+<span class="codeline" id="line-310"><code>	<span class="keyword">if</span> <label for="r39" class="ident">rep</label> == <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-311"><code>		<label for="r37" class="ident">state</label>.<a href="#line-537" class="ident">appendKey</a>(<label for="r42" class="ident">key</label>)</code></span>
+<span class="codeline" id="line-312"><code>		<label for="r37" class="ident">state</label>.<a href="#line-570" class="ident">appendString</a>(<label for="r45" class="ident">msg</label>)</code></span>
+<span class="codeline" id="line-313"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-314"><code>		<label for="r37" class="ident">state</label>.<a href="#line-476" class="ident">appendAttr</a>(<a href="attr.go.html#line-18" class="ident">String</a>(<label for="r42" class="ident">key</label>, <label for="r45" class="ident">msg</label>))</code></span>
+<span class="codeline" id="line-315"><code>	}</code></span>
+<span class="codeline" id="line-316"><code>	<label for="r37" class="ident">state</label>.<a href="#line-388" class="ident">groups</a> = <label for="r38" class="ident">stateGroups</label> <span class="comment">// Restore groups passed to ReplaceAttrs.</span></code></span>
+<span class="codeline" id="line-317"><code>	<label for="r37" class="ident">state</label>.<a href="#line-326" class="ident">appendNonBuiltIns</a>(<label for="r36" class="ident">r</label>)</code></span>
+<span class="codeline" id="line-318"><code>	<label for="r37" class="ident">state</label>.<a href="#line-384" class="ident">buf</a>.<a href="internal/buffer/buffer.go.html#line-51" class="ident">WriteByte</a>(<span class="lit-number">'\n'</span>)</code></span>
+<span class="codeline" id="line-319"><code></code></span>
+<span class="codeline" id="line-320"><code>	<label for="r34" class="ident">h</label>.<a href="#line-202" class="ident">mu</a>.<a href="../../sync/mutex.go.html#line-45" class="ident">Lock</a>()</code></span>
+<span class="codeline" id="line-321"><code>	<span class="keyword">defer</span> <label for="r34" class="ident">h</label>.<a href="#line-202" class="ident">mu</a>.<a href="../../sync/mutex.go.html#line-64" class="ident">Unlock</a>()</code></span>
+<span class="codeline" id="line-322"><code>	<label for="r46" class="ident">_</label>, <label for="r47" class="ident">err</label> := <label for="r34" class="ident">h</label>.<a href="#line-203" class="ident">w</a>.<a href="../../io/io.go.html#line-100" class="ident">Write</a>(*<label for="r37" class="ident">state</label>.<a href="#line-384" class="ident">buf</a>)</code></span>
+<span class="codeline" id="line-323"><code>	<span class="keyword">return</span> <label for="r47" class="ident">err</label></code></span>
+<span class="codeline" id="line-324"><code>}</code></span>
+<span class="codeline" id="line-325"><code></code></span>
+<span class="codeline" id="line-326"><code><span class="keyword">func</span> (<label for="r48" class="ident">s</label> *<a href="#line-382" class="ident">handleState</a>) <label for="r49" class="ident"><a href="../../../use/log/slog..handleState^0dae3.appendNonBuiltIns^f00b0.html" class="ident">appendNonBuiltIns</a></label>(<label for="r50" class="ident">r</label> <a href="record.go.html#line-20" class="ident">Record</a>) {</code></span>
+<span class="codeline" id="line-327"><code>	<span class="comment">// preformatted Attrs</span></code></span>
+<span class="codeline" id="line-328"><code>	<span class="keyword">if</span> <label for="r51" class="ident">pfa</label> := <label for="r48" class="ident">s</label>.<a href="#line-383" class="ident">h</a>.<a href="#line-194" class="ident">preformattedAttrs</a>; <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r51" class="ident">pfa</label>) &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-329"><code>		<label for="r48" class="ident">s</label>.<a href="#line-384" class="ident">buf</a>.<a href="internal/buffer/buffer.go.html#line-46" class="ident">WriteString</a>(<label for="r48" class="ident">s</label>.<a href="#line-386" class="ident">sep</a>)</code></span>
+<span class="codeline" id="line-330"><code>		<label for="r48" class="ident">s</label>.<a href="#line-384" class="ident">buf</a>.<a href="internal/buffer/buffer.go.html#line-41" class="ident">Write</a>(<label for="r51" class="ident">pfa</label>)</code></span>
+<span class="codeline" id="line-331"><code>		<label for="r48" class="ident">s</label>.<a href="#line-386" class="ident">sep</a> = <label for="r48" class="ident">s</label>.<a href="#line-383" class="ident">h</a>.<a href="#line-372" class="ident">attrSep</a>()</code></span>
+<span class="codeline" id="line-332"><code>		<span class="keyword">if</span> <label for="r48" class="ident">s</label>.<a href="#line-383" class="ident">h</a>.<a href="#line-192" class="ident">json</a> &amp;&amp; <label for="r51" class="ident">pfa</label>[<a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r51" class="ident">pfa</label>)-<span class="lit-number">1</span>] == <span class="lit-number">'{'</span> {</code></span>
+<span class="codeline" id="line-333"><code>			<label for="r48" class="ident">s</label>.<a href="#line-386" class="ident">sep</a> = <span class="lit-string">""</span></code></span>
+<span class="codeline" id="line-334"><code>		}</code></span>
+<span class="codeline" id="line-335"><code>	}</code></span>
+<span class="codeline" id="line-336"><code>	<span class="comment">// Attrs in Record -- unlike the built-in ones, they are in groups started</span></code></span>
+<span class="codeline" id="line-337"><code><span class="comment">	// from WithGroup.</span></code></span>
+<span class="codeline" id="line-338"><code><span class="comment">	// If the record has no Attrs, don't output any groups.</span></code></span>
+<span class="codeline" id="line-339"><code>	<label for="r52" class="ident">nOpenGroups</label> := <label for="r48" class="ident">s</label>.<a href="#line-383" class="ident">h</a>.<a href="#line-201" class="ident">nOpenGroups</a></code></span>
+<span class="codeline" id="line-340"><code>	<span class="keyword">if</span> <label for="r50" class="ident">r</label>.<a href="record.go.html#line-76" class="ident">NumAttrs</a>() &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-341"><code>		<label for="r48" class="ident">s</label>.<a href="#line-387" class="ident">prefix</a>.<a href="internal/buffer/buffer.go.html#line-46" class="ident">WriteString</a>(<label for="r48" class="ident">s</label>.<a href="#line-383" class="ident">h</a>.<a href="#line-199" class="ident">groupPrefix</a>)</code></span>
+<span class="codeline" id="line-342"><code>		<span class="comment">// The group may turn out to be empty even though it has attrs (for</span></code></span>
+<span class="codeline" id="line-343"><code><span class="comment">		// example, ReplaceAttr may delete all the attrs).</span></code></span>
+<span class="codeline" id="line-344"><code><span class="comment">		// So remember where we are in the buffer, to restore the position</span></code></span>
+<span class="codeline" id="line-345"><code><span class="comment">		// later if necessary.</span></code></span>
+<span class="codeline" id="line-346"><code>		<label for="r53" class="ident">pos</label> := <label for="r48" class="ident">s</label>.<a href="#line-384" class="ident">buf</a>.<a href="internal/buffer/buffer.go.html#line-60" class="ident">Len</a>()</code></span>
+<span class="codeline" id="line-347"><code>		<label for="r48" class="ident">s</label>.<a href="#line-422" class="ident">openGroups</a>()</code></span>
+<span class="codeline" id="line-348"><code>		<label for="r52" class="ident">nOpenGroups</label> = <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r48" class="ident">s</label>.<a href="#line-383" class="ident">h</a>.<a href="#line-200" class="ident">groups</a>)</code></span>
+<span class="codeline" id="line-349"><code>		<label for="r54" class="ident">empty</label> := <a href="../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-350"><code>		<label for="r50" class="ident">r</label>.<a href="record.go.html#line-82" class="ident">Attrs</a>(<span class="keyword">func</span>(<label for="r55" class="ident">a</label> <a href="attr.go.html#line-12" class="ident">Attr</a>) <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-351"><code>			<span class="keyword">if</span> <label for="r48" class="ident">s</label>.<a href="#line-476" class="ident">appendAttr</a>(<label for="r55" class="ident">a</label>) {</code></span>
+<span class="codeline" id="line-352"><code>				<label for="r54" class="ident">empty</label> = <a href="../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-353"><code>			}</code></span>
+<span class="codeline" id="line-354"><code>			<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-355"><code>		})</code></span>
+<span class="codeline" id="line-356"><code>		<span class="keyword">if</span> <label for="r54" class="ident">empty</label> {</code></span>
+<span class="codeline" id="line-357"><code>			<label for="r48" class="ident">s</label>.<a href="#line-384" class="ident">buf</a>.<a href="internal/buffer/buffer.go.html#line-64" class="ident">SetLen</a>(<label for="r53" class="ident">pos</label>)</code></span>
+<span class="codeline" id="line-358"><code>			<label for="r52" class="ident">nOpenGroups</label> = <label for="r48" class="ident">s</label>.<a href="#line-383" class="ident">h</a>.<a href="#line-201" class="ident">nOpenGroups</a></code></span>
+<span class="codeline" id="line-359"><code>		}</code></span>
+<span class="codeline" id="line-360"><code>	}</code></span>
+<span class="codeline" id="line-361"><code>	<span class="keyword">if</span> <label for="r48" class="ident">s</label>.<a href="#line-383" class="ident">h</a>.<a href="#line-192" class="ident">json</a> {</code></span>
+<span class="codeline" id="line-362"><code>		<span class="comment">// Close all open groups.</span></code></span>
+<span class="codeline" id="line-363"><code>		<span class="keyword">for</span> <span class="keyword">range</span> <label for="r48" class="ident">s</label>.<a href="#line-383" class="ident">h</a>.<a href="#line-200" class="ident">groups</a>[:<label for="r52" class="ident">nOpenGroups</label>] {</code></span>
+<span class="codeline" id="line-364"><code>			<label for="r48" class="ident">s</label>.<a href="#line-384" class="ident">buf</a>.<a href="internal/buffer/buffer.go.html#line-51" class="ident">WriteByte</a>(<span class="lit-number">'}'</span>)</code></span>
+<span class="codeline" id="line-365"><code>		}</code></span>
+<span class="codeline" id="line-366"><code>		<span class="comment">// Close the top-level object.</span></code></span>
+<span class="codeline" id="line-367"><code>		<label for="r48" class="ident">s</label>.<a href="#line-384" class="ident">buf</a>.<a href="internal/buffer/buffer.go.html#line-51" class="ident">WriteByte</a>(<span class="lit-number">'}'</span>)</code></span>
+<span class="codeline" id="line-368"><code>	}</code></span>
+<span class="codeline" id="line-369"><code>}</code></span>
+<span class="codeline" id="line-370"><code></code></span>
+<span class="codeline" id="line-371"><code><span class="comment">// attrSep returns the separator between attributes.</span></code></span>
+<span class="codeline" id="line-372"><code><span class="keyword">func</span> (<label for="r56" class="ident">h</label> *<a href="#line-191" class="ident">commonHandler</a>) <label for="r57" class="ident"><a href="../../../use/log/slog..commonHandler^60bab.attrSep^6b5ef.html" class="ident">attrSep</a></label>() <a href="../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-373"><code>	<span class="keyword">if</span> <label for="r56" class="ident">h</label>.<a href="#line-192" class="ident">json</a> {</code></span>
+<span class="codeline" id="line-374"><code>		<span class="keyword">return</span> <span class="lit-string">","</span></code></span>
+<span class="codeline" id="line-375"><code>	}</code></span>
+<span class="codeline" id="line-376"><code>	<span class="keyword">return</span> <span class="lit-string">" "</span></code></span>
+<span class="codeline" id="line-377"><code>}</code></span>
+<span class="codeline" id="line-378"><code></code></span>
+<span class="codeline" id="line-379"><code><span class="comment">// handleState holds state for a single call to commonHandler.handle.</span></code></span>
+<span class="codeline" id="line-380"><code><span class="comment">// The initial value of sep determines whether to emit a separator</span></code></span>
+<span class="codeline" id="line-381"><code><span class="comment">// before the next key, after which it stays true.</span></code></span>
+<span class="codeline" id="line-382"><code><span class="keyword">type</span> <a href="../../../pkg/log/slog.html#name-handleState" class="ident">handleState</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-383"><code>	<a href="../../../use/log/slog..handleState^0dae3.h^aaa94.html" class="ident">h</a>       *<a href="#line-191" class="ident">commonHandler</a></code></span>
+<span class="codeline" id="line-384"><code>	<a href="../../../use/log/slog..handleState^0dae3.buf^3ef31.html" class="ident">buf</a>     *<a href="../../../pkg/log/slog/internal/buffer.html" class="ident i3">buffer</a>.<a href="internal/buffer/buffer.go.html#line-14" class="ident">Buffer</a></code></span>
+<span class="codeline" id="line-385"><code>	<a href="../../../use/log/slog..handleState^0dae3.freeBuf^3b915.html" class="ident">freeBuf</a> <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a>           <span class="comment">// should buf be freed?</span></code></span>
+<span class="codeline" id="line-386"><code>	<a href="../../../use/log/slog..handleState^0dae3.sep^c1958.html" class="ident">sep</a>     <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>         <span class="comment">// separator to write before next key</span></code></span>
+<span class="codeline" id="line-387"><code>	<a href="../../../use/log/slog..handleState^0dae3.prefix^e7a2e.html" class="ident">prefix</a>  *<a href="../../../pkg/log/slog/internal/buffer.html" class="ident i3">buffer</a>.<a href="internal/buffer/buffer.go.html#line-14" class="ident">Buffer</a> <span class="comment">// for text: key prefix</span></code></span>
+<span class="codeline" id="line-388"><code>	<a href="../../../use/log/slog..handleState^0dae3.groups^4ed37.html" class="ident">groups</a>  *[]<a href="../../../pkg/builtin.html#name-string" class="ident">string</a>      <span class="comment">// pool-allocated slice of active groups, for ReplaceAttr</span></code></span>
+<span class="codeline" id="line-389"><code>}</code></span>
+<span class="codeline" id="line-390"><code></code></span>
+<span class="codeline" id="line-391"><code><span class="keyword">var</span> <a href="../../../pkg/log/slog.html#name-groupPool" class="ident">groupPool</a> = <a href="../../../pkg/sync.html" class="ident i7">sync</a>.<a href="../../sync/pool.go.html#line-51" class="ident">Pool</a>{<a href="../../sync/pool.go.html#line-63" class="ident">New</a>: <span class="keyword">func</span>() <a href="../../../pkg/builtin.html#name-any" class="ident">any</a> {</code></span>
+<span class="codeline" id="line-392"><code>	<label for="r58" class="ident">s</label> := <a href="../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../pkg/builtin.html#name-string" class="ident">string</a>, <span class="lit-number">0</span>, <span class="lit-number">10</span>)</code></span>
+<span class="codeline" id="line-393"><code>	<span class="keyword">return</span> &amp;<label for="r58" class="ident">s</label></code></span>
+<span class="codeline" id="line-394"><code>}}</code></span>
+<span class="codeline" id="line-395"><code></code></span>
+<span class="codeline" id="line-396"><code><span class="keyword">func</span> (<label for="r59" class="ident">h</label> *<a href="#line-191" class="ident">commonHandler</a>) <label for="r60" class="ident"><a href="../../../use/log/slog..commonHandler^60bab.newHandleState^bc128.html" class="ident">newHandleState</a></label>(<label for="r61" class="ident">buf</label> *<a href="../../../pkg/log/slog/internal/buffer.html" class="ident i3">buffer</a>.<a href="internal/buffer/buffer.go.html#line-14" class="ident">Buffer</a>, <label for="r62" class="ident">freeBuf</label> <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a>, <label for="r63" class="ident">sep</label> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="#line-382" class="ident">handleState</a> {</code></span>
+<span class="codeline" id="line-397"><code>	<label for="r64" class="ident">s</label> := <a href="#line-382" class="ident">handleState</a>{</code></span>
+<span class="codeline" id="line-398"><code>		<a href="#line-383" class="ident">h</a>:       <label for="r59" class="ident">h</label>,</code></span>
+<span class="codeline" id="line-399"><code>		<a href="#line-384" class="ident">buf</a>:     <label for="r61" class="ident">buf</label>,</code></span>
+<span class="codeline" id="line-400"><code>		<a href="#line-385" class="ident">freeBuf</a>: <label for="r62" class="ident">freeBuf</label>,</code></span>
+<span class="codeline" id="line-401"><code>		<a href="#line-386" class="ident">sep</a>:     <label for="r63" class="ident">sep</label>,</code></span>
+<span class="codeline" id="line-402"><code>		<a href="#line-387" class="ident">prefix</a>:  <a href="../../../pkg/log/slog/internal/buffer.html" class="ident i3">buffer</a>.<a href="internal/buffer/buffer.go.html#line-24" class="ident">New</a>(),</code></span>
+<span class="codeline" id="line-403"><code>	}</code></span>
+<span class="codeline" id="line-404"><code>	<span class="keyword">if</span> <label for="r59" class="ident">h</label>.<a href="#line-193" class="ident">opts</a>.<a href="#line-172" class="ident">ReplaceAttr</a> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-405"><code>		<label for="r64" class="ident">s</label>.<a href="#line-388" class="ident">groups</a> = <a href="#line-391" class="ident">groupPool</a>.<a href="../../sync/pool.go.html#line-131" class="ident">Get</a>().(*[]<a href="../../../pkg/builtin.html#name-string" class="ident">string</a>)</code></span>
+<span class="codeline" id="line-406"><code>		*<label for="r64" class="ident">s</label>.<a href="#line-388" class="ident">groups</a> = <a href="../../../pkg/builtin.html#name-append" class="ident">append</a>(*<label for="r64" class="ident">s</label>.<a href="#line-388" class="ident">groups</a>, <label for="r59" class="ident">h</label>.<a href="#line-200" class="ident">groups</a>[:<label for="r59" class="ident">h</label>.<a href="#line-201" class="ident">nOpenGroups</a>]...)</code></span>
+<span class="codeline" id="line-407"><code>	}</code></span>
+<span class="codeline" id="line-408"><code>	<span class="keyword">return</span> <label for="r64" class="ident">s</label></code></span>
+<span class="codeline" id="line-409"><code>}</code></span>
+<span class="codeline" id="line-410"><code></code></span>
+<span class="codeline" id="line-411"><code><span class="keyword">func</span> (<label for="r65" class="ident">s</label> *<a href="#line-382" class="ident">handleState</a>) <label for="r66" class="ident"><a href="../../../use/log/slog..handleState^0dae3.free^ad95d.html" class="ident">free</a></label>() {</code></span>
+<span class="codeline" id="line-412"><code>	<span class="keyword">if</span> <label for="r65" class="ident">s</label>.<a href="#line-385" class="ident">freeBuf</a> {</code></span>
+<span class="codeline" id="line-413"><code>		<label for="r65" class="ident">s</label>.<a href="#line-384" class="ident">buf</a>.<a href="internal/buffer/buffer.go.html#line-28" class="ident">Free</a>()</code></span>
+<span class="codeline" id="line-414"><code>	}</code></span>
+<span class="codeline" id="line-415"><code>	<span class="keyword">if</span> <label for="r67" class="ident">gs</label> := <label for="r65" class="ident">s</label>.<a href="#line-388" class="ident">groups</a>; <label for="r67" class="ident">gs</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-416"><code>		*<label for="r67" class="ident">gs</label> = (*<label for="r67" class="ident">gs</label>)[:<span class="lit-number">0</span>]</code></span>
+<span class="codeline" id="line-417"><code>		<a href="#line-391" class="ident">groupPool</a>.<a href="../../sync/pool.go.html#line-99" class="ident">Put</a>(<label for="r67" class="ident">gs</label>)</code></span>
+<span class="codeline" id="line-418"><code>	}</code></span>
+<span class="codeline" id="line-419"><code>	<label for="r65" class="ident">s</label>.<a href="#line-387" class="ident">prefix</a>.<a href="internal/buffer/buffer.go.html#line-28" class="ident">Free</a>()</code></span>
+<span class="codeline" id="line-420"><code>}</code></span>
+<span class="codeline" id="line-421"><code></code></span>
+<span class="codeline" id="line-422"><code><span class="keyword">func</span> (<label for="r68" class="ident">s</label> *<a href="#line-382" class="ident">handleState</a>) <label for="r69" class="ident"><a href="../../../use/log/slog..handleState^0dae3.openGroups^6d512.html" class="ident">openGroups</a></label>() {</code></span>
+<span class="codeline" id="line-423"><code>	<span class="keyword">for</span> <label for="r70" class="ident">_</label>, <label for="r71" class="ident">n</label> := <span class="keyword">range</span> <label for="r68" class="ident">s</label>.<a href="#line-383" class="ident">h</a>.<a href="#line-200" class="ident">groups</a>[<label for="r68" class="ident">s</label>.<a href="#line-383" class="ident">h</a>.<a href="#line-201" class="ident">nOpenGroups</a>:] {</code></span>
+<span class="codeline" id="line-424"><code>		<label for="r68" class="ident">s</label>.<a href="#line-433" class="ident">openGroup</a>(<label for="r71" class="ident">n</label>)</code></span>
+<span class="codeline" id="line-425"><code>	}</code></span>
+<span class="codeline" id="line-426"><code>}</code></span>
+<span class="codeline" id="line-427"><code></code></span>
+<span class="codeline" id="line-428"><code><span class="comment">// Separator for group names and keys.</span></code></span>
+<span class="codeline" id="line-429"><code><span class="keyword">const</span> <a href="../../../pkg/log/slog.html#name-keyComponentSep" class="ident">keyComponentSep</a> = <span class="lit-number">'.'</span></code></span>
+<span class="codeline" id="line-430"><code></code></span>
+<span class="codeline" id="line-431"><code><span class="comment">// openGroup starts a new group of attributes</span></code></span>
+<span class="codeline" id="line-432"><code><span class="comment">// with the given name.</span></code></span>
+<span class="codeline" id="line-433"><code><span class="keyword">func</span> (<label for="r72" class="ident">s</label> *<a href="#line-382" class="ident">handleState</a>) <label for="r73" class="ident"><a href="../../../use/log/slog..handleState^0dae3.openGroup^59e18.html" class="ident">openGroup</a></label>(<label for="r74" class="ident">name</label> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>) {</code></span>
+<span class="codeline" id="line-434"><code>	<span class="keyword">if</span> <label for="r72" class="ident">s</label>.<a href="#line-383" class="ident">h</a>.<a href="#line-192" class="ident">json</a> {</code></span>
+<span class="codeline" id="line-435"><code>		<label for="r72" class="ident">s</label>.<a href="#line-537" class="ident">appendKey</a>(<label for="r74" class="ident">name</label>)</code></span>
+<span class="codeline" id="line-436"><code>		<label for="r72" class="ident">s</label>.<a href="#line-384" class="ident">buf</a>.<a href="internal/buffer/buffer.go.html#line-51" class="ident">WriteByte</a>(<span class="lit-number">'{'</span>)</code></span>
+<span class="codeline" id="line-437"><code>		<label for="r72" class="ident">s</label>.<a href="#line-386" class="ident">sep</a> = <span class="lit-string">""</span></code></span>
+<span class="codeline" id="line-438"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-439"><code>		<label for="r72" class="ident">s</label>.<a href="#line-387" class="ident">prefix</a>.<a href="internal/buffer/buffer.go.html#line-46" class="ident">WriteString</a>(<label for="r74" class="ident">name</label>)</code></span>
+<span class="codeline" id="line-440"><code>		<label for="r72" class="ident">s</label>.<a href="#line-387" class="ident">prefix</a>.<a href="internal/buffer/buffer.go.html#line-51" class="ident">WriteByte</a>(<a href="#line-429" class="ident">keyComponentSep</a>)</code></span>
+<span class="codeline" id="line-441"><code>	}</code></span>
+<span class="codeline" id="line-442"><code>	<span class="comment">// Collect group names for ReplaceAttr.</span></code></span>
+<span class="codeline" id="line-443"><code>	<span class="keyword">if</span> <label for="r72" class="ident">s</label>.<a href="#line-388" class="ident">groups</a> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-444"><code>		*<label for="r72" class="ident">s</label>.<a href="#line-388" class="ident">groups</a> = <a href="../../../pkg/builtin.html#name-append" class="ident">append</a>(*<label for="r72" class="ident">s</label>.<a href="#line-388" class="ident">groups</a>, <label for="r74" class="ident">name</label>)</code></span>
+<span class="codeline" id="line-445"><code>	}</code></span>
+<span class="codeline" id="line-446"><code>}</code></span>
+<span class="codeline" id="line-447"><code></code></span>
+<span class="codeline" id="line-448"><code><span class="comment">// closeGroup ends the group with the given name.</span></code></span>
+<span class="codeline" id="line-449"><code><span class="keyword">func</span> (<label for="r75" class="ident">s</label> *<a href="#line-382" class="ident">handleState</a>) <label for="r76" class="ident"><a href="../../../use/log/slog..handleState^0dae3.closeGroup^0ab8c.html" class="ident">closeGroup</a></label>(<label for="r77" class="ident">name</label> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>) {</code></span>
+<span class="codeline" id="line-450"><code>	<span class="keyword">if</span> <label for="r75" class="ident">s</label>.<a href="#line-383" class="ident">h</a>.<a href="#line-192" class="ident">json</a> {</code></span>
+<span class="codeline" id="line-451"><code>		<label for="r75" class="ident">s</label>.<a href="#line-384" class="ident">buf</a>.<a href="internal/buffer/buffer.go.html#line-51" class="ident">WriteByte</a>(<span class="lit-number">'}'</span>)</code></span>
+<span class="codeline" id="line-452"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-453"><code>		(*<label for="r75" class="ident">s</label>.<a href="#line-387" class="ident">prefix</a>) = (*<label for="r75" class="ident">s</label>.<a href="#line-387" class="ident">prefix</a>)[:<a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(*<label for="r75" class="ident">s</label>.<a href="#line-387" class="ident">prefix</a>)-<a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r77" class="ident">name</label>)-<span class="lit-number">1</span> <span class="comment">/* for keyComponentSep */</span>]</code></span>
+<span class="codeline" id="line-454"><code>	}</code></span>
+<span class="codeline" id="line-455"><code>	<label for="r75" class="ident">s</label>.<a href="#line-386" class="ident">sep</a> = <label for="r75" class="ident">s</label>.<a href="#line-383" class="ident">h</a>.<a href="#line-372" class="ident">attrSep</a>()</code></span>
+<span class="codeline" id="line-456"><code>	<span class="keyword">if</span> <label for="r75" class="ident">s</label>.<a href="#line-388" class="ident">groups</a> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-457"><code>		*<label for="r75" class="ident">s</label>.<a href="#line-388" class="ident">groups</a> = (*<label for="r75" class="ident">s</label>.<a href="#line-388" class="ident">groups</a>)[:<a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(*<label for="r75" class="ident">s</label>.<a href="#line-388" class="ident">groups</a>)-<span class="lit-number">1</span>]</code></span>
+<span class="codeline" id="line-458"><code>	}</code></span>
+<span class="codeline" id="line-459"><code>}</code></span>
+<span class="codeline" id="line-460"><code></code></span>
+<span class="codeline" id="line-461"><code><span class="comment">// appendAttrs appends the slice of Attrs.</span></code></span>
+<span class="codeline" id="line-462"><code><span class="comment">// It reports whether something was appended.</span></code></span>
+<span class="codeline" id="line-463"><code><span class="keyword">func</span> (<label for="r78" class="ident">s</label> *<a href="#line-382" class="ident">handleState</a>) <label for="r79" class="ident"><a href="../../../use/log/slog..handleState^0dae3.appendAttrs^189ca.html" class="ident">appendAttrs</a></label>(<label for="r80" class="ident">as</label> []<a href="attr.go.html#line-12" class="ident">Attr</a>) <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-464"><code>	<label for="r81" class="ident">nonEmpty</label> := <a href="../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-465"><code>	<span class="keyword">for</span> <label for="r82" class="ident">_</label>, <label for="r83" class="ident">a</label> := <span class="keyword">range</span> <label for="r80" class="ident">as</label> {</code></span>
+<span class="codeline" id="line-466"><code>		<span class="keyword">if</span> <label for="r78" class="ident">s</label>.<a href="#line-476" class="ident">appendAttr</a>(<label for="r83" class="ident">a</label>) {</code></span>
+<span class="codeline" id="line-467"><code>			<label for="r81" class="ident">nonEmpty</label> = <a href="../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-468"><code>		}</code></span>
+<span class="codeline" id="line-469"><code>	}</code></span>
+<span class="codeline" id="line-470"><code>	<span class="keyword">return</span> <label for="r81" class="ident">nonEmpty</label></code></span>
+<span class="codeline" id="line-471"><code>}</code></span>
+<span class="codeline" id="line-472"><code></code></span>
+<span class="codeline" id="line-473"><code><span class="comment">// appendAttr appends the Attr's key and value.</span></code></span>
+<span class="codeline" id="line-474"><code><span class="comment">// It handles replacement and checking for an empty key.</span></code></span>
+<span class="codeline" id="line-475"><code><span class="comment">// It reports whether something was appended.</span></code></span>
+<span class="codeline" id="line-476"><code><span class="keyword">func</span> (<label for="r84" class="ident">s</label> *<a href="#line-382" class="ident">handleState</a>) <label for="r85" class="ident"><a href="../../../use/log/slog..handleState^0dae3.appendAttr^6c683.html" class="ident">appendAttr</a></label>(<label for="r86" class="ident">a</label> <a href="attr.go.html#line-12" class="ident">Attr</a>) <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-477"><code>	<label for="r86" class="ident">a</label>.<a href="attr.go.html#line-14" class="ident">Value</a> = <label for="r86" class="ident">a</label>.<a href="attr.go.html#line-14" class="ident">Value</a>.<a href="value.go.html#line-500" class="ident">Resolve</a>()</code></span>
+<span class="codeline" id="line-478"><code>	<span class="keyword">if</span> <label for="r87" class="ident">rep</label> := <label for="r84" class="ident">s</label>.<a href="#line-383" class="ident">h</a>.<a href="#line-193" class="ident">opts</a>.<a href="#line-172" class="ident">ReplaceAttr</a>; <label for="r87" class="ident">rep</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> &amp;&amp; <label for="r86" class="ident">a</label>.<a href="attr.go.html#line-14" class="ident">Value</a>.<a href="value.go.html#line-87" class="ident">Kind</a>() != <a href="value.go.html#line-58" class="ident">KindGroup</a> {</code></span>
+<span class="codeline" id="line-479"><code>		<span class="keyword">var</span> <label for="r88" class="ident">gs</label> []<a href="../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-480"><code>		<span class="keyword">if</span> <label for="r84" class="ident">s</label>.<a href="#line-388" class="ident">groups</a> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-481"><code>			<label for="r88" class="ident">gs</label> = *<label for="r84" class="ident">s</label>.<a href="#line-388" class="ident">groups</a></code></span>
+<span class="codeline" id="line-482"><code>		}</code></span>
+<span class="codeline" id="line-483"><code>		<span class="comment">// a.Value is resolved before calling ReplaceAttr, so the user doesn't have to.</span></code></span>
+<span class="codeline" id="line-484"><code>		<label for="r86" class="ident">a</label> = <label for="r87" class="ident">rep</label>(<label for="r88" class="ident">gs</label>, <label for="r86" class="ident">a</label>)</code></span>
+<span class="codeline" id="line-485"><code>		<span class="comment">// The ReplaceAttr function may return an unresolved Attr.</span></code></span>
+<span class="codeline" id="line-486"><code>		<label for="r86" class="ident">a</label>.<a href="attr.go.html#line-14" class="ident">Value</a> = <label for="r86" class="ident">a</label>.<a href="attr.go.html#line-14" class="ident">Value</a>.<a href="value.go.html#line-500" class="ident">Resolve</a>()</code></span>
+<span class="codeline" id="line-487"><code>	}</code></span>
+<span class="codeline" id="line-488"><code>	<span class="comment">// Elide empty Attrs.</span></code></span>
+<span class="codeline" id="line-489"><code>	<span class="keyword">if</span> <label for="r86" class="ident">a</label>.<a href="attr.go.html#line-108" class="ident">isEmpty</a>() {</code></span>
+<span class="codeline" id="line-490"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-491"><code>	}</code></span>
+<span class="codeline" id="line-492"><code>	<span class="comment">// Special case: Source.</span></code></span>
+<span class="codeline" id="line-493"><code>	<span class="keyword">if</span> <label for="r89" class="ident">v</label> := <label for="r86" class="ident">a</label>.<a href="attr.go.html#line-14" class="ident">Value</a>; <label for="r89" class="ident">v</label>.<a href="value.go.html#line-87" class="ident">Kind</a>() == <a href="value.go.html#line-50" class="ident">KindAny</a> {</code></span>
+<span class="codeline" id="line-494"><code>		<span class="keyword">if</span> <label for="r90" class="ident">src</label>, <label for="r91" class="ident">ok</label> := <label for="r89" class="ident">v</label>.<a href="value.go.html#line-271" class="ident">Any</a>().(*<a href="record.go.html#line-185" class="ident">Source</a>); <label for="r91" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-495"><code>			<span class="keyword">if</span> <label for="r90" class="ident">src</label>.<a href="record.go.html#line-215" class="ident">isEmpty</a>() {</code></span>
+<span class="codeline" id="line-496"><code>				<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-497"><code>			}</code></span>
+<span class="codeline" id="line-498"><code>			<span class="keyword">if</span> <label for="r84" class="ident">s</label>.<a href="#line-383" class="ident">h</a>.<a href="#line-192" class="ident">json</a> {</code></span>
+<span class="codeline" id="line-499"><code>				<label for="r86" class="ident">a</label>.<a href="attr.go.html#line-14" class="ident">Value</a> = <label for="r90" class="ident">src</label>.<a href="record.go.html#line-200" class="ident">group</a>()</code></span>
+<span class="codeline" id="line-500"><code>			} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-501"><code>				<label for="r86" class="ident">a</label>.<a href="attr.go.html#line-14" class="ident">Value</a> = <a href="value.go.html#line-109" class="ident">StringValue</a>(<a href="../../../pkg/fmt.html" class="ident i1">fmt</a>.<a href="../../fmt/print.go.html#line-237" class="ident">Sprintf</a>(<span class="lit-string">"%s:%d"</span>, <label for="r90" class="ident">src</label>.<a href="record.go.html#line-192" class="ident">File</a>, <label for="r90" class="ident">src</label>.<a href="record.go.html#line-193" class="ident">Line</a>))</code></span>
+<span class="codeline" id="line-502"><code>			}</code></span>
+<span class="codeline" id="line-503"><code>		}</code></span>
+<span class="codeline" id="line-504"><code>	}</code></span>
+<span class="codeline" id="line-505"><code>	<span class="keyword">if</span> <label for="r86" class="ident">a</label>.<a href="attr.go.html#line-14" class="ident">Value</a>.<a href="value.go.html#line-87" class="ident">Kind</a>() == <a href="value.go.html#line-58" class="ident">KindGroup</a> {</code></span>
+<span class="codeline" id="line-506"><code>		<label for="r92" class="ident">attrs</label> := <label for="r86" class="ident">a</label>.<a href="attr.go.html#line-14" class="ident">Value</a>.<a href="value.go.html#line-407" class="ident">Group</a>()</code></span>
+<span class="codeline" id="line-507"><code>		<span class="comment">// Output only non-empty groups.</span></code></span>
+<span class="codeline" id="line-508"><code>		<span class="keyword">if</span> <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r92" class="ident">attrs</label>) &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-509"><code>			<span class="comment">// The group may turn out to be empty even though it has attrs (for</span></code></span>
+<span class="codeline" id="line-510"><code><span class="comment">			// example, ReplaceAttr may delete all the attrs).</span></code></span>
+<span class="codeline" id="line-511"><code><span class="comment">			// So remember where we are in the buffer, to restore the position</span></code></span>
+<span class="codeline" id="line-512"><code><span class="comment">			// later if necessary.</span></code></span>
+<span class="codeline" id="line-513"><code>			<label for="r93" class="ident">pos</label> := <label for="r84" class="ident">s</label>.<a href="#line-384" class="ident">buf</a>.<a href="internal/buffer/buffer.go.html#line-60" class="ident">Len</a>()</code></span>
+<span class="codeline" id="line-514"><code>			<span class="comment">// Inline a group with an empty key.</span></code></span>
+<span class="codeline" id="line-515"><code>			<span class="keyword">if</span> <label for="r86" class="ident">a</label>.<a href="attr.go.html#line-13" class="ident">Key</a> != <span class="lit-string">""</span> {</code></span>
+<span class="codeline" id="line-516"><code>				<label for="r84" class="ident">s</label>.<a href="#line-433" class="ident">openGroup</a>(<label for="r86" class="ident">a</label>.<a href="attr.go.html#line-13" class="ident">Key</a>)</code></span>
+<span class="codeline" id="line-517"><code>			}</code></span>
+<span class="codeline" id="line-518"><code>			<span class="keyword">if</span> !<label for="r84" class="ident">s</label>.<a href="#line-463" class="ident">appendAttrs</a>(<label for="r92" class="ident">attrs</label>) {</code></span>
+<span class="codeline" id="line-519"><code>				<label for="r84" class="ident">s</label>.<a href="#line-384" class="ident">buf</a>.<a href="internal/buffer/buffer.go.html#line-64" class="ident">SetLen</a>(<label for="r93" class="ident">pos</label>)</code></span>
+<span class="codeline" id="line-520"><code>				<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-521"><code>			}</code></span>
+<span class="codeline" id="line-522"><code>			<span class="keyword">if</span> <label for="r86" class="ident">a</label>.<a href="attr.go.html#line-13" class="ident">Key</a> != <span class="lit-string">""</span> {</code></span>
+<span class="codeline" id="line-523"><code>				<label for="r84" class="ident">s</label>.<a href="#line-449" class="ident">closeGroup</a>(<label for="r86" class="ident">a</label>.<a href="attr.go.html#line-13" class="ident">Key</a>)</code></span>
+<span class="codeline" id="line-524"><code>			}</code></span>
+<span class="codeline" id="line-525"><code>		}</code></span>
+<span class="codeline" id="line-526"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-527"><code>		<label for="r84" class="ident">s</label>.<a href="#line-537" class="ident">appendKey</a>(<label for="r86" class="ident">a</label>.<a href="attr.go.html#line-13" class="ident">Key</a>)</code></span>
+<span class="codeline" id="line-528"><code>		<label for="r84" class="ident">s</label>.<a href="#line-585" class="ident">appendValue</a>(<label for="r86" class="ident">a</label>.<a href="attr.go.html#line-14" class="ident">Value</a>)</code></span>
+<span class="codeline" id="line-529"><code>	}</code></span>
+<span class="codeline" id="line-530"><code>	<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-531"><code>}</code></span>
+<span class="codeline" id="line-532"><code></code></span>
+<span class="codeline" id="line-533"><code><span class="keyword">func</span> (<label for="r94" class="ident">s</label> *<a href="#line-382" class="ident">handleState</a>) <label for="r95" class="ident"><a href="../../../use/log/slog..handleState^0dae3.appendError^d73b2.html" class="ident">appendError</a></label>(<label for="r96" class="ident">err</label> <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-534"><code>	<label for="r94" class="ident">s</label>.<a href="#line-570" class="ident">appendString</a>(<a href="../../../pkg/fmt.html" class="ident i1">fmt</a>.<a href="../../fmt/print.go.html#line-237" class="ident">Sprintf</a>(<span class="lit-string">"!ERROR:%v"</span>, <label for="r96" class="ident">err</label>))</code></span>
+<span class="codeline" id="line-535"><code>}</code></span>
+<span class="codeline" id="line-536"><code></code></span>
+<span class="codeline" id="line-537"><code><span class="keyword">func</span> (<label for="r97" class="ident">s</label> *<a href="#line-382" class="ident">handleState</a>) <label for="r98" class="ident"><a href="../../../use/log/slog..handleState^0dae3.appendKey^5d918.html" class="ident">appendKey</a></label>(<label for="r99" class="ident">key</label> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>) {</code></span>
+<span class="codeline" id="line-538"><code>	<label for="r97" class="ident">s</label>.<a href="#line-384" class="ident">buf</a>.<a href="internal/buffer/buffer.go.html#line-46" class="ident">WriteString</a>(<label for="r97" class="ident">s</label>.<a href="#line-386" class="ident">sep</a>)</code></span>
+<span class="codeline" id="line-539"><code>	<span class="keyword">if</span> <label for="r97" class="ident">s</label>.<a href="#line-387" class="ident">prefix</a> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> &amp;&amp; <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(*<label for="r97" class="ident">s</label>.<a href="#line-387" class="ident">prefix</a>) &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-540"><code>		<label for="r97" class="ident">s</label>.<a href="#line-553" class="ident">appendTwoStrings</a>(<a href="../../../pkg/builtin.html#name-string" class="ident">string</a>(*<label for="r97" class="ident">s</label>.<a href="#line-387" class="ident">prefix</a>), <label for="r99" class="ident">key</label>)</code></span>
+<span class="codeline" id="line-541"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-542"><code>		<label for="r97" class="ident">s</label>.<a href="#line-570" class="ident">appendString</a>(<label for="r99" class="ident">key</label>)</code></span>
+<span class="codeline" id="line-543"><code>	}</code></span>
+<span class="codeline" id="line-544"><code>	<span class="keyword">if</span> <label for="r97" class="ident">s</label>.<a href="#line-383" class="ident">h</a>.<a href="#line-192" class="ident">json</a> {</code></span>
+<span class="codeline" id="line-545"><code>		<label for="r97" class="ident">s</label>.<a href="#line-384" class="ident">buf</a>.<a href="internal/buffer/buffer.go.html#line-51" class="ident">WriteByte</a>(<span class="lit-number">':'</span>)</code></span>
+<span class="codeline" id="line-546"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-547"><code>		<label for="r97" class="ident">s</label>.<a href="#line-384" class="ident">buf</a>.<a href="internal/buffer/buffer.go.html#line-51" class="ident">WriteByte</a>(<span class="lit-number">'='</span>)</code></span>
+<span class="codeline" id="line-548"><code>	}</code></span>
+<span class="codeline" id="line-549"><code>	<label for="r97" class="ident">s</label>.<a href="#line-386" class="ident">sep</a> = <label for="r97" class="ident">s</label>.<a href="#line-383" class="ident">h</a>.<a href="#line-372" class="ident">attrSep</a>()</code></span>
+<span class="codeline" id="line-550"><code>}</code></span>
+<span class="codeline" id="line-551"><code></code></span>
+<span class="codeline" id="line-552"><code><span class="comment">// appendTwoStrings implements appendString(prefix + key), but faster.</span></code></span>
+<span class="codeline" id="line-553"><code><span class="keyword">func</span> (<label for="r100" class="ident">s</label> *<a href="#line-382" class="ident">handleState</a>) <label for="r101" class="ident"><a href="../../../use/log/slog..handleState^0dae3.appendTwoStrings^e470b.html" class="ident">appendTwoStrings</a></label>(<label for="r102" class="ident">x</label>, <label for="r103" class="ident">y</label> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>) {</code></span>
+<span class="codeline" id="line-554"><code>	<label for="r104" class="ident">buf</label> := *<label for="r100" class="ident">s</label>.<a href="#line-384" class="ident">buf</a></code></span>
+<span class="codeline" id="line-555"><code>	<span class="keyword">switch</span> {</code></span>
+<span class="codeline" id="line-556"><code>	<span class="keyword">case</span> <label for="r100" class="ident">s</label>.<a href="#line-383" class="ident">h</a>.<a href="#line-192" class="ident">json</a>:</code></span>
+<span class="codeline" id="line-557"><code>		<label for="r104" class="ident">buf</label>.<a href="internal/buffer/buffer.go.html#line-51" class="ident">WriteByte</a>(<span class="lit-number">'"'</span>)</code></span>
+<span class="codeline" id="line-558"><code>		<label for="r104" class="ident">buf</label> = <a href="json_handler.go.html#line-158" class="ident">appendEscapedJSONString</a>(<label for="r104" class="ident">buf</label>, <label for="r102" class="ident">x</label>)</code></span>
+<span class="codeline" id="line-559"><code>		<label for="r104" class="ident">buf</label> = <a href="json_handler.go.html#line-158" class="ident">appendEscapedJSONString</a>(<label for="r104" class="ident">buf</label>, <label for="r103" class="ident">y</label>)</code></span>
+<span class="codeline" id="line-560"><code>		<label for="r104" class="ident">buf</label>.<a href="internal/buffer/buffer.go.html#line-51" class="ident">WriteByte</a>(<span class="lit-number">'"'</span>)</code></span>
+<span class="codeline" id="line-561"><code>	<span class="keyword">case</span> !<a href="text_handler.go.html#line-139" class="ident">needsQuoting</a>(<label for="r102" class="ident">x</label>) &amp;&amp; !<a href="text_handler.go.html#line-139" class="ident">needsQuoting</a>(<label for="r103" class="ident">y</label>):</code></span>
+<span class="codeline" id="line-562"><code>		<label for="r104" class="ident">buf</label>.<a href="internal/buffer/buffer.go.html#line-46" class="ident">WriteString</a>(<label for="r102" class="ident">x</label>)</code></span>
+<span class="codeline" id="line-563"><code>		<label for="r104" class="ident">buf</label>.<a href="internal/buffer/buffer.go.html#line-46" class="ident">WriteString</a>(<label for="r103" class="ident">y</label>)</code></span>
+<span class="codeline" id="line-564"><code>	<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-565"><code>		<label for="r104" class="ident">buf</label> = <a href="../../../pkg/strconv.html" class="ident i6">strconv</a>.<a href="../../strconv/quote.go.html#line-131" class="ident">AppendQuote</a>(<label for="r104" class="ident">buf</label>, <label for="r102" class="ident">x</label>+<label for="r103" class="ident">y</label>)</code></span>
+<span class="codeline" id="line-566"><code>	}</code></span>
+<span class="codeline" id="line-567"><code>	*<label for="r100" class="ident">s</label>.<a href="#line-384" class="ident">buf</a> = <label for="r104" class="ident">buf</label></code></span>
+<span class="codeline" id="line-568"><code>}</code></span>
+<span class="codeline" id="line-569"><code></code></span>
+<span class="codeline" id="line-570"><code><span class="keyword">func</span> (<label for="r105" class="ident">s</label> *<a href="#line-382" class="ident">handleState</a>) <label for="r106" class="ident"><a href="../../../use/log/slog..handleState^0dae3.appendString^faad8.html" class="ident">appendString</a></label>(<label for="r107" class="ident">str</label> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>) {</code></span>
+<span class="codeline" id="line-571"><code>	<span class="keyword">if</span> <label for="r105" class="ident">s</label>.<a href="#line-383" class="ident">h</a>.<a href="#line-192" class="ident">json</a> {</code></span>
+<span class="codeline" id="line-572"><code>		<label for="r105" class="ident">s</label>.<a href="#line-384" class="ident">buf</a>.<a href="internal/buffer/buffer.go.html#line-51" class="ident">WriteByte</a>(<span class="lit-number">'"'</span>)</code></span>
+<span class="codeline" id="line-573"><code>		*<label for="r105" class="ident">s</label>.<a href="#line-384" class="ident">buf</a> = <a href="json_handler.go.html#line-158" class="ident">appendEscapedJSONString</a>(*<label for="r105" class="ident">s</label>.<a href="#line-384" class="ident">buf</a>, <label for="r107" class="ident">str</label>)</code></span>
+<span class="codeline" id="line-574"><code>		<label for="r105" class="ident">s</label>.<a href="#line-384" class="ident">buf</a>.<a href="internal/buffer/buffer.go.html#line-51" class="ident">WriteByte</a>(<span class="lit-number">'"'</span>)</code></span>
+<span class="codeline" id="line-575"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-576"><code>		<span class="comment">// text</span></code></span>
+<span class="codeline" id="line-577"><code>		<span class="keyword">if</span> <a href="text_handler.go.html#line-139" class="ident">needsQuoting</a>(<label for="r107" class="ident">str</label>) {</code></span>
+<span class="codeline" id="line-578"><code>			*<label for="r105" class="ident">s</label>.<a href="#line-384" class="ident">buf</a> = <a href="../../../pkg/strconv.html" class="ident i6">strconv</a>.<a href="../../strconv/quote.go.html#line-131" class="ident">AppendQuote</a>(*<label for="r105" class="ident">s</label>.<a href="#line-384" class="ident">buf</a>, <label for="r107" class="ident">str</label>)</code></span>
+<span class="codeline" id="line-579"><code>		} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-580"><code>			<label for="r105" class="ident">s</label>.<a href="#line-384" class="ident">buf</a>.<a href="internal/buffer/buffer.go.html#line-46" class="ident">WriteString</a>(<label for="r107" class="ident">str</label>)</code></span>
+<span class="codeline" id="line-581"><code>		}</code></span>
+<span class="codeline" id="line-582"><code>	}</code></span>
+<span class="codeline" id="line-583"><code>}</code></span>
+<span class="codeline" id="line-584"><code></code></span>
+<span class="codeline" id="line-585"><code><span class="keyword">func</span> (<label for="r108" class="ident">s</label> *<a href="#line-382" class="ident">handleState</a>) <label for="r109" class="ident"><a href="../../../use/log/slog..handleState^0dae3.appendValue^1392b.html" class="ident">appendValue</a></label>(<label for="r110" class="ident">v</label> <a href="value.go.html#line-21" class="ident">Value</a>) {</code></span>
+<span class="codeline" id="line-586"><code>	<span class="keyword">defer</span> <span class="keyword">func</span>() {</code></span>
+<span class="codeline" id="line-587"><code>		<span class="keyword">if</span> <label for="r111" class="ident">r</label> := <a href="../../../pkg/builtin.html#name-recover" class="ident">recover</a>(); <label for="r111" class="ident">r</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-588"><code>			<span class="comment">// If it panics with a nil pointer, the most likely cases are</span></code></span>
+<span class="codeline" id="line-589"><code><span class="comment">			// an encoding.TextMarshaler or error fails to guard against nil,</span></code></span>
+<span class="codeline" id="line-590"><code><span class="comment">			// in which case "&lt;nil&gt;" seems to be the feasible choice.</span></code></span>
+<span class="codeline" id="line-591"><code><span class="comment">			//</span></code></span>
+<span class="codeline" id="line-592"><code><span class="comment">			// Adapted from the code in fmt/print.go.</span></code></span>
+<span class="codeline" id="line-593"><code>			<span class="keyword">if</span> <label for="r112" class="ident">v</label> := <a href="../../../pkg/reflect.html" class="ident i4">reflect</a>.<a href="../../reflect/value.go.html#line-3050" class="ident">ValueOf</a>(<label for="r110" class="ident">v</label>.<a href="value.go.html#line-35" class="ident">any</a>); <label for="r112" class="ident">v</label>.<a href="../../reflect/value.go.html#line-1817" class="ident">Kind</a>() == <a href="../../../pkg/reflect.html" class="ident i4">reflect</a>.<a href="../../reflect/type.go.html#line-303" class="ident">Pointer</a> &amp;&amp; <label for="r112" class="ident">v</label>.<a href="../../reflect/value.go.html#line-1605" class="ident">IsNil</a>() {</code></span>
+<span class="codeline" id="line-594"><code>				<label for="r108" class="ident">s</label>.<a href="#line-570" class="ident">appendString</a>(<span class="lit-string">"&lt;nil&gt;"</span>)</code></span>
+<span class="codeline" id="line-595"><code>				<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-596"><code>			}</code></span>
+<span class="codeline" id="line-597"><code></code></span>
+<span class="codeline" id="line-598"><code>			<span class="comment">// Otherwise just print the original panic message.</span></code></span>
+<span class="codeline" id="line-599"><code>			<label for="r108" class="ident">s</label>.<a href="#line-570" class="ident">appendString</a>(<a href="../../../pkg/fmt.html" class="ident i1">fmt</a>.<a href="../../fmt/print.go.html#line-237" class="ident">Sprintf</a>(<span class="lit-string">"!PANIC: %v"</span>, <label for="r111" class="ident">r</label>))</code></span>
+<span class="codeline" id="line-600"><code>		}</code></span>
+<span class="codeline" id="line-601"><code>	}()</code></span>
+<span class="codeline" id="line-602"><code></code></span>
+<span class="codeline" id="line-603"><code>	<span class="keyword">var</span> <label for="r113" class="ident">err</label> <a href="../../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-604"><code>	<span class="keyword">if</span> <label for="r108" class="ident">s</label>.<a href="#line-383" class="ident">h</a>.<a href="#line-192" class="ident">json</a> {</code></span>
+<span class="codeline" id="line-605"><code>		<label for="r113" class="ident">err</label> = <a href="json_handler.go.html#line-104" class="ident">appendJSONValue</a>(<label for="r108" class="ident">s</label>, <label for="r110" class="ident">v</label>)</code></span>
+<span class="codeline" id="line-606"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-607"><code>		<label for="r113" class="ident">err</label> = <a href="text_handler.go.html#line-96" class="ident">appendTextValue</a>(<label for="r108" class="ident">s</label>, <label for="r110" class="ident">v</label>)</code></span>
+<span class="codeline" id="line-608"><code>	}</code></span>
+<span class="codeline" id="line-609"><code>	<span class="keyword">if</span> <label for="r113" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-610"><code>		<label for="r108" class="ident">s</label>.<a href="#line-533" class="ident">appendError</a>(<label for="r113" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-611"><code>	}</code></span>
+<span class="codeline" id="line-612"><code>}</code></span>
+<span class="codeline" id="line-613"><code></code></span>
+<span class="codeline" id="line-614"><code><span class="keyword">func</span> (<label for="r114" class="ident">s</label> *<a href="#line-382" class="ident">handleState</a>) <label for="r115" class="ident"><a href="../../../use/log/slog..handleState^0dae3.appendTime^0ae75.html" class="ident">appendTime</a></label>(<label for="r116" class="ident">t</label> <a href="../../../pkg/time.html" class="ident i8">time</a>.<a href="../../time/time.go.html#line-140" class="ident">Time</a>) {</code></span>
+<span class="codeline" id="line-615"><code>	<span class="keyword">if</span> <label for="r114" class="ident">s</label>.<a href="#line-383" class="ident">h</a>.<a href="#line-192" class="ident">json</a> {</code></span>
+<span class="codeline" id="line-616"><code>		<a href="json_handler.go.html#line-93" class="ident">appendJSONTime</a>(<label for="r114" class="ident">s</label>, <label for="r116" class="ident">t</label>)</code></span>
+<span class="codeline" id="line-617"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-618"><code>		*<label for="r114" class="ident">s</label>.<a href="#line-384" class="ident">buf</a> = <a href="#line-622" class="ident">appendRFC3339Millis</a>(*<label for="r114" class="ident">s</label>.<a href="#line-384" class="ident">buf</a>, <label for="r116" class="ident">t</label>)</code></span>
+<span class="codeline" id="line-619"><code>	}</code></span>
+<span class="codeline" id="line-620"><code>}</code></span>
+<span class="codeline" id="line-621"><code></code></span>
+<span class="codeline" id="line-622"><code><span class="keyword">func</span> <label for="r117" class="ident"><a href="../../../pkg/log/slog.html#name-appendRFC3339Millis" class="ident">appendRFC3339Millis</a></label>(<label for="r118" class="ident">b</label> []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r119" class="ident">t</label> <a href="../../../pkg/time.html" class="ident i8">time</a>.<a href="../../time/time.go.html#line-140" class="ident">Time</a>) []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a> {</code></span>
+<span class="codeline" id="line-623"><code>	<span class="comment">// Format according to time.RFC3339Nano since it is highly optimized,</span></code></span>
+<span class="codeline" id="line-624"><code><span class="comment">	// but truncate it to use millisecond resolution.</span></code></span>
+<span class="codeline" id="line-625"><code><span class="comment">	// Unfortunately, that format trims trailing 0s, so add 1/10 millisecond</span></code></span>
+<span class="codeline" id="line-626"><code><span class="comment">	// to guarantee that there are exactly 4 digits after the period.</span></code></span>
+<span class="codeline" id="line-627"><code>	<span class="keyword">const</span> <label for="r120" class="ident">prefixLen</label> = <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<span class="lit-string">"2006-01-02T15:04:05.000"</span>)</code></span>
+<span class="codeline" id="line-628"><code>	<label for="r121" class="ident">n</label> := <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r118" class="ident">b</label>)</code></span>
+<span class="codeline" id="line-629"><code>	<label for="r119" class="ident">t</label> = <label for="r119" class="ident">t</label>.<a href="../../time/time.go.html#line-1778" class="ident">Truncate</a>(<a href="../../../pkg/time.html" class="ident i8">time</a>.<a href="../../time/time.go.html#line-933" class="ident">Millisecond</a>).<a href="../../time/time.go.html#line-1166" class="ident">Add</a>(<a href="../../../pkg/time.html" class="ident i8">time</a>.<a href="../../time/time.go.html#line-933" class="ident">Millisecond</a> / <span class="lit-number">10</span>)</code></span>
+<span class="codeline" id="line-630"><code>	<label for="r118" class="ident">b</label> = <label for="r119" class="ident">t</label>.<a href="../../time/format.go.html#line-655" class="ident">AppendFormat</a>(<label for="r118" class="ident">b</label>, <a href="../../../pkg/time.html" class="ident i8">time</a>.<a href="../../time/format.go.html#line-120" class="ident">RFC3339Nano</a>)</code></span>
+<span class="codeline" id="line-631"><code>	<label for="r118" class="ident">b</label> = <a href="../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r118" class="ident">b</label>[:<label for="r121" class="ident">n</label>+<label for="r120" class="ident">prefixLen</label>], <label for="r118" class="ident">b</label>[<label for="r121" class="ident">n</label>+<label for="r120" class="ident">prefixLen</label>+<span class="lit-number">1</span>:]...) <span class="comment">// drop the 4th digit</span></code></span>
+<span class="codeline" id="line-632"><code>	<span class="keyword">return</span> <label for="r118" class="ident">b</label></code></span>
+<span class="codeline" id="line-633"><code>}</code></span>
+<span class="codeline" id="line-634"><code></code></span>
+<span class="codeline" id="line-635"><code><span class="comment">// DiscardHandler discards all log output.</span></code></span>
+<span class="codeline" id="line-636"><code><span class="comment">// DiscardHandler.Enabled returns false for all Levels.</span></code></span>
+<span class="codeline" id="line-637"><code><span class="keyword">var</span> <a href="../../../pkg/log/slog.html#name-DiscardHandler" class="ident">DiscardHandler</a> <a href="#line-33" class="ident">Handler</a> = <a href="#line-639" class="ident">discardHandler</a>{}</code></span>
+<span class="codeline" id="line-638"><code></code></span>
+<span class="codeline" id="line-639"><code><span class="keyword">type</span> <a href="../../../pkg/log/slog.html#name-discardHandler" class="ident">discardHandler</a> <span class="keyword">struct</span>{}</code></span>
+<span class="codeline" id="line-640"><code></code></span>
+<span class="codeline" id="line-641"><code><span class="keyword">func</span> (<label for="r122" class="ident">dh</label> <a href="#line-639" class="ident">discardHandler</a>) <label for="r123" class="ident"><a href="../../../use/log/slog..discardHandler^f588c.Enabled.html" class="ident">Enabled</a></label>(<a href="../../../pkg/context.html" class="ident i0">context</a>.<a href="../../context/context.go.html#line-71" class="ident">Context</a>, <a href="level.go.html#line-17" class="ident">Level</a>) <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a>  { <span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-false" class="ident">false</a> }</code></span>
+<span class="codeline" id="line-642"><code><span class="keyword">func</span> (<label for="r124" class="ident">dh</label> <a href="#line-639" class="ident">discardHandler</a>) <label for="r125" class="ident"><a href="../../../use/log/slog..discardHandler^f588c.Handle.html" class="ident">Handle</a></label>(<a href="../../../pkg/context.html" class="ident i0">context</a>.<a href="../../context/context.go.html#line-71" class="ident">Context</a>, <a href="record.go.html#line-20" class="ident">Record</a>) <a href="../../../pkg/builtin.html#name-error" class="ident">error</a> { <span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> }</code></span>
+<span class="codeline" id="line-643"><code><span class="keyword">func</span> (<label for="r126" class="ident">dh</label> <a href="#line-639" class="ident">discardHandler</a>) <label for="r127" class="ident"><a href="../../../use/log/slog..discardHandler^f588c.WithAttrs.html" class="ident">WithAttrs</a></label>(<label for="r128" class="ident">attrs</label> []<a href="attr.go.html#line-12" class="ident">Attr</a>) <a href="#line-33" class="ident">Handler</a>       { <span class="keyword">return</span> <label for="r126" class="ident">dh</label> }</code></span>
+<span class="codeline" id="line-644"><code><span class="keyword">func</span> (<label for="r129" class="ident">dh</label> <a href="#line-639" class="ident">discardHandler</a>) <label for="r130" class="ident"><a href="../../../use/log/slog..discardHandler^f588c.WithGroup.html" class="ident">WithGroup</a></label>(<label for="r131" class="ident">name</label> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="#line-33" class="ident">Handler</a>        { <span class="keyword">return</span> <label for="r129" class="ident">dh</label> }</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

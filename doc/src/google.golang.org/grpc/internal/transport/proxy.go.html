@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: proxy.go in package google.golang.org/grpc/internal/transport</title>
+<link href="../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	proxy.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../pkg/google.golang.org/grpc/internal/transport.html">google.golang.org/grpc/internal/transport</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30],
+input[id=r31]:checked ~pre label[for=r31],
+input[id=r32]:checked ~pre label[for=r32],
+input[id=r33]:checked ~pre label[for=r33],
+input[id=r34]:checked ~pre label[for=r34],
+input[id=r35]:checked ~pre label[for=r35]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3,
+input[id=i4]:checked ~pre .i4,
+input[id=i5]:checked ~pre .i5,
+input[id=i6]:checked ~pre .i6,
+input[id=i7]:checked ~pre .i7,
+input[id=i8]:checked ~pre .i8,
+input[id=i9]:checked ~pre .i9,
+input[id=i10]:checked ~pre .i10,
+input[id=i11]:checked ~pre .i11
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="r31" type="radio" name="g"/>
+<input id="r32" type="radio" name="g"/>
+<input id="r33" type="radio" name="g"/>
+<input id="r34" type="radio" name="g"/>
+<input id="r35" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+<input id="i4" type="radio" name="i"/>
+<input id="i5" type="radio" name="i"/>
+<input id="i6" type="radio" name="i"/>
+<input id="i7" type="radio" name="i"/>
+<input id="i8" type="radio" name="i"/>
+<input id="i9" type="radio" name="i"/>
+<input id="i10" type="radio" name="i"/>
+<input id="i11" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">/*</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment"> * Copyright 2017 gRPC authors.</span></code></span>
+<span class="codeline" id="line-4"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-5"><code><span class="comment"> * Licensed under the Apache License, Version 2.0 (the "License");</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment"> * you may not use this file except in compliance with the License.</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment"> * You may obtain a copy of the License at</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment"> *     http://www.apache.org/licenses/LICENSE-2.0</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment"> * Unless required by applicable law or agreed to in writing, software</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment"> * distributed under the License is distributed on an "AS IS" BASIS,</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment"> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment"> * See the License for the specific language governing permissions and</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment"> * limitations under the License.</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment"> */</span></code></span>
+<span class="codeline" id="line-18"><code></code></span>
+<span class="codeline" id="line-19"><code><span class="keyword">package</span> transport</code></span>
+<span class="codeline" id="line-20"><code></code></span>
+<span class="codeline" id="line-21"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-22"><code>	<label for="i0"><span class="lit-string i0">"bufio"</span></label></code></span>
+<span class="codeline" id="line-23"><code>	<label for="i1"><span class="lit-string i1">"context"</span></label></code></span>
+<span class="codeline" id="line-24"><code>	<label for="i2"><span class="lit-string i2">"encoding/base64"</span></label></code></span>
+<span class="codeline" id="line-25"><code>	<label for="i3"><span class="lit-string i3">"fmt"</span></label></code></span>
+<span class="codeline" id="line-26"><code>	<label for="i4"><span class="lit-string i4">"io"</span></label></code></span>
+<span class="codeline" id="line-27"><code>	<label for="i5"><span class="lit-string i5">"net"</span></label></code></span>
+<span class="codeline" id="line-28"><code>	<label for="i6"><span class="lit-string i6">"net/http"</span></label></code></span>
+<span class="codeline" id="line-29"><code>	<label for="i7"><span class="lit-string i7">"net/http/httputil"</span></label></code></span>
+<span class="codeline" id="line-30"><code>	<label for="i8"><span class="lit-string i8">"net/url"</span></label></code></span>
+<span class="codeline" id="line-31"><code></code></span>
+<span class="codeline" id="line-32"><code>	<label for="i9"><span class="lit-string i9">"google.golang.org/grpc/internal"</span></label></code></span>
+<span class="codeline" id="line-33"><code>	<label for="i10"><span class="lit-string i10">"google.golang.org/grpc/internal/proxyattributes"</span></label></code></span>
+<span class="codeline" id="line-34"><code>	<label for="i11"><span class="lit-string i11">"google.golang.org/grpc/resolver"</span></label></code></span>
+<span class="codeline" id="line-35"><code>)</code></span>
+<span class="codeline" id="line-36"><code></code></span>
+<span class="codeline" id="line-37"><code><span class="keyword">const</span> <a href="../../../../../pkg/google.golang.org/grpc/internal/transport.html#name-proxyAuthHeaderKey" class="ident">proxyAuthHeaderKey</a> = <span class="lit-string">"Proxy-Authorization"</span></code></span>
+<span class="codeline" id="line-38"><code></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">// To read a response from a net.Conn, http.ReadResponse() takes a bufio.Reader.</span></code></span>
+<span class="codeline" id="line-40"><code><span class="comment">// It's possible that this reader reads more than what's need for the response</span></code></span>
+<span class="codeline" id="line-41"><code><span class="comment">// and stores those bytes in the buffer. bufConn wraps the original net.Conn</span></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">// and the bufio.Reader to make sure we don't lose the bytes in the buffer.</span></code></span>
+<span class="codeline" id="line-43"><code><span class="keyword">type</span> <a href="../../../../../pkg/google.golang.org/grpc/internal/transport.html#name-bufConn" class="ident">bufConn</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-44"><code>	<a href="../../../../../pkg/net.html" class="ident i5">net</a>.<a href="../../../../net/net.go.html#line-124" class="ident">Conn</a></code></span>
+<span class="codeline" id="line-45"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/transport..bufConn^0fa47.r^45434.html" class="ident">r</a> <a href="../../../../../pkg/io.html" class="ident i4">io</a>.<a href="../../../../io/io.go.html#line-86" class="ident">Reader</a></code></span>
+<span class="codeline" id="line-46"><code>}</code></span>
+<span class="codeline" id="line-47"><code></code></span>
+<span class="codeline" id="line-48"><code><span class="keyword">func</span> (<label for="r0" class="ident">c</label> *<a href="#line-43" class="ident">bufConn</a>) <label for="r1" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/transport..bufConn^0fa47.Read.html" class="ident">Read</a></label>(<label for="r2" class="ident">b</label> []<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) (<a href="../../../../../pkg/builtin.html#name-int" class="ident">int</a>, <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-49"><code>	<span class="keyword">return</span> <label for="r0" class="ident">c</label>.<a href="#line-45" class="ident">r</a>.<a href="../../../../io/io.go.html#line-87" class="ident">Read</a>(<label for="r2" class="ident">b</label>)</code></span>
+<span class="codeline" id="line-50"><code>}</code></span>
+<span class="codeline" id="line-51"><code></code></span>
+<span class="codeline" id="line-52"><code><span class="keyword">func</span> <label for="r3" class="ident"><a href="../../../../../pkg/google.golang.org/grpc/internal/transport.html#name-basicAuth" class="ident">basicAuth</a></label>(<label for="r4" class="ident">username</label>, <label for="r5" class="ident">password</label> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-53"><code>	<label for="r6" class="ident">auth</label> := <label for="r4" class="ident">username</label> + <span class="lit-string">":"</span> + <label for="r5" class="ident">password</label></code></span>
+<span class="codeline" id="line-54"><code>	<span class="keyword">return</span> <a href="../../../../../pkg/encoding/base64.html" class="ident i2">base64</a>.<a href="../../../../encoding/base64/base64.go.html#line-119" class="ident">StdEncoding</a>.<a href="../../../../encoding/base64/base64.go.html#line-206" class="ident">EncodeToString</a>([]<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>(<label for="r6" class="ident">auth</label>))</code></span>
+<span class="codeline" id="line-55"><code>}</code></span>
+<span class="codeline" id="line-56"><code></code></span>
+<span class="codeline" id="line-57"><code><span class="keyword">func</span> <label for="r7" class="ident"><a href="../../../../../pkg/google.golang.org/grpc/internal/transport.html#name-doHTTPConnectHandshake" class="ident">doHTTPConnectHandshake</a></label>(<label for="r8" class="ident">ctx</label> <a href="../../../../../pkg/context.html" class="ident i1">context</a>.<a href="../../../../context/context.go.html#line-71" class="ident">Context</a>, <label for="r9" class="ident">conn</label> <a href="../../../../../pkg/net.html" class="ident i5">net</a>.<a href="../../../../net/net.go.html#line-124" class="ident">Conn</a>, <label for="r10" class="ident">grpcUA</label> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r11" class="ident">opts</label> <a href="../../../../../pkg/google.golang.org/grpc/internal/proxyattributes.html" class="ident i10">proxyattributes</a>.<a href="../proxyattributes/proxyattributes.go.html#line-35" class="ident">Options</a>) (<label for="r12" class="ident">_</label> <a href="../../../../../pkg/net.html" class="ident i5">net</a>.<a href="../../../../net/net.go.html#line-124" class="ident">Conn</a>, <label for="r13" class="ident">err</label> <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-58"><code>	<span class="keyword">defer</span> <span class="keyword">func</span>() {</code></span>
+<span class="codeline" id="line-59"><code>		<span class="keyword">if</span> <label for="r13" class="ident">err</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-60"><code>			<label for="r9" class="ident">conn</label>.<a href="../../../../net/net.go.html#line-139" class="ident">Close</a>()</code></span>
+<span class="codeline" id="line-61"><code>		}</code></span>
+<span class="codeline" id="line-62"><code>	}()</code></span>
+<span class="codeline" id="line-63"><code></code></span>
+<span class="codeline" id="line-64"><code>	<label for="r14" class="ident">req</label> := &amp;<a href="../../../../../pkg/net/http.html" class="ident i6">http</a>.<a href="../../../../net/http/request.go.html#line-113" class="ident">Request</a>{</code></span>
+<span class="codeline" id="line-65"><code>		<a href="../../../../net/http/request.go.html#line-116" class="ident">Method</a>: <a href="../../../../../pkg/net/http.html" class="ident i6">http</a>.<a href="../../../../net/http/method.go.html#line-17" class="ident">MethodConnect</a>,</code></span>
+<span class="codeline" id="line-66"><code>		<a href="../../../../net/http/request.go.html#line-130" class="ident">URL</a>:    &amp;<a href="../../../../../pkg/net/url.html" class="ident i8">url</a>.<a href="../../../../net/url/url.go.html#line-375" class="ident">URL</a>{<a href="../../../../net/url/url.go.html#line-379" class="ident">Host</a>: <label for="r11" class="ident">opts</label>.<a href="../proxyattributes/proxyattributes.go.html#line-37" class="ident">ConnectAddr</a>},</code></span>
+<span class="codeline" id="line-67"><code>		<a href="../../../../net/http/request.go.html#line-172" class="ident">Header</a>: <span class="keyword">map</span>[<a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>][]<a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"User-Agent"</span>: {<label for="r10" class="ident">grpcUA</label>}},</code></span>
+<span class="codeline" id="line-68"><code>	}</code></span>
+<span class="codeline" id="line-69"><code>	<span class="keyword">if</span> <label for="r15" class="ident">user</label> := <label for="r11" class="ident">opts</label>.<a href="../proxyattributes/proxyattributes.go.html#line-36" class="ident">User</a>; <label for="r15" class="ident">user</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-70"><code>		<label for="r16" class="ident">u</label> := <label for="r15" class="ident">user</label>.<a href="../../../../net/url/url.go.html#line-418" class="ident">Username</a>()</code></span>
+<span class="codeline" id="line-71"><code>		<label for="r17" class="ident">p</label>, <label for="r18" class="ident">_</label> := <label for="r15" class="ident">user</label>.<a href="../../../../net/url/url.go.html#line-426" class="ident">Password</a>()</code></span>
+<span class="codeline" id="line-72"><code>		<label for="r14" class="ident">req</label>.<a href="../../../../net/http/request.go.html#line-172" class="ident">Header</a>.<a href="../../../../net/http/header.go.html#line-30" class="ident">Add</a>(<a href="#line-37" class="ident">proxyAuthHeaderKey</a>, <span class="lit-string">"Basic "</span>+<a href="#line-52" class="ident">basicAuth</a>(<label for="r16" class="ident">u</label>, <label for="r17" class="ident">p</label>))</code></span>
+<span class="codeline" id="line-73"><code>	}</code></span>
+<span class="codeline" id="line-74"><code>	<span class="keyword">if</span> <label for="r19" class="ident">err</label> := <a href="#line-110" class="ident">sendHTTPRequest</a>(<label for="r8" class="ident">ctx</label>, <label for="r14" class="ident">req</label>, <label for="r9" class="ident">conn</label>); <label for="r19" class="ident">err</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-75"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../../../pkg/fmt.html" class="ident i3">fmt</a>.<a href="../../../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"failed to write the HTTP request: %v"</span>, <label for="r19" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-76"><code>	}</code></span>
+<span class="codeline" id="line-77"><code></code></span>
+<span class="codeline" id="line-78"><code>	<label for="r20" class="ident">r</label> := <a href="../../../../../pkg/bufio.html" class="ident i0">bufio</a>.<a href="../../../../bufio/bufio.go.html#line-62" class="ident">NewReader</a>(<label for="r9" class="ident">conn</label>)</code></span>
+<span class="codeline" id="line-79"><code>	<label for="r21" class="ident">resp</label>, <label for="r13" class="ident">err</label> := <a href="../../../../../pkg/net/http.html" class="ident i6">http</a>.<a href="../../../../net/http/response.go.html#line-154" class="ident">ReadResponse</a>(<label for="r20" class="ident">r</label>, <label for="r14" class="ident">req</label>)</code></span>
+<span class="codeline" id="line-80"><code>	<span class="keyword">if</span> <label for="r13" class="ident">err</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-81"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../../../pkg/fmt.html" class="ident i3">fmt</a>.<a href="../../../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"reading server HTTP response: %v"</span>, <label for="r13" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-82"><code>	}</code></span>
+<span class="codeline" id="line-83"><code>	<span class="keyword">defer</span> <label for="r21" class="ident">resp</label>.<a href="../../../../net/http/response.go.html#line-72" class="ident">Body</a>.<a href="../../../../io/io.go.html#line-108" class="ident">Close</a>()</code></span>
+<span class="codeline" id="line-84"><code>	<span class="keyword">if</span> <label for="r21" class="ident">resp</label>.<a href="../../../../net/http/response.go.html#line-37" class="ident">StatusCode</a> != <a href="../../../../../pkg/net/http.html" class="ident i6">http</a>.<a href="../../../../net/http/status.go.html#line-15" class="ident">StatusOK</a> {</code></span>
+<span class="codeline" id="line-85"><code>		<label for="r22" class="ident">dump</label>, <label for="r23" class="ident">err</label> := <a href="../../../../../pkg/net/http/httputil.html" class="ident i7">httputil</a>.<a href="../../../../net/http/httputil/dump.go.html#line-305" class="ident">DumpResponse</a>(<label for="r21" class="ident">resp</label>, <a href="../../../../../pkg/builtin.html#name-true" class="ident">true</a>)</code></span>
+<span class="codeline" id="line-86"><code>		<span class="keyword">if</span> <label for="r23" class="ident">err</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-87"><code>			<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../../../pkg/fmt.html" class="ident i3">fmt</a>.<a href="../../../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"failed to do connect handshake, status code: %s"</span>, <label for="r21" class="ident">resp</label>.<a href="../../../../net/http/response.go.html#line-36" class="ident">Status</a>)</code></span>
+<span class="codeline" id="line-88"><code>		}</code></span>
+<span class="codeline" id="line-89"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../../../pkg/fmt.html" class="ident i3">fmt</a>.<a href="../../../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"failed to do connect handshake, response: %q"</span>, <label for="r22" class="ident">dump</label>)</code></span>
+<span class="codeline" id="line-90"><code>	}</code></span>
+<span class="codeline" id="line-91"><code>	<span class="comment">// The buffer could contain extra bytes from the target server, so we can't</span></code></span>
+<span class="codeline" id="line-92"><code><span class="comment">	// discard it. However, in many cases where the server waits for the client</span></code></span>
+<span class="codeline" id="line-93"><code><span class="comment">	// to send the first message (e.g. when TLS is being used), the buffer will</span></code></span>
+<span class="codeline" id="line-94"><code><span class="comment">	// be empty, so we can avoid the overhead of reading through this buffer.</span></code></span>
+<span class="codeline" id="line-95"><code>	<span class="keyword">if</span> <label for="r20" class="ident">r</label>.<a href="../../../../bufio/bufio.go.html#line-339" class="ident">Buffered</a>() != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-96"><code>		<span class="keyword">return</span> &amp;<a href="#line-43" class="ident">bufConn</a>{<a href="#line-44" class="ident">Conn</a>: <label for="r9" class="ident">conn</label>, <a href="#line-45" class="ident">r</a>: <label for="r20" class="ident">r</label>}, <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-97"><code>	}</code></span>
+<span class="codeline" id="line-98"><code>	<span class="keyword">return</span> <label for="r9" class="ident">conn</label>, <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-99"><code>}</code></span>
+<span class="codeline" id="line-100"><code></code></span>
+<span class="codeline" id="line-101"><code><span class="comment">// proxyDial establishes a TCP connection to the specified address and performs an HTTP CONNECT handshake.</span></code></span>
+<span class="codeline" id="line-102"><code><span class="keyword">func</span> <label for="r24" class="ident"><a href="../../../../../pkg/google.golang.org/grpc/internal/transport.html#name-proxyDial" class="ident">proxyDial</a></label>(<label for="r25" class="ident">ctx</label> <a href="../../../../../pkg/context.html" class="ident i1">context</a>.<a href="../../../../context/context.go.html#line-71" class="ident">Context</a>, <label for="r26" class="ident">addr</label> <a href="../../../../../pkg/google.golang.org/grpc/resolver.html" class="ident i11">resolver</a>.<a href="../../resolver/resolver.go.html#line-91" class="ident">Address</a>, <label for="r27" class="ident">grpcUA</label> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r28" class="ident">opts</label> <a href="../../../../../pkg/google.golang.org/grpc/internal/proxyattributes.html" class="ident i10">proxyattributes</a>.<a href="../proxyattributes/proxyattributes.go.html#line-35" class="ident">Options</a>) (<a href="../../../../../pkg/net.html" class="ident i5">net</a>.<a href="../../../../net/net.go.html#line-124" class="ident">Conn</a>, <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-103"><code>	<label for="r29" class="ident">conn</label>, <label for="r30" class="ident">err</label> := <a href="../../../../../pkg/google.golang.org/grpc/internal.html" class="ident i9">internal</a>.<a href="../tcp_keepalive_unix.go.html#line-36" class="ident">NetDialerWithTCPKeepalive</a>().<a href="../../../../net/dial.go.html#line-525" class="ident">DialContext</a>(<label for="r25" class="ident">ctx</label>, <span class="lit-string">"tcp"</span>, <label for="r26" class="ident">addr</label>.<a href="../../resolver/resolver.go.html#line-93" class="ident">Addr</a>)</code></span>
+<span class="codeline" id="line-104"><code>	<span class="keyword">if</span> <label for="r30" class="ident">err</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-105"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r30" class="ident">err</label></code></span>
+<span class="codeline" id="line-106"><code>	}</code></span>
+<span class="codeline" id="line-107"><code>	<span class="keyword">return</span> <a href="#line-57" class="ident">doHTTPConnectHandshake</a>(<label for="r25" class="ident">ctx</label>, <label for="r29" class="ident">conn</label>, <label for="r27" class="ident">grpcUA</label>, <label for="r28" class="ident">opts</label>)</code></span>
+<span class="codeline" id="line-108"><code>}</code></span>
+<span class="codeline" id="line-109"><code></code></span>
+<span class="codeline" id="line-110"><code><span class="keyword">func</span> <label for="r31" class="ident"><a href="../../../../../pkg/google.golang.org/grpc/internal/transport.html#name-sendHTTPRequest" class="ident">sendHTTPRequest</a></label>(<label for="r32" class="ident">ctx</label> <a href="../../../../../pkg/context.html" class="ident i1">context</a>.<a href="../../../../context/context.go.html#line-71" class="ident">Context</a>, <label for="r33" class="ident">req</label> *<a href="../../../../../pkg/net/http.html" class="ident i6">http</a>.<a href="../../../../net/http/request.go.html#line-113" class="ident">Request</a>, <label for="r34" class="ident">conn</label> <a href="../../../../../pkg/net.html" class="ident i5">net</a>.<a href="../../../../net/net.go.html#line-124" class="ident">Conn</a>) <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-111"><code>	<label for="r33" class="ident">req</label> = <label for="r33" class="ident">req</label>.<a href="../../../../net/http/request.go.html#line-368" class="ident">WithContext</a>(<label for="r32" class="ident">ctx</label>)</code></span>
+<span class="codeline" id="line-112"><code>	<span class="keyword">if</span> <label for="r35" class="ident">err</label> := <label for="r33" class="ident">req</label>.<a href="../../../../net/http/request.go.html#line-561" class="ident">Write</a>(<label for="r34" class="ident">conn</label>); <label for="r35" class="ident">err</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-113"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/fmt.html" class="ident i3">fmt</a>.<a href="../../../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"failed to write the HTTP request: %v"</span>, <label for="r35" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-114"><code>	}</code></span>
+<span class="codeline" id="line-115"><code>	<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-116"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

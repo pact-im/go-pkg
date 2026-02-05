@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: mutex.go in package sync</title>
+<link href="../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	mutex.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../pkg/sync.html">sync</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2009 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<div class="anchor" id="doc"><span class="codeline" id="line-5"><code><span class="comment">// Package sync provides basic synchronization primitives such as mutual</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment">// exclusion locks. Other than the [Once] and [WaitGroup] types, most are intended</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment">// for use by low-level library routines. Higher-level synchronization is</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment">// better done via channels and communication.</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment">// Values containing the types defined in this package should not be copied.</span></code></span></div><span class="codeline" id="line-11"><code><span class="keyword">package</span> sync</code></span>
+<span class="codeline" id="line-12"><code></code></span>
+<span class="codeline" id="line-13"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-14"><code>	<a href="../../pkg/internal/sync.html" class="ident i0">isync</a> <label for="i0"><span class="lit-string i0">"internal/sync"</span></label></code></span>
+<span class="codeline" id="line-15"><code>)</code></span>
+<span class="codeline" id="line-16"><code></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">// A Mutex is a mutual exclusion lock.</span></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">// The zero value for a Mutex is an unlocked mutex.</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">// A Mutex must not be copied after first use.</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">// In the terminology of [the Go memory model],</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">// the n'th call to [Mutex.Unlock] “synchronizes before” the m'th call to [Mutex.Lock]</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">// for any n &lt; m.</span></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">// A successful call to [Mutex.TryLock] is equivalent to a call to Lock.</span></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">// A failed call to TryLock does not establish any “synchronizes before”</span></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">// relation at all.</span></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">// [the Go memory model]: https://go.dev/ref/mem</span></code></span>
+<span class="codeline" id="line-30"><code><span class="keyword">type</span> <a href="../../pkg/sync.html#name-Mutex" class="ident">Mutex</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-31"><code>	_ <a href="cond.go.html#line-118" class="ident">noCopy</a></code></span>
+<span class="codeline" id="line-32"><code></code></span>
+<span class="codeline" id="line-33"><code>	<a href="../../use/sync..Mutex.mu^19503.html" class="ident">mu</a> <a href="../../pkg/internal/sync.html" class="ident i0">isync</a>.<a href="../internal/sync/mutex.go.html#line-20" class="ident">Mutex</a></code></span>
+<span class="codeline" id="line-34"><code>}</code></span>
+<span class="codeline" id="line-35"><code></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">// A Locker represents an object that can be locked and unlocked.</span></code></span>
+<span class="codeline" id="line-37"><code><span class="keyword">type</span> <a href="../../pkg/sync.html#name-Locker" class="ident">Locker</a> <span class="keyword">interface</span> {</code></span>
+<span class="codeline" id="line-38"><code>	<a href="../../imp/sync.Locker.html#name-Lock" class="ident">Lock</a>()</code></span>
+<span class="codeline" id="line-39"><code>	<a href="../../imp/sync.Locker.html#name-Unlock" class="ident">Unlock</a>()</code></span>
+<span class="codeline" id="line-40"><code>}</code></span>
+<span class="codeline" id="line-41"><code></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">// Lock locks m.</span></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">// If the lock is already in use, the calling goroutine</span></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">// blocks until the mutex is available.</span></code></span>
+<span class="codeline" id="line-45"><code><span class="keyword">func</span> (<label for="r0" class="ident">m</label> *<a href="#line-30" class="ident">Mutex</a>) <label for="r1" class="ident"><a href="../../use/sync..Mutex.Lock.html" class="ident">Lock</a></label>() {</code></span>
+<span class="codeline" id="line-46"><code>	<label for="r0" class="ident">m</label>.<a href="#line-33" class="ident">mu</a>.<a href="../internal/sync/mutex.go.html#line-61" class="ident">Lock</a>()</code></span>
+<span class="codeline" id="line-47"><code>}</code></span>
+<span class="codeline" id="line-48"><code></code></span>
+<span class="codeline" id="line-49"><code><span class="comment">// TryLock tries to lock m and reports whether it succeeded.</span></code></span>
+<span class="codeline" id="line-50"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-51"><code><span class="comment">// Note that while correct uses of TryLock do exist, they are rare,</span></code></span>
+<span class="codeline" id="line-52"><code><span class="comment">// and use of TryLock is often a sign of a deeper problem</span></code></span>
+<span class="codeline" id="line-53"><code><span class="comment">// in a particular use of mutexes.</span></code></span>
+<span class="codeline" id="line-54"><code><span class="keyword">func</span> (<label for="r2" class="ident">m</label> *<a href="#line-30" class="ident">Mutex</a>) <label for="r3" class="ident"><a href="../../use/sync..Mutex.TryLock.html" class="ident">TryLock</a></label>() <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-55"><code>	<span class="keyword">return</span> <label for="r2" class="ident">m</label>.<a href="#line-33" class="ident">mu</a>.<a href="../internal/sync/mutex.go.html#line-76" class="ident">TryLock</a>()</code></span>
+<span class="codeline" id="line-56"><code>}</code></span>
+<span class="codeline" id="line-57"><code></code></span>
+<span class="codeline" id="line-58"><code><span class="comment">// Unlock unlocks m.</span></code></span>
+<span class="codeline" id="line-59"><code><span class="comment">// It is a run-time error if m is not locked on entry to Unlock.</span></code></span>
+<span class="codeline" id="line-60"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-61"><code><span class="comment">// A locked [Mutex] is not associated with a particular goroutine.</span></code></span>
+<span class="codeline" id="line-62"><code><span class="comment">// It is allowed for one goroutine to lock a Mutex and then</span></code></span>
+<span class="codeline" id="line-63"><code><span class="comment">// arrange for another goroutine to unlock it.</span></code></span>
+<span class="codeline" id="line-64"><code><span class="keyword">func</span> (<label for="r4" class="ident">m</label> *<a href="#line-30" class="ident">Mutex</a>) <label for="r5" class="ident"><a href="../../use/sync..Mutex.Unlock.html" class="ident">Unlock</a></label>() {</code></span>
+<span class="codeline" id="line-65"><code>	<label for="r4" class="ident">m</label>.<a href="#line-33" class="ident">mu</a>.<a href="../internal/sync/mutex.go.html#line-187" class="ident">Unlock</a>()</code></span>
+<span class="codeline" id="line-66"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

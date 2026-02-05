@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: version.go in package golang.org/x/tools/internal/pkgbits</title>
+<link href="../../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	version.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html">golang.org/x/tools/internal/pkgbits</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2]
+{background: #226; color: #ff8;}
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2024 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> pkgbits</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="comment">// Version indicates a version of a unified IR bitstream.</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment">// Each Version indicates the addition, removal, or change of</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment">// new data in the bitstream.</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment">// These are serialized to disk and the interpretation remains fixed.</span></code></span>
+<span class="codeline" id="line-12"><code><span class="keyword">type</span> <a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-Version" class="ident">Version</a> <a href="../../../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a></code></span>
+<span class="codeline" id="line-13"><code></code></span>
+<span class="codeline" id="line-14"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-15"><code>	<span class="comment">// V0: initial prototype.</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">	// All data that is not assigned a Field is in version V0</span></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">	// and has not been deprecated.</span></code></span>
+<span class="codeline" id="line-19"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-V0" class="ident">V0</a> <a href="#line-12" class="ident">Version</a> = <a href="../../../../../../pkg/builtin.html#name-iota" class="ident">iota</a></code></span>
+<span class="codeline" id="line-20"><code></code></span>
+<span class="codeline" id="line-21"><code>	<span class="comment">// V1: adds the Flags uint32 word</span></code></span>
+<span class="codeline" id="line-22"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-V1" class="ident">V1</a></code></span>
+<span class="codeline" id="line-23"><code></code></span>
+<span class="codeline" id="line-24"><code>	<span class="comment">// V2: removes unused legacy fields and supports type parameters for aliases.</span></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">	// - remove the legacy "has init" bool from the public root</span></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">	// - remove obj's "derived func instance" bool</span></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">	// - add a TypeParamNames field to ObjAlias</span></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">	// - remove derived info "needed" bool</span></code></span>
+<span class="codeline" id="line-29"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-V2" class="ident">V2</a></code></span>
+<span class="codeline" id="line-30"><code></code></span>
+<span class="codeline" id="line-31"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-numVersions" class="ident">numVersions</a> = <a href="../../../../../../pkg/builtin.html#name-iota" class="ident">iota</a></code></span>
+<span class="codeline" id="line-32"><code>)</code></span>
+<span class="codeline" id="line-33"><code></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">// Field denotes a unit of data in the serialized unified IR bitstream.</span></code></span>
+<span class="codeline" id="line-35"><code><span class="comment">// It is conceptually a like field in a structure.</span></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">// We only really need Fields when the data may or may not be present</span></code></span>
+<span class="codeline" id="line-38"><code><span class="comment">// in a stream based on the Version of the bitstream.</span></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-40"><code><span class="comment">// Unlike much of pkgbits, Fields are not serialized and</span></code></span>
+<span class="codeline" id="line-41"><code><span class="comment">// can change values as needed.</span></code></span>
+<span class="codeline" id="line-42"><code><span class="keyword">type</span> <a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-Field" class="ident">Field</a> <a href="../../../../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-43"><code></code></span>
+<span class="codeline" id="line-44"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-45"><code>	<span class="comment">// Flags in a uint32 in the header of a bitstream</span></code></span>
+<span class="codeline" id="line-46"><code><span class="comment">	// that is used to indicate whether optional features are enabled.</span></code></span>
+<span class="codeline" id="line-47"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-Flags" class="ident">Flags</a> <a href="#line-42" class="ident">Field</a> = <a href="../../../../../../pkg/builtin.html#name-iota" class="ident">iota</a></code></span>
+<span class="codeline" id="line-48"><code></code></span>
+<span class="codeline" id="line-49"><code>	<span class="comment">// Deprecated: HasInit was a bool indicating whether a package</span></code></span>
+<span class="codeline" id="line-50"><code><span class="comment">	// has any init functions.</span></code></span>
+<span class="codeline" id="line-51"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-HasInit" class="ident">HasInit</a></code></span>
+<span class="codeline" id="line-52"><code></code></span>
+<span class="codeline" id="line-53"><code>	<span class="comment">// Deprecated: DerivedFuncInstance was a bool indicating</span></code></span>
+<span class="codeline" id="line-54"><code><span class="comment">	// whether an object was a function instance.</span></code></span>
+<span class="codeline" id="line-55"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-DerivedFuncInstance" class="ident">DerivedFuncInstance</a></code></span>
+<span class="codeline" id="line-56"><code></code></span>
+<span class="codeline" id="line-57"><code>	<span class="comment">// ObjAlias has a list of TypeParamNames.</span></code></span>
+<span class="codeline" id="line-58"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-AliasTypeParamNames" class="ident">AliasTypeParamNames</a></code></span>
+<span class="codeline" id="line-59"><code></code></span>
+<span class="codeline" id="line-60"><code>	<span class="comment">// Deprecated: DerivedInfoNeeded was a bool indicating</span></code></span>
+<span class="codeline" id="line-61"><code><span class="comment">	// whether a type was a derived type.</span></code></span>
+<span class="codeline" id="line-62"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-DerivedInfoNeeded" class="ident">DerivedInfoNeeded</a></code></span>
+<span class="codeline" id="line-63"><code></code></span>
+<span class="codeline" id="line-64"><code>	<a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-numFields" class="ident">numFields</a> = <a href="../../../../../../pkg/builtin.html#name-iota" class="ident">iota</a></code></span>
+<span class="codeline" id="line-65"><code>)</code></span>
+<span class="codeline" id="line-66"><code></code></span>
+<span class="codeline" id="line-67"><code><span class="comment">// introduced is the version a field was added.</span></code></span>
+<span class="codeline" id="line-68"><code><span class="keyword">var</span> <a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-introduced" class="ident">introduced</a> = [<a href="#line-64" class="ident">numFields</a>]<a href="#line-12" class="ident">Version</a>{</code></span>
+<span class="codeline" id="line-69"><code>	<a href="#line-47" class="ident">Flags</a>:               <a href="#line-22" class="ident">V1</a>,</code></span>
+<span class="codeline" id="line-70"><code>	<a href="#line-58" class="ident">AliasTypeParamNames</a>: <a href="#line-29" class="ident">V2</a>,</code></span>
+<span class="codeline" id="line-71"><code>}</code></span>
+<span class="codeline" id="line-72"><code></code></span>
+<span class="codeline" id="line-73"><code><span class="comment">// removed is the version a field was removed in or 0 for fields</span></code></span>
+<span class="codeline" id="line-74"><code><span class="comment">// that have not yet been deprecated.</span></code></span>
+<span class="codeline" id="line-75"><code><span class="comment">// (So removed[f]-1 is the last version it is included in.)</span></code></span>
+<span class="codeline" id="line-76"><code><span class="keyword">var</span> <a href="../../../../../../pkg/golang.org/x/tools/internal/pkgbits.html#name-removed" class="ident">removed</a> = [<a href="#line-64" class="ident">numFields</a>]<a href="#line-12" class="ident">Version</a>{</code></span>
+<span class="codeline" id="line-77"><code>	<a href="#line-51" class="ident">HasInit</a>:             <a href="#line-29" class="ident">V2</a>,</code></span>
+<span class="codeline" id="line-78"><code>	<a href="#line-55" class="ident">DerivedFuncInstance</a>: <a href="#line-29" class="ident">V2</a>,</code></span>
+<span class="codeline" id="line-79"><code>	<a href="#line-62" class="ident">DerivedInfoNeeded</a>:   <a href="#line-29" class="ident">V2</a>,</code></span>
+<span class="codeline" id="line-80"><code>}</code></span>
+<span class="codeline" id="line-81"><code></code></span>
+<span class="codeline" id="line-82"><code><span class="comment">// Has reports whether field f is present in a bitstream at version v.</span></code></span>
+<span class="codeline" id="line-83"><code><span class="keyword">func</span> (<label for="r0" class="ident">v</label> <a href="#line-12" class="ident">Version</a>) <label for="r1" class="ident"><a href="../../../../../../use/golang.org/x/tools/internal/pkgbits..Version.Has.html" class="ident">Has</a></label>(<label for="r2" class="ident">f</label> <a href="#line-42" class="ident">Field</a>) <a href="../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-84"><code>	<span class="keyword">return</span> <a href="#line-68" class="ident">introduced</a>[<label for="r2" class="ident">f</label>] &lt;= <label for="r0" class="ident">v</label> &amp;&amp; (<label for="r0" class="ident">v</label> &lt; <a href="#line-76" class="ident">removed</a>[<label for="r2" class="ident">f</label>] || <a href="#line-76" class="ident">removed</a>[<label for="r2" class="ident">f</label>] == <a href="#line-19" class="ident">V0</a>)</code></span>
+<span class="codeline" id="line-85"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Package: golang.org/x/tools/go/types/typeutil</title>
+<link href="../../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="package-details"><code><span style="font-size:xx-large;">package <b>typeutil</b></span>
+
+<span class="title">Import Path</span>
+	<a href="../../../../../../index.html#pkg-golang.org/x/tools/go/types/typeutil">golang.org/x/tools/go/types/typeutil</a><i> (on <a href="https://pkg.go.dev/golang.org/x/tools/go/types/typeutil" target="_blank">go.dev</a>)</i>
+
+<span class="title">Dependency Relation</span>
+	imports <a href="../../../../../../dep/golang.org/x/tools/go/types/typeutil.html">8 packages</a>, and imported by <a href="../../../../../../dep/golang.org/x/tools/go/types/typeutil.html#imported-by">2 packages</a>
+
+<div id="files"><span class="title">Involved Source Files</span>
+
+	<span class="nodocs">    <a href="../../../../../../src/golang.org/x/tools/go/types/typeutil/callee.go.html">callee.go</a></span>
+	<span class="nodocs">    <a href="../../../../../../src/golang.org/x/tools/go/types/typeutil/imports.go.html">imports.go</a></span>
+	<input type='checkbox' checked class="fold" id="file-2-fold-content"><label for="file-2-fold-content">  <a href="../../../../../../src/golang.org/x/tools/go/types/typeutil/map.go.html#doc">d</a> <a href="../../../../../../src/golang.org/x/tools/go/types/typeutil/map.go.html">map.go</a></label><span id='file-2-fold-content-items' class="fold-items">
+<span class="md-text">		Package typeutil defines various utilities for types, such as [Map],
+		a hash table that maps [types.Type] to any value.</span>
+</span>
+	<span class="nodocs">    <a href="../../../../../../src/golang.org/x/tools/go/types/typeutil/methodsetcache.go.html">methodsetcache.go</a></span>
+	<span class="nodocs">    <a href="../../../../../../src/golang.org/x/tools/go/types/typeutil/ui.go.html">ui.go</a></span></div>
+<div id="examples"><span class="title">Code Examples</span>
+
+	<input type='checkbox' class="fold" id="example-0-fold-content"><label for="example-0-fold-content">Map</label><span id='example-0-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"go/ast"
+			"go/parser"
+			"go/token"
+			"go/types"
+			"sort"
+		
+			"golang.org/x/tools/go/types/typeutil"
+		)
+		
+		func main() {
+			const source = `package P
+		
+		var X []string
+		var Y []string
+		
+		const p, q = 1.0, 2.0
+		
+		func f(offset int32) (value byte, ok bool)
+		func g(rune) (uint8, bool)
+		`
+		
+			// Parse and type-check the package.
+			fset := token.NewFileSet()
+			f, err := parser.ParseFile(fset, "P.go", source, 0)
+			if err != nil {
+				panic(err)
+			}
+			pkg, err := new(types.Config).Check("P", fset, []*ast.File{f}, nil)
+			if err != nil {
+				panic(err)
+			}
+		
+			scope := pkg.Scope()
+		
+			// Group names of package-level objects by their type.
+			var namesByType typeutil.Map // value is []string
+			for _, name := range scope.Names() {
+				T := scope.Lookup(name).Type()
+		
+				names, _ := namesByType.At(T).([]string)
+				names = append(names, name)
+				namesByType.Set(T, names)
+			}
+		
+			// Format, sort, and print the map entries.
+			var lines []string
+			namesByType.Iterate(func(T types.Type, names any) {
+				lines = append(lines, fmt.Sprintf("%s   %s", names, T))
+			})
+			sort.Strings(lines)
+			for _, line := range lines {
+				fmt.Println(line)
+			}
+		
+		}
+</span>
+</div>
+<div id="exported-types"><span class="title">Package-Level Type Names<span class="title-stat"><i> (total 5, in which 3 are exported)</i></span></span>
+
+<div id="exported-types-buttons" class="js-on">	/* sort exporteds by: <label id="sort-types-by-alphabet" class="button">alphabet</label> | <label id="sort-types-by-popularity" class="button">popularity</label> */</div><div class="anchor type-res" id="name-Hasher" data-popularity="165">	<input type='checkbox' class="fold" id="Hasher-fold-content"><label for="Hasher-fold-content"> <a href="../../../../../../use/golang.org/x/tools/go/types/typeutil..Hasher.html">type</a> <a href="../../../../../../src/golang.org/x/tools/go/types/typeutil/map.go.html#line-191">Hasher</a> <i>(struct)</i></label><span id='Hasher-fold-content-docs' class="fold-docs">
+<span class="md-text">		A Hasher provides a [Hasher.Hash] method to map a type to its hash value.
+		Hashers are stateless, and all are equivalent.</span>
+
+		<input type='checkbox' class="fold" id="Hasher-fold-methods"><label for="Hasher-fold-methods">Methods (<i>only one, which is exported</i>)</label><span id='Hasher-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="Hasher-fold-method-Hash"><label for="Hasher-fold-method-Hash">( Hasher) <a href="../../../../../../src/golang.org/x/tools/go/types/typeutil/map.go.html#line-201">Hash</a>(t <a href="../../../../../go/types.html">types</a>.<a href="../../../../../go/types.html#name-Type">Type</a>) <a href="../../../../../builtin.html#name-uint32">uint32</a></label><span id='Hasher-fold-method-Hash-docs' class="fold-docs">
+<span class="md-text">				Hash computes a hash value for the given type t such that
+				Identical(t, t') =&gt; Hash(t) == Hash(t').</span>
+</span></span></span>
+		<input type='checkbox' class="fold" id="Hasher-fold-results"><label for="Hasher-fold-results">As Outputs Of (<i>at least one exported</i>)</label><span id='Hasher-fold-results-items' class="fold-items"><span>
+			func <a href="#name-MakeHasher">MakeHasher</a>() <b>Hasher</b></span></span>
+		<input type='checkbox' class="fold" id="Hasher-fold-params"><label for="Hasher-fold-params">As Inputs Of (<i>at least one exported</i>)</label><span id='Hasher-fold-params-items' class="fold-items"><span>
+			func (*<a href="#name-Map">Map</a>).<a href="../../../../../../src/golang.org/x/tools/go/types/typeutil/map.go.html#line-47">SetHasher</a>(<b>Hasher</b>)</span></span>
+		<input type='checkbox' class="fold" id="Hasher-fold-values"><label for="Hasher-fold-values">As Types Of (<i>only one, which is unexported</i>)</label><span id='Hasher-fold-values-items' class="fold-items">
+			<input type='checkbox' class="showhide" id="Hasher-showhide-values"><i><label for="Hasher-showhide-values" class="show-inline">/* one unexported ... */</label><label for="Hasher-showhide-values" class="hide-inline">/* one unexported: */</label></i><span class="hidden"><i>
+			  var <a href="#name-theHasher">theHasher</a></i></span></span>
+
+</span></div><div class="anchor type-res" id="name-Map" data-popularity="735">	<input type='checkbox' class="fold" id="Map-fold-content"><label for="Map-fold-content"> <a href="../../../../../../use/golang.org/x/tools/go/types/typeutil..Map.html">type</a> <a href="../../../../../../src/golang.org/x/tools/go/types/typeutil/map.go.html#line-32">Map</a> <i>(struct)</i></label><span id='Map-fold-content-docs' class="fold-docs">
+<span class="md-text">		Map is a hash-table-based mapping from types (types.Type) to
+		arbitrary values.  The concrete types that implement
+		the Type interface are pointers.  Since they are not canonicalized,
+		== cannot be used to check for equivalence, and thus we cannot
+		simply use a Go map.
+		
+		Just as with map[K]V, a nil *Map is a valid empty map.
+		
+		Read-only map operations ([Map.At], [Map.Len], and so on) may
+		safely be called concurrently.
+		
+		TODO(adonovan): deprecate in favor of https://go.dev/issues/69420
+		and 69559, if the latter proposals for a generic hash-map type and
+		a types.Hash function are accepted.</span>
+
+		<input type='checkbox' class="fold" id="Map-fold-fields"><label for="Map-fold-fields">Fields (<i>total 2, neither is exported</i>)</label><span id='Map-fold-fields-items' class="fold-items">
+			<input type='checkbox' class="showhide" id="Map-showhide-fields"><i><label for="Map-showhide-fields" class="show-inline">/* 2 unexporteds ... */</label><label for="Map-showhide-fields" class="hide-inline">/* 2 unexporteds: */</label></i><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Map-fold-field-length"><label for="Map-fold-field-length"><a href="../../../../../../src/golang.org/x/tools/go/types/typeutil/map.go.html#line-34">length</a> <i><a href="../../../../../builtin.html#name-int">int</a></i></label><span id='Map-fold-field-length-docs' class="fold-docs">
+<span class="md-text">				// number of map entries</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Map-fold-field-table"><label for="Map-fold-field-table"><a href="../../../../../../src/golang.org/x/tools/go/types/typeutil/map.go.html#line-33">table</a> <i>map[<a href="../../../../../builtin.html#name-uint32">uint32</a>][]<a href="#name-entry">entry</a></i></label><span id='Map-fold-field-table-docs' class="fold-docs">
+<span class="md-text">				// maps hash to bucket; entry.key==nil means unused</span>
+</span></i></span></span>
+		<input type='checkbox' class="fold" id="Map-fold-methods"><label for="Map-fold-methods">Methods (<i>total 10, in which 9 are exported</i>)</label><span id='Map-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="Map-fold-method-At"><label for="Map-fold-method-At">(*Map) <a href="../../../../../../src/golang.org/x/tools/go/types/typeutil/map.go.html#line-70">At</a>(key <a href="../../../../../go/types.html">types</a>.<a href="../../../../../go/types.html#name-Type">Type</a>) <a href="../../../../../builtin.html#name-any">any</a></label><span id='Map-fold-method-At-docs' class="fold-docs">
+<span class="md-text">				At returns the map entry for the given key.
+				The result is nil if the entry is not present.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Map-fold-method-Delete"><label for="Map-fold-method-Delete">(*Map) <a href="../../../../../../src/golang.org/x/tools/go/types/typeutil/map.go.html#line-51">Delete</a>(key <a href="../../../../../go/types.html">types</a>.<a href="../../../../../go/types.html#name-Type">Type</a>) <a href="../../../../../builtin.html#name-bool">bool</a></label><span id='Map-fold-method-Delete-docs' class="fold-docs">
+<span class="md-text">				Delete removes the entry with the given key, if any.
+				It returns true if the entry was found.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Map-fold-method-Iterate"><label for="Map-fold-method-Iterate">(*Map) <a href="../../../../../../src/golang.org/x/tools/go/types/typeutil/map.go.html#line-127">Iterate</a>(f func(key <a href="../../../../../go/types.html">types</a>.<a href="../../../../../go/types.html#name-Type">Type</a>, value <a href="../../../../../builtin.html#name-any">any</a>))</label><span id='Map-fold-method-Iterate-docs' class="fold-docs">
+<span class="md-text">				Iterate calls function f on each entry in the map in unspecified order.
+				
+				If f should mutate the map, Iterate provides the same guarantees as
+				Go maps: if f deletes a map entry that Iterate has not yet reached,
+				f will not be invoked for it, but if f inserts a map entry that
+				Iterate has not yet reached, whether or not f will be invoked for
+				it is unspecified.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Map-fold-method-Keys"><label for="Map-fold-method-Keys">(*Map) <a href="../../../../../../src/golang.org/x/tools/go/types/typeutil/map.go.html#line-141">Keys</a>() []<a href="../../../../../go/types.html">types</a>.<a href="../../../../../go/types.html#name-Type">Type</a></label><span id='Map-fold-method-Keys-docs' class="fold-docs">
+<span class="md-text">				Keys returns a new slice containing the set of map keys.
+				The order is unspecified.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Map-fold-method-KeysString"><label for="Map-fold-method-KeysString">(*Map) <a href="../../../../../../src/golang.org/x/tools/go/types/typeutil/map.go.html#line-177">KeysString</a>() <a href="../../../../../builtin.html#name-string">string</a></label><span id='Map-fold-method-KeysString-docs' class="fold-docs">
+<span class="md-text">				KeysString returns a string representation of the map's key set.
+				Order is unspecified.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Map-fold-method-Len"><label for="Map-fold-method-Len">(*Map) <a href="../../../../../../src/golang.org/x/tools/go/types/typeutil/map.go.html#line-113">Len</a>() <a href="../../../../../builtin.html#name-int">int</a></label><span id='Map-fold-method-Len-docs' class="fold-docs">
+<span class="md-text">				Len returns the number of map entries.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Map-fold-method-Set"><label for="Map-fold-method-Set">(*Map) <a href="../../../../../../src/golang.org/x/tools/go/types/typeutil/map.go.html#line-83">Set</a>(key <a href="../../../../../go/types.html">types</a>.<a href="../../../../../go/types.html#name-Type">Type</a>, value <a href="../../../../../builtin.html#name-any">any</a>) (prev <a href="../../../../../builtin.html#name-any">any</a>)</label><span id='Map-fold-method-Set-docs' class="fold-docs">
+<span class="md-text">				Set sets the map entry for key to val,
+				and returns the previous entry, if any.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Map-fold-method-SetHasher"><label for="Map-fold-method-SetHasher">(*Map) <a href="../../../../../../src/golang.org/x/tools/go/types/typeutil/map.go.html#line-47">SetHasher</a>(<a href="#name-Hasher">Hasher</a>)</label><span id='Map-fold-method-SetHasher-docs' class="fold-docs">
+<span class="md-text">				SetHasher has no effect.
+				
+				It is a relic of an optimization that is no longer profitable. Do
+				not use [Hasher], [MakeHasher], or [SetHasher] in new code.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Map-fold-method-String"><label for="Map-fold-method-String">(*Map) <a href="../../../../../../src/golang.org/x/tools/go/types/typeutil/map.go.html#line-171">String</a>() <a href="../../../../../builtin.html#name-string">string</a></label><span id='Map-fold-method-String-docs' class="fold-docs">
+<span class="md-text">				String returns a string representation of the map's entries.
+				Values are printed using fmt.Sprintf("%v", v).
+				Order is unspecified.</span>
+</span></span>
+			<input type='checkbox' class="showhide" id="Map-showhide-methods"><i><label for="Map-showhide-methods" class="show-inline">/* one unexported ... */</label><label for="Map-showhide-methods" class="hide-inline">/* one unexported: */</label></i><span class="hidden"><i>
+			<span class="nodocs">(*Map) <a href="../../../../../../src/golang.org/x/tools/go/types/typeutil/map.go.html#line-149">toString</a>(values <a href="../../../../../builtin.html#name-bool">bool</a>) <a href="../../../../../builtin.html#name-string">string</a></span></i></span></span>
+		<input type='checkbox' class="fold" id="Map-fold-impls"><label for="Map-fold-impls">Implements (<i>at least 4, in which 2 are exported</i>)</label><span id='Map-fold-impls-items' class="fold-items"><span>
+			*Map : expvar.<a href="../../../../../expvar.html#name-Var">Var</a></span><span>
+			*Map : fmt.<a href="../../../../../fmt.html#name-Stringer">Stringer</a></span>
+			<input type='checkbox' class="showhide" id="Map-showhide-impls"><i><label for="Map-showhide-impls" class="show-inline">/* 2+ unexporteds ... */</label><label for="Map-showhide-impls" class="hide-inline">/* 2+ unexporteds: */</label></i><span class="hidden"><i>
+			*Map : context.<a href="../../../../../context.html#name-stringer">stringer</a></i></span><span class="hidden"><i>
+			*Map : runtime.<a href="../../../../../runtime.html#name-stringer">stringer</a></i></span></span>
+		<input type='checkbox' class="fold" id="Map-fold-params"><label for="Map-fold-params">As Inputs Of (<i>at least one exported</i>)</label><span id='Map-fold-params-items' class="fold-items"><span>
+			func golang.org/x/tools/internal/typesinternal.<a href="../../internal/typesinternal.html#name-ForEachElement">ForEachElement</a>(rtypes *<b>Map</b>, msets *<a href="#name-MethodSetCache">MethodSetCache</a>, T <a href="../../../../../go/types.html">types</a>.<a href="../../../../../go/types.html#name-Type">Type</a>, f func(<a href="../../../../../go/types.html">types</a>.<a href="../../../../../go/types.html#name-Type">Type</a>))</span></span>
+
+</span></div><div class="anchor type-res" id="name-MethodSetCache" data-popularity="170">	<input type='checkbox' class="fold" id="MethodSetCache-fold-content"><label for="MethodSetCache-fold-content"> <a href="../../../../../../use/golang.org/x/tools/go/types/typeutil..MethodSetCache.html">type</a> <a href="../../../../../../src/golang.org/x/tools/go/types/typeutil/methodsetcache.go.html#line-17">MethodSetCache</a> <i>(struct)</i></label><span id='MethodSetCache-fold-content-docs' class="fold-docs">
+<span class="md-text">		A MethodSetCache records the method set of each type T for which
+		MethodSet(T) is called so that repeat queries are fast.
+		The zero value is a ready-to-use cache instance.</span>
+
+		<input type='checkbox' class="fold" id="MethodSetCache-fold-fields"><label for="MethodSetCache-fold-fields">Fields (<i>total 3, none are exported</i>)</label><span id='MethodSetCache-fold-fields-items' class="fold-items">
+			<input type='checkbox' class="showhide" id="MethodSetCache-showhide-fields"><i><label for="MethodSetCache-showhide-fields" class="show-inline">/* 3 unexporteds ... */</label><label for="MethodSetCache-showhide-fields" class="hide-inline">/* 3 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../../../../src/golang.org/x/tools/go/types/typeutil/methodsetcache.go.html#line-18">mu</a> <i><a href="../../../../../sync.html">sync</a>.<a href="../../../../../sync.html#name-Mutex">Mutex</a></i></span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="MethodSetCache-fold-field-named"><label for="MethodSetCache-fold-field-named"><a href="../../../../../../src/golang.org/x/tools/go/types/typeutil/methodsetcache.go.html#line-19">named</a> <i>map[*<a href="../../../../../go/types.html">types</a>.<a href="../../../../../go/types.html#name-Named">Named</a>]struct{value, pointer *<a href="../../../../../go/types.html">types</a>.<a href="../../../../../go/types.html#name-MethodSet">MethodSet</a>}</i></label><span id='MethodSetCache-fold-field-named-docs' class="fold-docs">
+<span class="md-text">				// method sets for named N and *N</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="MethodSetCache-fold-field-others"><label for="MethodSetCache-fold-field-others"><a href="../../../../../../src/golang.org/x/tools/go/types/typeutil/methodsetcache.go.html#line-20">others</a> <i>map[<a href="../../../../../go/types.html">types</a>.<a href="../../../../../go/types.html#name-Type">Type</a>]*<a href="../../../../../go/types.html">types</a>.<a href="../../../../../go/types.html#name-MethodSet">MethodSet</a></i></label><span id='MethodSetCache-fold-field-others-docs' class="fold-docs">
+<span class="md-text">				// all other types</span>
+</span></i></span></span>
+		<input type='checkbox' class="fold" id="MethodSetCache-fold-methods"><label for="MethodSetCache-fold-methods">Methods (<i>total 2, in which 1 is exported</i>)</label><span id='MethodSetCache-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="MethodSetCache-fold-method-MethodSet"><label for="MethodSetCache-fold-method-MethodSet">(*MethodSetCache) <a href="../../../../../../src/golang.org/x/tools/go/types/typeutil/methodsetcache.go.html#line-28">MethodSet</a>(T <a href="../../../../../go/types.html">types</a>.<a href="../../../../../go/types.html#name-Type">Type</a>) *<a href="../../../../../go/types.html">types</a>.<a href="../../../../../go/types.html#name-MethodSet">MethodSet</a></label><span id='MethodSetCache-fold-method-MethodSet-docs' class="fold-docs">
+<span class="md-text">				MethodSet returns the method set of type T.  It is thread-safe.
+				
+				If cache is nil, this function is equivalent to types.NewMethodSet(T).
+				Utility functions can thus expose an optional *MethodSetCache
+				parameter to clients that care about performance.</span>
+</span></span>
+			<input type='checkbox' class="showhide" id="MethodSetCache-showhide-methods"><i><label for="MethodSetCache-showhide-methods" class="show-inline">/* one unexported ... */</label><label for="MethodSetCache-showhide-methods" class="hide-inline">/* one unexported: */</label></i><span class="hidden"><i>
+			<span class="nodocs">(*MethodSetCache) <a href="../../../../../../src/golang.org/x/tools/go/types/typeutil/methodsetcache.go.html#line-58">lookupNamed</a>(named *<a href="../../../../../go/types.html">types</a>.<a href="../../../../../go/types.html#name-Named">Named</a>) struct{value, pointer *<a href="../../../../../go/types.html">types</a>.<a href="../../../../../go/types.html#name-MethodSet">MethodSet</a>}</span></i></span></span>
+		<input type='checkbox' class="fold" id="MethodSetCache-fold-params"><label for="MethodSetCache-fold-params">As Inputs Of (<i>at least 2, both are exported</i>)</label><span id='MethodSetCache-fold-params-items' class="fold-items"><span>
+			func <a href="#name-IntuitiveMethodSet">IntuitiveMethodSet</a>(T <a href="../../../../../go/types.html">types</a>.<a href="../../../../../go/types.html#name-Type">Type</a>, msets *<b>MethodSetCache</b>) []*<a href="../../../../../go/types.html">types</a>.<a href="../../../../../go/types.html#name-Selection">Selection</a></span><span>
+			func golang.org/x/tools/internal/typesinternal.<a href="../../internal/typesinternal.html#name-ForEachElement">ForEachElement</a>(rtypes *<a href="#name-Map">Map</a>, msets *<b>MethodSetCache</b>, T <a href="../../../../../go/types.html">types</a>.<a href="../../../../../go/types.html#name-Type">Type</a>, f func(<a href="../../../../../go/types.html">types</a>.<a href="../../../../../go/types.html#name-Type">Type</a>))</span></span>
+
+</span></div></div><div>	<input type='checkbox' class="showhide" id="unexported-typenames-showhide"><i><label for="unexported-typenames-showhide" class="show-inline">/* 2 unexporteds ... */</label><label for="unexported-typenames-showhide" class="hide-inline">/* 2 unexporteds: */</label></i><div class="anchor type-res hidden" id="name-entry" data-popularity="0">	<input type='checkbox' class="fold" id="entry-fold-content"><label for="entry-fold-content"> <a href="../../../../../../use/golang.org/x/tools/go/types/typeutil..entry^923fe.html">type</a> <a href="../../../../../../src/golang.org/x/tools/go/types/typeutil/map.go.html#line-38">entry</a> <i>(struct)</i></label><span id='entry-fold-content-docs' class="fold-docs">
+<span class="md-text">		entry is an entry (key/value association) in a hash bucket.</span>
+
+		<input type='checkbox' class="fold" id="entry-fold-fields"><label for="entry-fold-fields">Fields (<i>total 2, neither is exported</i>)</label><span id='entry-fold-fields-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="entry-showhide-fields"><i><label for="entry-showhide-fields" class="show-inline">/* 2 unexporteds ... */</label><label for="entry-showhide-fields" class="hide-inline">/* 2 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../../../../src/golang.org/x/tools/go/types/typeutil/map.go.html#line-39">key</a> <i><a href="../../../../../go/types.html">types</a>.<a href="../../../../../go/types.html#name-Type">Type</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../../../../src/golang.org/x/tools/go/types/typeutil/map.go.html#line-40">value</a> <i><a href="../../../../../builtin.html#name-any">any</a></i></span></i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-hasher" data-popularity="350">	<input type='checkbox' class="fold" id="hasher-fold-content"><label for="hasher-fold-content"> <a href="../../../../../../use/golang.org/x/tools/go/types/typeutil..hasher^9320e.html">type</a> <a href="../../../../../../src/golang.org/x/tools/go/types/typeutil/map.go.html#line-208">hasher</a> <i>(struct)</i></label><span id='hasher-fold-content-docs' class="fold-docs">
+<span class="md-text">		hasher holds the state of a single Hash traversal: whether we are
+		inside the signature of a generic function; this is used to
+		optimize [hasher.hashTypeParam].</span>
+
+		<input type='checkbox' class="fold" id="hasher-fold-fields"><label for="hasher-fold-fields">Fields (<i>only one, which is unexported</i>)</label><span id='hasher-fold-fields-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="hasher-showhide-fields"><i><label for="hasher-showhide-fields" class="show-inline">/* one unexported ... */</label><label for="hasher-showhide-fields" class="hide-inline">/* one unexported: */</label></i><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../../../../src/golang.org/x/tools/go/types/typeutil/map.go.html#line-208">inGenericSig</a> <i><a href="../../../../../builtin.html#name-bool">bool</a></i></span></i></span></span>
+		<input type='checkbox' class="fold" id="hasher-fold-methods"><label for="hasher-fold-methods">Methods (<i>total 7, none are exported</i>)</label><span id='hasher-fold-methods-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="hasher-showhide-methods"><i><label for="hasher-showhide-methods" class="show-inline">/* 7 unexporteds ... */</label><label for="hasher-showhide-methods" class="hide-inline">/* 7 unexporteds: */</label></i><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="hasher-fold-method-hash"><label for="hasher-fold-method-hash">( hasher) <a href="../../../../../../src/golang.org/x/tools/go/types/typeutil/map.go.html#line-221">hash</a>(t <a href="../../../../../go/types.html">types</a>.<a href="../../../../../go/types.html#name-Type">Type</a>) <a href="../../../../../builtin.html#name-uint32">uint32</a></label><span id='hasher-fold-method-hash-docs' class="fold-docs">
+<span class="md-text">				hash computes the hash of t.</span>
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs">( hasher) <a href="../../../../../../src/golang.org/x/tools/go/types/typeutil/map.go.html#line-344">hashTermSet</a>(terms []*<a href="../../../../../go/types.html">types</a>.<a href="../../../../../go/types.html#name-Term">Term</a>) <a href="../../../../../builtin.html#name-uint32">uint32</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">( hasher) <a href="../../../../../../src/golang.org/x/tools/go/types/typeutil/map.go.html#line-323">hashTuple</a>(tuple *<a href="../../../../../go/types.html">types</a>.<a href="../../../../../go/types.html#name-Tuple">Tuple</a>) <a href="../../../../../builtin.html#name-uint32">uint32</a></span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="hasher-fold-method-hashTypeName"><label for="hasher-fold-method-hashTypeName">( hasher) <a href="../../../../../../src/golang.org/x/tools/go/types/typeutil/map.go.html#line-379">hashTypeName</a>(tname *<a href="../../../../../go/types.html">types</a>.<a href="../../../../../go/types.html#name-TypeName">TypeName</a>) <a href="../../../../../builtin.html#name-uint32">uint32</a></label><span id='hasher-fold-method-hashTypeName-docs' class="fold-docs">
+<span class="md-text">				hashTypeName hashes the pointer of tname.</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="hasher-fold-method-hashTypeParam"><label for="hasher-fold-method-hashTypeParam">( hasher) <a href="../../../../../../src/golang.org/x/tools/go/types/typeutil/map.go.html#line-358">hashTypeParam</a>(t *<a href="../../../../../go/types.html">types</a>.<a href="../../../../../go/types.html#name-TypeParam">TypeParam</a>) <a href="../../../../../builtin.html#name-uint32">uint32</a></label><span id='hasher-fold-method-hashTypeParam-docs' class="fold-docs">
+<span class="md-text">				hashTypeParam returns the hash of a type parameter.</span>
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs">( hasher) <a href="../../../../../../src/golang.org/x/tools/go/types/typeutil/map.go.html#line-333">hashUnion</a>(t *<a href="../../../../../go/types.html">types</a>.<a href="../../../../../go/types.html#name-Union">Union</a>) <a href="../../../../../builtin.html#name-uint32">uint32</a></span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="hasher-fold-method-shallowHash"><label for="hasher-fold-method-shallowHash">( hasher) <a href="../../../../../../src/golang.org/x/tools/go/types/typeutil/map.go.html#line-400">shallowHash</a>(t <a href="../../../../../go/types.html">types</a>.<a href="../../../../../go/types.html#name-Type">Type</a>) <a href="../../../../../builtin.html#name-uint32">uint32</a></label><span id='hasher-fold-method-shallowHash-docs' class="fold-docs">
+<span class="md-text">				shallowHash computes a hash of t without looking at any of its
+				element Types, to avoid potential anonymous cycles in the types of
+				interface methods.
+				
+				When an unnamed non-empty interface type appears anywhere among the
+				arguments or results of an interface method, there is a potential
+				for endless recursion. Consider:
+				
+					type X interface { m() []*interface { X } }
+				
+				The problem is that the Methods of the interface in m's result type
+				include m itself; there is no mention of the named type X that
+				might help us break the cycle.
+				(See comment in go/types.identical, case *Interface, for more.)</span>
+</span></i></span></span>
+
+</span></div></div>
+<div id="exported-functions"><span class="title">Package-Level Functions<span class="title-stat"><i> (total 9, in which 5 are exported)</i></span></span>
+
+<div class="anchor value-res" id="name-Callee">	<input type='checkbox' class="fold" id="Callee-fold-content"><label for="Callee-fold-content"> <a href="../../../../../../use/golang.org/x/tools/go/types/typeutil..Callee.html">func</a> <a href="../../../../../../src/golang.org/x/tools/go/types/typeutil/callee.go.html#line-20">Callee</a>(info *<a href="../../../../../go/types.html">types</a>.<a href="../../../../../go/types.html#name-Info">Info</a>, call *<a href="../../../../../go/ast.html">ast</a>.<a href="../../../../../go/ast.html#name-CallExpr">CallExpr</a>) <a href="../../../../../go/types.html">types</a>.<a href="../../../../../go/types.html#name-Object">Object</a></label><span id='Callee-fold-content-docs' class="fold-docs">
+<span class="md-text">		Callee returns the named target of a function call, if any:
+		a function, method, builtin, or variable.
+		
+		Functions and methods may potentially have type parameters.
+		
+		Note: for calls of instantiated functions and methods, Callee returns
+		the corresponding generic function or method on the generic type.</span>
+
+</span></div><div class="anchor value-res" id="name-Dependencies">	<input type='checkbox' class="fold" id="Dependencies-fold-content"><label for="Dependencies-fold-content"> <a href="../../../../../../use/golang.org/x/tools/go/types/typeutil..Dependencies.html">func</a> <a href="../../../../../../src/golang.org/x/tools/go/types/typeutil/imports.go.html#line-15">Dependencies</a>(pkgs ...*<a href="../../../../../go/types.html">types</a>.<a href="../../../../../go/types.html#name-Package">Package</a>) []*<a href="../../../../../go/types.html">types</a>.<a href="../../../../../go/types.html#name-Package">Package</a></label><span id='Dependencies-fold-content-docs' class="fold-docs">
+<span class="md-text">		Dependencies returns all dependencies of the specified packages.
+		
+		Dependent packages appear in topological order: if package P imports
+		package Q, Q appears earlier than P in the result.
+		The algorithm follows import statements in the order they
+		appear in the source code, so the result is a total order.</span>
+
+</span></div><div class="anchor value-res" id="name-IntuitiveMethodSet">	<input type='checkbox' class="fold" id="IntuitiveMethodSet-fold-content"><label for="IntuitiveMethodSet-fold-content"> <a href="../../../../../../use/golang.org/x/tools/go/types/typeutil..IntuitiveMethodSet.html">func</a> <a href="../../../../../../src/golang.org/x/tools/go/types/typeutil/ui.go.html#line-27">IntuitiveMethodSet</a>(T <a href="../../../../../go/types.html">types</a>.<a href="../../../../../go/types.html#name-Type">Type</a>, msets *<a href="#name-MethodSetCache">MethodSetCache</a>) []*<a href="../../../../../go/types.html">types</a>.<a href="../../../../../go/types.html#name-Selection">Selection</a></label><span id='IntuitiveMethodSet-fold-content-docs' class="fold-docs">
+<span class="md-text">		IntuitiveMethodSet returns the intuitive method set of a type T,
+		which is the set of methods you can call on an addressable value of
+		that type.
+		
+		The result always contains MethodSet(T), and is exactly MethodSet(T)
+		for interface types and for pointer-to-concrete types.
+		For all other concrete types T, the result additionally
+		contains each method belonging to *T if there is no identically
+		named method on T itself.
+		
+		This corresponds to user intuition about method sets;
+		this function is intended only for user interfaces.
+		
+		The order of the result is as for types.MethodSet(T).</span>
+
+</span></div><div class="anchor value-res" id="name-MakeHasher">	<input type='checkbox' class="fold" id="MakeHasher-fold-content"><label for="MakeHasher-fold-content"> <a href="../../../../../../use/golang.org/x/tools/go/types/typeutil..MakeHasher.html">func</a> <a href="../../../../../../src/golang.org/x/tools/go/types/typeutil/map.go.html#line-197">MakeHasher</a>() <a href="#name-Hasher">Hasher</a></label><span id='MakeHasher-fold-content-docs' class="fold-docs">
+<span class="md-text">		MakeHasher returns Hasher{}.
+		Hashers are stateless; all are equivalent.</span>
+
+</span></div><div class="anchor value-res" id="name-StaticCallee">	<input type='checkbox' class="fold" id="StaticCallee-fold-content"><label for="StaticCallee-fold-content"> <a href="../../../../../../use/golang.org/x/tools/go/types/typeutil..StaticCallee.html">func</a> <a href="../../../../../../src/golang.org/x/tools/go/types/typeutil/callee.go.html#line-36">StaticCallee</a>(info *<a href="../../../../../go/types.html">types</a>.<a href="../../../../../go/types.html#name-Info">Info</a>, call *<a href="../../../../../go/ast.html">ast</a>.<a href="../../../../../go/ast.html#name-CallExpr">CallExpr</a>) *<a href="../../../../../go/types.html">types</a>.<a href="../../../../../go/types.html#name-Func">Func</a></label><span id='StaticCallee-fold-content-docs' class="fold-docs">
+<span class="md-text">		StaticCallee returns the target (function or method) of a static function
+		call, if any. It returns nil for calls to builtins.
+		
+		Note: for calls of instantiated functions and methods, StaticCallee returns
+		the corresponding generic function or method on the generic type.</span>
+
+</span></div>	<input type='checkbox' class="showhide" id="unexported-functions-showhide"><i><label for="unexported-functions-showhide" class="show-inline">/* 4 unexporteds ... */</label><label for="unexported-functions-showhide" class="hide-inline">/* 4 unexporteds: */</label></i><div class="anchor value-res hidden" id="name-hash"><i>	<input type='checkbox' class="fold" id="hash-fold-content"><label for="hash-fold-content"> <a href="../../../../../../use/golang.org/x/tools/go/types/typeutil..hash^d04b9.html">func</a> <a href="../../../../../../src/golang.org/x/tools/go/types/typeutil/map.go.html#line-185">hash</a>(t <a href="../../../../../go/types.html">types</a>.<a href="../../../../../go/types.html#name-Type">Type</a>) <a href="../../../../../builtin.html#name-uint32">uint32</a></label><span id='hash-fold-content-docs' class="fold-docs">
+<span class="md-text">		hash returns the hash of type t.
+		TODO(adonovan): replace by types.Hash when Go proposal #69420 is accepted.</span>
+
+</span></i></div><div class="anchor value-res hidden" id="name-hashString"><i>	<input type='checkbox' class="fold" id="hashString-fold-content"><label for="hashString-fold-content"> <a href="../../../../../../use/golang.org/x/tools/go/types/typeutil..hashString^9a616.html">func</a> <a href="../../../../../../src/golang.org/x/tools/go/types/typeutil/map.go.html#line-211">hashString</a>(s <a href="../../../../../builtin.html#name-string">string</a>) <a href="../../../../../builtin.html#name-uint32">uint32</a></label><span id='hashString-fold-content-docs' class="fold-docs">
+<span class="md-text">		hashString computes the Fowler–Noll–Vo hash of s.</span>
+
+</span></i></div><div class="anchor value-res hidden" id="name-interfaceMethod"><i>	<input type='checkbox' class="fold" id="interfaceMethod-fold-content"><label for="interfaceMethod-fold-content"> <a href="../../../../../../use/golang.org/x/tools/go/types/typeutil..interfaceMethod^306e1.html">func</a> <a href="../../../../../../src/golang.org/x/tools/go/types/typeutil/callee.go.html#line-82">interfaceMethod</a>(f *<a href="../../../../../go/types.html">types</a>.<a href="../../../../../go/types.html#name-Func">Func</a>) <a href="../../../../../builtin.html#name-bool">bool</a></label><span id='interfaceMethod-fold-content-docs' class="fold-docs">
+<span class="md-text">		interfaceMethod reports whether its argument is a method of an interface.
+		This function should live in typesinternal, but cannot because it would create an import cycle.</span>
+
+</span></i></div><div class="anchor value-res hidden" id="name-usedIdent"><i>	<input type='checkbox' class="fold" id="usedIdent-fold-content"><label for="usedIdent-fold-content"> <a href="../../../../../../use/golang.org/x/tools/go/types/typeutil..usedIdent^8723d.html">func</a> <a href="../../../../../../src/golang.org/x/tools/go/types/typeutil/callee.go.html#line-52">usedIdent</a>(info *<a href="../../../../../go/types.html">types</a>.<a href="../../../../../go/types.html#name-Info">Info</a>, e <a href="../../../../../go/ast.html">ast</a>.<a href="../../../../../go/ast.html#name-Expr">Expr</a>) *<a href="../../../../../go/ast.html">ast</a>.<a href="../../../../../go/ast.html#name-Ident">Ident</a></label><span id='usedIdent-fold-content-docs' class="fold-docs">
+<span class="md-text">		usedIdent is the implementation of [internal/typesinternal.UsedIdent].
+		It returns the identifier associated with e.
+		See typesinternal.UsedIdent for a fuller description.
+		This function should live in typesinternal, but cannot because it would
+		create an import cycle.</span>
+
+</span></i></div></div>
+<div id="exported-variables"><span class="title">Package-Level Variables<span class="title-stat"><i> (total 2, neither is exported)</i></span></span>
+
+	<input type='checkbox' class="showhide" id="unexported-variables-showhide"><i><label for="unexported-variables-showhide" class="show-inline">/* 2 unexporteds ... */</label><label for="unexported-variables-showhide" class="hide-inline">/* 2 unexporteds: */</label></i><div class="anchor value-res hidden" id="name-theHasher"><i>	<span class="nodocs">  <a href="../../../../../../use/golang.org/x/tools/go/types/typeutil..theHasher^827fd.html">var</a> <a href="../../../../../../src/golang.org/x/tools/go/types/typeutil/map.go.html#line-193">theHasher</a> <a href="#name-Hasher">Hasher</a></span></i></div><div class="anchor value-res hidden" id="name-theSeed"><i>	<span class="nodocs">  <a href="../../../../../../use/golang.org/x/tools/go/types/typeutil..theSeed^06f4d.html">var</a> <a href="../../../../../../src/golang.org/x/tools/go/types/typeutil/map.go.html#line-376">theSeed</a> <a href="../../../../../hash/maphash.html">maphash</a>.<a href="../../../../../hash/maphash.html#name-Seed">Seed</a></span></i></div></div></code></pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

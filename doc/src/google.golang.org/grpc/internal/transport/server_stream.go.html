@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: server_stream.go in package google.golang.org/grpc/internal/transport</title>
+<link href="../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	server_stream.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../pkg/google.golang.org/grpc/internal/transport.html">google.golang.org/grpc/internal/transport</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30],
+input[id=r31]:checked ~pre label[for=r31],
+input[id=r32]:checked ~pre label[for=r32],
+input[id=r33]:checked ~pre label[for=r33],
+input[id=r34]:checked ~pre label[for=r34],
+input[id=r35]:checked ~pre label[for=r35],
+input[id=r36]:checked ~pre label[for=r36],
+input[id=r37]:checked ~pre label[for=r37],
+input[id=r38]:checked ~pre label[for=r38],
+input[id=r39]:checked ~pre label[for=r39],
+input[id=r40]:checked ~pre label[for=r40],
+input[id=r41]:checked ~pre label[for=r41],
+input[id=r42]:checked ~pre label[for=r42],
+input[id=r43]:checked ~pre label[for=r43],
+input[id=r44]:checked ~pre label[for=r44],
+input[id=r45]:checked ~pre label[for=r45],
+input[id=r46]:checked ~pre label[for=r46]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3,
+input[id=i4]:checked ~pre .i4,
+input[id=i5]:checked ~pre .i5,
+input[id=i6]:checked ~pre .i6,
+input[id=i7]:checked ~pre .i7
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="r31" type="radio" name="g"/>
+<input id="r32" type="radio" name="g"/>
+<input id="r33" type="radio" name="g"/>
+<input id="r34" type="radio" name="g"/>
+<input id="r35" type="radio" name="g"/>
+<input id="r36" type="radio" name="g"/>
+<input id="r37" type="radio" name="g"/>
+<input id="r38" type="radio" name="g"/>
+<input id="r39" type="radio" name="g"/>
+<input id="r40" type="radio" name="g"/>
+<input id="r41" type="radio" name="g"/>
+<input id="r42" type="radio" name="g"/>
+<input id="r43" type="radio" name="g"/>
+<input id="r44" type="radio" name="g"/>
+<input id="r45" type="radio" name="g"/>
+<input id="r46" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+<input id="i4" type="radio" name="i"/>
+<input id="i5" type="radio" name="i"/>
+<input id="i6" type="radio" name="i"/>
+<input id="i7" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">/*</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment"> * Copyright 2024 gRPC authors.</span></code></span>
+<span class="codeline" id="line-4"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-5"><code><span class="comment"> * Licensed under the Apache License, Version 2.0 (the "License");</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment"> * you may not use this file except in compliance with the License.</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment"> * You may obtain a copy of the License at</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment"> *     http://www.apache.org/licenses/LICENSE-2.0</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment"> * Unless required by applicable law or agreed to in writing, software</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment"> * distributed under the License is distributed on an "AS IS" BASIS,</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment"> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment"> * See the License for the specific language governing permissions and</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment"> * limitations under the License.</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment"> */</span></code></span>
+<span class="codeline" id="line-18"><code></code></span>
+<span class="codeline" id="line-19"><code><span class="keyword">package</span> transport</code></span>
+<span class="codeline" id="line-20"><code></code></span>
+<span class="codeline" id="line-21"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-22"><code>	<label for="i0"><span class="lit-string i0">"context"</span></label></code></span>
+<span class="codeline" id="line-23"><code>	<label for="i1"><span class="lit-string i1">"errors"</span></label></code></span>
+<span class="codeline" id="line-24"><code>	<label for="i2"><span class="lit-string i2">"strings"</span></label></code></span>
+<span class="codeline" id="line-25"><code>	<label for="i3"><span class="lit-string i3">"sync"</span></label></code></span>
+<span class="codeline" id="line-26"><code>	<label for="i4"><span class="lit-string i4">"sync/atomic"</span></label></code></span>
+<span class="codeline" id="line-27"><code></code></span>
+<span class="codeline" id="line-28"><code>	<label for="i5"><span class="lit-string i5">"google.golang.org/grpc/mem"</span></label></code></span>
+<span class="codeline" id="line-29"><code>	<label for="i6"><span class="lit-string i6">"google.golang.org/grpc/metadata"</span></label></code></span>
+<span class="codeline" id="line-30"><code>	<label for="i7"><span class="lit-string i7">"google.golang.org/grpc/status"</span></label></code></span>
+<span class="codeline" id="line-31"><code>)</code></span>
+<span class="codeline" id="line-32"><code></code></span>
+<span class="codeline" id="line-33"><code><span class="comment">// ServerStream implements streaming functionality for a gRPC server.</span></code></span>
+<span class="codeline" id="line-34"><code><span class="keyword">type</span> <a href="../../../../../pkg/google.golang.org/grpc/internal/transport.html#name-ServerStream" class="ident">ServerStream</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-35"><code>	*<a href="transport.go.html#line-287" class="ident">Stream</a> <span class="comment">// Embed for common stream functionality.</span></code></span>
+<span class="codeline" id="line-36"><code></code></span>
+<span class="codeline" id="line-37"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/transport..ServerStream.st^56af4.html" class="ident">st</a>      <a href="transport.go.html#line-612" class="ident">internalServerTransport</a></code></span>
+<span class="codeline" id="line-38"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/transport..ServerStream.ctxDone^9b6cb.html" class="ident">ctxDone</a> &lt;-<span class="keyword">chan</span> <span class="keyword">struct</span>{} <span class="comment">// closed at the end of stream.  Cache of ctx.Done() (for performance)</span></code></span>
+<span class="codeline" id="line-39"><code>	<span class="comment">// cancel is invoked at the end of stream to cancel ctx. It also stops the</span></code></span>
+<span class="codeline" id="line-40"><code><span class="comment">	// timer for monitoring the rpc deadline if configured.</span></code></span>
+<span class="codeline" id="line-41"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/transport..ServerStream.cancel^2374d.html" class="ident">cancel</a> <span class="keyword">func</span>()</code></span>
+<span class="codeline" id="line-42"><code></code></span>
+<span class="codeline" id="line-43"><code>	<span class="comment">// Holds compressor names passed in grpc-accept-encoding metadata from the</span></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">	// client.</span></code></span>
+<span class="codeline" id="line-45"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/transport..ServerStream.clientAdvertisedCompressors^57def.html" class="ident">clientAdvertisedCompressors</a> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-46"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/transport..ServerStream.headerWireLength^42ee7.html" class="ident">headerWireLength</a>            <a href="../../../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-47"><code></code></span>
+<span class="codeline" id="line-48"><code>	<span class="comment">// hdrMu protects outgoing header and trailer metadata.</span></code></span>
+<span class="codeline" id="line-49"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/transport..ServerStream.hdrMu^b6c4b.html" class="ident">hdrMu</a>      <a href="../../../../../pkg/sync.html" class="ident i3">sync</a>.<a href="../../../../sync/mutex.go.html#line-30" class="ident">Mutex</a></code></span>
+<span class="codeline" id="line-50"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/transport..ServerStream.header^1e058.html" class="ident">header</a>     <a href="../../../../../pkg/google.golang.org/grpc/metadata.html" class="ident i6">metadata</a>.<a href="../../metadata/metadata.go.html#line-45" class="ident">MD</a> <span class="comment">// the outgoing header metadata.  Updated by WriteHeader.</span></code></span>
+<span class="codeline" id="line-51"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/transport..ServerStream.headerSent^c814f.html" class="ident">headerSent</a> <a href="../../../../../pkg/sync/atomic.html" class="ident i4">atomic</a>.<a href="../../../../sync/atomic/type.go.html#line-13" class="ident">Bool</a> <span class="comment">// atomically set when the headers are sent out.</span></code></span>
+<span class="codeline" id="line-52"><code>}</code></span>
+<span class="codeline" id="line-53"><code></code></span>
+<span class="codeline" id="line-54"><code><span class="comment">// Read reads an n byte message from the input stream.</span></code></span>
+<span class="codeline" id="line-55"><code><span class="keyword">func</span> (<label for="r0" class="ident">s</label> *<a href="#line-34" class="ident">ServerStream</a>) <label for="r1" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/transport..ServerStream.Read.html" class="ident">Read</a></label>(<label for="r2" class="ident">n</label> <a href="../../../../../pkg/builtin.html#name-int" class="ident">int</a>) (<a href="../../../../../pkg/google.golang.org/grpc/mem.html" class="ident i5">mem</a>.<a href="../../mem/buffer_slice.go.html#line-44" class="ident">BufferSlice</a>, <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-56"><code>	<label for="r3" class="ident">b</label>, <label for="r4" class="ident">err</label> := <label for="r0" class="ident">s</label>.<a href="#line-35" class="ident">Stream</a>.<a href="transport.go.html#line-376" class="ident">read</a>(<label for="r2" class="ident">n</label>)</code></span>
+<span class="codeline" id="line-57"><code>	<span class="keyword">if</span> <label for="r4" class="ident">err</label> == <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-58"><code>		<label for="r0" class="ident">s</label>.<a href="#line-37" class="ident">st</a>.<a href="transport.go.html#line-617" class="ident">incrMsgRecv</a>()</code></span>
+<span class="codeline" id="line-59"><code>	}</code></span>
+<span class="codeline" id="line-60"><code>	<span class="keyword">return</span> <label for="r3" class="ident">b</label>, <label for="r4" class="ident">err</label></code></span>
+<span class="codeline" id="line-61"><code>}</code></span>
+<span class="codeline" id="line-62"><code></code></span>
+<span class="codeline" id="line-63"><code><span class="comment">// SendHeader sends the header metadata for the given stream.</span></code></span>
+<span class="codeline" id="line-64"><code><span class="keyword">func</span> (<label for="r5" class="ident">s</label> *<a href="#line-34" class="ident">ServerStream</a>) <label for="r6" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/transport..ServerStream.SendHeader.html" class="ident">SendHeader</a></label>(<label for="r7" class="ident">md</label> <a href="../../../../../pkg/google.golang.org/grpc/metadata.html" class="ident i6">metadata</a>.<a href="../../metadata/metadata.go.html#line-45" class="ident">MD</a>) <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-65"><code>	<span class="keyword">return</span> <label for="r5" class="ident">s</label>.<a href="#line-37" class="ident">st</a>.<a href="transport.go.html#line-614" class="ident">writeHeader</a>(<label for="r5" class="ident">s</label>, <label for="r7" class="ident">md</label>)</code></span>
+<span class="codeline" id="line-66"><code>}</code></span>
+<span class="codeline" id="line-67"><code></code></span>
+<span class="codeline" id="line-68"><code><span class="comment">// Write writes the hdr and data bytes to the output stream.</span></code></span>
+<span class="codeline" id="line-69"><code><span class="keyword">func</span> (<label for="r8" class="ident">s</label> *<a href="#line-34" class="ident">ServerStream</a>) <label for="r9" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/transport..ServerStream.Write.html" class="ident">Write</a></label>(<label for="r10" class="ident">hdr</label> []<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r11" class="ident">data</label> <a href="../../../../../pkg/google.golang.org/grpc/mem.html" class="ident i5">mem</a>.<a href="../../mem/buffer_slice.go.html#line-44" class="ident">BufferSlice</a>, <label for="r12" class="ident">opts</label> *<a href="transport.go.html#line-514" class="ident">WriteOptions</a>) <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-70"><code>	<span class="keyword">return</span> <label for="r8" class="ident">s</label>.<a href="#line-37" class="ident">st</a>.<a href="transport.go.html#line-615" class="ident">write</a>(<label for="r8" class="ident">s</label>, <label for="r10" class="ident">hdr</label>, <label for="r11" class="ident">data</label>, <label for="r12" class="ident">opts</label>)</code></span>
+<span class="codeline" id="line-71"><code>}</code></span>
+<span class="codeline" id="line-72"><code></code></span>
+<span class="codeline" id="line-73"><code><span class="comment">// WriteStatus sends the status of a stream to the client.  WriteStatus is</span></code></span>
+<span class="codeline" id="line-74"><code><span class="comment">// the final call made on a stream and always occurs.</span></code></span>
+<span class="codeline" id="line-75"><code><span class="keyword">func</span> (<label for="r13" class="ident">s</label> *<a href="#line-34" class="ident">ServerStream</a>) <label for="r14" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/transport..ServerStream.WriteStatus.html" class="ident">WriteStatus</a></label>(<label for="r15" class="ident">st</label> *<a href="../../../../../pkg/google.golang.org/grpc/status.html" class="ident i7">status</a>.<a href="../../status/status.go.html#line-45" class="ident">Status</a>) <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-76"><code>	<span class="keyword">return</span> <label for="r13" class="ident">s</label>.<a href="#line-37" class="ident">st</a>.<a href="transport.go.html#line-616" class="ident">writeStatus</a>(<label for="r13" class="ident">s</label>, <label for="r15" class="ident">st</label>)</code></span>
+<span class="codeline" id="line-77"><code>}</code></span>
+<span class="codeline" id="line-78"><code></code></span>
+<span class="codeline" id="line-79"><code><span class="comment">// isHeaderSent indicates whether headers have been sent.</span></code></span>
+<span class="codeline" id="line-80"><code><span class="keyword">func</span> (<label for="r16" class="ident">s</label> *<a href="#line-34" class="ident">ServerStream</a>) <label for="r17" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/transport..ServerStream.isHeaderSent^f72cb.html" class="ident">isHeaderSent</a></label>() <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-81"><code>	<span class="keyword">return</span> <label for="r16" class="ident">s</label>.<a href="#line-51" class="ident">headerSent</a>.<a href="../../../../sync/atomic/type.go.html#line-19" class="ident">Load</a>()</code></span>
+<span class="codeline" id="line-82"><code>}</code></span>
+<span class="codeline" id="line-83"><code></code></span>
+<span class="codeline" id="line-84"><code><span class="comment">// updateHeaderSent updates headerSent and returns true</span></code></span>
+<span class="codeline" id="line-85"><code><span class="comment">// if it was already set.</span></code></span>
+<span class="codeline" id="line-86"><code><span class="keyword">func</span> (<label for="r18" class="ident">s</label> *<a href="#line-34" class="ident">ServerStream</a>) <label for="r19" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/transport..ServerStream.updateHeaderSent^c3ee3.html" class="ident">updateHeaderSent</a></label>() <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-87"><code>	<span class="keyword">return</span> <label for="r18" class="ident">s</label>.<a href="#line-51" class="ident">headerSent</a>.<a href="../../../../sync/atomic/type.go.html#line-25" class="ident">Swap</a>(<a href="../../../../../pkg/builtin.html#name-true" class="ident">true</a>)</code></span>
+<span class="codeline" id="line-88"><code>}</code></span>
+<span class="codeline" id="line-89"><code></code></span>
+<span class="codeline" id="line-90"><code><span class="comment">// RecvCompress returns the compression algorithm applied to the inbound</span></code></span>
+<span class="codeline" id="line-91"><code><span class="comment">// message. It is empty string if there is no compression applied.</span></code></span>
+<span class="codeline" id="line-92"><code><span class="keyword">func</span> (<label for="r20" class="ident">s</label> *<a href="#line-34" class="ident">ServerStream</a>) <label for="r21" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/transport..ServerStream.RecvCompress.html" class="ident">RecvCompress</a></label>() <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-93"><code>	<span class="keyword">return</span> <label for="r20" class="ident">s</label>.<a href="transport.go.html#line-291" class="ident">recvCompress</a></code></span>
+<span class="codeline" id="line-94"><code>}</code></span>
+<span class="codeline" id="line-95"><code></code></span>
+<span class="codeline" id="line-96"><code><span class="comment">// SendCompress returns the send compressor name.</span></code></span>
+<span class="codeline" id="line-97"><code><span class="keyword">func</span> (<label for="r22" class="ident">s</label> *<a href="#line-34" class="ident">ServerStream</a>) <label for="r23" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/transport..ServerStream.SendCompress.html" class="ident">SendCompress</a></label>() <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-98"><code>	<span class="keyword">return</span> <label for="r22" class="ident">s</label>.<a href="transport.go.html#line-292" class="ident">sendCompress</a></code></span>
+<span class="codeline" id="line-99"><code>}</code></span>
+<span class="codeline" id="line-100"><code></code></span>
+<span class="codeline" id="line-101"><code><span class="comment">// ContentSubtype returns the content-subtype for a request. For example, a</span></code></span>
+<span class="codeline" id="line-102"><code><span class="comment">// content-subtype of "proto" will result in a content-type of</span></code></span>
+<span class="codeline" id="line-103"><code><span class="comment">// "application/grpc+proto". This will always be lowercase.  See</span></code></span>
+<span class="codeline" id="line-104"><code><span class="comment">// https://github.com/grpc/grpc/blob/master/doc/PROTOCOL-HTTP2.md#requests for</span></code></span>
+<span class="codeline" id="line-105"><code><span class="comment">// more details.</span></code></span>
+<span class="codeline" id="line-106"><code><span class="keyword">func</span> (<label for="r24" class="ident">s</label> *<a href="#line-34" class="ident">ServerStream</a>) <label for="r25" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/transport..ServerStream.ContentSubtype.html" class="ident">ContentSubtype</a></label>() <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-107"><code>	<span class="keyword">return</span> <label for="r24" class="ident">s</label>.<a href="transport.go.html#line-306" class="ident">contentSubtype</a></code></span>
+<span class="codeline" id="line-108"><code>}</code></span>
+<span class="codeline" id="line-109"><code></code></span>
+<span class="codeline" id="line-110"><code><span class="comment">// SetSendCompress sets the compression algorithm to the stream.</span></code></span>
+<span class="codeline" id="line-111"><code><span class="keyword">func</span> (<label for="r26" class="ident">s</label> *<a href="#line-34" class="ident">ServerStream</a>) <label for="r27" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/transport..ServerStream.SetSendCompress.html" class="ident">SetSendCompress</a></label>(<label for="r28" class="ident">name</label> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-112"><code>	<span class="keyword">if</span> <label for="r26" class="ident">s</label>.<a href="#line-80" class="ident">isHeaderSent</a>() || <label for="r26" class="ident">s</label>.<a href="transport.go.html#line-319" class="ident">getState</a>() == <a href="transport.go.html#line-283" class="ident">streamDone</a> {</code></span>
+<span class="codeline" id="line-113"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/errors.html" class="ident i1">errors</a>.<a href="../../../../errors/errors.go.html#line-64" class="ident">New</a>(<span class="lit-string">"transport: set send compressor called after headers sent or stream done"</span>)</code></span>
+<span class="codeline" id="line-114"><code>	}</code></span>
+<span class="codeline" id="line-115"><code></code></span>
+<span class="codeline" id="line-116"><code>	<label for="r26" class="ident">s</label>.<a href="transport.go.html#line-292" class="ident">sendCompress</a> = <label for="r28" class="ident">name</label></code></span>
+<span class="codeline" id="line-117"><code>	<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-118"><code>}</code></span>
+<span class="codeline" id="line-119"><code></code></span>
+<span class="codeline" id="line-120"><code><span class="comment">// SetContext sets the context of the stream. This will be deleted once the</span></code></span>
+<span class="codeline" id="line-121"><code><span class="comment">// stats handler callouts all move to gRPC layer.</span></code></span>
+<span class="codeline" id="line-122"><code><span class="keyword">func</span> (<label for="r29" class="ident">s</label> *<a href="#line-34" class="ident">ServerStream</a>) <label for="r30" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/transport..ServerStream.SetContext.html" class="ident">SetContext</a></label>(<label for="r31" class="ident">ctx</label> <a href="../../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../../context/context.go.html#line-71" class="ident">Context</a>) {</code></span>
+<span class="codeline" id="line-123"><code>	<label for="r29" class="ident">s</label>.<a href="transport.go.html#line-289" class="ident">ctx</a> = <label for="r31" class="ident">ctx</label></code></span>
+<span class="codeline" id="line-124"><code>}</code></span>
+<span class="codeline" id="line-125"><code></code></span>
+<span class="codeline" id="line-126"><code><span class="comment">// ClientAdvertisedCompressors returns the compressor names advertised by the</span></code></span>
+<span class="codeline" id="line-127"><code><span class="comment">// client via grpc-accept-encoding header.</span></code></span>
+<span class="codeline" id="line-128"><code><span class="keyword">func</span> (<label for="r32" class="ident">s</label> *<a href="#line-34" class="ident">ServerStream</a>) <label for="r33" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/transport..ServerStream.ClientAdvertisedCompressors.html" class="ident">ClientAdvertisedCompressors</a></label>() []<a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-129"><code>	<label for="r34" class="ident">values</label> := <a href="../../../../../pkg/strings.html" class="ident i2">strings</a>.<a href="../../../../strings/strings.go.html#line-361" class="ident">Split</a>(<label for="r32" class="ident">s</label>.<a href="#line-45" class="ident">clientAdvertisedCompressors</a>, <span class="lit-string">","</span>)</code></span>
+<span class="codeline" id="line-130"><code>	<span class="keyword">for</span> <label for="r35" class="ident">i</label>, <label for="r36" class="ident">v</label> := <span class="keyword">range</span> <label for="r34" class="ident">values</label> {</code></span>
+<span class="codeline" id="line-131"><code>		<label for="r34" class="ident">values</label>[<label for="r35" class="ident">i</label>] = <a href="../../../../../pkg/strings.html" class="ident i2">strings</a>.<a href="../../../../strings/strings.go.html#line-1093" class="ident">TrimSpace</a>(<label for="r36" class="ident">v</label>)</code></span>
+<span class="codeline" id="line-132"><code>	}</code></span>
+<span class="codeline" id="line-133"><code>	<span class="keyword">return</span> <label for="r34" class="ident">values</label></code></span>
+<span class="codeline" id="line-134"><code>}</code></span>
+<span class="codeline" id="line-135"><code></code></span>
+<span class="codeline" id="line-136"><code><span class="comment">// Header returns the header metadata of the stream.  It returns the out header</span></code></span>
+<span class="codeline" id="line-137"><code><span class="comment">// after t.WriteHeader is called.  It does not block and must not be called</span></code></span>
+<span class="codeline" id="line-138"><code><span class="comment">// until after WriteHeader.</span></code></span>
+<span class="codeline" id="line-139"><code><span class="keyword">func</span> (<label for="r37" class="ident">s</label> *<a href="#line-34" class="ident">ServerStream</a>) <label for="r38" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/transport..ServerStream.Header.html" class="ident">Header</a></label>() (<a href="../../../../../pkg/google.golang.org/grpc/metadata.html" class="ident i6">metadata</a>.<a href="../../metadata/metadata.go.html#line-45" class="ident">MD</a>, <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-140"><code>	<span class="comment">// Return the header in stream. It will be the out</span></code></span>
+<span class="codeline" id="line-141"><code><span class="comment">	// header after t.WriteHeader is called.</span></code></span>
+<span class="codeline" id="line-142"><code>	<span class="keyword">return</span> <label for="r37" class="ident">s</label>.<a href="#line-50" class="ident">header</a>.<a href="../../metadata/metadata.go.html#line-99" class="ident">Copy</a>(), <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-143"><code>}</code></span>
+<span class="codeline" id="line-144"><code></code></span>
+<span class="codeline" id="line-145"><code><span class="comment">// HeaderWireLength returns the size of the headers of the stream as received</span></code></span>
+<span class="codeline" id="line-146"><code><span class="comment">// from the wire.</span></code></span>
+<span class="codeline" id="line-147"><code><span class="keyword">func</span> (<label for="r39" class="ident">s</label> *<a href="#line-34" class="ident">ServerStream</a>) <label for="r40" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/transport..ServerStream.HeaderWireLength.html" class="ident">HeaderWireLength</a></label>() <a href="../../../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-148"><code>	<span class="keyword">return</span> <label for="r39" class="ident">s</label>.<a href="#line-46" class="ident">headerWireLength</a></code></span>
+<span class="codeline" id="line-149"><code>}</code></span>
+<span class="codeline" id="line-150"><code></code></span>
+<span class="codeline" id="line-151"><code><span class="comment">// SetHeader sets the header metadata. This can be called multiple times.</span></code></span>
+<span class="codeline" id="line-152"><code><span class="comment">// This should not be called in parallel to other data writes.</span></code></span>
+<span class="codeline" id="line-153"><code><span class="keyword">func</span> (<label for="r41" class="ident">s</label> *<a href="#line-34" class="ident">ServerStream</a>) <label for="r42" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/transport..ServerStream.SetHeader.html" class="ident">SetHeader</a></label>(<label for="r43" class="ident">md</label> <a href="../../../../../pkg/google.golang.org/grpc/metadata.html" class="ident i6">metadata</a>.<a href="../../metadata/metadata.go.html#line-45" class="ident">MD</a>) <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-154"><code>	<span class="keyword">if</span> <label for="r43" class="ident">md</label>.<a href="../../metadata/metadata.go.html#line-94" class="ident">Len</a>() == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-155"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-156"><code>	}</code></span>
+<span class="codeline" id="line-157"><code>	<span class="keyword">if</span> <label for="r41" class="ident">s</label>.<a href="#line-80" class="ident">isHeaderSent</a>() || <label for="r41" class="ident">s</label>.<a href="transport.go.html#line-319" class="ident">getState</a>() == <a href="transport.go.html#line-283" class="ident">streamDone</a> {</code></span>
+<span class="codeline" id="line-158"><code>		<span class="keyword">return</span> <a href="http2_server.go.html#line-62" class="ident">ErrIllegalHeaderWrite</a></code></span>
+<span class="codeline" id="line-159"><code>	}</code></span>
+<span class="codeline" id="line-160"><code>	<label for="r41" class="ident">s</label>.<a href="#line-49" class="ident">hdrMu</a>.<a href="../../../../sync/mutex.go.html#line-45" class="ident">Lock</a>()</code></span>
+<span class="codeline" id="line-161"><code>	<label for="r41" class="ident">s</label>.<a href="#line-50" class="ident">header</a> = <a href="../../../../../pkg/google.golang.org/grpc/metadata.html" class="ident i6">metadata</a>.<a href="../../metadata/metadata.go.html#line-149" class="ident">Join</a>(<label for="r41" class="ident">s</label>.<a href="#line-50" class="ident">header</a>, <label for="r43" class="ident">md</label>)</code></span>
+<span class="codeline" id="line-162"><code>	<label for="r41" class="ident">s</label>.<a href="#line-49" class="ident">hdrMu</a>.<a href="../../../../sync/mutex.go.html#line-64" class="ident">Unlock</a>()</code></span>
+<span class="codeline" id="line-163"><code>	<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-164"><code>}</code></span>
+<span class="codeline" id="line-165"><code></code></span>
+<span class="codeline" id="line-166"><code><span class="comment">// SetTrailer sets the trailer metadata which will be sent with the RPC status</span></code></span>
+<span class="codeline" id="line-167"><code><span class="comment">// by the server. This can be called multiple times.</span></code></span>
+<span class="codeline" id="line-168"><code><span class="comment">// This should not be called parallel to other data writes.</span></code></span>
+<span class="codeline" id="line-169"><code><span class="keyword">func</span> (<label for="r44" class="ident">s</label> *<a href="#line-34" class="ident">ServerStream</a>) <label for="r45" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/transport..ServerStream.SetTrailer.html" class="ident">SetTrailer</a></label>(<label for="r46" class="ident">md</label> <a href="../../../../../pkg/google.golang.org/grpc/metadata.html" class="ident i6">metadata</a>.<a href="../../metadata/metadata.go.html#line-45" class="ident">MD</a>) <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-170"><code>	<span class="keyword">if</span> <label for="r46" class="ident">md</label>.<a href="../../metadata/metadata.go.html#line-94" class="ident">Len</a>() == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-171"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-172"><code>	}</code></span>
+<span class="codeline" id="line-173"><code>	<span class="keyword">if</span> <label for="r44" class="ident">s</label>.<a href="transport.go.html#line-319" class="ident">getState</a>() == <a href="transport.go.html#line-283" class="ident">streamDone</a> {</code></span>
+<span class="codeline" id="line-174"><code>		<span class="keyword">return</span> <a href="http2_server.go.html#line-62" class="ident">ErrIllegalHeaderWrite</a></code></span>
+<span class="codeline" id="line-175"><code>	}</code></span>
+<span class="codeline" id="line-176"><code>	<label for="r44" class="ident">s</label>.<a href="#line-49" class="ident">hdrMu</a>.<a href="../../../../sync/mutex.go.html#line-45" class="ident">Lock</a>()</code></span>
+<span class="codeline" id="line-177"><code>	<label for="r44" class="ident">s</label>.<a href="transport.go.html#line-308" class="ident">trailer</a> = <a href="../../../../../pkg/google.golang.org/grpc/metadata.html" class="ident i6">metadata</a>.<a href="../../metadata/metadata.go.html#line-149" class="ident">Join</a>(<label for="r44" class="ident">s</label>.<a href="transport.go.html#line-308" class="ident">trailer</a>, <label for="r46" class="ident">md</label>)</code></span>
+<span class="codeline" id="line-178"><code>	<label for="r44" class="ident">s</label>.<a href="#line-49" class="ident">hdrMu</a>.<a href="../../../../sync/mutex.go.html#line-64" class="ident">Unlock</a>()</code></span>
+<span class="codeline" id="line-179"><code>	<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-180"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

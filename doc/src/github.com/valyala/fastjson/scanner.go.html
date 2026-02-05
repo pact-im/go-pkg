@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: scanner.go in package github.com/valyala/fastjson</title>
+<link href="../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	scanner.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../pkg/github.com/valyala/fastjson.html">github.com/valyala/fastjson</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="keyword">package</span> fastjson</code></span>
+<span class="codeline" id="line-2"><code></code></span>
+<span class="codeline" id="line-3"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-4"><code>	<label for="i0"><span class="lit-string i0">"errors"</span></label></code></span>
+<span class="codeline" id="line-5"><code>)</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="comment">// Scanner scans a series of JSON values. Values may be delimited by whitespace.</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment">// Scanner may parse JSON lines ( http://jsonlines.org/ ).</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment">// Scanner may be re-used for subsequent parsing.</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">// Scanner cannot be used from concurrent goroutines.</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">// Use Parser for parsing only a single JSON value.</span></code></span>
+<span class="codeline" id="line-16"><code><span class="keyword">type</span> <a href="../../../../pkg/github.com/valyala/fastjson.html#name-Scanner" class="ident">Scanner</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-17"><code>	<span class="comment">// b contains a working copy of json value passed to Init.</span></code></span>
+<span class="codeline" id="line-18"><code>	<a href="../../../../use/github.com/valyala/fastjson..Scanner.b^3e23e.html" class="ident">b</a> []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
+<span class="codeline" id="line-19"><code></code></span>
+<span class="codeline" id="line-20"><code>	<span class="comment">// s points to the next JSON value to parse.</span></code></span>
+<span class="codeline" id="line-21"><code>	<a href="../../../../use/github.com/valyala/fastjson..Scanner.s^043a7.html" class="ident">s</a> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-22"><code></code></span>
+<span class="codeline" id="line-23"><code>	<span class="comment">// err contains the last error.</span></code></span>
+<span class="codeline" id="line-24"><code>	<a href="../../../../use/github.com/valyala/fastjson..Scanner.err^d9eb2.html" class="ident">err</a> <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-25"><code></code></span>
+<span class="codeline" id="line-26"><code>	<span class="comment">// v contains the last parsed JSON value.</span></code></span>
+<span class="codeline" id="line-27"><code>	<a href="../../../../use/github.com/valyala/fastjson..Scanner.v^4c944.html" class="ident">v</a> *<a href="parser.go.html#line-568" class="ident">Value</a></code></span>
+<span class="codeline" id="line-28"><code></code></span>
+<span class="codeline" id="line-29"><code>	<span class="comment">// c is used for caching JSON values.</span></code></span>
+<span class="codeline" id="line-30"><code>	<a href="../../../../use/github.com/valyala/fastjson..Scanner.c^2e7d2.html" class="ident">c</a> <a href="parser.go.html#line-55" class="ident">cache</a></code></span>
+<span class="codeline" id="line-31"><code>}</code></span>
+<span class="codeline" id="line-32"><code></code></span>
+<span class="codeline" id="line-33"><code><span class="comment">// Init initializes sc with the given s.</span></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-35"><code><span class="comment">// s may contain multiple JSON values, which may be delimited by whitespace.</span></code></span>
+<span class="codeline" id="line-36"><code><span class="keyword">func</span> (<label for="r0" class="ident">sc</label> *<a href="#line-16" class="ident">Scanner</a>) <label for="r1" class="ident"><a href="../../../../use/github.com/valyala/fastjson..Scanner.Init.html" class="ident">Init</a></label>(<label for="r2" class="ident">s</label> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>) {</code></span>
+<span class="codeline" id="line-37"><code>	<label for="r0" class="ident">sc</label>.<a href="#line-18" class="ident">b</a> = <a href="../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r0" class="ident">sc</label>.<a href="#line-18" class="ident">b</a>[:<span class="lit-number">0</span>], <label for="r2" class="ident">s</label>...)</code></span>
+<span class="codeline" id="line-38"><code>	<label for="r0" class="ident">sc</label>.<a href="#line-21" class="ident">s</a> = <a href="util.go.html#line-8" class="ident">b2s</a>(<label for="r0" class="ident">sc</label>.<a href="#line-18" class="ident">b</a>)</code></span>
+<span class="codeline" id="line-39"><code>	<label for="r0" class="ident">sc</label>.<a href="#line-24" class="ident">err</a> = <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-40"><code>	<label for="r0" class="ident">sc</label>.<a href="#line-27" class="ident">v</a> = <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-41"><code>}</code></span>
+<span class="codeline" id="line-42"><code></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">// InitBytes initializes sc with the given b.</span></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-45"><code><span class="comment">// b may contain multiple JSON values, which may be delimited by whitespace.</span></code></span>
+<span class="codeline" id="line-46"><code><span class="keyword">func</span> (<label for="r3" class="ident">sc</label> *<a href="#line-16" class="ident">Scanner</a>) <label for="r4" class="ident"><a href="../../../../use/github.com/valyala/fastjson..Scanner.InitBytes.html" class="ident">InitBytes</a></label>(<label for="r5" class="ident">b</label> []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) {</code></span>
+<span class="codeline" id="line-47"><code>	<label for="r3" class="ident">sc</label>.<a href="#line-36" class="ident">Init</a>(<a href="util.go.html#line-8" class="ident">b2s</a>(<label for="r5" class="ident">b</label>))</code></span>
+<span class="codeline" id="line-48"><code>}</code></span>
+<span class="codeline" id="line-49"><code></code></span>
+<span class="codeline" id="line-50"><code><span class="comment">// Next parses the next JSON value from s passed to Init.</span></code></span>
+<span class="codeline" id="line-51"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-52"><code><span class="comment">// Returns true on success. The parsed value is available via Value call.</span></code></span>
+<span class="codeline" id="line-53"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-54"><code><span class="comment">// Returns false either on error or on the end of s.</span></code></span>
+<span class="codeline" id="line-55"><code><span class="comment">// Call Error in order to determine the cause of the returned false.</span></code></span>
+<span class="codeline" id="line-56"><code><span class="keyword">func</span> (<label for="r6" class="ident">sc</label> *<a href="#line-16" class="ident">Scanner</a>) <label for="r7" class="ident"><a href="../../../../use/github.com/valyala/fastjson..Scanner.Next.html" class="ident">Next</a></label>() <a href="../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-57"><code>	<span class="keyword">if</span> <label for="r6" class="ident">sc</label>.<a href="#line-24" class="ident">err</a> != <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-58"><code>		<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-59"><code>	}</code></span>
+<span class="codeline" id="line-60"><code></code></span>
+<span class="codeline" id="line-61"><code>	<label for="r6" class="ident">sc</label>.<a href="#line-21" class="ident">s</a> = <a href="parser.go.html#line-73" class="ident">skipWS</a>(<label for="r6" class="ident">sc</label>.<a href="#line-21" class="ident">s</a>)</code></span>
+<span class="codeline" id="line-62"><code>	<span class="keyword">if</span> <a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r6" class="ident">sc</label>.<a href="#line-21" class="ident">s</a>) == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-63"><code>		<label for="r6" class="ident">sc</label>.<a href="#line-24" class="ident">err</a> = <a href="#line-94" class="ident">errEOF</a></code></span>
+<span class="codeline" id="line-64"><code>		<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-65"><code>	}</code></span>
+<span class="codeline" id="line-66"><code></code></span>
+<span class="codeline" id="line-67"><code>	<label for="r6" class="ident">sc</label>.<a href="#line-30" class="ident">c</a>.<a href="parser.go.html#line-59" class="ident">reset</a>()</code></span>
+<span class="codeline" id="line-68"><code>	<label for="r8" class="ident">v</label>, <label for="r9" class="ident">tail</label>, <label for="r10" class="ident">err</label> := <a href="parser.go.html#line-101" class="ident">parseValue</a>(<label for="r6" class="ident">sc</label>.<a href="#line-21" class="ident">s</a>, &amp;<label for="r6" class="ident">sc</label>.<a href="#line-30" class="ident">c</a>, <span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-69"><code>	<span class="keyword">if</span> <label for="r10" class="ident">err</label> != <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-70"><code>		<label for="r6" class="ident">sc</label>.<a href="#line-24" class="ident">err</a> = <label for="r10" class="ident">err</label></code></span>
+<span class="codeline" id="line-71"><code>		<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-72"><code>	}</code></span>
+<span class="codeline" id="line-73"><code></code></span>
+<span class="codeline" id="line-74"><code>	<label for="r6" class="ident">sc</label>.<a href="#line-21" class="ident">s</a> = <label for="r9" class="ident">tail</label></code></span>
+<span class="codeline" id="line-75"><code>	<label for="r6" class="ident">sc</label>.<a href="#line-27" class="ident">v</a> = <label for="r8" class="ident">v</label></code></span>
+<span class="codeline" id="line-76"><code>	<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-77"><code>}</code></span>
+<span class="codeline" id="line-78"><code></code></span>
+<span class="codeline" id="line-79"><code><span class="comment">// Error returns the last error.</span></code></span>
+<span class="codeline" id="line-80"><code><span class="keyword">func</span> (<label for="r11" class="ident">sc</label> *<a href="#line-16" class="ident">Scanner</a>) <label for="r12" class="ident"><a href="../../../../use/github.com/valyala/fastjson..Scanner.Error.html" class="ident">Error</a></label>() <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-81"><code>	<span class="keyword">if</span> <label for="r11" class="ident">sc</label>.<a href="#line-24" class="ident">err</a> == <a href="#line-94" class="ident">errEOF</a> {</code></span>
+<span class="codeline" id="line-82"><code>		<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-83"><code>	}</code></span>
+<span class="codeline" id="line-84"><code>	<span class="keyword">return</span> <label for="r11" class="ident">sc</label>.<a href="#line-24" class="ident">err</a></code></span>
+<span class="codeline" id="line-85"><code>}</code></span>
+<span class="codeline" id="line-86"><code></code></span>
+<span class="codeline" id="line-87"><code><span class="comment">// Value returns the last parsed value.</span></code></span>
+<span class="codeline" id="line-88"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-89"><code><span class="comment">// The value is valid until the Next call.</span></code></span>
+<span class="codeline" id="line-90"><code><span class="keyword">func</span> (<label for="r13" class="ident">sc</label> *<a href="#line-16" class="ident">Scanner</a>) <label for="r14" class="ident"><a href="../../../../use/github.com/valyala/fastjson..Scanner.Value.html" class="ident">Value</a></label>() *<a href="parser.go.html#line-568" class="ident">Value</a> {</code></span>
+<span class="codeline" id="line-91"><code>	<span class="keyword">return</span> <label for="r13" class="ident">sc</label>.<a href="#line-27" class="ident">v</a></code></span>
+<span class="codeline" id="line-92"><code>}</code></span>
+<span class="codeline" id="line-93"><code></code></span>
+<span class="codeline" id="line-94"><code><span class="keyword">var</span> <a href="../../../../pkg/github.com/valyala/fastjson.html#name-errEOF" class="ident">errEOF</a> = <a href="../../../../pkg/errors.html" class="ident i0">errors</a>.<a href="../../../errors/errors.go.html#line-64" class="ident">New</a>(<span class="lit-string">"end of s"</span>)</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

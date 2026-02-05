@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: batch.go in package runtime/trace</title>
+<link href="../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	batch.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../pkg/runtime/trace.html">runtime/trace</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2025 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> trace</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-8"><code>	<label for="i0"><span class="lit-string i0">"fmt"</span></label></code></span>
+<span class="codeline" id="line-9"><code>	<label for="i1"><span class="lit-string i1">"internal/trace/tracev2"</span></label></code></span>
+<span class="codeline" id="line-10"><code>)</code></span>
+<span class="codeline" id="line-11"><code></code></span>
+<span class="codeline" id="line-12"><code><span class="comment">// timestamp is an unprocessed timestamp.</span></code></span>
+<span class="codeline" id="line-13"><code><span class="keyword">type</span> <a href="../../../pkg/runtime/trace.html#name-timestamp" class="ident">timestamp</a> <a href="../../../pkg/builtin.html#name-uint64" class="ident">uint64</a></code></span>
+<span class="codeline" id="line-14"><code></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">// batch represents a batch of trace events.</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">// It is unparsed except for its header.</span></code></span>
+<span class="codeline" id="line-17"><code><span class="keyword">type</span> <a href="../../../pkg/runtime/trace.html#name-batch" class="ident">batch</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-18"><code>	<a href="../../../use/runtime/trace..batch^4bb24.m^62c66.html" class="ident">m</a>    <a href="#line-25" class="ident">threadID</a></code></span>
+<span class="codeline" id="line-19"><code>	<a href="../../../use/runtime/trace..batch^4bb24.time^33607.html" class="ident">time</a> <a href="#line-13" class="ident">timestamp</a></code></span>
+<span class="codeline" id="line-20"><code>	<a href="../../../use/runtime/trace..batch^4bb24.data^3a6eb.html" class="ident">data</a> []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
+<span class="codeline" id="line-21"><code>}</code></span>
+<span class="codeline" id="line-22"><code></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">// threadID is the runtime-internal M structure's ID. This is unique</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">// for each OS thread.</span></code></span>
+<span class="codeline" id="line-25"><code><span class="keyword">type</span> <a href="../../../pkg/runtime/trace.html#name-threadID" class="ident">threadID</a> <a href="../../../pkg/builtin.html#name-int64" class="ident">int64</a></code></span>
+<span class="codeline" id="line-26"><code></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">// readBatch copies b and parses the trace batch header inside.</span></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">// Returns the batch, the generation, bytes read, and an error.</span></code></span>
+<span class="codeline" id="line-29"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../pkg/runtime/trace.html#name-readBatch" class="ident">readBatch</a></label>(<label for="r1" class="ident">b</label> []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) (<a href="#line-17" class="ident">batch</a>, <a href="../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>, <a href="../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>, <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-30"><code>	<span class="keyword">if</span> <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r1" class="ident">b</label>) == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-31"><code>		<span class="keyword">return</span> <a href="#line-17" class="ident">batch</a>{}, <span class="lit-number">0</span>, <span class="lit-number">0</span>, <a href="../../../pkg/fmt.html" class="ident i0">fmt</a>.<a href="../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"batch is empty"</span>)</code></span>
+<span class="codeline" id="line-32"><code>	}</code></span>
+<span class="codeline" id="line-33"><code>	<label for="r2" class="ident">data</label> := <a href="../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r1" class="ident">b</label>))</code></span>
+<span class="codeline" id="line-34"><code>	<span class="keyword">if</span> <label for="r3" class="ident">nw</label> := <a href="../../../pkg/builtin.html#name-copy" class="ident">copy</a>(<label for="r2" class="ident">data</label>, <label for="r1" class="ident">b</label>); <label for="r3" class="ident">nw</label> != <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r1" class="ident">b</label>) {</code></span>
+<span class="codeline" id="line-35"><code>		<span class="keyword">return</span> <a href="#line-17" class="ident">batch</a>{}, <span class="lit-number">0</span>, <span class="lit-number">0</span>, <a href="../../../pkg/fmt.html" class="ident i0">fmt</a>.<a href="../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"unexpected error copying batch"</span>)</code></span>
+<span class="codeline" id="line-36"><code>	}</code></span>
+<span class="codeline" id="line-37"><code>	<span class="comment">// Read batch header byte.</span></code></span>
+<span class="codeline" id="line-38"><code>	<span class="keyword">if</span> <label for="r4" class="ident">typ</label> := <a href="../../../pkg/internal/trace/tracev2.html" class="ident i1">tracev2</a>.<a href="../../internal/trace/tracev2/spec.go.html#line-10" class="ident">EventType</a>(<label for="r1" class="ident">b</label>[<span class="lit-number">0</span>]); <label for="r4" class="ident">typ</label> != <a href="../../../pkg/internal/trace/tracev2.html" class="ident i1">tracev2</a>.<a href="../../internal/trace/tracev2/events.go.html#line-20" class="ident">EvEventBatch</a> &amp;&amp; <label for="r4" class="ident">typ</label> != <a href="../../../pkg/internal/trace/tracev2.html" class="ident i1">tracev2</a>.<a href="../../internal/trace/tracev2/events.go.html#line-84" class="ident">EvExperimentalBatch</a> {</code></span>
+<span class="codeline" id="line-39"><code>		<span class="keyword">return</span> <a href="#line-17" class="ident">batch</a>{}, <span class="lit-number">0</span>, <span class="lit-number">1</span>, <a href="../../../pkg/fmt.html" class="ident i0">fmt</a>.<a href="../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"expected batch event, got event %d"</span>, <label for="r4" class="ident">typ</label>)</code></span>
+<span class="codeline" id="line-40"><code>	}</code></span>
+<span class="codeline" id="line-41"><code></code></span>
+<span class="codeline" id="line-42"><code>	<span class="comment">// Read the batch header: gen (generation), thread (M) ID, base timestamp</span></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">	// for the batch.</span></code></span>
+<span class="codeline" id="line-44"><code>	<label for="r5" class="ident">total</label> := <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-45"><code>	<label for="r1" class="ident">b</label> = <label for="r1" class="ident">b</label>[<span class="lit-number">1</span>:]</code></span>
+<span class="codeline" id="line-46"><code>	<label for="r6" class="ident">gen</label>, <label for="r7" class="ident">n</label>, <label for="r8" class="ident">err</label> := <a href="encoding.go.html#line-20" class="ident">readUvarint</a>(<label for="r1" class="ident">b</label>)</code></span>
+<span class="codeline" id="line-47"><code>	<span class="keyword">if</span> <label for="r8" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-48"><code>		<span class="keyword">return</span> <a href="#line-17" class="ident">batch</a>{}, <label for="r6" class="ident">gen</label>, <a href="../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<label for="r5" class="ident">total</label> + <label for="r7" class="ident">n</label>), <a href="../../../pkg/fmt.html" class="ident i0">fmt</a>.<a href="../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"error reading batch gen: %w"</span>, <label for="r8" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-49"><code>	}</code></span>
+<span class="codeline" id="line-50"><code>	<label for="r5" class="ident">total</label> += <label for="r7" class="ident">n</label></code></span>
+<span class="codeline" id="line-51"><code>	<label for="r1" class="ident">b</label> = <label for="r1" class="ident">b</label>[<label for="r7" class="ident">n</label>:]</code></span>
+<span class="codeline" id="line-52"><code>	<label for="r9" class="ident">m</label>, <label for="r7" class="ident">n</label>, <label for="r8" class="ident">err</label> := <a href="encoding.go.html#line-20" class="ident">readUvarint</a>(<label for="r1" class="ident">b</label>)</code></span>
+<span class="codeline" id="line-53"><code>	<span class="keyword">if</span> <label for="r8" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-54"><code>		<span class="keyword">return</span> <a href="#line-17" class="ident">batch</a>{}, <label for="r6" class="ident">gen</label>, <a href="../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<label for="r5" class="ident">total</label> + <label for="r7" class="ident">n</label>), <a href="../../../pkg/fmt.html" class="ident i0">fmt</a>.<a href="../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"error reading batch M ID: %w"</span>, <label for="r8" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-55"><code>	}</code></span>
+<span class="codeline" id="line-56"><code>	<label for="r5" class="ident">total</label> += <label for="r7" class="ident">n</label></code></span>
+<span class="codeline" id="line-57"><code>	<label for="r1" class="ident">b</label> = <label for="r1" class="ident">b</label>[<label for="r7" class="ident">n</label>:]</code></span>
+<span class="codeline" id="line-58"><code>	<label for="r10" class="ident">ts</label>, <label for="r7" class="ident">n</label>, <label for="r8" class="ident">err</label> := <a href="encoding.go.html#line-20" class="ident">readUvarint</a>(<label for="r1" class="ident">b</label>)</code></span>
+<span class="codeline" id="line-59"><code>	<span class="keyword">if</span> <label for="r8" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-60"><code>		<span class="keyword">return</span> <a href="#line-17" class="ident">batch</a>{}, <label for="r6" class="ident">gen</label>, <a href="../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<label for="r5" class="ident">total</label> + <label for="r7" class="ident">n</label>), <a href="../../../pkg/fmt.html" class="ident i0">fmt</a>.<a href="../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"error reading batch timestamp: %w"</span>, <label for="r8" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-61"><code>	}</code></span>
+<span class="codeline" id="line-62"><code>	<label for="r5" class="ident">total</label> += <label for="r7" class="ident">n</label></code></span>
+<span class="codeline" id="line-63"><code>	<label for="r1" class="ident">b</label> = <label for="r1" class="ident">b</label>[<label for="r7" class="ident">n</label>:]</code></span>
+<span class="codeline" id="line-64"><code></code></span>
+<span class="codeline" id="line-65"><code>	<span class="comment">// Read in the size of the batch to follow.</span></code></span>
+<span class="codeline" id="line-66"><code>	<label for="r11" class="ident">size</label>, <label for="r7" class="ident">n</label>, <label for="r8" class="ident">err</label> := <a href="encoding.go.html#line-20" class="ident">readUvarint</a>(<label for="r1" class="ident">b</label>)</code></span>
+<span class="codeline" id="line-67"><code>	<span class="keyword">if</span> <label for="r8" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-68"><code>		<span class="keyword">return</span> <a href="#line-17" class="ident">batch</a>{}, <label for="r6" class="ident">gen</label>, <a href="../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<label for="r5" class="ident">total</label> + <label for="r7" class="ident">n</label>), <a href="../../../pkg/fmt.html" class="ident i0">fmt</a>.<a href="../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"error reading batch size: %w"</span>, <label for="r8" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-69"><code>	}</code></span>
+<span class="codeline" id="line-70"><code>	<span class="keyword">if</span> <label for="r11" class="ident">size</label> &gt; <a href="../../../pkg/internal/trace/tracev2.html" class="ident i1">tracev2</a>.<a href="../../internal/trace/tracev2/events.go.html#line-568" class="ident">MaxBatchSize</a> {</code></span>
+<span class="codeline" id="line-71"><code>		<span class="keyword">return</span> <a href="#line-17" class="ident">batch</a>{}, <label for="r6" class="ident">gen</label>, <a href="../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<label for="r5" class="ident">total</label> + <label for="r7" class="ident">n</label>), <a href="../../../pkg/fmt.html" class="ident i0">fmt</a>.<a href="../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"invalid batch size %d, maximum is %d"</span>, <label for="r11" class="ident">size</label>, <a href="../../../pkg/internal/trace/tracev2.html" class="ident i1">tracev2</a>.<a href="../../internal/trace/tracev2/events.go.html#line-568" class="ident">MaxBatchSize</a>)</code></span>
+<span class="codeline" id="line-72"><code>	}</code></span>
+<span class="codeline" id="line-73"><code>	<label for="r5" class="ident">total</label> += <label for="r7" class="ident">n</label></code></span>
+<span class="codeline" id="line-74"><code>	<label for="r5" class="ident">total</label> += <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>(<label for="r11" class="ident">size</label>)</code></span>
+<span class="codeline" id="line-75"><code>	<label for="r2" class="ident">data</label> = <label for="r2" class="ident">data</label>[:<label for="r5" class="ident">total</label>]</code></span>
+<span class="codeline" id="line-76"><code></code></span>
+<span class="codeline" id="line-77"><code>	<span class="comment">// Return the batch.</span></code></span>
+<span class="codeline" id="line-78"><code>	<span class="keyword">return</span> <a href="#line-17" class="ident">batch</a>{</code></span>
+<span class="codeline" id="line-79"><code>		<a href="#line-18" class="ident">m</a>:    <a href="#line-25" class="ident">threadID</a>(<label for="r9" class="ident">m</label>),</code></span>
+<span class="codeline" id="line-80"><code>		<a href="#line-19" class="ident">time</a>: <a href="#line-13" class="ident">timestamp</a>(<label for="r10" class="ident">ts</label>),</code></span>
+<span class="codeline" id="line-81"><code>		<a href="#line-20" class="ident">data</a>: <label for="r2" class="ident">data</label>,</code></span>
+<span class="codeline" id="line-82"><code>	}, <label for="r6" class="ident">gen</label>, <a href="../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<label for="r5" class="ident">total</label>), <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-83"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

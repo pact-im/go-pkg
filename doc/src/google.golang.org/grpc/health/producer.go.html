@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: producer.go in package google.golang.org/grpc/health</title>
+<link href="../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	producer.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../pkg/google.golang.org/grpc/health.html">google.golang.org/grpc/health</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3,
+input[id=i4]:checked ~pre .i4,
+input[id=i5]:checked ~pre .i5,
+input[id=i6]:checked ~pre .i6,
+input[id=i7]:checked ~pre .i7
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+<input id="i4" type="radio" name="i"/>
+<input id="i5" type="radio" name="i"/>
+<input id="i6" type="radio" name="i"/>
+<input id="i7" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">/*</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment"> * Copyright 2024 gRPC authors.</span></code></span>
+<span class="codeline" id="line-4"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-5"><code><span class="comment"> * Licensed under the Apache License, Version 2.0 (the "License");</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment"> * you may not use this file except in compliance with the License.</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment"> * You may obtain a copy of the License at</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment"> *     http://www.apache.org/licenses/LICENSE-2.0</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment"> * Unless required by applicable law or agreed to in writing, software</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment"> * distributed under the License is distributed on an "AS IS" BASIS,</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment"> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment"> * See the License for the specific language governing permissions and</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment"> * limitations under the License.</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment"> */</span></code></span>
+<span class="codeline" id="line-18"><code></code></span>
+<span class="codeline" id="line-19"><code><span class="keyword">package</span> health</code></span>
+<span class="codeline" id="line-20"><code></code></span>
+<span class="codeline" id="line-21"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-22"><code>	<label for="i0"><span class="lit-string i0">"context"</span></label></code></span>
+<span class="codeline" id="line-23"><code>	<label for="i1"><span class="lit-string i1">"sync"</span></label></code></span>
+<span class="codeline" id="line-24"><code></code></span>
+<span class="codeline" id="line-25"><code>	<label for="i2"><span class="lit-string i2">"google.golang.org/grpc"</span></label></code></span>
+<span class="codeline" id="line-26"><code>	<label for="i3"><span class="lit-string i3">"google.golang.org/grpc/balancer"</span></label></code></span>
+<span class="codeline" id="line-27"><code>	<label for="i4"><span class="lit-string i4">"google.golang.org/grpc/codes"</span></label></code></span>
+<span class="codeline" id="line-28"><code>	<label for="i5"><span class="lit-string i5">"google.golang.org/grpc/connectivity"</span></label></code></span>
+<span class="codeline" id="line-29"><code>	<label for="i6"><span class="lit-string i6">"google.golang.org/grpc/internal"</span></label></code></span>
+<span class="codeline" id="line-30"><code>	<label for="i7"><span class="lit-string i7">"google.golang.org/grpc/status"</span></label></code></span>
+<span class="codeline" id="line-31"><code>)</code></span>
+<span class="codeline" id="line-32"><code></code></span>
+<span class="codeline" id="line-33"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../pkg/google.golang.org/grpc/health.html#name-init" class="ident">init</a></label>() {</code></span>
+<span class="codeline" id="line-34"><code>	<a href="#line-40" class="ident">producerBuilderSingleton</a> = &amp;<a href="#line-38" class="ident">producerBuilder</a>{}</code></span>
+<span class="codeline" id="line-35"><code>	<a href="../../../../pkg/google.golang.org/grpc/internal.html" class="ident i6">internal</a>.<a href="../internal/internal.go.html#line-37" class="ident">RegisterClientHealthCheckListener</a> = <a href="#line-66" class="ident">registerClientSideHealthCheckListener</a></code></span>
+<span class="codeline" id="line-36"><code>}</code></span>
+<span class="codeline" id="line-37"><code></code></span>
+<span class="codeline" id="line-38"><code><span class="keyword">type</span> <a href="../../../../pkg/google.golang.org/grpc/health.html#name-producerBuilder" class="ident">producerBuilder</a> <span class="keyword">struct</span>{}</code></span>
+<span class="codeline" id="line-39"><code></code></span>
+<span class="codeline" id="line-40"><code><span class="keyword">var</span> <a href="../../../../pkg/google.golang.org/grpc/health.html#name-producerBuilderSingleton" class="ident">producerBuilderSingleton</a> *<a href="#line-38" class="ident">producerBuilder</a></code></span>
+<span class="codeline" id="line-41"><code></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">// Build constructs and returns a producer and its cleanup function.</span></code></span>
+<span class="codeline" id="line-43"><code><span class="keyword">func</span> (*<a href="#line-38" class="ident">producerBuilder</a>) <label for="r1" class="ident"><a href="../../../../use/google.golang.org/grpc/health..producerBuilder^f3c75.Build.html" class="ident">Build</a></label>(<label for="r2" class="ident">cci</label> <a href="../../../../pkg/builtin.html#name-any" class="ident">any</a>) (<a href="../../../../pkg/google.golang.org/grpc/balancer.html" class="ident i3">balancer</a>.<a href="../balancer/subconn.go.html#line-134" class="ident">Producer</a>, <span class="keyword">func</span>()) {</code></span>
+<span class="codeline" id="line-44"><code>	<label for="r3" class="ident">p</label> := &amp;<a href="#line-55" class="ident">healthServiceProducer</a>{</code></span>
+<span class="codeline" id="line-45"><code>		<a href="#line-58" class="ident">cc</a>:     <label for="r2" class="ident">cci</label>.(<a href="../../../../pkg/google.golang.org/grpc.html" class="ident i2">grpc</a>.<a href="../clientconn.go.html#line-589" class="ident">ClientConnInterface</a>),</code></span>
+<span class="codeline" id="line-46"><code>		<a href="#line-61" class="ident">cancel</a>: <span class="keyword">func</span>() {},</code></span>
+<span class="codeline" id="line-47"><code>	}</code></span>
+<span class="codeline" id="line-48"><code>	<span class="keyword">return</span> <label for="r3" class="ident">p</label>, <span class="keyword">func</span>() {</code></span>
+<span class="codeline" id="line-49"><code>		<label for="r3" class="ident">p</label>.<a href="#line-60" class="ident">mu</a>.<a href="../../../sync/mutex.go.html#line-45" class="ident">Lock</a>()</code></span>
+<span class="codeline" id="line-50"><code>		<span class="keyword">defer</span> <label for="r3" class="ident">p</label>.<a href="#line-60" class="ident">mu</a>.<a href="../../../sync/mutex.go.html#line-64" class="ident">Unlock</a>()</code></span>
+<span class="codeline" id="line-51"><code>		<label for="r3" class="ident">p</label>.<a href="#line-61" class="ident">cancel</a>()</code></span>
+<span class="codeline" id="line-52"><code>	}</code></span>
+<span class="codeline" id="line-53"><code>}</code></span>
+<span class="codeline" id="line-54"><code></code></span>
+<span class="codeline" id="line-55"><code><span class="keyword">type</span> <a href="../../../../pkg/google.golang.org/grpc/health.html#name-healthServiceProducer" class="ident">healthServiceProducer</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-56"><code>	<span class="comment">// The following fields are initialized at build time and read-only after</span></code></span>
+<span class="codeline" id="line-57"><code><span class="comment">	// that and therefore do not need to be guarded by a mutex.</span></code></span>
+<span class="codeline" id="line-58"><code>	<a href="../../../../use/google.golang.org/grpc/health..healthServiceProducer^47ee7.cc^355b1.html" class="ident">cc</a> <a href="../../../../pkg/google.golang.org/grpc.html" class="ident i2">grpc</a>.<a href="../clientconn.go.html#line-589" class="ident">ClientConnInterface</a></code></span>
+<span class="codeline" id="line-59"><code></code></span>
+<span class="codeline" id="line-60"><code>	<a href="../../../../use/google.golang.org/grpc/health..healthServiceProducer^47ee7.mu^19503.html" class="ident">mu</a>     <a href="../../../../pkg/sync.html" class="ident i1">sync</a>.<a href="../../../sync/mutex.go.html#line-30" class="ident">Mutex</a></code></span>
+<span class="codeline" id="line-61"><code>	<a href="../../../../use/google.golang.org/grpc/health..healthServiceProducer^47ee7.cancel^2374d.html" class="ident">cancel</a> <span class="keyword">func</span>()</code></span>
+<span class="codeline" id="line-62"><code>}</code></span>
+<span class="codeline" id="line-63"><code></code></span>
+<span class="codeline" id="line-64"><code><span class="comment">// registerClientSideHealthCheckListener accepts a listener to provide server</span></code></span>
+<span class="codeline" id="line-65"><code><span class="comment">// health state via the health service.</span></code></span>
+<span class="codeline" id="line-66"><code><span class="keyword">func</span> <label for="r4" class="ident"><a href="../../../../pkg/google.golang.org/grpc/health.html#name-registerClientSideHealthCheckListener" class="ident">registerClientSideHealthCheckListener</a></label>(<label for="r5" class="ident">ctx</label> <a href="../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../context/context.go.html#line-71" class="ident">Context</a>, <label for="r6" class="ident">sc</label> <a href="../../../../pkg/google.golang.org/grpc/balancer.html" class="ident i3">balancer</a>.<a href="../balancer/subconn.go.html#line-51" class="ident">SubConn</a>, <label for="r7" class="ident">serviceName</label> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r8" class="ident">listener</label> <span class="keyword">func</span>(<a href="../../../../pkg/google.golang.org/grpc/balancer.html" class="ident i3">balancer</a>.<a href="../balancer/subconn.go.html#line-108" class="ident">SubConnState</a>)) <span class="keyword">func</span>() {</code></span>
+<span class="codeline" id="line-67"><code>	<label for="r9" class="ident">pr</label>, <label for="r10" class="ident">closeFn</label> := <label for="r6" class="ident">sc</label>.<a href="../balancer/subconn.go.html#line-72" class="ident">GetOrBuildProducer</a>(<a href="#line-40" class="ident">producerBuilderSingleton</a>)</code></span>
+<span class="codeline" id="line-68"><code>	<label for="r11" class="ident">p</label> := <label for="r9" class="ident">pr</label>.(*<a href="#line-55" class="ident">healthServiceProducer</a>)</code></span>
+<span class="codeline" id="line-69"><code>	<label for="r11" class="ident">p</label>.<a href="#line-60" class="ident">mu</a>.<a href="../../../sync/mutex.go.html#line-45" class="ident">Lock</a>()</code></span>
+<span class="codeline" id="line-70"><code>	<span class="keyword">defer</span> <label for="r11" class="ident">p</label>.<a href="#line-60" class="ident">mu</a>.<a href="../../../sync/mutex.go.html#line-64" class="ident">Unlock</a>()</code></span>
+<span class="codeline" id="line-71"><code>	<label for="r11" class="ident">p</label>.<a href="#line-61" class="ident">cancel</a>()</code></span>
+<span class="codeline" id="line-72"><code>	<span class="keyword">if</span> <label for="r8" class="ident">listener</label> == <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-73"><code>		<span class="keyword">return</span> <label for="r10" class="ident">closeFn</label></code></span>
+<span class="codeline" id="line-74"><code>	}</code></span>
+<span class="codeline" id="line-75"><code></code></span>
+<span class="codeline" id="line-76"><code>	<label for="r5" class="ident">ctx</label>, <label for="r12" class="ident">cancel</label> := <a href="../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../context/context.go.html#line-240" class="ident">WithCancel</a>(<label for="r5" class="ident">ctx</label>)</code></span>
+<span class="codeline" id="line-77"><code>	<label for="r11" class="ident">p</label>.<a href="#line-61" class="ident">cancel</a> = <label for="r12" class="ident">cancel</label></code></span>
+<span class="codeline" id="line-78"><code></code></span>
+<span class="codeline" id="line-79"><code>	<span class="keyword">go</span> <label for="r11" class="ident">p</label>.<a href="#line-83" class="ident">startHealthCheck</a>(<label for="r5" class="ident">ctx</label>, <label for="r6" class="ident">sc</label>, <label for="r7" class="ident">serviceName</label>, <label for="r8" class="ident">listener</label>)</code></span>
+<span class="codeline" id="line-80"><code>	<span class="keyword">return</span> <label for="r10" class="ident">closeFn</label></code></span>
+<span class="codeline" id="line-81"><code>}</code></span>
+<span class="codeline" id="line-82"><code></code></span>
+<span class="codeline" id="line-83"><code><span class="keyword">func</span> (<label for="r13" class="ident">p</label> *<a href="#line-55" class="ident">healthServiceProducer</a>) <label for="r14" class="ident"><a href="../../../../use/google.golang.org/grpc/health..healthServiceProducer^47ee7.startHealthCheck^ee7f9.html" class="ident">startHealthCheck</a></label>(<label for="r15" class="ident">ctx</label> <a href="../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../context/context.go.html#line-71" class="ident">Context</a>, <label for="r16" class="ident">sc</label> <a href="../../../../pkg/google.golang.org/grpc/balancer.html" class="ident i3">balancer</a>.<a href="../balancer/subconn.go.html#line-51" class="ident">SubConn</a>, <label for="r17" class="ident">serviceName</label> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r18" class="ident">listener</label> <span class="keyword">func</span>(<a href="../../../../pkg/google.golang.org/grpc/balancer.html" class="ident i3">balancer</a>.<a href="../balancer/subconn.go.html#line-108" class="ident">SubConnState</a>)) {</code></span>
+<span class="codeline" id="line-84"><code>	<label for="r19" class="ident">newStream</label> := <span class="keyword">func</span>(<label for="r20" class="ident">method</label> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>) (<a href="../../../../pkg/builtin.html#name-any" class="ident">any</a>, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-85"><code>		<span class="keyword">return</span> <label for="r13" class="ident">p</label>.<a href="#line-58" class="ident">cc</a>.<a href="../clientconn.go.html#line-594" class="ident">NewStream</a>(<label for="r15" class="ident">ctx</label>, &amp;<a href="../../../../pkg/google.golang.org/grpc.html" class="ident i2">grpc</a>.<a href="../stream.go.html#line-65" class="ident">StreamDesc</a>{<a href="../stream.go.html#line-74" class="ident">ServerStreams</a>: <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a>}, <label for="r20" class="ident">method</label>)</code></span>
+<span class="codeline" id="line-86"><code>	}</code></span>
+<span class="codeline" id="line-87"><code></code></span>
+<span class="codeline" id="line-88"><code>	<label for="r21" class="ident">setConnectivityState</label> := <span class="keyword">func</span>(<label for="r22" class="ident">state</label> <a href="../../../../pkg/google.golang.org/grpc/connectivity.html" class="ident i5">connectivity</a>.<a href="../connectivity/connectivity.go.html#line-31" class="ident">State</a>, <label for="r23" class="ident">err</label> <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-89"><code>		<label for="r18" class="ident">listener</label>(<a href="../../../../pkg/google.golang.org/grpc/balancer.html" class="ident i3">balancer</a>.<a href="../balancer/subconn.go.html#line-108" class="ident">SubConnState</a>{</code></span>
+<span class="codeline" id="line-90"><code>			<a href="../balancer/subconn.go.html#line-110" class="ident">ConnectivityState</a>: <label for="r22" class="ident">state</label>,</code></span>
+<span class="codeline" id="line-91"><code>			<a href="../balancer/subconn.go.html#line-113" class="ident">ConnectionError</a>:   <label for="r23" class="ident">err</label>,</code></span>
+<span class="codeline" id="line-92"><code>		})</code></span>
+<span class="codeline" id="line-93"><code>	}</code></span>
+<span class="codeline" id="line-94"><code></code></span>
+<span class="codeline" id="line-95"><code>	<span class="comment">// Call the function through the internal variable as tests use it for</span></code></span>
+<span class="codeline" id="line-96"><code><span class="comment">	// mocking.</span></code></span>
+<span class="codeline" id="line-97"><code>	<label for="r24" class="ident">err</label> := <a href="../../../../pkg/google.golang.org/grpc/internal.html" class="ident i6">internal</a>.<a href="../internal/internal.go.html#line-33" class="ident">HealthCheckFunc</a>(<label for="r15" class="ident">ctx</label>, <label for="r19" class="ident">newStream</label>, <label for="r21" class="ident">setConnectivityState</label>, <label for="r17" class="ident">serviceName</label>)</code></span>
+<span class="codeline" id="line-98"><code>	<span class="keyword">if</span> <label for="r24" class="ident">err</label> == <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-99"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-100"><code>	}</code></span>
+<span class="codeline" id="line-101"><code>	<span class="keyword">if</span> <a href="../../../../pkg/google.golang.org/grpc/status.html" class="ident i7">status</a>.<a href="../status/status.go.html#line-139" class="ident">Code</a>(<label for="r24" class="ident">err</label>) == <a href="../../../../pkg/google.golang.org/grpc/codes.html" class="ident i4">codes</a>.<a href="../codes/codes.go.html#line-166" class="ident">Unimplemented</a> {</code></span>
+<span class="codeline" id="line-102"><code>		<a href="logging.go.html#line-23" class="ident">logger</a>.<a href="../grpclog/internal/loggerv2.go.html#line-48" class="ident">Errorf</a>(<span class="lit-string">"Subchannel health check is unimplemented at server side, thus health check is disabled for SubConn %p"</span>, <label for="r16" class="ident">sc</label>)</code></span>
+<span class="codeline" id="line-103"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-104"><code>		<a href="logging.go.html#line-23" class="ident">logger</a>.<a href="../grpclog/internal/loggerv2.go.html#line-48" class="ident">Errorf</a>(<span class="lit-string">"Health checking failed for SubConn %p: %v"</span>, <label for="r16" class="ident">sc</label>, <label for="r24" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-105"><code>	}</code></span>
+<span class="codeline" id="line-106"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>
