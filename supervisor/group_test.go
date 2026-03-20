@@ -58,7 +58,7 @@ func synctestTestGroupGoAndInterrupt(t *testing.T) {
 		return callback(ctx)
 	})
 
-	g.Go(runner, func(_ error) {
+	g.Go(runner, func(_ context.Context, _ error) {
 		stopped = true
 	})
 

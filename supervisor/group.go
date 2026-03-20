@@ -65,7 +65,7 @@ func (g *Group) Wait() {
 }
 
 // Go starts a runner in the background, calling atExit when it finishes.
-func (g *Group) Go(p process.Runner, atExit func(error)) {
+func (g *Group) Go(p process.Runner, atExit func(context.Context, error)) {
 	g.mu.Lock()
 	if g.done == nil {
 		g.done = make(chan struct{})
@@ -79,11 +79,11 @@ func (g *Group) Go(p process.Runner, atExit func(error)) {
 	}
 
 	if atExit == nil {
-		atExit = func(_ error) {}
+		atExit = func(_ context.Context, _ error) {}
 	}
 
 	g.wg.Go(func() {
-		atExit(p.Run(ctx, func(ctx context.Context) error {
+		atExit(ctx, p.Run(ctx, func(ctx context.Context) error {
 			select {
 			case <-ctx.Done():
 			case <-done:
