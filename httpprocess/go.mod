@@ -9,4 +9,4 @@ require (
 	go.uber.org/goleak v1.3.0
 )
 
-require go.pact.im/x/task v0.0.16 // indirect
+require go.pact.im/x/task v0.0.17 // indirect
