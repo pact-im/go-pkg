@@ -21,6 +21,7 @@ import (
 type Logger struct {
 	handler slog.Handler
 	now     func() time.Time
+	skip    int
 }
 
 // New creates a new [Logger] that uses the given handler and time function.
@@ -84,6 +85,16 @@ func (l *Logger) WithTime(now func() time.Time) *Logger {
 	return c
 }
 
+// WithSkipPC returns a [Logger] that skips additional stack frames.
+func (l *Logger) WithSkipPC(skip int) *Logger {
+	if skip <= 0 {
+		return l
+	}
+	c := l.clone()
+	c.skip += skip
+	return c
+}
+
 // Log emits a log record with the given level, message, and attributes.
 // The record includes a source location obtained from the call stack.
 func (l *Logger) Log(
@@ -96,7 +107,7 @@ func (l *Logger) Log(
 		return
 	}
 	var pcs [1]uintptr
-	runtime.Callers(3, pcs[:])
+	runtime.Callers(l.skip+2, pcs[:])
 	r := slog.NewRecord(l.now(), level, msg, pcs[0])
 	r.AddAttrs(attrs...)
 	_ = l.handler.Handle(ctx, r)
