@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: defaults_fips140.go in package crypto/tls</title>
+<link href="../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	defaults_fips140.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../pkg/crypto/tls.html">crypto/tls</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3,
+input[id=i4]:checked ~pre .i4
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+<input id="i4" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2025 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="comment">//go:build !boringcrypto</span></code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">package</span> tls</code></span>
+<span class="codeline" id="line-8"><code></code></span>
+<span class="codeline" id="line-9"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-10"><code>	<label for="i0"><span class="lit-string i0">"crypto/ecdsa"</span></label></code></span>
+<span class="codeline" id="line-11"><code>	<label for="i1"><span class="lit-string i1">"crypto/ed25519"</span></label></code></span>
+<span class="codeline" id="line-12"><code>	<label for="i2"><span class="lit-string i2">"crypto/elliptic"</span></label></code></span>
+<span class="codeline" id="line-13"><code>	<label for="i3"><span class="lit-string i3">"crypto/rsa"</span></label></code></span>
+<span class="codeline" id="line-14"><code>	<label for="i4"><span class="lit-string i4">"crypto/x509"</span></label></code></span>
+<span class="codeline" id="line-15"><code>)</code></span>
+<span class="codeline" id="line-16"><code></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">// These FIPS 140-3 policies allow anything approved by SP 800-140C</span></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">// and SP 800-140D, and tested as part of the Go Cryptographic Module.</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">// Notably, not SHA-1, 3DES, RC4, ChaCha20Poly1305, RSA PKCS #1 v1.5 key</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">// transport, or TLS 1.0—1.1 (because we don't test its KDF).</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">// These are not default lists, but filters to apply to the default or</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">// configured lists. Missing items are treated as if they were not implemented.</span></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">// They are applied when the fips140 GODEBUG is "on" or "only".</span></code></span>
+<span class="codeline" id="line-27"><code></code></span>
+<span class="codeline" id="line-28"><code><span class="keyword">var</span> (</code></span>
+<span class="codeline" id="line-29"><code>	<a href="../../../pkg/crypto/tls.html#name-allowedSupportedVersionsFIPS" class="ident">allowedSupportedVersionsFIPS</a> = []<a href="../../../pkg/builtin.html#name-uint16" class="ident">uint16</a>{</code></span>
+<span class="codeline" id="line-30"><code>		<a href="common.go.html#line-35" class="ident">VersionTLS12</a>,</code></span>
+<span class="codeline" id="line-31"><code>		<a href="common.go.html#line-36" class="ident">VersionTLS13</a>,</code></span>
+<span class="codeline" id="line-32"><code>	}</code></span>
+<span class="codeline" id="line-33"><code>	<a href="../../../pkg/crypto/tls.html#name-allowedCurvePreferencesFIPS" class="ident">allowedCurvePreferencesFIPS</a> = []<a href="common.go.html#line-145" class="ident">CurveID</a>{</code></span>
+<span class="codeline" id="line-34"><code>		<a href="common.go.html#line-152" class="ident">X25519MLKEM768</a>,</code></span>
+<span class="codeline" id="line-35"><code>		<a href="common.go.html#line-148" class="ident">CurveP256</a>,</code></span>
+<span class="codeline" id="line-36"><code>		<a href="common.go.html#line-149" class="ident">CurveP384</a>,</code></span>
+<span class="codeline" id="line-37"><code>		<a href="common.go.html#line-150" class="ident">CurveP521</a>,</code></span>
+<span class="codeline" id="line-38"><code>	}</code></span>
+<span class="codeline" id="line-39"><code>	<a href="../../../pkg/crypto/tls.html#name-allowedSignatureAlgorithmsFIPS" class="ident">allowedSignatureAlgorithmsFIPS</a> = []<a href="common.go.html#line-393" class="ident">SignatureScheme</a>{</code></span>
+<span class="codeline" id="line-40"><code>		<a href="common.go.html#line-402" class="ident">PSSWithSHA256</a>,</code></span>
+<span class="codeline" id="line-41"><code>		<a href="common.go.html#line-407" class="ident">ECDSAWithP256AndSHA256</a>,</code></span>
+<span class="codeline" id="line-42"><code>		<a href="common.go.html#line-412" class="ident">Ed25519</a>,</code></span>
+<span class="codeline" id="line-43"><code>		<a href="common.go.html#line-403" class="ident">PSSWithSHA384</a>,</code></span>
+<span class="codeline" id="line-44"><code>		<a href="common.go.html#line-404" class="ident">PSSWithSHA512</a>,</code></span>
+<span class="codeline" id="line-45"><code>		<a href="common.go.html#line-397" class="ident">PKCS1WithSHA256</a>,</code></span>
+<span class="codeline" id="line-46"><code>		<a href="common.go.html#line-398" class="ident">PKCS1WithSHA384</a>,</code></span>
+<span class="codeline" id="line-47"><code>		<a href="common.go.html#line-399" class="ident">PKCS1WithSHA512</a>,</code></span>
+<span class="codeline" id="line-48"><code>		<a href="common.go.html#line-408" class="ident">ECDSAWithP384AndSHA384</a>,</code></span>
+<span class="codeline" id="line-49"><code>		<a href="common.go.html#line-409" class="ident">ECDSAWithP521AndSHA512</a>,</code></span>
+<span class="codeline" id="line-50"><code>	}</code></span>
+<span class="codeline" id="line-51"><code>	<a href="../../../pkg/crypto/tls.html#name-allowedCipherSuitesFIPS" class="ident">allowedCipherSuitesFIPS</a> = []<a href="../../../pkg/builtin.html#name-uint16" class="ident">uint16</a>{</code></span>
+<span class="codeline" id="line-52"><code>		<a href="cipher_suites.go.html#line-704" class="ident">TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256</a>,</code></span>
+<span class="codeline" id="line-53"><code>		<a href="cipher_suites.go.html#line-706" class="ident">TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384</a>,</code></span>
+<span class="codeline" id="line-54"><code>		<a href="cipher_suites.go.html#line-705" class="ident">TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256</a>,</code></span>
+<span class="codeline" id="line-55"><code>		<a href="cipher_suites.go.html#line-707" class="ident">TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384</a>,</code></span>
+<span class="codeline" id="line-56"><code>		<a href="cipher_suites.go.html#line-702" class="ident">TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256</a>,</code></span>
+<span class="codeline" id="line-57"><code>		<a href="cipher_suites.go.html#line-703" class="ident">TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256</a>,</code></span>
+<span class="codeline" id="line-58"><code>	}</code></span>
+<span class="codeline" id="line-59"><code>	<a href="../../../pkg/crypto/tls.html#name-allowedCipherSuitesTLS13FIPS" class="ident">allowedCipherSuitesTLS13FIPS</a> = []<a href="../../../pkg/builtin.html#name-uint16" class="ident">uint16</a>{</code></span>
+<span class="codeline" id="line-60"><code>		<a href="cipher_suites.go.html#line-712" class="ident">TLS_AES_128_GCM_SHA256</a>,</code></span>
+<span class="codeline" id="line-61"><code>		<a href="cipher_suites.go.html#line-713" class="ident">TLS_AES_256_GCM_SHA384</a>,</code></span>
+<span class="codeline" id="line-62"><code>	}</code></span>
+<span class="codeline" id="line-63"><code>)</code></span>
+<span class="codeline" id="line-64"><code></code></span>
+<span class="codeline" id="line-65"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../pkg/crypto/tls.html#name-isCertificateAllowedFIPS" class="ident">isCertificateAllowedFIPS</a></label>(<label for="r1" class="ident">c</label> *<a href="../../../pkg/crypto/x509.html" class="ident i4">x509</a>.<a href="../x509/x509.go.html#line-687" class="ident">Certificate</a>) <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-66"><code>	<span class="keyword">switch</span> k := <label for="r1" class="ident">c</label>.<a href="../x509/x509.go.html#line-698" class="ident">PublicKey</a>.(<span class="keyword">type</span>) {</code></span>
+<span class="codeline" id="line-67"><code>	<span class="keyword">case</span> *<a href="../../../pkg/crypto/rsa.html" class="ident i3">rsa</a>.<a href="../rsa/rsa.go.html#line-68" class="ident">PublicKey</a>:</code></span>
+<span class="codeline" id="line-68"><code>		<span class="keyword">return</span> <label for="r2" class="ident">k</label>.<a href="../rsa/rsa.go.html#line-69" class="ident">N</a>.<a href="../../math/big/int.go.html#line-548" class="ident">BitLen</a>() &gt;= <span class="lit-number">2048</span></code></span>
+<span class="codeline" id="line-69"><code>	<span class="keyword">case</span> *<a href="../../../pkg/crypto/ecdsa.html" class="ident i0">ecdsa</a>.<a href="../ecdsa/ecdsa.go.html#line-42" class="ident">PublicKey</a>:</code></span>
+<span class="codeline" id="line-70"><code>		<span class="keyword">return</span> <label for="r3" class="ident">k</label>.<a href="../ecdsa/ecdsa.go.html#line-43" class="ident">Curve</a> == <a href="../../../pkg/crypto/elliptic.html" class="ident i2">elliptic</a>.<a href="../elliptic/elliptic.go.html#line-253" class="ident">P256</a>() || <label for="r3" class="ident">k</label>.<a href="../ecdsa/ecdsa.go.html#line-43" class="ident">Curve</a> == <a href="../../../pkg/crypto/elliptic.html" class="ident i2">elliptic</a>.<a href="../elliptic/elliptic.go.html#line-265" class="ident">P384</a>() || <label for="r3" class="ident">k</label>.<a href="../ecdsa/ecdsa.go.html#line-43" class="ident">Curve</a> == <a href="../../../pkg/crypto/elliptic.html" class="ident i2">elliptic</a>.<a href="../elliptic/elliptic.go.html#line-277" class="ident">P521</a>()</code></span>
+<span class="codeline" id="line-71"><code>	<span class="keyword">case</span> <a href="../../../pkg/crypto/ed25519.html" class="ident i1">ed25519</a>.<a href="../ed25519/ed25519.go.html#line-42" class="ident">PublicKey</a>:</code></span>
+<span class="codeline" id="line-72"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-73"><code>	<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-74"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-75"><code>	}</code></span>
+<span class="codeline" id="line-76"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

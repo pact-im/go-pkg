@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: proxyattributes.go in package google.golang.org/grpc/internal/proxyattributes</title>
+<link href="../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	proxyattributes.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../pkg/google.golang.org/grpc/internal/proxyattributes.html">google.golang.org/grpc/internal/proxyattributes</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">/*</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment"> * Copyright 2024 gRPC authors.</span></code></span>
+<span class="codeline" id="line-4"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-5"><code><span class="comment"> * Licensed under the Apache License, Version 2.0 (the "License");</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment"> * you may not use this file except in compliance with the License.</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment"> * You may obtain a copy of the License at</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment"> *     http://www.apache.org/licenses/LICENSE-2.0</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment"> * Unless required by applicable law or agreed to in writing, software</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment"> * distributed under the License is distributed on an "AS IS" BASIS,</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment"> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment"> * See the License for the specific language governing permissions and</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment"> * limitations under the License.</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment"> */</span></code></span>
+<span class="codeline" id="line-18"><code></code></span>
+<div class="anchor" id="doc"><span class="codeline" id="line-19"><code><span class="comment">// Package proxyattributes contains functions for getting and setting proxy</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">// attributes like the CONNECT address and user info.</span></code></span></div><span class="codeline" id="line-21"><code><span class="keyword">package</span> proxyattributes</code></span>
+<span class="codeline" id="line-22"><code></code></span>
+<span class="codeline" id="line-23"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-24"><code>	<label for="i0"><span class="lit-string i0">"net/url"</span></label></code></span>
+<span class="codeline" id="line-25"><code></code></span>
+<span class="codeline" id="line-26"><code>	<label for="i1"><span class="lit-string i1">"google.golang.org/grpc/resolver"</span></label></code></span>
+<span class="codeline" id="line-27"><code>)</code></span>
+<span class="codeline" id="line-28"><code></code></span>
+<span class="codeline" id="line-29"><code><span class="keyword">type</span> <a href="../../../../../pkg/google.golang.org/grpc/internal/proxyattributes.html#name-keyType" class="ident">keyType</a> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-30"><code></code></span>
+<span class="codeline" id="line-31"><code><span class="keyword">const</span> <a href="../../../../../pkg/google.golang.org/grpc/internal/proxyattributes.html#name-proxyOptionsKey" class="ident">proxyOptionsKey</a> = <a href="#line-29" class="ident">keyType</a>(<span class="lit-string">"grpc.resolver.delegatingresolver.proxyOptions"</span>)</code></span>
+<span class="codeline" id="line-32"><code></code></span>
+<span class="codeline" id="line-33"><code><span class="comment">// Options holds the proxy connection details needed during the CONNECT</span></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">// handshake.</span></code></span>
+<span class="codeline" id="line-35"><code><span class="keyword">type</span> <a href="../../../../../pkg/google.golang.org/grpc/internal/proxyattributes.html#name-Options" class="ident">Options</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-36"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/proxyattributes..Options.User.html" class="ident">User</a>        *<a href="../../../../../pkg/net/url.html" class="ident i0">url</a>.<a href="../../../../net/url/url.go.html#line-411" class="ident">Userinfo</a></code></span>
+<span class="codeline" id="line-37"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/proxyattributes..Options.ConnectAddr.html" class="ident">ConnectAddr</a> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-38"><code>}</code></span>
+<span class="codeline" id="line-39"><code></code></span>
+<span class="codeline" id="line-40"><code><span class="comment">// Set returns a copy of addr with opts set in its attributes.</span></code></span>
+<span class="codeline" id="line-41"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../../pkg/google.golang.org/grpc/internal/proxyattributes.html#name-Set" class="ident">Set</a></label>(<label for="r1" class="ident">addr</label> <a href="../../../../../pkg/google.golang.org/grpc/resolver.html" class="ident i1">resolver</a>.<a href="../../resolver/resolver.go.html#line-91" class="ident">Address</a>, <label for="r2" class="ident">opts</label> <a href="#line-35" class="ident">Options</a>) <a href="../../../../../pkg/google.golang.org/grpc/resolver.html" class="ident i1">resolver</a>.<a href="../../resolver/resolver.go.html#line-91" class="ident">Address</a> {</code></span>
+<span class="codeline" id="line-42"><code>	<label for="r1" class="ident">addr</label>.<a href="../../resolver/resolver.go.html#line-107" class="ident">Attributes</a> = <label for="r1" class="ident">addr</label>.<a href="../../resolver/resolver.go.html#line-107" class="ident">Attributes</a>.<a href="../../attributes/attributes.go.html#line-52" class="ident">WithValue</a>(<a href="#line-31" class="ident">proxyOptionsKey</a>, <label for="r2" class="ident">opts</label>)</code></span>
+<span class="codeline" id="line-43"><code>	<span class="keyword">return</span> <label for="r1" class="ident">addr</label></code></span>
+<span class="codeline" id="line-44"><code>}</code></span>
+<span class="codeline" id="line-45"><code></code></span>
+<span class="codeline" id="line-46"><code><span class="comment">// Get returns the Options for the proxy [resolver.Address] and a boolean</span></code></span>
+<span class="codeline" id="line-47"><code><span class="comment">// value representing if the attribute is present or not. The returned data</span></code></span>
+<span class="codeline" id="line-48"><code><span class="comment">// should not be mutated.</span></code></span>
+<span class="codeline" id="line-49"><code><span class="keyword">func</span> <label for="r3" class="ident"><a href="../../../../../pkg/google.golang.org/grpc/internal/proxyattributes.html#name-Get" class="ident">Get</a></label>(<label for="r4" class="ident">addr</label> <a href="../../../../../pkg/google.golang.org/grpc/resolver.html" class="ident i1">resolver</a>.<a href="../../resolver/resolver.go.html#line-91" class="ident">Address</a>) (<a href="#line-35" class="ident">Options</a>, <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a>) {</code></span>
+<span class="codeline" id="line-50"><code>	<span class="keyword">if</span> <label for="r5" class="ident">a</label> := <label for="r4" class="ident">addr</label>.<a href="../../resolver/resolver.go.html#line-107" class="ident">Attributes</a>.<a href="../../attributes/attributes.go.html#line-66" class="ident">Value</a>(<a href="#line-31" class="ident">proxyOptionsKey</a>); <label for="r5" class="ident">a</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-51"><code>		<span class="keyword">return</span> <label for="r5" class="ident">a</label>.(<a href="#line-35" class="ident">Options</a>), <a href="../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-52"><code>	}</code></span>
+<span class="codeline" id="line-53"><code>	<span class="keyword">return</span> <a href="#line-35" class="ident">Options</a>{}, <a href="../../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-54"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

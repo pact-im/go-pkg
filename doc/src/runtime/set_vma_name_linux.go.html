@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: set_vma_name_linux.go in package runtime</title>
+<link href="../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	set_vma_name_linux.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../pkg/runtime.html">runtime</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2025 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="comment">//go:build linux</span></code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">package</span> runtime</code></span>
+<span class="codeline" id="line-8"><code></code></span>
+<span class="codeline" id="line-9"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-10"><code>	<label for="i0"><span class="lit-string i0">"internal/runtime/atomic"</span></label></code></span>
+<span class="codeline" id="line-11"><code>	<label for="i1"><span class="lit-string i1">"internal/runtime/syscall"</span></label></code></span>
+<span class="codeline" id="line-12"><code>	<label for="i2"><span class="lit-string i2">"unsafe"</span></label></code></span>
+<span class="codeline" id="line-13"><code>)</code></span>
+<span class="codeline" id="line-14"><code></code></span>
+<span class="codeline" id="line-15"><code><span class="keyword">var</span> <a href="../../pkg/runtime.html#name-prSetVMAUnsupported" class="ident">prSetVMAUnsupported</a> <a href="../../pkg/internal/runtime/atomic.html" class="ident i0">atomic</a>.<a href="../internal/runtime/atomic/types.go.html#line-159" class="ident">Bool</a></code></span>
+<span class="codeline" id="line-16"><code></code></span>
+<span class="codeline" id="line-17"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../pkg/runtime.html#name-setVMANameSupported" class="ident">setVMANameSupported</a></label>() <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-18"><code>	<span class="keyword">return</span> !<a href="#line-15" class="ident">prSetVMAUnsupported</a>.<a href="../internal/runtime/atomic/types.go.html#line-167" class="ident">Load</a>()</code></span>
+<span class="codeline" id="line-19"><code>}</code></span>
+<span class="codeline" id="line-20"><code></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">// setVMAName calls prctl(PR_SET_VMA, PR_SET_VMA_ANON_NAME, start, len, name)</span></code></span>
+<span class="codeline" id="line-22"><code><span class="keyword">func</span> <label for="r1" class="ident"><a href="../../pkg/runtime.html#name-setVMAName" class="ident">setVMAName</a></label>(<label for="r2" class="ident">start</label> <a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>, <label for="r3" class="ident">length</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>, <label for="r4" class="ident">name</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>) {</code></span>
+<span class="codeline" id="line-23"><code>	<span class="keyword">if</span> <a href="runtime1.go.html#line-310" class="ident">debug</a>.<a href="runtime1.go.html#line-314" class="ident">decoratemappings</a> == <span class="lit-number">0</span> || !<a href="#line-17" class="ident">setVMANameSupported</a>() {</code></span>
+<span class="codeline" id="line-24"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-25"><code>	}</code></span>
+<span class="codeline" id="line-26"><code></code></span>
+<span class="codeline" id="line-27"><code>	<span class="keyword">var</span> <label for="r5" class="ident">sysName</label> [<span class="lit-number">80</span>]<a href="../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
+<span class="codeline" id="line-28"><code>	<label for="r6" class="ident">n</label> := <a href="../../pkg/builtin.html#name-copy" class="ident">copy</a>(<label for="r5" class="ident">sysName</label>[:], <span class="lit-string">" Go: "</span>)</code></span>
+<span class="codeline" id="line-29"><code>	<a href="../../pkg/builtin.html#name-copy" class="ident">copy</a>(<label for="r5" class="ident">sysName</label>[<label for="r6" class="ident">n</label>:<span class="lit-number">79</span>], <label for="r4" class="ident">name</label>) <span class="comment">// leave final byte zero</span></code></span>
+<span class="codeline" id="line-30"><code></code></span>
+<span class="codeline" id="line-31"><code>	<label for="r7" class="ident">_</label>, <label for="r8" class="ident">_</label>, <label for="r9" class="ident">err</label> := <a href="../../pkg/internal/runtime/syscall.html" class="ident i1">syscall</a>.<a href="../internal/runtime/syscall/syscall_linux.go.html#line-17" class="ident">Syscall6</a>(<a href="../../pkg/internal/runtime/syscall.html" class="ident i1">syscall</a>.<a href="../internal/runtime/syscall/defs_linux_amd64.go.html#line-11" class="ident">SYS_PRCTL</a>, <a href="../../pkg/internal/runtime/syscall.html" class="ident i1">syscall</a>.<a href="../internal/runtime/syscall/defs_linux.go.html#line-27" class="ident">PR_SET_VMA</a>, <a href="../../pkg/internal/runtime/syscall.html" class="ident i1">syscall</a>.<a href="../internal/runtime/syscall/defs_linux.go.html#line-28" class="ident">PR_SET_VMA_ANON_NAME</a>, <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>(<label for="r2" class="ident">start</label>), <label for="r3" class="ident">length</label>, <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>(<a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(&amp;<label for="r5" class="ident">sysName</label>[<span class="lit-number">0</span>])), <span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-32"><code>	<span class="keyword">if</span> <label for="r9" class="ident">err</label> == <a href="mem_linux.go.html#line-14" class="ident">_EINVAL</a> {</code></span>
+<span class="codeline" id="line-33"><code>		<a href="#line-15" class="ident">prSetVMAUnsupported</a>.<a href="../internal/runtime/atomic/types.go.html#line-174" class="ident">Store</a>(<a href="../../pkg/builtin.html#name-true" class="ident">true</a>)</code></span>
+<span class="codeline" id="line-34"><code>	}</code></span>
+<span class="codeline" id="line-35"><code>	<span class="comment">// ignore other errors</span></code></span>
+<span class="codeline" id="line-36"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

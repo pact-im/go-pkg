@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: httpprocess.go in package go.pact.im/x/httpprocess</title>
+<link href="../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	httpprocess.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../pkg/go.pact.im/x/httpprocess.html">go.pact.im/x/httpprocess</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3,
+input[id=i4]:checked ~pre .i4,
+input[id=i5]:checked ~pre .i5,
+input[id=i6]:checked ~pre .i6
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+<input id="i4" type="radio" name="i"/>
+<input id="i5" type="radio" name="i"/>
+<input id="i6" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<div class="anchor" id="doc"><span class="codeline" id="line-1"><code><span class="comment">// Package httpprocess provides [process.Runner] wrapper for [http.Server].</span></code></span></div><span class="codeline" id="line-2"><code><span class="keyword">package</span> httpprocess</code></span>
+<span class="codeline" id="line-3"><code></code></span>
+<span class="codeline" id="line-4"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-5"><code>	<label for="i0"><span class="lit-string i0">"context"</span></label></code></span>
+<span class="codeline" id="line-6"><code>	<label for="i1"><span class="lit-string i1">"errors"</span></label></code></span>
+<span class="codeline" id="line-7"><code>	<label for="i2"><span class="lit-string i2">"net"</span></label></code></span>
+<span class="codeline" id="line-8"><code>	<label for="i3"><span class="lit-string i3">"net/http"</span></label></code></span>
+<span class="codeline" id="line-9"><code>	<label for="i4"><span class="lit-string i4">"sync"</span></label></code></span>
+<span class="codeline" id="line-10"><code></code></span>
+<span class="codeline" id="line-11"><code>	<label for="i5"><span class="lit-string i5">"go.pact.im/x/httptrack"</span></label></code></span>
+<span class="codeline" id="line-12"><code>	<label for="i6"><span class="lit-string i6">"go.pact.im/x/process"</span></label></code></span>
+<span class="codeline" id="line-13"><code>)</code></span>
+<span class="codeline" id="line-14"><code></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">// Server returns a [process.Runner] instance for the given HTTP server and</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">// network listener.</span></code></span>
+<span class="codeline" id="line-17"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../pkg/go.pact.im/x/httpprocess.html#name-Server" class="ident">Server</a></label>(<label for="r1" class="ident">srv</label> *<a href="../../../../pkg/net/http.html" class="ident i3">http</a>.<a href="../../../net/http/server.go.html#line-2993" class="ident">Server</a>, <label for="r2" class="ident">lis</label> <a href="../../../../pkg/net.html" class="ident i2">net</a>.<a href="../../../net/net.go.html#line-412" class="ident">Listener</a>) <a href="../../../../pkg/go.pact.im/x/process.html" class="ident i6">process</a>.<a href="../process/runner.go.html#line-19" class="ident">Runner</a> {</code></span>
+<span class="codeline" id="line-18"><code>	<span class="keyword">var</span> <label for="r3" class="ident">connTracker</label> <a href="../../../../pkg/go.pact.im/x/httptrack.html" class="ident i5">httptrack</a>.<a href="../httptrack/conn.go.html#line-17" class="ident">ConnTracker</a></code></span>
+<span class="codeline" id="line-19"><code>	<label for="r4" class="ident">oldConnState</label> := <a href="../../../../pkg/go.pact.im/x/httptrack.html" class="ident i5">httptrack</a>.<a href="../httptrack/tracker.go.html#line-43" class="ident">Wrap</a>(<label for="r1" class="ident">srv</label>, &amp;<label for="r3" class="ident">connTracker</label>)</code></span>
+<span class="codeline" id="line-20"><code>	<label for="r5" class="ident">wrappedListener</label> := &amp;<a href="#line-65" class="ident">nilCloserListener</a>{<a href="#line-66" class="ident">Listener</a>: <label for="r2" class="ident">lis</label>}</code></span>
+<span class="codeline" id="line-21"><code>	<span class="keyword">return</span> <a href="../../../../pkg/go.pact.im/x/process.html" class="ident i6">process</a>.<a href="../process/task.go.html#line-66" class="ident">Leaf</a>(</code></span>
+<span class="codeline" id="line-22"><code>		<span class="keyword">func</span>(<label for="r6" class="ident">ctx</label> <a href="../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../context/context.go.html#line-71" class="ident">Context</a>) <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-23"><code>			<label for="r7" class="ident">oldBaseContext</label> := <label for="r1" class="ident">srv</label>.<a href="../../../net/http/server.go.html#line-3081" class="ident">BaseContext</a></code></span>
+<span class="codeline" id="line-24"><code>			<label for="r1" class="ident">srv</label>.<a href="../../../net/http/server.go.html#line-3081" class="ident">BaseContext</a> = <span class="keyword">func</span>(<label for="r8" class="ident">_</label> <a href="../../../../pkg/net.html" class="ident i2">net</a>.<a href="../../../net/net.go.html#line-412" class="ident">Listener</a>) <a href="../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../context/context.go.html#line-71" class="ident">Context</a> {</code></span>
+<span class="codeline" id="line-25"><code>				<span class="keyword">return</span> <label for="r6" class="ident">ctx</label></code></span>
+<span class="codeline" id="line-26"><code>			}</code></span>
+<span class="codeline" id="line-27"><code></code></span>
+<span class="codeline" id="line-28"><code>			<label for="r9" class="ident">err</label> := <label for="r1" class="ident">srv</label>.<a href="../../../net/http/server.go.html#line-3433" class="ident">Serve</a>(<label for="r5" class="ident">wrappedListener</label>)</code></span>
+<span class="codeline" id="line-29"><code>			<span class="keyword">if</span> <a href="../../../../pkg/errors.html" class="ident i1">errors</a>.<a href="../../../errors/wrap.go.html#line-44" class="ident">Is</a>(<label for="r9" class="ident">err</label>, <a href="../../../../pkg/net/http.html" class="ident i3">http</a>.<a href="../../../net/http/server.go.html#line-3421" class="ident">ErrServerClosed</a>) {</code></span>
+<span class="codeline" id="line-30"><code>				<label for="r9" class="ident">err</label> = <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-31"><code>			}</code></span>
+<span class="codeline" id="line-32"><code>			<span class="keyword">if</span> <label for="r9" class="ident">err</label> == <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-33"><code>				<label for="r9" class="ident">err</label> = <label for="r5" class="ident">wrappedListener</label>.<a href="#line-79" class="ident">CloseError</a>()</code></span>
+<span class="codeline" id="line-34"><code>			}</code></span>
+<span class="codeline" id="line-35"><code></code></span>
+<span class="codeline" id="line-36"><code>			<span class="comment">// Wait until all connections are actually closed (i.e. until all</span></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">			// per-connection goroutines return).</span></code></span>
+<span class="codeline" id="line-38"><code><span class="comment">			//</span></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">			// Otherwise, process.Leaf would cancel the context on return, and</span></code></span>
+<span class="codeline" id="line-40"><code><span class="comment">			// the cancellation would propagate to in-flight HTTP handlers. We</span></code></span>
+<span class="codeline" id="line-41"><code><span class="comment">			// avoid that because our graceful shutdown model assumes the</span></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">			// context only expires during forced shutdown.</span></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">			//</span></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">			// Note that this can still happen if the shutdown function returns,</span></code></span>
+<span class="codeline" id="line-45"><code><span class="comment">			// but by that point, graceful shutdown would have already failed.</span></code></span>
+<span class="codeline" id="line-46"><code>			<label for="r3" class="ident">connTracker</label>.<a href="../httptrack/conn.go.html#line-38" class="ident">Wait</a>()</code></span>
+<span class="codeline" id="line-47"><code></code></span>
+<span class="codeline" id="line-48"><code>			<label for="r1" class="ident">srv</label>.<a href="../../../net/http/server.go.html#line-3081" class="ident">BaseContext</a> = <label for="r7" class="ident">oldBaseContext</label></code></span>
+<span class="codeline" id="line-49"><code>			<label for="r1" class="ident">srv</label>.<a href="../../../net/http/server.go.html#line-3067" class="ident">ConnState</a> = <label for="r4" class="ident">oldConnState</label></code></span>
+<span class="codeline" id="line-50"><code></code></span>
+<span class="codeline" id="line-51"><code>			<span class="keyword">return</span> <label for="r9" class="ident">err</label></code></span>
+<span class="codeline" id="line-52"><code>		},</code></span>
+<span class="codeline" id="line-53"><code>		<span class="keyword">func</span>(<label for="r10" class="ident">ctx</label> <a href="../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../context/context.go.html#line-71" class="ident">Context</a>) <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-54"><code>			<span class="comment">// Shutdown and Close forward error from net.Listener.Close.</span></code></span>
+<span class="codeline" id="line-55"><code><span class="comment">			// We already capture this error via nilCloserListener.</span></code></span>
+<span class="codeline" id="line-56"><code>			_ = <label for="r1" class="ident">srv</label>.<a href="../../../net/http/server.go.html#line-3179" class="ident">Shutdown</a>(<label for="r10" class="ident">ctx</label>)</code></span>
+<span class="codeline" id="line-57"><code>			_ = <label for="r1" class="ident">srv</label>.<a href="../../../net/http/server.go.html#line-3129" class="ident">Close</a>()</code></span>
+<span class="codeline" id="line-58"><code>			<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-59"><code>		},</code></span>
+<span class="codeline" id="line-60"><code>	)</code></span>
+<span class="codeline" id="line-61"><code>}</code></span>
+<span class="codeline" id="line-62"><code></code></span>
+<span class="codeline" id="line-63"><code><span class="comment">// nilCloserListener is a wrapper around a [net.Listener] that ensures the</span></code></span>
+<span class="codeline" id="line-64"><code><span class="comment">// underlying listener is closed exactly once and returns nil error.</span></code></span>
+<span class="codeline" id="line-65"><code><span class="keyword">type</span> <a href="../../../../pkg/go.pact.im/x/httpprocess.html#name-nilCloserListener" class="ident">nilCloserListener</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-66"><code>	<a href="../../../../pkg/net.html" class="ident i2">net</a>.<a href="../../../net/net.go.html#line-412" class="ident">Listener</a></code></span>
+<span class="codeline" id="line-67"><code>	<a href="../../../../use/go.pact.im/x/httpprocess..nilCloserListener^eb96f.once^20065.html" class="ident">once</a> <a href="../../../../pkg/sync.html" class="ident i4">sync</a>.<a href="../../../sync/once.go.html#line-20" class="ident">Once</a></code></span>
+<span class="codeline" id="line-68"><code>	<a href="../../../../use/go.pact.im/x/httpprocess..nilCloserListener^eb96f.err^d9eb2.html" class="ident">err</a>  <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-69"><code>}</code></span>
+<span class="codeline" id="line-70"><code></code></span>
+<span class="codeline" id="line-71"><code><span class="comment">// Close closes the underlying [net.Listener] exactly once. It always returns</span></code></span>
+<span class="codeline" id="line-72"><code><span class="comment">// nil error.</span></code></span>
+<span class="codeline" id="line-73"><code><span class="keyword">func</span> (<label for="r11" class="ident">l</label> *<a href="#line-65" class="ident">nilCloserListener</a>) <label for="r12" class="ident"><a href="../../../../use/go.pact.im/x/httpprocess..nilCloserListener^eb96f.Close.html" class="ident">Close</a></label>() <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-74"><code>	<label for="r11" class="ident">l</label>.<a href="#line-67" class="ident">once</a>.<a href="../../../sync/once.go.html#line-52" class="ident">Do</a>(<span class="keyword">func</span>() { <label for="r11" class="ident">l</label>.<a href="#line-68" class="ident">err</a> = <label for="r11" class="ident">l</label>.<a href="#line-66" class="ident">Listener</a>.<a href="../../../net/net.go.html#line-418" class="ident">Close</a>() })</code></span>
+<span class="codeline" id="line-75"><code>	<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-76"><code>}</code></span>
+<span class="codeline" id="line-77"><code></code></span>
+<span class="codeline" id="line-78"><code><span class="comment">// CloseError returns Close error from the underlying [net.Listener].</span></code></span>
+<span class="codeline" id="line-79"><code><span class="keyword">func</span> (<label for="r13" class="ident">l</label> *<a href="#line-65" class="ident">nilCloserListener</a>) <label for="r14" class="ident"><a href="../../../../use/go.pact.im/x/httpprocess..nilCloserListener^eb96f.CloseError.html" class="ident">CloseError</a></label>() <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-80"><code>	<span class="keyword">return</span> <label for="r13" class="ident">l</label>.<a href="#line-68" class="ident">err</a></code></span>
+<span class="codeline" id="line-81"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

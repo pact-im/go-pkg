@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: events.go in package internal/trace/tracev2</title>
+<link href="../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	events.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../pkg/internal/trace/tracev2.html">internal/trace/tracev2</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7]
+{background: #226; color: #ff8;}
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2023 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> tracev2</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="comment">// Event types in the trace, args are given in square brackets.</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment">// Naming scheme:</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment">//   - Time range event pairs have suffixes "Begin" and "End".</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment">//   - "Start", "Stop", "Create", "Destroy", "Block", "Unblock"</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment">//     are suffixes reserved for scheduling resources.</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">// NOTE: If you add an event type, make sure you also update all</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">// tables in this file!</span></code></span>
+<span class="codeline" id="line-16"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-17"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvNone" class="ident">EvNone</a> <a href="spec.go.html#line-10" class="ident">EventType</a> = <a href="../../../../pkg/builtin.html#name-iota" class="ident">iota</a> <span class="comment">// unused</span></code></span>
+<span class="codeline" id="line-18"><code></code></span>
+<span class="codeline" id="line-19"><code>	<span class="comment">// Structural events.</span></code></span>
+<span class="codeline" id="line-20"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvEventBatch" class="ident">EvEventBatch</a> <span class="comment">// start of per-M batch of events [generation, M ID, timestamp, batch length]</span></code></span>
+<span class="codeline" id="line-21"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvStacks" class="ident">EvStacks</a>     <span class="comment">// start of a section of the stack table [...EvStack]</span></code></span>
+<span class="codeline" id="line-22"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvStack" class="ident">EvStack</a>      <span class="comment">// stack table entry [ID, ...{PC, func string ID, file string ID, line #}]</span></code></span>
+<span class="codeline" id="line-23"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvStrings" class="ident">EvStrings</a>    <span class="comment">// start of a section of the string dictionary [...EvString]</span></code></span>
+<span class="codeline" id="line-24"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvString" class="ident">EvString</a>     <span class="comment">// string dictionary entry [ID, length, string]</span></code></span>
+<span class="codeline" id="line-25"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvCPUSamples" class="ident">EvCPUSamples</a> <span class="comment">// start of a section of CPU samples [...EvCPUSample]</span></code></span>
+<span class="codeline" id="line-26"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvCPUSample" class="ident">EvCPUSample</a>  <span class="comment">// CPU profiling sample [timestamp, M ID, P ID, goroutine ID, stack ID]</span></code></span>
+<span class="codeline" id="line-27"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvFrequency" class="ident">EvFrequency</a>  <span class="comment">// timestamp units per sec [freq]</span></code></span>
+<span class="codeline" id="line-28"><code></code></span>
+<span class="codeline" id="line-29"><code>	<span class="comment">// Procs.</span></code></span>
+<span class="codeline" id="line-30"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvProcsChange" class="ident">EvProcsChange</a> <span class="comment">// current value of GOMAXPROCS [timestamp, GOMAXPROCS, stack ID]</span></code></span>
+<span class="codeline" id="line-31"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvProcStart" class="ident">EvProcStart</a>   <span class="comment">// start of P [timestamp, P ID, P seq]</span></code></span>
+<span class="codeline" id="line-32"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvProcStop" class="ident">EvProcStop</a>    <span class="comment">// stop of P [timestamp]</span></code></span>
+<span class="codeline" id="line-33"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvProcSteal" class="ident">EvProcSteal</a>   <span class="comment">// P was stolen [timestamp, P ID, P seq, M ID]</span></code></span>
+<span class="codeline" id="line-34"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvProcStatus" class="ident">EvProcStatus</a>  <span class="comment">// P status at the start of a generation [timestamp, P ID, status]</span></code></span>
+<span class="codeline" id="line-35"><code></code></span>
+<span class="codeline" id="line-36"><code>	<span class="comment">// Goroutines.</span></code></span>
+<span class="codeline" id="line-37"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvGoCreate" class="ident">EvGoCreate</a>            <span class="comment">// goroutine creation [timestamp, new goroutine ID, new stack ID, stack ID]</span></code></span>
+<span class="codeline" id="line-38"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvGoCreateSyscall" class="ident">EvGoCreateSyscall</a>     <span class="comment">// goroutine appears in syscall (cgo callback) [timestamp, new goroutine ID]</span></code></span>
+<span class="codeline" id="line-39"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvGoStart" class="ident">EvGoStart</a>             <span class="comment">// goroutine starts running [timestamp, goroutine ID, goroutine seq]</span></code></span>
+<span class="codeline" id="line-40"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvGoDestroy" class="ident">EvGoDestroy</a>           <span class="comment">// goroutine ends [timestamp]</span></code></span>
+<span class="codeline" id="line-41"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvGoDestroySyscall" class="ident">EvGoDestroySyscall</a>    <span class="comment">// goroutine ends in syscall (cgo callback) [timestamp]</span></code></span>
+<span class="codeline" id="line-42"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvGoStop" class="ident">EvGoStop</a>              <span class="comment">// goroutine yields its time, but is runnable [timestamp, reason, stack ID]</span></code></span>
+<span class="codeline" id="line-43"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvGoBlock" class="ident">EvGoBlock</a>             <span class="comment">// goroutine blocks [timestamp, reason, stack ID]</span></code></span>
+<span class="codeline" id="line-44"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvGoUnblock" class="ident">EvGoUnblock</a>           <span class="comment">// goroutine is unblocked [timestamp, goroutine ID, goroutine seq, stack ID]</span></code></span>
+<span class="codeline" id="line-45"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvGoSyscallBegin" class="ident">EvGoSyscallBegin</a>      <span class="comment">// syscall enter [timestamp, P seq, stack ID]</span></code></span>
+<span class="codeline" id="line-46"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvGoSyscallEnd" class="ident">EvGoSyscallEnd</a>        <span class="comment">// syscall exit [timestamp]</span></code></span>
+<span class="codeline" id="line-47"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvGoSyscallEndBlocked" class="ident">EvGoSyscallEndBlocked</a> <span class="comment">// syscall exit and it blocked at some point [timestamp]</span></code></span>
+<span class="codeline" id="line-48"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvGoStatus" class="ident">EvGoStatus</a>            <span class="comment">// goroutine status at the start of a generation [timestamp, goroutine ID, thread ID, status]</span></code></span>
+<span class="codeline" id="line-49"><code></code></span>
+<span class="codeline" id="line-50"><code>	<span class="comment">// STW.</span></code></span>
+<span class="codeline" id="line-51"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvSTWBegin" class="ident">EvSTWBegin</a> <span class="comment">// STW start [timestamp, kind]</span></code></span>
+<span class="codeline" id="line-52"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvSTWEnd" class="ident">EvSTWEnd</a>   <span class="comment">// STW done [timestamp]</span></code></span>
+<span class="codeline" id="line-53"><code></code></span>
+<span class="codeline" id="line-54"><code>	<span class="comment">// GC events.</span></code></span>
+<span class="codeline" id="line-55"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvGCActive" class="ident">EvGCActive</a>           <span class="comment">// GC active [timestamp, seq]</span></code></span>
+<span class="codeline" id="line-56"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvGCBegin" class="ident">EvGCBegin</a>            <span class="comment">// GC start [timestamp, seq, stack ID]</span></code></span>
+<span class="codeline" id="line-57"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvGCEnd" class="ident">EvGCEnd</a>              <span class="comment">// GC done [timestamp, seq]</span></code></span>
+<span class="codeline" id="line-58"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvGCSweepActive" class="ident">EvGCSweepActive</a>      <span class="comment">// GC sweep active [timestamp, P ID]</span></code></span>
+<span class="codeline" id="line-59"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvGCSweepBegin" class="ident">EvGCSweepBegin</a>       <span class="comment">// GC sweep start [timestamp, stack ID]</span></code></span>
+<span class="codeline" id="line-60"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvGCSweepEnd" class="ident">EvGCSweepEnd</a>         <span class="comment">// GC sweep done [timestamp, swept bytes, reclaimed bytes]</span></code></span>
+<span class="codeline" id="line-61"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvGCMarkAssistActive" class="ident">EvGCMarkAssistActive</a> <span class="comment">// GC mark assist active [timestamp, goroutine ID]</span></code></span>
+<span class="codeline" id="line-62"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvGCMarkAssistBegin" class="ident">EvGCMarkAssistBegin</a>  <span class="comment">// GC mark assist start [timestamp, stack ID]</span></code></span>
+<span class="codeline" id="line-63"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvGCMarkAssistEnd" class="ident">EvGCMarkAssistEnd</a>    <span class="comment">// GC mark assist done [timestamp]</span></code></span>
+<span class="codeline" id="line-64"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvHeapAlloc" class="ident">EvHeapAlloc</a>          <span class="comment">// gcController.heapLive change [timestamp, heap alloc in bytes]</span></code></span>
+<span class="codeline" id="line-65"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvHeapGoal" class="ident">EvHeapGoal</a>           <span class="comment">// gcController.heapGoal() change [timestamp, heap goal in bytes]</span></code></span>
+<span class="codeline" id="line-66"><code></code></span>
+<span class="codeline" id="line-67"><code>	<span class="comment">// Annotations.</span></code></span>
+<span class="codeline" id="line-68"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvGoLabel" class="ident">EvGoLabel</a>         <span class="comment">// apply string label to current running goroutine [timestamp, label string ID]</span></code></span>
+<span class="codeline" id="line-69"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvUserTaskBegin" class="ident">EvUserTaskBegin</a>   <span class="comment">// trace.NewTask [timestamp, internal task ID, internal parent task ID, name string ID, stack ID]</span></code></span>
+<span class="codeline" id="line-70"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvUserTaskEnd" class="ident">EvUserTaskEnd</a>     <span class="comment">// end of a task [timestamp, internal task ID, stack ID]</span></code></span>
+<span class="codeline" id="line-71"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvUserRegionBegin" class="ident">EvUserRegionBegin</a> <span class="comment">// trace.{Start,With}Region [timestamp, internal task ID, name string ID, stack ID]</span></code></span>
+<span class="codeline" id="line-72"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvUserRegionEnd" class="ident">EvUserRegionEnd</a>   <span class="comment">// trace.{End,With}Region [timestamp, internal task ID, name string ID, stack ID]</span></code></span>
+<span class="codeline" id="line-73"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvUserLog" class="ident">EvUserLog</a>         <span class="comment">// trace.Log [timestamp, internal task ID, key string ID, value string ID, stack]</span></code></span>
+<span class="codeline" id="line-74"><code></code></span>
+<span class="codeline" id="line-75"><code>	<span class="comment">// Coroutines. Added in Go 1.23.</span></code></span>
+<span class="codeline" id="line-76"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvGoSwitch" class="ident">EvGoSwitch</a>        <span class="comment">// goroutine switch (coroswitch) [timestamp, goroutine ID, goroutine seq]</span></code></span>
+<span class="codeline" id="line-77"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvGoSwitchDestroy" class="ident">EvGoSwitchDestroy</a> <span class="comment">// goroutine switch and destroy [timestamp, goroutine ID, goroutine seq]</span></code></span>
+<span class="codeline" id="line-78"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvGoCreateBlocked" class="ident">EvGoCreateBlocked</a> <span class="comment">// goroutine creation (starts blocked) [timestamp, new goroutine ID, new stack ID, stack ID]</span></code></span>
+<span class="codeline" id="line-79"><code></code></span>
+<span class="codeline" id="line-80"><code>	<span class="comment">// GoStatus with stack. Added in Go 1.23.</span></code></span>
+<span class="codeline" id="line-81"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvGoStatusStack" class="ident">EvGoStatusStack</a> <span class="comment">// goroutine status at the start of a generation, with a stack [timestamp, goroutine ID, M ID, status, stack ID]</span></code></span>
+<span class="codeline" id="line-82"><code></code></span>
+<span class="codeline" id="line-83"><code>	<span class="comment">// Batch event for an experimental batch with a custom format. Added in Go 1.23.</span></code></span>
+<span class="codeline" id="line-84"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvExperimentalBatch" class="ident">EvExperimentalBatch</a> <span class="comment">// start of extra data [experiment ID, generation, M ID, timestamp, batch length, batch data...]</span></code></span>
+<span class="codeline" id="line-85"><code></code></span>
+<span class="codeline" id="line-86"><code>	<span class="comment">// Sync batch. Added in Go 1.25. Previously a lone EvFrequency event.</span></code></span>
+<span class="codeline" id="line-87"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvSync" class="ident">EvSync</a>          <span class="comment">// start of a sync batch [...EvFrequency|EvClockSnapshot]</span></code></span>
+<span class="codeline" id="line-88"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvClockSnapshot" class="ident">EvClockSnapshot</a> <span class="comment">// snapshot of trace, mono and wall clocks [timestamp, mono, sec, nsec]</span></code></span>
+<span class="codeline" id="line-89"><code></code></span>
+<span class="codeline" id="line-90"><code>	<span class="comment">// Reserved internal in-band end-of-generation signal. Must never appear in the trace. Added in Go 1.25.</span></code></span>
+<span class="codeline" id="line-91"><code><span class="comment">	// This could be used as an explicit in-band end-of-generation signal in the future.</span></code></span>
+<span class="codeline" id="line-92"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvEndOfGeneration" class="ident">EvEndOfGeneration</a></code></span>
+<span class="codeline" id="line-93"><code></code></span>
+<span class="codeline" id="line-94"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-NumEvents" class="ident">NumEvents</a></code></span>
+<span class="codeline" id="line-95"><code>)</code></span>
+<span class="codeline" id="line-96"><code></code></span>
+<span class="codeline" id="line-97"><code><span class="keyword">func</span> (<label for="r0" class="ident">ev</label> <a href="spec.go.html#line-10" class="ident">EventType</a>) <label for="r1" class="ident"><a href="../../../../use/internal/trace/tracev2..EventType.Experimental.html" class="ident">Experimental</a></label>() <a href="../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-98"><code>	<span class="keyword">return</span> <label for="r0" class="ident">ev</label> &gt; <a href="#line-120" class="ident">MaxEvent</a> &amp;&amp; <label for="r0" class="ident">ev</label> &lt; <a href="#line-139" class="ident">MaxExperimentalEvent</a></code></span>
+<span class="codeline" id="line-99"><code>}</code></span>
+<span class="codeline" id="line-100"><code></code></span>
+<span class="codeline" id="line-101"><code><span class="comment">// Experiments.</span></code></span>
+<span class="codeline" id="line-102"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-103"><code>	<span class="comment">// AllocFree is the alloc-free events experiment.</span></code></span>
+<span class="codeline" id="line-104"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-AllocFree" class="ident">AllocFree</a> <a href="spec.go.html#line-104" class="ident">Experiment</a> = <span class="lit-number">1</span> + <a href="../../../../pkg/builtin.html#name-iota" class="ident">iota</a></code></span>
+<span class="codeline" id="line-105"><code></code></span>
+<span class="codeline" id="line-106"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-NumExperiments" class="ident">NumExperiments</a></code></span>
+<span class="codeline" id="line-107"><code>)</code></span>
+<span class="codeline" id="line-108"><code></code></span>
+<span class="codeline" id="line-109"><code><span class="keyword">func</span> <label for="r2" class="ident"><a href="../../../../pkg/internal/trace/tracev2.html#name-Experiments" class="ident">Experiments</a></label>() []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-110"><code>	<span class="keyword">return</span> <a href="#line-113" class="ident">experiments</a>[:]</code></span>
+<span class="codeline" id="line-111"><code>}</code></span>
+<span class="codeline" id="line-112"><code></code></span>
+<span class="codeline" id="line-113"><code><span class="keyword">var</span> <a href="../../../../pkg/internal/trace/tracev2.html#name-experiments" class="ident">experiments</a> = [...]<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>{</code></span>
+<span class="codeline" id="line-114"><code>	<a href="spec.go.html#line-107" class="ident">NoExperiment</a>: <span class="lit-string">"None"</span>,</code></span>
+<span class="codeline" id="line-115"><code>	<a href="#line-104" class="ident">AllocFree</a>:    <span class="lit-string">"AllocFree"</span>,</code></span>
+<span class="codeline" id="line-116"><code>}</code></span>
+<span class="codeline" id="line-117"><code></code></span>
+<span class="codeline" id="line-118"><code><span class="comment">// Experimental events.</span></code></span>
+<span class="codeline" id="line-119"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-120"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-MaxEvent" class="ident">MaxEvent</a> <a href="spec.go.html#line-10" class="ident">EventType</a> = <span class="lit-number">127</span> + <a href="../../../../pkg/builtin.html#name-iota" class="ident">iota</a></code></span>
+<span class="codeline" id="line-121"><code></code></span>
+<span class="codeline" id="line-122"><code>	<span class="comment">// Experimental events for AllocFree.</span></code></span>
+<span class="codeline" id="line-123"><code></code></span>
+<span class="codeline" id="line-124"><code>	<span class="comment">// Experimental heap span events. Added in Go 1.23.</span></code></span>
+<span class="codeline" id="line-125"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvSpan" class="ident">EvSpan</a>      <span class="comment">// heap span exists [timestamp, id, npages, type/class]</span></code></span>
+<span class="codeline" id="line-126"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvSpanAlloc" class="ident">EvSpanAlloc</a> <span class="comment">// heap span alloc [timestamp, id, npages, type/class]</span></code></span>
+<span class="codeline" id="line-127"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvSpanFree" class="ident">EvSpanFree</a>  <span class="comment">// heap span free [timestamp, id]</span></code></span>
+<span class="codeline" id="line-128"><code></code></span>
+<span class="codeline" id="line-129"><code>	<span class="comment">// Experimental heap object events. Added in Go 1.23.</span></code></span>
+<span class="codeline" id="line-130"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvHeapObject" class="ident">EvHeapObject</a>      <span class="comment">// heap object exists [timestamp, id, type]</span></code></span>
+<span class="codeline" id="line-131"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvHeapObjectAlloc" class="ident">EvHeapObjectAlloc</a> <span class="comment">// heap object alloc [timestamp, id, type]</span></code></span>
+<span class="codeline" id="line-132"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvHeapObjectFree" class="ident">EvHeapObjectFree</a>  <span class="comment">// heap object free [timestamp, id]</span></code></span>
+<span class="codeline" id="line-133"><code></code></span>
+<span class="codeline" id="line-134"><code>	<span class="comment">// Experimental goroutine stack events. Added in Go 1.23.</span></code></span>
+<span class="codeline" id="line-135"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvGoroutineStack" class="ident">EvGoroutineStack</a>      <span class="comment">// stack exists [timestamp, id, order]</span></code></span>
+<span class="codeline" id="line-136"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvGoroutineStackAlloc" class="ident">EvGoroutineStackAlloc</a> <span class="comment">// stack alloc [timestamp, id, order]</span></code></span>
+<span class="codeline" id="line-137"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-EvGoroutineStackFree" class="ident">EvGoroutineStackFree</a>  <span class="comment">// stack free [timestamp, id]</span></code></span>
+<span class="codeline" id="line-138"><code></code></span>
+<span class="codeline" id="line-139"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-MaxExperimentalEvent" class="ident">MaxExperimentalEvent</a></code></span>
+<span class="codeline" id="line-140"><code>)</code></span>
+<span class="codeline" id="line-141"><code></code></span>
+<span class="codeline" id="line-142"><code><span class="keyword">const</span> <a href="../../../../pkg/internal/trace/tracev2.html#name-NumExperimentalEvents" class="ident">NumExperimentalEvents</a> = <a href="#line-139" class="ident">MaxExperimentalEvent</a> - <a href="#line-120" class="ident">MaxEvent</a></code></span>
+<span class="codeline" id="line-143"><code></code></span>
+<span class="codeline" id="line-144"><code><span class="comment">// MaxTimedEventArgs is the maximum number of arguments for timed events.</span></code></span>
+<span class="codeline" id="line-145"><code><span class="keyword">const</span> <a href="../../../../pkg/internal/trace/tracev2.html#name-MaxTimedEventArgs" class="ident">MaxTimedEventArgs</a> = <span class="lit-number">5</span></code></span>
+<span class="codeline" id="line-146"><code></code></span>
+<span class="codeline" id="line-147"><code><span class="keyword">func</span> <label for="r3" class="ident"><a href="../../../../pkg/internal/trace/tracev2.html#name-Specs" class="ident">Specs</a></label>() []<a href="spec.go.html#line-14" class="ident">EventSpec</a> {</code></span>
+<span class="codeline" id="line-148"><code>	<span class="keyword">return</span> <a href="#line-151" class="ident">specs</a>[:]</code></span>
+<span class="codeline" id="line-149"><code>}</code></span>
+<span class="codeline" id="line-150"><code></code></span>
+<span class="codeline" id="line-151"><code><span class="keyword">var</span> <a href="../../../../pkg/internal/trace/tracev2.html#name-specs" class="ident">specs</a> = [...]<a href="spec.go.html#line-14" class="ident">EventSpec</a>{</code></span>
+<span class="codeline" id="line-152"><code>	<span class="comment">// "Structural" Events.</span></code></span>
+<span class="codeline" id="line-153"><code>	<a href="#line-20" class="ident">EvEventBatch</a>: {</code></span>
+<span class="codeline" id="line-154"><code>		<a href="spec.go.html#line-16" class="ident">Name</a>: <span class="lit-string">"EventBatch"</span>,</code></span>
+<span class="codeline" id="line-155"><code>		<a href="spec.go.html#line-34" class="ident">Args</a>: []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"gen"</span>, <span class="lit-string">"m"</span>, <span class="lit-string">"time"</span>, <span class="lit-string">"size"</span>},</code></span>
+<span class="codeline" id="line-156"><code>	},</code></span>
+<span class="codeline" id="line-157"><code>	<a href="#line-21" class="ident">EvStacks</a>: {</code></span>
+<span class="codeline" id="line-158"><code>		<a href="spec.go.html#line-16" class="ident">Name</a>: <span class="lit-string">"Stacks"</span>,</code></span>
+<span class="codeline" id="line-159"><code>	},</code></span>
+<span class="codeline" id="line-160"><code>	<a href="#line-22" class="ident">EvStack</a>: {</code></span>
+<span class="codeline" id="line-161"><code>		<a href="spec.go.html#line-16" class="ident">Name</a>:    <span class="lit-string">"Stack"</span>,</code></span>
+<span class="codeline" id="line-162"><code>		<a href="spec.go.html#line-34" class="ident">Args</a>:    []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"id"</span>, <span class="lit-string">"nframes"</span>},</code></span>
+<span class="codeline" id="line-163"><code>		<a href="spec.go.html#line-70" class="ident">IsStack</a>: <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-164"><code>	},</code></span>
+<span class="codeline" id="line-165"><code>	<a href="#line-23" class="ident">EvStrings</a>: {</code></span>
+<span class="codeline" id="line-166"><code>		<a href="spec.go.html#line-16" class="ident">Name</a>: <span class="lit-string">"Strings"</span>,</code></span>
+<span class="codeline" id="line-167"><code>	},</code></span>
+<span class="codeline" id="line-168"><code>	<a href="#line-24" class="ident">EvString</a>: {</code></span>
+<span class="codeline" id="line-169"><code>		<a href="spec.go.html#line-16" class="ident">Name</a>:    <span class="lit-string">"String"</span>,</code></span>
+<span class="codeline" id="line-170"><code>		<a href="spec.go.html#line-34" class="ident">Args</a>:    []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"id"</span>},</code></span>
+<span class="codeline" id="line-171"><code>		<a href="spec.go.html#line-63" class="ident">HasData</a>: <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-172"><code>	},</code></span>
+<span class="codeline" id="line-173"><code>	<a href="#line-25" class="ident">EvCPUSamples</a>: {</code></span>
+<span class="codeline" id="line-174"><code>		<a href="spec.go.html#line-16" class="ident">Name</a>: <span class="lit-string">"CPUSamples"</span>,</code></span>
+<span class="codeline" id="line-175"><code>	},</code></span>
+<span class="codeline" id="line-176"><code>	<a href="#line-26" class="ident">EvCPUSample</a>: {</code></span>
+<span class="codeline" id="line-177"><code>		<a href="spec.go.html#line-16" class="ident">Name</a>: <span class="lit-string">"CPUSample"</span>,</code></span>
+<span class="codeline" id="line-178"><code>		<a href="spec.go.html#line-34" class="ident">Args</a>: []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"time"</span>, <span class="lit-string">"m"</span>, <span class="lit-string">"p"</span>, <span class="lit-string">"g"</span>, <span class="lit-string">"stack"</span>},</code></span>
+<span class="codeline" id="line-179"><code>		<span class="comment">// N.B. There's clearly a timestamp here, but these Events</span></code></span>
+<span class="codeline" id="line-180"><code><span class="comment">		// are special in that they don't appear in the regular</span></code></span>
+<span class="codeline" id="line-181"><code><span class="comment">		// M streams.</span></code></span>
+<span class="codeline" id="line-182"><code>		<a href="spec.go.html#line-43" class="ident">StackIDs</a>: []<a href="../../../../pkg/builtin.html#name-int" class="ident">int</a>{<span class="lit-number">4</span>},</code></span>
+<span class="codeline" id="line-183"><code>	},</code></span>
+<span class="codeline" id="line-184"><code>	<a href="#line-27" class="ident">EvFrequency</a>: {</code></span>
+<span class="codeline" id="line-185"><code>		<a href="spec.go.html#line-16" class="ident">Name</a>: <span class="lit-string">"Frequency"</span>,</code></span>
+<span class="codeline" id="line-186"><code>		<a href="spec.go.html#line-34" class="ident">Args</a>: []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"freq"</span>},</code></span>
+<span class="codeline" id="line-187"><code>	},</code></span>
+<span class="codeline" id="line-188"><code>	<a href="#line-84" class="ident">EvExperimentalBatch</a>: {</code></span>
+<span class="codeline" id="line-189"><code>		<a href="spec.go.html#line-16" class="ident">Name</a>:    <span class="lit-string">"ExperimentalBatch"</span>,</code></span>
+<span class="codeline" id="line-190"><code>		<a href="spec.go.html#line-34" class="ident">Args</a>:    []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"exp"</span>, <span class="lit-string">"gen"</span>, <span class="lit-string">"m"</span>, <span class="lit-string">"time"</span>},</code></span>
+<span class="codeline" id="line-191"><code>		<a href="spec.go.html#line-63" class="ident">HasData</a>: <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a>, <span class="comment">// Easier to represent for raw readers.</span></code></span>
+<span class="codeline" id="line-192"><code>	},</code></span>
+<span class="codeline" id="line-193"><code>	<a href="#line-87" class="ident">EvSync</a>: {</code></span>
+<span class="codeline" id="line-194"><code>		<a href="spec.go.html#line-16" class="ident">Name</a>: <span class="lit-string">"Sync"</span>,</code></span>
+<span class="codeline" id="line-195"><code>	},</code></span>
+<span class="codeline" id="line-196"><code>	<a href="#line-92" class="ident">EvEndOfGeneration</a>: {</code></span>
+<span class="codeline" id="line-197"><code>		<a href="spec.go.html#line-16" class="ident">Name</a>: <span class="lit-string">"EndOfGeneration"</span>,</code></span>
+<span class="codeline" id="line-198"><code>	},</code></span>
+<span class="codeline" id="line-199"><code></code></span>
+<span class="codeline" id="line-200"><code>	<span class="comment">// "Timed" Events.</span></code></span>
+<span class="codeline" id="line-201"><code>	<a href="#line-30" class="ident">EvProcsChange</a>: {</code></span>
+<span class="codeline" id="line-202"><code>		<a href="spec.go.html#line-16" class="ident">Name</a>:         <span class="lit-string">"ProcsChange"</span>,</code></span>
+<span class="codeline" id="line-203"><code>		<a href="spec.go.html#line-34" class="ident">Args</a>:         []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"dt"</span>, <span class="lit-string">"procs_value"</span>, <span class="lit-string">"stack"</span>},</code></span>
+<span class="codeline" id="line-204"><code>		<a href="spec.go.html#line-57" class="ident">IsTimedEvent</a>: <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-205"><code>		<a href="spec.go.html#line-43" class="ident">StackIDs</a>:     []<a href="../../../../pkg/builtin.html#name-int" class="ident">int</a>{<span class="lit-number">2</span>},</code></span>
+<span class="codeline" id="line-206"><code>	},</code></span>
+<span class="codeline" id="line-207"><code>	<a href="#line-31" class="ident">EvProcStart</a>: {</code></span>
+<span class="codeline" id="line-208"><code>		<a href="spec.go.html#line-16" class="ident">Name</a>:         <span class="lit-string">"ProcStart"</span>,</code></span>
+<span class="codeline" id="line-209"><code>		<a href="spec.go.html#line-34" class="ident">Args</a>:         []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"dt"</span>, <span class="lit-string">"p"</span>, <span class="lit-string">"p_seq"</span>},</code></span>
+<span class="codeline" id="line-210"><code>		<a href="spec.go.html#line-57" class="ident">IsTimedEvent</a>: <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-211"><code>	},</code></span>
+<span class="codeline" id="line-212"><code>	<a href="#line-32" class="ident">EvProcStop</a>: {</code></span>
+<span class="codeline" id="line-213"><code>		<a href="spec.go.html#line-16" class="ident">Name</a>:         <span class="lit-string">"ProcStop"</span>,</code></span>
+<span class="codeline" id="line-214"><code>		<a href="spec.go.html#line-34" class="ident">Args</a>:         []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"dt"</span>},</code></span>
+<span class="codeline" id="line-215"><code>		<a href="spec.go.html#line-57" class="ident">IsTimedEvent</a>: <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-216"><code>	},</code></span>
+<span class="codeline" id="line-217"><code>	<a href="#line-33" class="ident">EvProcSteal</a>: {</code></span>
+<span class="codeline" id="line-218"><code>		<a href="spec.go.html#line-16" class="ident">Name</a>:         <span class="lit-string">"ProcSteal"</span>,</code></span>
+<span class="codeline" id="line-219"><code>		<a href="spec.go.html#line-34" class="ident">Args</a>:         []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"dt"</span>, <span class="lit-string">"p"</span>, <span class="lit-string">"p_seq"</span>, <span class="lit-string">"m"</span>},</code></span>
+<span class="codeline" id="line-220"><code>		<a href="spec.go.html#line-57" class="ident">IsTimedEvent</a>: <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-221"><code>	},</code></span>
+<span class="codeline" id="line-222"><code>	<a href="#line-34" class="ident">EvProcStatus</a>: {</code></span>
+<span class="codeline" id="line-223"><code>		<a href="spec.go.html#line-16" class="ident">Name</a>:         <span class="lit-string">"ProcStatus"</span>,</code></span>
+<span class="codeline" id="line-224"><code>		<a href="spec.go.html#line-34" class="ident">Args</a>:         []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"dt"</span>, <span class="lit-string">"p"</span>, <span class="lit-string">"pstatus"</span>},</code></span>
+<span class="codeline" id="line-225"><code>		<a href="spec.go.html#line-57" class="ident">IsTimedEvent</a>: <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-226"><code>	},</code></span>
+<span class="codeline" id="line-227"><code>	<a href="#line-37" class="ident">EvGoCreate</a>: {</code></span>
+<span class="codeline" id="line-228"><code>		<a href="spec.go.html#line-16" class="ident">Name</a>:         <span class="lit-string">"GoCreate"</span>,</code></span>
+<span class="codeline" id="line-229"><code>		<a href="spec.go.html#line-34" class="ident">Args</a>:         []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"dt"</span>, <span class="lit-string">"new_g"</span>, <span class="lit-string">"new_stack"</span>, <span class="lit-string">"stack"</span>},</code></span>
+<span class="codeline" id="line-230"><code>		<a href="spec.go.html#line-57" class="ident">IsTimedEvent</a>: <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-231"><code>		<a href="spec.go.html#line-43" class="ident">StackIDs</a>:     []<a href="../../../../pkg/builtin.html#name-int" class="ident">int</a>{<span class="lit-number">3</span>, <span class="lit-number">2</span>},</code></span>
+<span class="codeline" id="line-232"><code>	},</code></span>
+<span class="codeline" id="line-233"><code>	<a href="#line-38" class="ident">EvGoCreateSyscall</a>: {</code></span>
+<span class="codeline" id="line-234"><code>		<a href="spec.go.html#line-16" class="ident">Name</a>:         <span class="lit-string">"GoCreateSyscall"</span>,</code></span>
+<span class="codeline" id="line-235"><code>		<a href="spec.go.html#line-34" class="ident">Args</a>:         []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"dt"</span>, <span class="lit-string">"new_g"</span>},</code></span>
+<span class="codeline" id="line-236"><code>		<a href="spec.go.html#line-57" class="ident">IsTimedEvent</a>: <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-237"><code>	},</code></span>
+<span class="codeline" id="line-238"><code>	<a href="#line-39" class="ident">EvGoStart</a>: {</code></span>
+<span class="codeline" id="line-239"><code>		<a href="spec.go.html#line-16" class="ident">Name</a>:         <span class="lit-string">"GoStart"</span>,</code></span>
+<span class="codeline" id="line-240"><code>		<a href="spec.go.html#line-34" class="ident">Args</a>:         []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"dt"</span>, <span class="lit-string">"g"</span>, <span class="lit-string">"g_seq"</span>},</code></span>
+<span class="codeline" id="line-241"><code>		<a href="spec.go.html#line-57" class="ident">IsTimedEvent</a>: <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-242"><code>	},</code></span>
+<span class="codeline" id="line-243"><code>	<a href="#line-40" class="ident">EvGoDestroy</a>: {</code></span>
+<span class="codeline" id="line-244"><code>		<a href="spec.go.html#line-16" class="ident">Name</a>:         <span class="lit-string">"GoDestroy"</span>,</code></span>
+<span class="codeline" id="line-245"><code>		<a href="spec.go.html#line-34" class="ident">Args</a>:         []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"dt"</span>},</code></span>
+<span class="codeline" id="line-246"><code>		<a href="spec.go.html#line-57" class="ident">IsTimedEvent</a>: <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-247"><code>	},</code></span>
+<span class="codeline" id="line-248"><code>	<a href="#line-41" class="ident">EvGoDestroySyscall</a>: {</code></span>
+<span class="codeline" id="line-249"><code>		<a href="spec.go.html#line-16" class="ident">Name</a>:         <span class="lit-string">"GoDestroySyscall"</span>,</code></span>
+<span class="codeline" id="line-250"><code>		<a href="spec.go.html#line-34" class="ident">Args</a>:         []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"dt"</span>},</code></span>
+<span class="codeline" id="line-251"><code>		<a href="spec.go.html#line-57" class="ident">IsTimedEvent</a>: <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-252"><code>	},</code></span>
+<span class="codeline" id="line-253"><code>	<a href="#line-42" class="ident">EvGoStop</a>: {</code></span>
+<span class="codeline" id="line-254"><code>		<a href="spec.go.html#line-16" class="ident">Name</a>:         <span class="lit-string">"GoStop"</span>,</code></span>
+<span class="codeline" id="line-255"><code>		<a href="spec.go.html#line-34" class="ident">Args</a>:         []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"dt"</span>, <span class="lit-string">"reason_string"</span>, <span class="lit-string">"stack"</span>},</code></span>
+<span class="codeline" id="line-256"><code>		<a href="spec.go.html#line-57" class="ident">IsTimedEvent</a>: <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-257"><code>		<a href="spec.go.html#line-43" class="ident">StackIDs</a>:     []<a href="../../../../pkg/builtin.html#name-int" class="ident">int</a>{<span class="lit-number">2</span>},</code></span>
+<span class="codeline" id="line-258"><code>		<a href="spec.go.html#line-37" class="ident">StringIDs</a>:    []<a href="../../../../pkg/builtin.html#name-int" class="ident">int</a>{<span class="lit-number">1</span>},</code></span>
+<span class="codeline" id="line-259"><code>	},</code></span>
+<span class="codeline" id="line-260"><code>	<a href="#line-43" class="ident">EvGoBlock</a>: {</code></span>
+<span class="codeline" id="line-261"><code>		<a href="spec.go.html#line-16" class="ident">Name</a>:         <span class="lit-string">"GoBlock"</span>,</code></span>
+<span class="codeline" id="line-262"><code>		<a href="spec.go.html#line-34" class="ident">Args</a>:         []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"dt"</span>, <span class="lit-string">"reason_string"</span>, <span class="lit-string">"stack"</span>},</code></span>
+<span class="codeline" id="line-263"><code>		<a href="spec.go.html#line-57" class="ident">IsTimedEvent</a>: <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-264"><code>		<a href="spec.go.html#line-43" class="ident">StackIDs</a>:     []<a href="../../../../pkg/builtin.html#name-int" class="ident">int</a>{<span class="lit-number">2</span>},</code></span>
+<span class="codeline" id="line-265"><code>		<a href="spec.go.html#line-37" class="ident">StringIDs</a>:    []<a href="../../../../pkg/builtin.html#name-int" class="ident">int</a>{<span class="lit-number">1</span>},</code></span>
+<span class="codeline" id="line-266"><code>	},</code></span>
+<span class="codeline" id="line-267"><code>	<a href="#line-44" class="ident">EvGoUnblock</a>: {</code></span>
+<span class="codeline" id="line-268"><code>		<a href="spec.go.html#line-16" class="ident">Name</a>:         <span class="lit-string">"GoUnblock"</span>,</code></span>
+<span class="codeline" id="line-269"><code>		<a href="spec.go.html#line-34" class="ident">Args</a>:         []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"dt"</span>, <span class="lit-string">"g"</span>, <span class="lit-string">"g_seq"</span>, <span class="lit-string">"stack"</span>},</code></span>
+<span class="codeline" id="line-270"><code>		<a href="spec.go.html#line-57" class="ident">IsTimedEvent</a>: <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-271"><code>		<a href="spec.go.html#line-43" class="ident">StackIDs</a>:     []<a href="../../../../pkg/builtin.html#name-int" class="ident">int</a>{<span class="lit-number">3</span>},</code></span>
+<span class="codeline" id="line-272"><code>	},</code></span>
+<span class="codeline" id="line-273"><code>	<a href="#line-45" class="ident">EvGoSyscallBegin</a>: {</code></span>
+<span class="codeline" id="line-274"><code>		<a href="spec.go.html#line-16" class="ident">Name</a>:         <span class="lit-string">"GoSyscallBegin"</span>,</code></span>
+<span class="codeline" id="line-275"><code>		<a href="spec.go.html#line-34" class="ident">Args</a>:         []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"dt"</span>, <span class="lit-string">"p_seq"</span>, <span class="lit-string">"stack"</span>},</code></span>
+<span class="codeline" id="line-276"><code>		<a href="spec.go.html#line-57" class="ident">IsTimedEvent</a>: <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-277"><code>		<a href="spec.go.html#line-43" class="ident">StackIDs</a>:     []<a href="../../../../pkg/builtin.html#name-int" class="ident">int</a>{<span class="lit-number">2</span>},</code></span>
+<span class="codeline" id="line-278"><code>	},</code></span>
+<span class="codeline" id="line-279"><code>	<a href="#line-46" class="ident">EvGoSyscallEnd</a>: {</code></span>
+<span class="codeline" id="line-280"><code>		<a href="spec.go.html#line-16" class="ident">Name</a>:         <span class="lit-string">"GoSyscallEnd"</span>,</code></span>
+<span class="codeline" id="line-281"><code>		<a href="spec.go.html#line-34" class="ident">Args</a>:         []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"dt"</span>},</code></span>
+<span class="codeline" id="line-282"><code>		<a href="spec.go.html#line-48" class="ident">StartEv</a>:      <a href="#line-45" class="ident">EvGoSyscallBegin</a>,</code></span>
+<span class="codeline" id="line-283"><code>		<a href="spec.go.html#line-57" class="ident">IsTimedEvent</a>: <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-284"><code>	},</code></span>
+<span class="codeline" id="line-285"><code>	<a href="#line-47" class="ident">EvGoSyscallEndBlocked</a>: {</code></span>
+<span class="codeline" id="line-286"><code>		<a href="spec.go.html#line-16" class="ident">Name</a>:         <span class="lit-string">"GoSyscallEndBlocked"</span>,</code></span>
+<span class="codeline" id="line-287"><code>		<a href="spec.go.html#line-34" class="ident">Args</a>:         []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"dt"</span>},</code></span>
+<span class="codeline" id="line-288"><code>		<a href="spec.go.html#line-48" class="ident">StartEv</a>:      <a href="#line-45" class="ident">EvGoSyscallBegin</a>,</code></span>
+<span class="codeline" id="line-289"><code>		<a href="spec.go.html#line-57" class="ident">IsTimedEvent</a>: <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-290"><code>	},</code></span>
+<span class="codeline" id="line-291"><code>	<a href="#line-48" class="ident">EvGoStatus</a>: {</code></span>
+<span class="codeline" id="line-292"><code>		<a href="spec.go.html#line-16" class="ident">Name</a>:         <span class="lit-string">"GoStatus"</span>,</code></span>
+<span class="codeline" id="line-293"><code>		<a href="spec.go.html#line-34" class="ident">Args</a>:         []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"dt"</span>, <span class="lit-string">"g"</span>, <span class="lit-string">"m"</span>, <span class="lit-string">"gstatus"</span>},</code></span>
+<span class="codeline" id="line-294"><code>		<a href="spec.go.html#line-57" class="ident">IsTimedEvent</a>: <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-295"><code>	},</code></span>
+<span class="codeline" id="line-296"><code>	<a href="#line-51" class="ident">EvSTWBegin</a>: {</code></span>
+<span class="codeline" id="line-297"><code>		<a href="spec.go.html#line-16" class="ident">Name</a>:         <span class="lit-string">"STWBegin"</span>,</code></span>
+<span class="codeline" id="line-298"><code>		<a href="spec.go.html#line-34" class="ident">Args</a>:         []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"dt"</span>, <span class="lit-string">"kind_string"</span>, <span class="lit-string">"stack"</span>},</code></span>
+<span class="codeline" id="line-299"><code>		<a href="spec.go.html#line-57" class="ident">IsTimedEvent</a>: <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-300"><code>		<a href="spec.go.html#line-43" class="ident">StackIDs</a>:     []<a href="../../../../pkg/builtin.html#name-int" class="ident">int</a>{<span class="lit-number">2</span>},</code></span>
+<span class="codeline" id="line-301"><code>		<a href="spec.go.html#line-37" class="ident">StringIDs</a>:    []<a href="../../../../pkg/builtin.html#name-int" class="ident">int</a>{<span class="lit-number">1</span>},</code></span>
+<span class="codeline" id="line-302"><code>	},</code></span>
+<span class="codeline" id="line-303"><code>	<a href="#line-52" class="ident">EvSTWEnd</a>: {</code></span>
+<span class="codeline" id="line-304"><code>		<a href="spec.go.html#line-16" class="ident">Name</a>:         <span class="lit-string">"STWEnd"</span>,</code></span>
+<span class="codeline" id="line-305"><code>		<a href="spec.go.html#line-34" class="ident">Args</a>:         []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"dt"</span>},</code></span>
+<span class="codeline" id="line-306"><code>		<a href="spec.go.html#line-48" class="ident">StartEv</a>:      <a href="#line-51" class="ident">EvSTWBegin</a>,</code></span>
+<span class="codeline" id="line-307"><code>		<a href="spec.go.html#line-57" class="ident">IsTimedEvent</a>: <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-308"><code>	},</code></span>
+<span class="codeline" id="line-309"><code>	<a href="#line-55" class="ident">EvGCActive</a>: {</code></span>
+<span class="codeline" id="line-310"><code>		<a href="spec.go.html#line-16" class="ident">Name</a>:         <span class="lit-string">"GCActive"</span>,</code></span>
+<span class="codeline" id="line-311"><code>		<a href="spec.go.html#line-34" class="ident">Args</a>:         []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"dt"</span>, <span class="lit-string">"gc_seq"</span>},</code></span>
+<span class="codeline" id="line-312"><code>		<a href="spec.go.html#line-57" class="ident">IsTimedEvent</a>: <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-313"><code>		<a href="spec.go.html#line-48" class="ident">StartEv</a>:      <a href="#line-56" class="ident">EvGCBegin</a>,</code></span>
+<span class="codeline" id="line-314"><code>	},</code></span>
+<span class="codeline" id="line-315"><code>	<a href="#line-56" class="ident">EvGCBegin</a>: {</code></span>
+<span class="codeline" id="line-316"><code>		<a href="spec.go.html#line-16" class="ident">Name</a>:         <span class="lit-string">"GCBegin"</span>,</code></span>
+<span class="codeline" id="line-317"><code>		<a href="spec.go.html#line-34" class="ident">Args</a>:         []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"dt"</span>, <span class="lit-string">"gc_seq"</span>, <span class="lit-string">"stack"</span>},</code></span>
+<span class="codeline" id="line-318"><code>		<a href="spec.go.html#line-57" class="ident">IsTimedEvent</a>: <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-319"><code>		<a href="spec.go.html#line-43" class="ident">StackIDs</a>:     []<a href="../../../../pkg/builtin.html#name-int" class="ident">int</a>{<span class="lit-number">2</span>},</code></span>
+<span class="codeline" id="line-320"><code>	},</code></span>
+<span class="codeline" id="line-321"><code>	<a href="#line-57" class="ident">EvGCEnd</a>: {</code></span>
+<span class="codeline" id="line-322"><code>		<a href="spec.go.html#line-16" class="ident">Name</a>:         <span class="lit-string">"GCEnd"</span>,</code></span>
+<span class="codeline" id="line-323"><code>		<a href="spec.go.html#line-34" class="ident">Args</a>:         []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"dt"</span>, <span class="lit-string">"gc_seq"</span>},</code></span>
+<span class="codeline" id="line-324"><code>		<a href="spec.go.html#line-48" class="ident">StartEv</a>:      <a href="#line-56" class="ident">EvGCBegin</a>,</code></span>
+<span class="codeline" id="line-325"><code>		<a href="spec.go.html#line-57" class="ident">IsTimedEvent</a>: <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-326"><code>	},</code></span>
+<span class="codeline" id="line-327"><code>	<a href="#line-58" class="ident">EvGCSweepActive</a>: {</code></span>
+<span class="codeline" id="line-328"><code>		<a href="spec.go.html#line-16" class="ident">Name</a>:         <span class="lit-string">"GCSweepActive"</span>,</code></span>
+<span class="codeline" id="line-329"><code>		<a href="spec.go.html#line-34" class="ident">Args</a>:         []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"dt"</span>, <span class="lit-string">"p"</span>},</code></span>
+<span class="codeline" id="line-330"><code>		<a href="spec.go.html#line-48" class="ident">StartEv</a>:      <a href="#line-59" class="ident">EvGCSweepBegin</a>,</code></span>
+<span class="codeline" id="line-331"><code>		<a href="spec.go.html#line-57" class="ident">IsTimedEvent</a>: <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-332"><code>	},</code></span>
+<span class="codeline" id="line-333"><code>	<a href="#line-59" class="ident">EvGCSweepBegin</a>: {</code></span>
+<span class="codeline" id="line-334"><code>		<a href="spec.go.html#line-16" class="ident">Name</a>:         <span class="lit-string">"GCSweepBegin"</span>,</code></span>
+<span class="codeline" id="line-335"><code>		<a href="spec.go.html#line-34" class="ident">Args</a>:         []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"dt"</span>, <span class="lit-string">"stack"</span>},</code></span>
+<span class="codeline" id="line-336"><code>		<a href="spec.go.html#line-57" class="ident">IsTimedEvent</a>: <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-337"><code>		<a href="spec.go.html#line-43" class="ident">StackIDs</a>:     []<a href="../../../../pkg/builtin.html#name-int" class="ident">int</a>{<span class="lit-number">1</span>},</code></span>
+<span class="codeline" id="line-338"><code>	},</code></span>
+<span class="codeline" id="line-339"><code>	<a href="#line-60" class="ident">EvGCSweepEnd</a>: {</code></span>
+<span class="codeline" id="line-340"><code>		<a href="spec.go.html#line-16" class="ident">Name</a>:         <span class="lit-string">"GCSweepEnd"</span>,</code></span>
+<span class="codeline" id="line-341"><code>		<a href="spec.go.html#line-34" class="ident">Args</a>:         []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"dt"</span>, <span class="lit-string">"swept_value"</span>, <span class="lit-string">"reclaimed_value"</span>},</code></span>
+<span class="codeline" id="line-342"><code>		<a href="spec.go.html#line-48" class="ident">StartEv</a>:      <a href="#line-59" class="ident">EvGCSweepBegin</a>,</code></span>
+<span class="codeline" id="line-343"><code>		<a href="spec.go.html#line-57" class="ident">IsTimedEvent</a>: <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-344"><code>	},</code></span>
+<span class="codeline" id="line-345"><code>	<a href="#line-61" class="ident">EvGCMarkAssistActive</a>: {</code></span>
+<span class="codeline" id="line-346"><code>		<a href="spec.go.html#line-16" class="ident">Name</a>:         <span class="lit-string">"GCMarkAssistActive"</span>,</code></span>
+<span class="codeline" id="line-347"><code>		<a href="spec.go.html#line-34" class="ident">Args</a>:         []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"dt"</span>, <span class="lit-string">"g"</span>},</code></span>
+<span class="codeline" id="line-348"><code>		<a href="spec.go.html#line-48" class="ident">StartEv</a>:      <a href="#line-62" class="ident">EvGCMarkAssistBegin</a>,</code></span>
+<span class="codeline" id="line-349"><code>		<a href="spec.go.html#line-57" class="ident">IsTimedEvent</a>: <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-350"><code>	},</code></span>
+<span class="codeline" id="line-351"><code>	<a href="#line-62" class="ident">EvGCMarkAssistBegin</a>: {</code></span>
+<span class="codeline" id="line-352"><code>		<a href="spec.go.html#line-16" class="ident">Name</a>:         <span class="lit-string">"GCMarkAssistBegin"</span>,</code></span>
+<span class="codeline" id="line-353"><code>		<a href="spec.go.html#line-34" class="ident">Args</a>:         []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"dt"</span>, <span class="lit-string">"stack"</span>},</code></span>
+<span class="codeline" id="line-354"><code>		<a href="spec.go.html#line-57" class="ident">IsTimedEvent</a>: <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-355"><code>		<a href="spec.go.html#line-43" class="ident">StackIDs</a>:     []<a href="../../../../pkg/builtin.html#name-int" class="ident">int</a>{<span class="lit-number">1</span>},</code></span>
+<span class="codeline" id="line-356"><code>	},</code></span>
+<span class="codeline" id="line-357"><code>	<a href="#line-63" class="ident">EvGCMarkAssistEnd</a>: {</code></span>
+<span class="codeline" id="line-358"><code>		<a href="spec.go.html#line-16" class="ident">Name</a>:         <span class="lit-string">"GCMarkAssistEnd"</span>,</code></span>
+<span class="codeline" id="line-359"><code>		<a href="spec.go.html#line-34" class="ident">Args</a>:         []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"dt"</span>},</code></span>
+<span class="codeline" id="line-360"><code>		<a href="spec.go.html#line-48" class="ident">StartEv</a>:      <a href="#line-62" class="ident">EvGCMarkAssistBegin</a>,</code></span>
+<span class="codeline" id="line-361"><code>		<a href="spec.go.html#line-57" class="ident">IsTimedEvent</a>: <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-362"><code>	},</code></span>
+<span class="codeline" id="line-363"><code>	<a href="#line-64" class="ident">EvHeapAlloc</a>: {</code></span>
+<span class="codeline" id="line-364"><code>		<a href="spec.go.html#line-16" class="ident">Name</a>:         <span class="lit-string">"HeapAlloc"</span>,</code></span>
+<span class="codeline" id="line-365"><code>		<a href="spec.go.html#line-34" class="ident">Args</a>:         []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"dt"</span>, <span class="lit-string">"heapalloc_value"</span>},</code></span>
+<span class="codeline" id="line-366"><code>		<a href="spec.go.html#line-57" class="ident">IsTimedEvent</a>: <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-367"><code>	},</code></span>
+<span class="codeline" id="line-368"><code>	<a href="#line-65" class="ident">EvHeapGoal</a>: {</code></span>
+<span class="codeline" id="line-369"><code>		<a href="spec.go.html#line-16" class="ident">Name</a>:         <span class="lit-string">"HeapGoal"</span>,</code></span>
+<span class="codeline" id="line-370"><code>		<a href="spec.go.html#line-34" class="ident">Args</a>:         []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"dt"</span>, <span class="lit-string">"heapgoal_value"</span>},</code></span>
+<span class="codeline" id="line-371"><code>		<a href="spec.go.html#line-57" class="ident">IsTimedEvent</a>: <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-372"><code>	},</code></span>
+<span class="codeline" id="line-373"><code>	<a href="#line-68" class="ident">EvGoLabel</a>: {</code></span>
+<span class="codeline" id="line-374"><code>		<a href="spec.go.html#line-16" class="ident">Name</a>:         <span class="lit-string">"GoLabel"</span>,</code></span>
+<span class="codeline" id="line-375"><code>		<a href="spec.go.html#line-34" class="ident">Args</a>:         []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"dt"</span>, <span class="lit-string">"label_string"</span>},</code></span>
+<span class="codeline" id="line-376"><code>		<a href="spec.go.html#line-57" class="ident">IsTimedEvent</a>: <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-377"><code>		<a href="spec.go.html#line-37" class="ident">StringIDs</a>:    []<a href="../../../../pkg/builtin.html#name-int" class="ident">int</a>{<span class="lit-number">1</span>},</code></span>
+<span class="codeline" id="line-378"><code>	},</code></span>
+<span class="codeline" id="line-379"><code>	<a href="#line-69" class="ident">EvUserTaskBegin</a>: {</code></span>
+<span class="codeline" id="line-380"><code>		<a href="spec.go.html#line-16" class="ident">Name</a>:         <span class="lit-string">"UserTaskBegin"</span>,</code></span>
+<span class="codeline" id="line-381"><code>		<a href="spec.go.html#line-34" class="ident">Args</a>:         []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"dt"</span>, <span class="lit-string">"task"</span>, <span class="lit-string">"parent_task"</span>, <span class="lit-string">"name_string"</span>, <span class="lit-string">"stack"</span>},</code></span>
+<span class="codeline" id="line-382"><code>		<a href="spec.go.html#line-57" class="ident">IsTimedEvent</a>: <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-383"><code>		<a href="spec.go.html#line-43" class="ident">StackIDs</a>:     []<a href="../../../../pkg/builtin.html#name-int" class="ident">int</a>{<span class="lit-number">4</span>},</code></span>
+<span class="codeline" id="line-384"><code>		<a href="spec.go.html#line-37" class="ident">StringIDs</a>:    []<a href="../../../../pkg/builtin.html#name-int" class="ident">int</a>{<span class="lit-number">3</span>},</code></span>
+<span class="codeline" id="line-385"><code>	},</code></span>
+<span class="codeline" id="line-386"><code>	<a href="#line-70" class="ident">EvUserTaskEnd</a>: {</code></span>
+<span class="codeline" id="line-387"><code>		<a href="spec.go.html#line-16" class="ident">Name</a>:         <span class="lit-string">"UserTaskEnd"</span>,</code></span>
+<span class="codeline" id="line-388"><code>		<a href="spec.go.html#line-34" class="ident">Args</a>:         []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"dt"</span>, <span class="lit-string">"task"</span>, <span class="lit-string">"stack"</span>},</code></span>
+<span class="codeline" id="line-389"><code>		<a href="spec.go.html#line-57" class="ident">IsTimedEvent</a>: <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-390"><code>		<a href="spec.go.html#line-43" class="ident">StackIDs</a>:     []<a href="../../../../pkg/builtin.html#name-int" class="ident">int</a>{<span class="lit-number">2</span>},</code></span>
+<span class="codeline" id="line-391"><code>	},</code></span>
+<span class="codeline" id="line-392"><code>	<a href="#line-71" class="ident">EvUserRegionBegin</a>: {</code></span>
+<span class="codeline" id="line-393"><code>		<a href="spec.go.html#line-16" class="ident">Name</a>:         <span class="lit-string">"UserRegionBegin"</span>,</code></span>
+<span class="codeline" id="line-394"><code>		<a href="spec.go.html#line-34" class="ident">Args</a>:         []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"dt"</span>, <span class="lit-string">"task"</span>, <span class="lit-string">"name_string"</span>, <span class="lit-string">"stack"</span>},</code></span>
+<span class="codeline" id="line-395"><code>		<a href="spec.go.html#line-57" class="ident">IsTimedEvent</a>: <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-396"><code>		<a href="spec.go.html#line-43" class="ident">StackIDs</a>:     []<a href="../../../../pkg/builtin.html#name-int" class="ident">int</a>{<span class="lit-number">3</span>},</code></span>
+<span class="codeline" id="line-397"><code>		<a href="spec.go.html#line-37" class="ident">StringIDs</a>:    []<a href="../../../../pkg/builtin.html#name-int" class="ident">int</a>{<span class="lit-number">2</span>},</code></span>
+<span class="codeline" id="line-398"><code>	},</code></span>
+<span class="codeline" id="line-399"><code>	<a href="#line-72" class="ident">EvUserRegionEnd</a>: {</code></span>
+<span class="codeline" id="line-400"><code>		<a href="spec.go.html#line-16" class="ident">Name</a>:         <span class="lit-string">"UserRegionEnd"</span>,</code></span>
+<span class="codeline" id="line-401"><code>		<a href="spec.go.html#line-34" class="ident">Args</a>:         []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"dt"</span>, <span class="lit-string">"task"</span>, <span class="lit-string">"name_string"</span>, <span class="lit-string">"stack"</span>},</code></span>
+<span class="codeline" id="line-402"><code>		<a href="spec.go.html#line-48" class="ident">StartEv</a>:      <a href="#line-71" class="ident">EvUserRegionBegin</a>,</code></span>
+<span class="codeline" id="line-403"><code>		<a href="spec.go.html#line-57" class="ident">IsTimedEvent</a>: <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-404"><code>		<a href="spec.go.html#line-43" class="ident">StackIDs</a>:     []<a href="../../../../pkg/builtin.html#name-int" class="ident">int</a>{<span class="lit-number">3</span>},</code></span>
+<span class="codeline" id="line-405"><code>		<a href="spec.go.html#line-37" class="ident">StringIDs</a>:    []<a href="../../../../pkg/builtin.html#name-int" class="ident">int</a>{<span class="lit-number">2</span>},</code></span>
+<span class="codeline" id="line-406"><code>	},</code></span>
+<span class="codeline" id="line-407"><code>	<a href="#line-73" class="ident">EvUserLog</a>: {</code></span>
+<span class="codeline" id="line-408"><code>		<a href="spec.go.html#line-16" class="ident">Name</a>:         <span class="lit-string">"UserLog"</span>,</code></span>
+<span class="codeline" id="line-409"><code>		<a href="spec.go.html#line-34" class="ident">Args</a>:         []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"dt"</span>, <span class="lit-string">"task"</span>, <span class="lit-string">"key_string"</span>, <span class="lit-string">"value_string"</span>, <span class="lit-string">"stack"</span>},</code></span>
+<span class="codeline" id="line-410"><code>		<a href="spec.go.html#line-57" class="ident">IsTimedEvent</a>: <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-411"><code>		<a href="spec.go.html#line-43" class="ident">StackIDs</a>:     []<a href="../../../../pkg/builtin.html#name-int" class="ident">int</a>{<span class="lit-number">4</span>},</code></span>
+<span class="codeline" id="line-412"><code>		<a href="spec.go.html#line-37" class="ident">StringIDs</a>:    []<a href="../../../../pkg/builtin.html#name-int" class="ident">int</a>{<span class="lit-number">2</span>, <span class="lit-number">3</span>},</code></span>
+<span class="codeline" id="line-413"><code>	},</code></span>
+<span class="codeline" id="line-414"><code>	<a href="#line-76" class="ident">EvGoSwitch</a>: {</code></span>
+<span class="codeline" id="line-415"><code>		<a href="spec.go.html#line-16" class="ident">Name</a>:         <span class="lit-string">"GoSwitch"</span>,</code></span>
+<span class="codeline" id="line-416"><code>		<a href="spec.go.html#line-34" class="ident">Args</a>:         []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"dt"</span>, <span class="lit-string">"g"</span>, <span class="lit-string">"g_seq"</span>},</code></span>
+<span class="codeline" id="line-417"><code>		<a href="spec.go.html#line-57" class="ident">IsTimedEvent</a>: <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-418"><code>	},</code></span>
+<span class="codeline" id="line-419"><code>	<a href="#line-77" class="ident">EvGoSwitchDestroy</a>: {</code></span>
+<span class="codeline" id="line-420"><code>		<a href="spec.go.html#line-16" class="ident">Name</a>:         <span class="lit-string">"GoSwitchDestroy"</span>,</code></span>
+<span class="codeline" id="line-421"><code>		<a href="spec.go.html#line-34" class="ident">Args</a>:         []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"dt"</span>, <span class="lit-string">"g"</span>, <span class="lit-string">"g_seq"</span>},</code></span>
+<span class="codeline" id="line-422"><code>		<a href="spec.go.html#line-57" class="ident">IsTimedEvent</a>: <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-423"><code>	},</code></span>
+<span class="codeline" id="line-424"><code>	<a href="#line-78" class="ident">EvGoCreateBlocked</a>: {</code></span>
+<span class="codeline" id="line-425"><code>		<a href="spec.go.html#line-16" class="ident">Name</a>:         <span class="lit-string">"GoCreateBlocked"</span>,</code></span>
+<span class="codeline" id="line-426"><code>		<a href="spec.go.html#line-34" class="ident">Args</a>:         []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"dt"</span>, <span class="lit-string">"new_g"</span>, <span class="lit-string">"new_stack"</span>, <span class="lit-string">"stack"</span>},</code></span>
+<span class="codeline" id="line-427"><code>		<a href="spec.go.html#line-57" class="ident">IsTimedEvent</a>: <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-428"><code>		<a href="spec.go.html#line-43" class="ident">StackIDs</a>:     []<a href="../../../../pkg/builtin.html#name-int" class="ident">int</a>{<span class="lit-number">3</span>, <span class="lit-number">2</span>},</code></span>
+<span class="codeline" id="line-429"><code>	},</code></span>
+<span class="codeline" id="line-430"><code>	<a href="#line-81" class="ident">EvGoStatusStack</a>: {</code></span>
+<span class="codeline" id="line-431"><code>		<a href="spec.go.html#line-16" class="ident">Name</a>:         <span class="lit-string">"GoStatusStack"</span>,</code></span>
+<span class="codeline" id="line-432"><code>		<a href="spec.go.html#line-34" class="ident">Args</a>:         []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"dt"</span>, <span class="lit-string">"g"</span>, <span class="lit-string">"m"</span>, <span class="lit-string">"gstatus"</span>, <span class="lit-string">"stack"</span>},</code></span>
+<span class="codeline" id="line-433"><code>		<a href="spec.go.html#line-57" class="ident">IsTimedEvent</a>: <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-434"><code>		<a href="spec.go.html#line-43" class="ident">StackIDs</a>:     []<a href="../../../../pkg/builtin.html#name-int" class="ident">int</a>{<span class="lit-number">4</span>},</code></span>
+<span class="codeline" id="line-435"><code>	},</code></span>
+<span class="codeline" id="line-436"><code>	<a href="#line-88" class="ident">EvClockSnapshot</a>: {</code></span>
+<span class="codeline" id="line-437"><code>		<a href="spec.go.html#line-16" class="ident">Name</a>:         <span class="lit-string">"ClockSnapshot"</span>,</code></span>
+<span class="codeline" id="line-438"><code>		<a href="spec.go.html#line-34" class="ident">Args</a>:         []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"dt"</span>, <span class="lit-string">"mono"</span>, <span class="lit-string">"sec"</span>, <span class="lit-string">"nsec"</span>},</code></span>
+<span class="codeline" id="line-439"><code>		<a href="spec.go.html#line-57" class="ident">IsTimedEvent</a>: <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-440"><code>	},</code></span>
+<span class="codeline" id="line-441"><code></code></span>
+<span class="codeline" id="line-442"><code>	<span class="comment">// Experimental events.</span></code></span>
+<span class="codeline" id="line-443"><code></code></span>
+<span class="codeline" id="line-444"><code>	<a href="#line-125" class="ident">EvSpan</a>: {</code></span>
+<span class="codeline" id="line-445"><code>		<a href="spec.go.html#line-16" class="ident">Name</a>:         <span class="lit-string">"Span"</span>,</code></span>
+<span class="codeline" id="line-446"><code>		<a href="spec.go.html#line-34" class="ident">Args</a>:         []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"dt"</span>, <span class="lit-string">"id"</span>, <span class="lit-string">"npages_value"</span>, <span class="lit-string">"kindclass"</span>},</code></span>
+<span class="codeline" id="line-447"><code>		<a href="spec.go.html#line-57" class="ident">IsTimedEvent</a>: <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-448"><code>		<a href="spec.go.html#line-75" class="ident">Experiment</a>:   <a href="#line-104" class="ident">AllocFree</a>,</code></span>
+<span class="codeline" id="line-449"><code>	},</code></span>
+<span class="codeline" id="line-450"><code>	<a href="#line-126" class="ident">EvSpanAlloc</a>: {</code></span>
+<span class="codeline" id="line-451"><code>		<a href="spec.go.html#line-16" class="ident">Name</a>:         <span class="lit-string">"SpanAlloc"</span>,</code></span>
+<span class="codeline" id="line-452"><code>		<a href="spec.go.html#line-34" class="ident">Args</a>:         []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"dt"</span>, <span class="lit-string">"id"</span>, <span class="lit-string">"npages_value"</span>, <span class="lit-string">"kindclass"</span>},</code></span>
+<span class="codeline" id="line-453"><code>		<a href="spec.go.html#line-57" class="ident">IsTimedEvent</a>: <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-454"><code>		<a href="spec.go.html#line-75" class="ident">Experiment</a>:   <a href="#line-104" class="ident">AllocFree</a>,</code></span>
+<span class="codeline" id="line-455"><code>	},</code></span>
+<span class="codeline" id="line-456"><code>	<a href="#line-127" class="ident">EvSpanFree</a>: {</code></span>
+<span class="codeline" id="line-457"><code>		<a href="spec.go.html#line-16" class="ident">Name</a>:         <span class="lit-string">"SpanFree"</span>,</code></span>
+<span class="codeline" id="line-458"><code>		<a href="spec.go.html#line-34" class="ident">Args</a>:         []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"dt"</span>, <span class="lit-string">"id"</span>},</code></span>
+<span class="codeline" id="line-459"><code>		<a href="spec.go.html#line-57" class="ident">IsTimedEvent</a>: <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-460"><code>		<a href="spec.go.html#line-75" class="ident">Experiment</a>:   <a href="#line-104" class="ident">AllocFree</a>,</code></span>
+<span class="codeline" id="line-461"><code>	},</code></span>
+<span class="codeline" id="line-462"><code>	<a href="#line-130" class="ident">EvHeapObject</a>: {</code></span>
+<span class="codeline" id="line-463"><code>		<a href="spec.go.html#line-16" class="ident">Name</a>:         <span class="lit-string">"HeapObject"</span>,</code></span>
+<span class="codeline" id="line-464"><code>		<a href="spec.go.html#line-34" class="ident">Args</a>:         []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"dt"</span>, <span class="lit-string">"id"</span>, <span class="lit-string">"type"</span>},</code></span>
+<span class="codeline" id="line-465"><code>		<a href="spec.go.html#line-57" class="ident">IsTimedEvent</a>: <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-466"><code>		<a href="spec.go.html#line-75" class="ident">Experiment</a>:   <a href="#line-104" class="ident">AllocFree</a>,</code></span>
+<span class="codeline" id="line-467"><code>	},</code></span>
+<span class="codeline" id="line-468"><code>	<a href="#line-131" class="ident">EvHeapObjectAlloc</a>: {</code></span>
+<span class="codeline" id="line-469"><code>		<a href="spec.go.html#line-16" class="ident">Name</a>:         <span class="lit-string">"HeapObjectAlloc"</span>,</code></span>
+<span class="codeline" id="line-470"><code>		<a href="spec.go.html#line-34" class="ident">Args</a>:         []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"dt"</span>, <span class="lit-string">"id"</span>, <span class="lit-string">"type"</span>},</code></span>
+<span class="codeline" id="line-471"><code>		<a href="spec.go.html#line-57" class="ident">IsTimedEvent</a>: <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-472"><code>		<a href="spec.go.html#line-75" class="ident">Experiment</a>:   <a href="#line-104" class="ident">AllocFree</a>,</code></span>
+<span class="codeline" id="line-473"><code>	},</code></span>
+<span class="codeline" id="line-474"><code>	<a href="#line-132" class="ident">EvHeapObjectFree</a>: {</code></span>
+<span class="codeline" id="line-475"><code>		<a href="spec.go.html#line-16" class="ident">Name</a>:         <span class="lit-string">"HeapObjectFree"</span>,</code></span>
+<span class="codeline" id="line-476"><code>		<a href="spec.go.html#line-34" class="ident">Args</a>:         []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"dt"</span>, <span class="lit-string">"id"</span>},</code></span>
+<span class="codeline" id="line-477"><code>		<a href="spec.go.html#line-57" class="ident">IsTimedEvent</a>: <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-478"><code>		<a href="spec.go.html#line-75" class="ident">Experiment</a>:   <a href="#line-104" class="ident">AllocFree</a>,</code></span>
+<span class="codeline" id="line-479"><code>	},</code></span>
+<span class="codeline" id="line-480"><code>	<a href="#line-135" class="ident">EvGoroutineStack</a>: {</code></span>
+<span class="codeline" id="line-481"><code>		<a href="spec.go.html#line-16" class="ident">Name</a>:         <span class="lit-string">"GoroutineStack"</span>,</code></span>
+<span class="codeline" id="line-482"><code>		<a href="spec.go.html#line-34" class="ident">Args</a>:         []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"dt"</span>, <span class="lit-string">"id"</span>, <span class="lit-string">"order"</span>},</code></span>
+<span class="codeline" id="line-483"><code>		<a href="spec.go.html#line-57" class="ident">IsTimedEvent</a>: <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-484"><code>		<a href="spec.go.html#line-75" class="ident">Experiment</a>:   <a href="#line-104" class="ident">AllocFree</a>,</code></span>
+<span class="codeline" id="line-485"><code>	},</code></span>
+<span class="codeline" id="line-486"><code>	<a href="#line-136" class="ident">EvGoroutineStackAlloc</a>: {</code></span>
+<span class="codeline" id="line-487"><code>		<a href="spec.go.html#line-16" class="ident">Name</a>:         <span class="lit-string">"GoroutineStackAlloc"</span>,</code></span>
+<span class="codeline" id="line-488"><code>		<a href="spec.go.html#line-34" class="ident">Args</a>:         []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"dt"</span>, <span class="lit-string">"id"</span>, <span class="lit-string">"order"</span>},</code></span>
+<span class="codeline" id="line-489"><code>		<a href="spec.go.html#line-57" class="ident">IsTimedEvent</a>: <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-490"><code>		<a href="spec.go.html#line-75" class="ident">Experiment</a>:   <a href="#line-104" class="ident">AllocFree</a>,</code></span>
+<span class="codeline" id="line-491"><code>	},</code></span>
+<span class="codeline" id="line-492"><code>	<a href="#line-137" class="ident">EvGoroutineStackFree</a>: {</code></span>
+<span class="codeline" id="line-493"><code>		<a href="spec.go.html#line-16" class="ident">Name</a>:         <span class="lit-string">"GoroutineStackFree"</span>,</code></span>
+<span class="codeline" id="line-494"><code>		<a href="spec.go.html#line-34" class="ident">Args</a>:         []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"dt"</span>, <span class="lit-string">"id"</span>},</code></span>
+<span class="codeline" id="line-495"><code>		<a href="spec.go.html#line-57" class="ident">IsTimedEvent</a>: <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-496"><code>		<a href="spec.go.html#line-75" class="ident">Experiment</a>:   <a href="#line-104" class="ident">AllocFree</a>,</code></span>
+<span class="codeline" id="line-497"><code>	},</code></span>
+<span class="codeline" id="line-498"><code>}</code></span>
+<span class="codeline" id="line-499"><code></code></span>
+<span class="codeline" id="line-500"><code><span class="comment">// GoStatus is the status of a goroutine.</span></code></span>
+<span class="codeline" id="line-501"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-502"><code><span class="comment">// They correspond directly to the various goroutine states.</span></code></span>
+<span class="codeline" id="line-503"><code><span class="keyword">type</span> <a href="../../../../pkg/internal/trace/tracev2.html#name-GoStatus" class="ident">GoStatus</a> <a href="../../../../pkg/builtin.html#name-uint8" class="ident">uint8</a></code></span>
+<span class="codeline" id="line-504"><code></code></span>
+<span class="codeline" id="line-505"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-506"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-GoBad" class="ident">GoBad</a> <a href="#line-503" class="ident">GoStatus</a> = <a href="../../../../pkg/builtin.html#name-iota" class="ident">iota</a></code></span>
+<span class="codeline" id="line-507"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-GoRunnable" class="ident">GoRunnable</a></code></span>
+<span class="codeline" id="line-508"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-GoRunning" class="ident">GoRunning</a></code></span>
+<span class="codeline" id="line-509"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-GoSyscall" class="ident">GoSyscall</a></code></span>
+<span class="codeline" id="line-510"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-GoWaiting" class="ident">GoWaiting</a></code></span>
+<span class="codeline" id="line-511"><code>)</code></span>
+<span class="codeline" id="line-512"><code></code></span>
+<span class="codeline" id="line-513"><code><span class="keyword">func</span> (<label for="r4" class="ident">s</label> <a href="#line-503" class="ident">GoStatus</a>) <label for="r5" class="ident"><a href="../../../../use/internal/trace/tracev2..GoStatus.String.html" class="ident">String</a></label>() <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-514"><code>	<span class="keyword">switch</span> <label for="r4" class="ident">s</label> {</code></span>
+<span class="codeline" id="line-515"><code>	<span class="keyword">case</span> <a href="#line-507" class="ident">GoRunnable</a>:</code></span>
+<span class="codeline" id="line-516"><code>		<span class="keyword">return</span> <span class="lit-string">"Runnable"</span></code></span>
+<span class="codeline" id="line-517"><code>	<span class="keyword">case</span> <a href="#line-508" class="ident">GoRunning</a>:</code></span>
+<span class="codeline" id="line-518"><code>		<span class="keyword">return</span> <span class="lit-string">"Running"</span></code></span>
+<span class="codeline" id="line-519"><code>	<span class="keyword">case</span> <a href="#line-509" class="ident">GoSyscall</a>:</code></span>
+<span class="codeline" id="line-520"><code>		<span class="keyword">return</span> <span class="lit-string">"Syscall"</span></code></span>
+<span class="codeline" id="line-521"><code>	<span class="keyword">case</span> <a href="#line-510" class="ident">GoWaiting</a>:</code></span>
+<span class="codeline" id="line-522"><code>		<span class="keyword">return</span> <span class="lit-string">"Waiting"</span></code></span>
+<span class="codeline" id="line-523"><code>	}</code></span>
+<span class="codeline" id="line-524"><code>	<span class="keyword">return</span> <span class="lit-string">"Bad"</span></code></span>
+<span class="codeline" id="line-525"><code>}</code></span>
+<span class="codeline" id="line-526"><code></code></span>
+<span class="codeline" id="line-527"><code><span class="comment">// ProcStatus is the status of a P.</span></code></span>
+<span class="codeline" id="line-528"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-529"><code><span class="comment">// They mostly correspond to the various P states.</span></code></span>
+<span class="codeline" id="line-530"><code><span class="keyword">type</span> <a href="../../../../pkg/internal/trace/tracev2.html#name-ProcStatus" class="ident">ProcStatus</a> <a href="../../../../pkg/builtin.html#name-uint8" class="ident">uint8</a></code></span>
+<span class="codeline" id="line-531"><code></code></span>
+<span class="codeline" id="line-532"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-533"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-ProcBad" class="ident">ProcBad</a> <a href="#line-530" class="ident">ProcStatus</a> = <a href="../../../../pkg/builtin.html#name-iota" class="ident">iota</a></code></span>
+<span class="codeline" id="line-534"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-ProcRunning" class="ident">ProcRunning</a></code></span>
+<span class="codeline" id="line-535"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-ProcIdle" class="ident">ProcIdle</a></code></span>
+<span class="codeline" id="line-536"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-ProcSyscall" class="ident">ProcSyscall</a></code></span>
+<span class="codeline" id="line-537"><code></code></span>
+<span class="codeline" id="line-538"><code>	<span class="comment">// ProcSyscallAbandoned is a special case of</span></code></span>
+<span class="codeline" id="line-539"><code><span class="comment">	// ProcSyscall. It's used in the very specific case</span></code></span>
+<span class="codeline" id="line-540"><code><span class="comment">	// where the first a P is mentioned in a generation is</span></code></span>
+<span class="codeline" id="line-541"><code><span class="comment">	// part of a ProcSteal event. If that's the first time</span></code></span>
+<span class="codeline" id="line-542"><code><span class="comment">	// it's mentioned, then there's no GoSyscallBegin to</span></code></span>
+<span class="codeline" id="line-543"><code><span class="comment">	// connect the P stealing back to at that point. This</span></code></span>
+<span class="codeline" id="line-544"><code><span class="comment">	// special state indicates this to the parser, so it</span></code></span>
+<span class="codeline" id="line-545"><code><span class="comment">	// doesn't try to find a GoSyscallEndBlocked that</span></code></span>
+<span class="codeline" id="line-546"><code><span class="comment">	// corresponds with the ProcSteal.</span></code></span>
+<span class="codeline" id="line-547"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-ProcSyscallAbandoned" class="ident">ProcSyscallAbandoned</a></code></span>
+<span class="codeline" id="line-548"><code>)</code></span>
+<span class="codeline" id="line-549"><code></code></span>
+<span class="codeline" id="line-550"><code><span class="keyword">func</span> (<label for="r6" class="ident">s</label> <a href="#line-530" class="ident">ProcStatus</a>) <label for="r7" class="ident"><a href="../../../../use/internal/trace/tracev2..ProcStatus.String.html" class="ident">String</a></label>() <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-551"><code>	<span class="keyword">switch</span> <label for="r6" class="ident">s</label> {</code></span>
+<span class="codeline" id="line-552"><code>	<span class="keyword">case</span> <a href="#line-534" class="ident">ProcRunning</a>:</code></span>
+<span class="codeline" id="line-553"><code>		<span class="keyword">return</span> <span class="lit-string">"Running"</span></code></span>
+<span class="codeline" id="line-554"><code>	<span class="keyword">case</span> <a href="#line-535" class="ident">ProcIdle</a>:</code></span>
+<span class="codeline" id="line-555"><code>		<span class="keyword">return</span> <span class="lit-string">"Idle"</span></code></span>
+<span class="codeline" id="line-556"><code>	<span class="keyword">case</span> <a href="#line-536" class="ident">ProcSyscall</a>:</code></span>
+<span class="codeline" id="line-557"><code>		<span class="keyword">return</span> <span class="lit-string">"Syscall"</span></code></span>
+<span class="codeline" id="line-558"><code>	}</code></span>
+<span class="codeline" id="line-559"><code>	<span class="keyword">return</span> <span class="lit-string">"Bad"</span></code></span>
+<span class="codeline" id="line-560"><code>}</code></span>
+<span class="codeline" id="line-561"><code></code></span>
+<span class="codeline" id="line-562"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-563"><code>	<span class="comment">// MaxBatchSize sets the maximum size that a batch can be.</span></code></span>
+<span class="codeline" id="line-564"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-565"><code><span class="comment">	// Directly controls the trace batch size in the runtime.</span></code></span>
+<span class="codeline" id="line-566"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-567"><code><span class="comment">	// NOTE: If this number decreases, the trace format version must change.</span></code></span>
+<span class="codeline" id="line-568"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-MaxBatchSize" class="ident">MaxBatchSize</a> = <span class="lit-number">64</span> &lt;&lt; <span class="lit-number">10</span></code></span>
+<span class="codeline" id="line-569"><code></code></span>
+<span class="codeline" id="line-570"><code>	<span class="comment">// Maximum number of PCs in a single stack trace.</span></code></span>
+<span class="codeline" id="line-571"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-572"><code><span class="comment">	// Since events contain only stack ID rather than whole stack trace,</span></code></span>
+<span class="codeline" id="line-573"><code><span class="comment">	// we can allow quite large values here.</span></code></span>
+<span class="codeline" id="line-574"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-575"><code><span class="comment">	// Directly controls the maximum number of frames per stack</span></code></span>
+<span class="codeline" id="line-576"><code><span class="comment">	// in the runtime.</span></code></span>
+<span class="codeline" id="line-577"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-578"><code><span class="comment">	// NOTE: If this number decreases, the trace format version must change.</span></code></span>
+<span class="codeline" id="line-579"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-MaxFramesPerStack" class="ident">MaxFramesPerStack</a> = <span class="lit-number">128</span></code></span>
+<span class="codeline" id="line-580"><code></code></span>
+<span class="codeline" id="line-581"><code>	<span class="comment">// MaxEventTrailerDataSize controls the amount of trailer data that</span></code></span>
+<span class="codeline" id="line-582"><code><span class="comment">	// an event can have in bytes. Must be smaller than MaxBatchSize.</span></code></span>
+<span class="codeline" id="line-583"><code><span class="comment">	// Controls the maximum string size in the trace.</span></code></span>
+<span class="codeline" id="line-584"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-585"><code><span class="comment">	// Directly controls the maximum such value in the runtime.</span></code></span>
+<span class="codeline" id="line-586"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-587"><code><span class="comment">	// NOTE: If this number decreases, the trace format version must change.</span></code></span>
+<span class="codeline" id="line-588"><code>	<a href="../../../../pkg/internal/trace/tracev2.html#name-MaxEventTrailerDataSize" class="ident">MaxEventTrailerDataSize</a> = <span class="lit-number">1</span> &lt;&lt; <span class="lit-number">10</span></code></span>
+<span class="codeline" id="line-589"><code>)</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

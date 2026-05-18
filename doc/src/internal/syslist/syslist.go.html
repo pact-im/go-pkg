@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: syslist.go in package internal/syslist</title>
+<link href="../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	syslist.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../pkg/internal/syslist.html">internal/syslist</a>
+</code></pre>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2011 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="comment">// Package syslist stores tables of OS and ARCH names that are</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment">// (or at one point were) acceptable build targets.</span></code></span>
+<span class="codeline" id="line-7"><code></code></span>
+<span class="codeline" id="line-8"><code><span class="keyword">package</span> syslist</code></span>
+<span class="codeline" id="line-9"><code></code></span>
+<span class="codeline" id="line-10"><code><span class="comment">// Note that this file is read by internal/goarch/gengoarch.go and by</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment">// internal/goos/gengoos.go. If you change this file, look at those</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment">// files as well.</span></code></span>
+<span class="codeline" id="line-13"><code></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">// KnownOS is the list of past, present, and future known GOOS values.</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">// Do not remove from this list, as it is used for filename matching.</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">// If you add an entry to this list, look at UnixOS, below.</span></code></span>
+<span class="codeline" id="line-17"><code><span class="keyword">var</span> <a href="../../../pkg/internal/syslist.html#name-KnownOS" class="ident">KnownOS</a> = <span class="keyword">map</span>[<a href="../../../pkg/builtin.html#name-string" class="ident">string</a>]<a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a>{</code></span>
+<span class="codeline" id="line-18"><code>	<span class="lit-string">"aix"</span>:       <a href="../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-19"><code>	<span class="lit-string">"android"</span>:   <a href="../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-20"><code>	<span class="lit-string">"darwin"</span>:    <a href="../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-21"><code>	<span class="lit-string">"dragonfly"</span>: <a href="../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-22"><code>	<span class="lit-string">"freebsd"</span>:   <a href="../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-23"><code>	<span class="lit-string">"hurd"</span>:      <a href="../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-24"><code>	<span class="lit-string">"illumos"</span>:   <a href="../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-25"><code>	<span class="lit-string">"ios"</span>:       <a href="../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-26"><code>	<span class="lit-string">"js"</span>:        <a href="../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-27"><code>	<span class="lit-string">"linux"</span>:     <a href="../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-28"><code>	<span class="lit-string">"nacl"</span>:      <a href="../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-29"><code>	<span class="lit-string">"netbsd"</span>:    <a href="../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-30"><code>	<span class="lit-string">"openbsd"</span>:   <a href="../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-31"><code>	<span class="lit-string">"plan9"</span>:     <a href="../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-32"><code>	<span class="lit-string">"solaris"</span>:   <a href="../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-33"><code>	<span class="lit-string">"wasip1"</span>:    <a href="../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-34"><code>	<span class="lit-string">"windows"</span>:   <a href="../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-35"><code>	<span class="lit-string">"zos"</span>:       <a href="../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-36"><code>}</code></span>
+<span class="codeline" id="line-37"><code></code></span>
+<span class="codeline" id="line-38"><code><span class="comment">// UnixOS is the set of GOOS values matched by the "unix" build tag.</span></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">// This is not used for filename matching.</span></code></span>
+<span class="codeline" id="line-40"><code><span class="comment">// This list also appears in cmd/dist/build.go.</span></code></span>
+<span class="codeline" id="line-41"><code><span class="keyword">var</span> <a href="../../../pkg/internal/syslist.html#name-UnixOS" class="ident">UnixOS</a> = <span class="keyword">map</span>[<a href="../../../pkg/builtin.html#name-string" class="ident">string</a>]<a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a>{</code></span>
+<span class="codeline" id="line-42"><code>	<span class="lit-string">"aix"</span>:       <a href="../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-43"><code>	<span class="lit-string">"android"</span>:   <a href="../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-44"><code>	<span class="lit-string">"darwin"</span>:    <a href="../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-45"><code>	<span class="lit-string">"dragonfly"</span>: <a href="../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-46"><code>	<span class="lit-string">"freebsd"</span>:   <a href="../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-47"><code>	<span class="lit-string">"hurd"</span>:      <a href="../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-48"><code>	<span class="lit-string">"illumos"</span>:   <a href="../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-49"><code>	<span class="lit-string">"ios"</span>:       <a href="../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-50"><code>	<span class="lit-string">"linux"</span>:     <a href="../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-51"><code>	<span class="lit-string">"netbsd"</span>:    <a href="../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-52"><code>	<span class="lit-string">"openbsd"</span>:   <a href="../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-53"><code>	<span class="lit-string">"solaris"</span>:   <a href="../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-54"><code>}</code></span>
+<span class="codeline" id="line-55"><code></code></span>
+<span class="codeline" id="line-56"><code><span class="comment">// KnownArch is the list of past, present, and future known GOARCH values.</span></code></span>
+<span class="codeline" id="line-57"><code><span class="comment">// Do not remove from this list, as it is used for filename matching.</span></code></span>
+<span class="codeline" id="line-58"><code><span class="keyword">var</span> <a href="../../../pkg/internal/syslist.html#name-KnownArch" class="ident">KnownArch</a> = <span class="keyword">map</span>[<a href="../../../pkg/builtin.html#name-string" class="ident">string</a>]<a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a>{</code></span>
+<span class="codeline" id="line-59"><code>	<span class="lit-string">"386"</span>:         <a href="../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-60"><code>	<span class="lit-string">"amd64"</span>:       <a href="../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-61"><code>	<span class="lit-string">"amd64p32"</span>:    <a href="../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-62"><code>	<span class="lit-string">"arm"</span>:         <a href="../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-63"><code>	<span class="lit-string">"armbe"</span>:       <a href="../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-64"><code>	<span class="lit-string">"arm64"</span>:       <a href="../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-65"><code>	<span class="lit-string">"arm64be"</span>:     <a href="../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-66"><code>	<span class="lit-string">"loong64"</span>:     <a href="../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-67"><code>	<span class="lit-string">"mips"</span>:        <a href="../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-68"><code>	<span class="lit-string">"mipsle"</span>:      <a href="../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-69"><code>	<span class="lit-string">"mips64"</span>:      <a href="../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-70"><code>	<span class="lit-string">"mips64le"</span>:    <a href="../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-71"><code>	<span class="lit-string">"mips64p32"</span>:   <a href="../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-72"><code>	<span class="lit-string">"mips64p32le"</span>: <a href="../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-73"><code>	<span class="lit-string">"ppc"</span>:         <a href="../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-74"><code>	<span class="lit-string">"ppc64"</span>:       <a href="../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-75"><code>	<span class="lit-string">"ppc64le"</span>:     <a href="../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-76"><code>	<span class="lit-string">"riscv"</span>:       <a href="../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-77"><code>	<span class="lit-string">"riscv64"</span>:     <a href="../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-78"><code>	<span class="lit-string">"s390"</span>:        <a href="../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-79"><code>	<span class="lit-string">"s390x"</span>:       <a href="../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-80"><code>	<span class="lit-string">"sparc"</span>:       <a href="../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-81"><code>	<span class="lit-string">"sparc64"</span>:     <a href="../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-82"><code>	<span class="lit-string">"wasm"</span>:        <a href="../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-83"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

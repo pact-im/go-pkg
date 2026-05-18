@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Package: go/printer</title>
+<link href="../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="package-details"><code><span style="font-size:xx-large;">package <b>printer</b></span>
+
+<span class="title">Import Path</span>
+	<a href="../../index.html#pkg-go/printer">go/printer</a><i> (on <a href="https://pkg.go.dev/go/printer" target="_blank">go.dev</a>)</i>
+
+<span class="title">Dependency Relation</span>
+	imports <a href="../../dep/go/printer.html">15 packages</a>, and imported by <a href="../../dep/go/printer.html#imported-by">one package</a>
+
+<div id="files"><span class="title">Involved Source Files</span>
+
+	<span class="nodocs">    <a href="../../src/go/printer/comment.go.html">comment.go</a></span>
+	<span class="nodocs">    <a href="../../src/go/printer/gobuild.go.html">gobuild.go</a></span>
+	<span class="nodocs">    <a href="../../src/go/printer/nodes.go.html">nodes.go</a></span>
+	<input type='checkbox' checked class="fold" id="file-3-fold-content"><label for="file-3-fold-content">  <a href="../../src/go/printer/printer.go.html#doc">d</a> <a href="../../src/go/printer/printer.go.html">printer.go</a></label><span id='file-3-fold-content-items' class="fold-items">
+<span class="md-text">		Package printer implements printing of AST nodes.</span></span></div>
+<div id="examples"><span class="title">Code Examples</span>
+
+	<input type='checkbox' class="fold" id="example-0-fold-content"><label for="example-0-fold-content">Fprint</label><span id='example-0-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"bytes"
+			"fmt"
+			"go/ast"
+			"go/parser"
+			"go/printer"
+			"go/token"
+			"strings"
+		)
+		
+		func parseFunc(filename, functionname string) (fun *ast.FuncDecl, fset *token.FileSet) {
+			fset = token.NewFileSet()
+			if file, err := parser.ParseFile(fset, filename, nil, 0); err == nil {
+				for _, d := range file.Decls {
+					if f, ok := d.(*ast.FuncDecl); ok &amp;&amp; f.Name.Name == functionname {
+						fun = f
+						return
+					}
+				}
+			}
+			panic("function not found")
+		}
+		
+		func printSelf() {
+			// Parse source file and extract the AST without comments for
+			// this function, with position information referring to the
+			// file set fset.
+			funcAST, fset := parseFunc("example_test.go", "printSelf")
+		
+			// Print the function body into buffer buf.
+			// The file set is provided to the printer so that it knows
+			// about the original source formatting and can add additional
+			// line breaks where they were present in the source.
+			var buf bytes.Buffer
+			printer.Fprint(&amp;buf, fset, funcAST.Body)
+		
+			// Remove braces {} enclosing the function body, unindent,
+			// and trim leading and trailing white space.
+			s := buf.String()
+			s = s[1 : len(s)-1]
+			s = strings.TrimSpace(strings.ReplaceAll(s, "\n\t", "\n"))
+		
+			// Print the cleaned-up body text to stdout.
+			fmt.Println(s)
+		}
+		
+		func main() {
+			printSelf()
+		
+		}
+</span>
+</div>
+<div id="exported-types"><span class="title">Package-Level Type Names<span class="title-stat"><i> (total 11, in which 3 are exported)</i></span></span>
+
+<div id="exported-types-buttons" class="js-on">	/* sort exporteds by: <label id="sort-types-by-alphabet" class="button">alphabet</label> | <label id="sort-types-by-popularity" class="button">popularity</label> */</div><div class="anchor type-res" id="name-CommentedNode" data-popularity="0">	<input type='checkbox' class="fold" id="CommentedNode-fold-content"><label for="CommentedNode-fold-content"> <a href="../../use/go/printer..CommentedNode.html">type</a> <a href="../../src/go/printer/printer.go.html#line-1414">CommentedNode</a> <i>(struct)</i></label><span id='CommentedNode-fold-content-docs' class="fold-docs">
+<span class="md-text">		A CommentedNode bundles an AST node and corresponding comments.
+		It may be provided as argument to any of the [Fprint] functions.</span>
+
+		<input type='checkbox' class="fold" id="CommentedNode-fold-fields"><label for="CommentedNode-fold-fields">Fields (<i>total 2, both are exported</i>)</label><span id='CommentedNode-fold-fields-items' class="fold-items"><span>
+			<span class="nodocs"><a href="../../src/go/printer/printer.go.html#line-1416">Comments</a> <i>[]*<a href="ast.html">ast</a>.<a href="ast.html#name-CommentGroup">CommentGroup</a></i></span></span><span>
+			<input type='checkbox' class="fold" id="CommentedNode-fold-field-Node"><label for="CommentedNode-fold-field-Node"><a href="../../src/go/printer/printer.go.html#line-1415">Node</a> <i><a href="../builtin.html#name-any">any</a></i></label><span id='CommentedNode-fold-field-Node-docs' class="fold-docs">
+<span class="md-text">				// *ast.File, or ast.Expr, ast.Decl, ast.Spec, or ast.Stmt</span>
+</span></span></span>
+
+</span></div><div class="anchor type-res" id="name-Config" data-popularity="175">	<input type='checkbox' class="fold" id="Config-fold-content"><label for="Config-fold-content"> <a href="../../use/go/printer..Config.html">type</a> <a href="../../src/go/printer/printer.go.html#line-1317">Config</a> <i>(struct)</i></label><span id='Config-fold-content-docs' class="fold-docs">
+<span class="md-text">		A Config node controls the output of Fprint.</span>
+
+		<input type='checkbox' class="fold" id="Config-fold-fields"><label for="Config-fold-fields">Fields (<i>total 3, all are exported</i>)</label><span id='Config-fold-fields-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="Config-fold-field-Indent"><label for="Config-fold-field-Indent"><a href="../../src/go/printer/printer.go.html#line-1320">Indent</a> <i><a href="../builtin.html#name-int">int</a></i></label><span id='Config-fold-field-Indent-docs' class="fold-docs">
+<span class="md-text">				// default: 0 (all code is indented at least by this much)</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Config-fold-field-Mode"><label for="Config-fold-field-Mode"><a href="../../src/go/printer/printer.go.html#line-1318">Mode</a> <i><a href="#name-Mode">Mode</a></i></label><span id='Config-fold-field-Mode-docs' class="fold-docs">
+<span class="md-text">				// default: 0</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="Config-fold-field-Tabwidth"><label for="Config-fold-field-Tabwidth"><a href="../../src/go/printer/printer.go.html#line-1319">Tabwidth</a> <i><a href="../builtin.html#name-int">int</a></i></label><span id='Config-fold-field-Tabwidth-docs' class="fold-docs">
+<span class="md-text">				// default: 8</span>
+</span></span></span>
+		<input type='checkbox' class="fold" id="Config-fold-methods"><label for="Config-fold-methods">Methods (<i>total 2, in which 1 is exported</i>)</label><span id='Config-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="Config-fold-method-Fprint"><label for="Config-fold-method-Fprint">(*Config) <a href="../../src/go/printer/printer.go.html#line-1423">Fprint</a>(output <a href="../io.html">io</a>.<a href="../io.html#name-Writer">Writer</a>, fset *<a href="token.html">token</a>.<a href="token.html#name-FileSet">FileSet</a>, node <a href="../builtin.html#name-any">any</a>) <a href="../builtin.html#name-error">error</a></label><span id='Config-fold-method-Fprint-docs' class="fold-docs">
+<span class="md-text">				Fprint "pretty-prints" an AST node to output for a given configuration cfg.
+				Position information is interpreted relative to the file set fset.
+				The node type must be *[ast.File], *[CommentedNode], [][ast.Decl], [][ast.Stmt],
+				or assignment-compatible to [ast.Expr], [ast.Decl], [ast.Spec], or [ast.Stmt].</span>
+</span></span>
+			<input type='checkbox' class="showhide" id="Config-showhide-methods"><i><label for="Config-showhide-methods" class="show-inline">/* one unexported ... */</label><label for="Config-showhide-methods" class="hide-inline">/* one unexported: */</label></i><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Config-fold-method-fprint"><label for="Config-fold-method-fprint">(*Config) <a href="../../src/go/printer/printer.go.html#line-1360">fprint</a>(output <a href="../io.html">io</a>.<a href="../io.html#name-Writer">Writer</a>, fset *<a href="token.html">token</a>.<a href="token.html#name-FileSet">FileSet</a>, node <a href="../builtin.html#name-any">any</a>, nodeSizes map[<a href="ast.html">ast</a>.<a href="ast.html#name-Node">Node</a>]<a href="../builtin.html#name-int">int</a>) (err <a href="../builtin.html#name-error">error</a>)</label><span id='Config-fold-method-fprint-docs' class="fold-docs">
+<span class="md-text">				fprint implements Fprint and takes a nodesSizes map for setting up the printer state.</span>
+</span></i></span></span>
+		<input type='checkbox' class="fold" id="Config-fold-params"><label for="Config-fold-params">As Inputs Of (<i>at least 2, neither is exported</i>)</label><span id='Config-fold-params-items' class="fold-items">
+			<input type='checkbox' class="showhide" id="Config-showhide-outputofs"><i><label for="Config-showhide-outputofs" class="show-inline">/* 2+ unexporteds ... */</label><label for="Config-showhide-outputofs" class="hide-inline">/* 2+ unexporteds: */</label></i><span class="hidden"><i>
+			func <a href="#name-newPrinter">newPrinter</a>(cfg *<b>Config</b>, fset *<a href="token.html">token</a>.<a href="token.html#name-FileSet">FileSet</a>, nodeSizes map[<a href="ast.html">ast</a>.<a href="ast.html#name-Node">Node</a>]<a href="../builtin.html#name-int">int</a>) *<a href="#name-printer">printer</a></i></span><span class="hidden"><i>
+			func go/format.<a href="format.html#name-format">format</a>(fset *<a href="token.html">token</a>.<a href="token.html#name-FileSet">FileSet</a>, file *<a href="ast.html">ast</a>.<a href="ast.html#name-File">File</a>, sourceAdj func(src []<a href="../builtin.html#name-byte">byte</a>, indent <a href="../builtin.html#name-int">int</a>) []<a href="../builtin.html#name-byte">byte</a>, indentAdj <a href="../builtin.html#name-int">int</a>, src []<a href="../builtin.html#name-byte">byte</a>, cfg <b>Config</b>) ([]<a href="../builtin.html#name-byte">byte</a>, <a href="../builtin.html#name-error">error</a>)</i></span></span>
+		<input type='checkbox' class="fold" id="Config-fold-values"><label for="Config-fold-values">As Types Of (<i>only one, which is unexported</i>)</label><span id='Config-fold-values-items' class="fold-items">
+			<input type='checkbox' class="showhide" id="Config-showhide-values"><i><label for="Config-showhide-values" class="show-inline">/* one unexported ... */</label><label for="Config-showhide-values" class="hide-inline">/* one unexported: */</label></i><span class="hidden"><i>
+			  var go/format.<a href="format.html#name-config">config</a></i></span></span>
+
+</span></div><div class="anchor type-res" id="name-Mode" data-popularity="15">	<input type='checkbox' class="fold" id="Mode-fold-content"><label for="Mode-fold-content"> <a href="../../use/go/printer..Mode.html">type</a> <a href="../../src/go/printer/printer.go.html#line-1291">Mode</a> <a href="../builtin.html#name-uint">uint</a> <i>(basic type)</i></label><span id='Mode-fold-content-docs' class="fold-docs">
+<span class="md-text">		A Mode value is a set of flags (or 0). They control printing.</span>
+
+		<input type='checkbox' class="fold" id="Mode-fold-values"><label for="Mode-fold-values">As Types Of (<i>total 6, in which 4 are exported</i>)</label><span id='Mode-fold-values-items' class="fold-items"><span>
+			const <a href="#name-RawFormat">RawFormat</a></span><span>
+			const <a href="#name-SourcePos">SourcePos</a></span><span>
+			const <a href="#name-TabIndent">TabIndent</a></span><span>
+			const <a href="#name-UseSpaces">UseSpaces</a></span>
+			<input type='checkbox' class="showhide" id="Mode-showhide-values"><i><label for="Mode-showhide-values" class="show-inline">/* 2 unexporteds ... */</label><label for="Mode-showhide-values" class="hide-inline">/* 2 unexporteds: */</label></i><span class="hidden"><i>
+			const <a href="#name-normalizeNumbers">normalizeNumbers</a></i></span><span class="hidden"><i>
+			const go/format.<a href="format.html#name-printerMode">printerMode</a></i></span></span>
+
+</span></div></div><div>	<input type='checkbox' class="showhide" id="unexported-typenames-showhide"><i><label for="unexported-typenames-showhide" class="show-inline">/* 8 unexporteds ... */</label><label for="unexported-typenames-showhide" class="hide-inline">/* 8 unexporteds: */</label></i><div class="anchor type-res hidden" id="name-commentInfo" data-popularity="0">	<input type='checkbox' class="fold" id="commentInfo-fold-content"><label for="commentInfo-fold-content"> <a href="../../use/go/printer..commentInfo^7764b.html">type</a> <a href="../../src/go/printer/printer.go.html#line-47">commentInfo</a> <i>(struct)</i></label><span id='commentInfo-fold-content-docs' class="fold-docs">
+
+		<input type='checkbox' class="fold" id="commentInfo-fold-fields"><label for="commentInfo-fold-fields">Fields (<i>total 4, none are exported</i>)</label><span id='commentInfo-fold-fields-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="commentInfo-showhide-fields"><i><label for="commentInfo-showhide-fields" class="show-inline">/* 4 unexporteds ... */</label><label for="commentInfo-showhide-fields" class="hide-inline">/* 4 unexporteds: */</label></i><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="commentInfo-fold-field-cindex"><label for="commentInfo-fold-field-cindex"><a href="../../src/go/printer/printer.go.html#line-48">cindex</a> <i><a href="../builtin.html#name-int">int</a></i></label><span id='commentInfo-fold-field-cindex-docs' class="fold-docs">
+<span class="md-text">				// index of the next comment</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="commentInfo-fold-field-comment"><label for="commentInfo-fold-field-comment"><a href="../../src/go/printer/printer.go.html#line-49">comment</a> <i>*<a href="ast.html">ast</a>.<a href="ast.html#name-CommentGroup">CommentGroup</a></i></label><span id='commentInfo-fold-field-comment-docs' class="fold-docs">
+<span class="md-text">				// = printer.comments[cindex-1]; or nil</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="commentInfo-fold-field-commentNewline"><label for="commentInfo-fold-field-commentNewline"><a href="../../src/go/printer/printer.go.html#line-51">commentNewline</a> <i><a href="../builtin.html#name-bool">bool</a></i></label><span id='commentInfo-fold-field-commentNewline-docs' class="fold-docs">
+<span class="md-text">				// true if the comment group contains newlines</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="commentInfo-fold-field-commentOffset"><label for="commentInfo-fold-field-commentOffset"><a href="../../src/go/printer/printer.go.html#line-50">commentOffset</a> <i><a href="../builtin.html#name-int">int</a></i></label><span id='commentInfo-fold-field-commentOffset-docs' class="fold-docs">
+<span class="md-text">				// = printer.posFor(printer.comments[cindex-1].List[0].Pos()).Offset; or infinity</span>
+</span></i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-exprListMode" data-popularity="10">	<input type='checkbox' class="fold" id="exprListMode-fold-content"><label for="exprListMode-fold-content"> <a href="../../use/go/printer..exprListMode^ce0a1.html">type</a> <a href="../../src/go/printer/nodes.go.html#line-94">exprListMode</a> <a href="../builtin.html#name-uint">uint</a> <i>(basic type)</i></label><span id='exprListMode-fold-content-docs' class="fold-docs">
+
+		<input type='checkbox' class="fold" id="exprListMode-fold-values"><label for="exprListMode-fold-values">As Types Of (<i>total 2, neither is exported</i>)</label><span id='exprListMode-fold-values-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="exprListMode-showhide-values"><i><label for="exprListMode-showhide-values" class="show-inline">/* 2 unexporteds ... */</label><label for="exprListMode-showhide-values" class="hide-inline">/* 2 unexporteds: */</label></i><span class="hidden"><i>
+			const <a href="#name-commaTerm">commaTerm</a></i></span><span class="hidden"><i>
+			const <a href="#name-noIndent">noIndent</a></i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-paramMode" data-popularity="15">	<input type='checkbox' class="fold" id="paramMode-fold-content"><label for="paramMode-fold-content"> <a href="../../use/go/printer..paramMode^1ac8b.html">type</a> <a href="../../src/go/printer/nodes.go.html#line-320">paramMode</a> <a href="../builtin.html#name-int">int</a> <i>(basic type)</i></label><span id='paramMode-fold-content-docs' class="fold-docs">
+
+		<input type='checkbox' class="fold" id="paramMode-fold-values"><label for="paramMode-fold-values">As Types Of (<i>total 3, none are exported</i>)</label><span id='paramMode-fold-values-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="paramMode-showhide-values"><i><label for="paramMode-showhide-values" class="show-inline">/* 3 unexporteds ... */</label><label for="paramMode-showhide-values" class="hide-inline">/* 3 unexporteds: */</label></i><span class="hidden"><i>
+			const <a href="#name-funcParam">funcParam</a></i></span><span class="hidden"><i>
+			const <a href="#name-funcTParam">funcTParam</a></i></span><span class="hidden"><i>
+			const <a href="#name-typeTParam">typeTParam</a></i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-pmode" data-popularity="10">	<input type='checkbox' class="fold" id="pmode-fold-content"><label for="pmode-fold-content"> <a href="../../use/go/printer..pmode^3230b.html">type</a> <a href="../../src/go/printer/printer.go.html#line-40">pmode</a> <a href="../builtin.html#name-int">int</a> <i>(basic type)</i></label><span id='pmode-fold-content-docs' class="fold-docs">
+<span class="md-text">		A pmode value represents the current printer mode.</span>
+
+		<input type='checkbox' class="fold" id="pmode-fold-values"><label for="pmode-fold-values">As Types Of (<i>total 2, neither is exported</i>)</label><span id='pmode-fold-values-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="pmode-showhide-values"><i><label for="pmode-showhide-values" class="show-inline">/* 2 unexporteds ... */</label><label for="pmode-showhide-values" class="hide-inline">/* 2 unexporteds: */</label></i><span class="hidden"><i>
+			const <a href="#name-noExtraBlank">noExtraBlank</a></i></span><span class="hidden"><i>
+			const <a href="#name-noExtraLinebreak">noExtraLinebreak</a></i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-printer" data-popularity="3125">	<input type='checkbox' class="fold" id="printer-fold-content"><label for="printer-fold-content"> <a href="../../use/go/printer..printer^ba70e.html">type</a> <a href="../../src/go/printer/printer.go.html#line-54">printer</a> <i>(struct)</i></label><span id='printer-fold-content-docs' class="fold-docs">
+
+		<input type='checkbox' class="fold" id="printer-fold-fields"><label for="printer-fold-fields">Fields (<i>total 31, in which 4 are exported</i>)</label><span id='printer-fold-fields-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="printer-fold-field-Config"><label for="printer-fold-field-Config"><a href="../../src/go/printer/printer.go.html#line-56">Config</a> <i><a href="#name-Config">Config</a></i></label><span id='printer-fold-field-Config-docs' class="fold-docs">
+<span class="md-text">				Configuration (does not change after initialization)</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="printer-fold-field-Indent"><label for="printer-fold-field-Indent"><a href="../../src/go/printer/printer.go.html#line-56" class="path-duplicate">Config</a>.<a href="../../src/go/printer/printer.go.html#line-1320">Indent</a> <i><a href="../builtin.html#name-int">int</a></i></label><span id='printer-fold-field-Indent-docs' class="fold-docs">
+<span class="md-text">				// default: 0 (all code is indented at least by this much)</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="printer-fold-field-Mode"><label for="printer-fold-field-Mode"><a href="../../src/go/printer/printer.go.html#line-56" class="path-duplicate">Config</a>.<a href="../../src/go/printer/printer.go.html#line-1318">Mode</a> <i><a href="#name-Mode">Mode</a></i></label><span id='printer-fold-field-Mode-docs' class="fold-docs">
+<span class="md-text">				// default: 0</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="printer-fold-field-Tabwidth"><label for="printer-fold-field-Tabwidth"><a href="../../src/go/printer/printer.go.html#line-56" class="path-duplicate">Config</a>.<a href="../../src/go/printer/printer.go.html#line-1319">Tabwidth</a> <i><a href="../builtin.html#name-int">int</a></i></label><span id='printer-fold-field-Tabwidth-docs' class="fold-docs">
+<span class="md-text">				// default: 8</span>
+</span></span>
+			<input type='checkbox' checked class="showhide" id="printer-showhide-fields"><i><label for="printer-showhide-fields" class="show-inline">/* 27 unexporteds ... */</label><label for="printer-showhide-fields" class="hide-inline">/* 27 unexporteds: */</label></i><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="printer-fold-field-cachedLine"><label for="printer-fold-field-cachedLine"><a href="../../src/go/printer/printer.go.html#line-96">cachedLine</a> <i><a href="../builtin.html#name-int">int</a></i></label><span id='printer-fold-field-cachedLine-docs' class="fold-docs">
+<span class="md-text">				// line corresponding to cachedPos</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="printer-fold-field-cachedPos"><label for="printer-fold-field-cachedPos"><a href="../../src/go/printer/printer.go.html#line-95">cachedPos</a> <i><a href="token.html">token</a>.<a href="token.html#name-Pos">Pos</a></i></label><span id='printer-fold-field-cachedPos-docs' class="fold-docs">
+<span class="md-text">				Cache of most recently computed line position.</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="printer-fold-field-commentInfo"><label for="printer-fold-field-commentInfo"><a href="../../src/go/printer/printer.go.html#line-89">commentInfo</a> <i><a href="#name-commentInfo">commentInfo</a></i></label><span id='printer-fold-field-commentInfo-docs' class="fold-docs">
+<span class="md-text">				Information about p.comments[p.cindex]; set up by nextComment.</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="printer-fold-field-cindex"><label for="printer-fold-field-cindex"><a href="../../src/go/printer/printer.go.html#line-89" class="path-duplicate">commentInfo</a>.<a href="../../src/go/printer/printer.go.html#line-48">cindex</a> <i><a href="../builtin.html#name-int">int</a></i></label><span id='printer-fold-field-cindex-docs' class="fold-docs">
+<span class="md-text">				// index of the next comment</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="printer-fold-field-comment"><label for="printer-fold-field-comment"><a href="../../src/go/printer/printer.go.html#line-89" class="path-duplicate">commentInfo</a>.<a href="../../src/go/printer/printer.go.html#line-49">comment</a> <i>*<a href="ast.html">ast</a>.<a href="ast.html#name-CommentGroup">CommentGroup</a></i></label><span id='printer-fold-field-comment-docs' class="fold-docs">
+<span class="md-text">				// = printer.comments[cindex-1]; or nil</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="printer-fold-field-commentNewline"><label for="printer-fold-field-commentNewline"><a href="../../src/go/printer/printer.go.html#line-89" class="path-duplicate">commentInfo</a>.<a href="../../src/go/printer/printer.go.html#line-51">commentNewline</a> <i><a href="../builtin.html#name-bool">bool</a></i></label><span id='printer-fold-field-commentNewline-docs' class="fold-docs">
+<span class="md-text">				// true if the comment group contains newlines</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="printer-fold-field-commentOffset"><label for="printer-fold-field-commentOffset"><a href="../../src/go/printer/printer.go.html#line-89" class="path-duplicate">commentInfo</a>.<a href="../../src/go/printer/printer.go.html#line-50">commentOffset</a> <i><a href="../builtin.html#name-int">int</a></i></label><span id='printer-fold-field-commentOffset-docs' class="fold-docs">
+<span class="md-text">				// = printer.posFor(printer.comments[cindex-1].List[0].Pos()).Offset; or infinity</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="printer-fold-field-comments"><label for="printer-fold-field-comments"><a href="../../src/go/printer/printer.go.html#line-85">comments</a> <i>[]*<a href="ast.html">ast</a>.<a href="ast.html#name-CommentGroup">CommentGroup</a></i></label><span id='printer-fold-field-comments-docs' class="fold-docs">
+<span class="md-text">				The list of all source comments, in order of appearance.</span>
+<span class="md-text">				// may be nil</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="printer-fold-field-endAlignment"><label for="printer-fold-field-endAlignment"><a href="../../src/go/printer/printer.go.html#line-64">endAlignment</a> <i><a href="../builtin.html#name-bool">bool</a></i></label><span id='printer-fold-field-endAlignment-docs' class="fold-docs">
+<span class="md-text">				// if set, terminate alignment immediately</span>
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../src/go/printer/printer.go.html#line-57">fset</a> <i>*<a href="token.html">token</a>.<a href="token.html#name-FileSet">FileSet</a></i></span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="printer-fold-field-goBuild"><label for="printer-fold-field-goBuild"><a href="../../src/go/printer/printer.go.html#line-69">goBuild</a> <i>[]<a href="../builtin.html#name-int">int</a></i></label><span id='printer-fold-field-goBuild-docs' class="fold-docs">
+<span class="md-text">				// start index of all //go:build comments in output</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="printer-fold-field-impliedSemi"><label for="printer-fold-field-impliedSemi"><a href="../../src/go/printer/printer.go.html#line-65">impliedSemi</a> <i><a href="../builtin.html#name-bool">bool</a></i></label><span id='printer-fold-field-impliedSemi-docs' class="fold-docs">
+<span class="md-text">				// if set, a linebreak implies a semicolon</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="printer-fold-field-indent"><label for="printer-fold-field-indent"><a href="../../src/go/printer/printer.go.html#line-61">indent</a> <i><a href="../builtin.html#name-int">int</a></i></label><span id='printer-fold-field-indent-docs' class="fold-docs">
+<span class="md-text">				// current indentation</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="printer-fold-field-last"><label for="printer-fold-field-last"><a href="../../src/go/printer/printer.go.html#line-80">last</a> <i><a href="token.html">token</a>.<a href="token.html#name-Position">Position</a></i></label><span id='printer-fold-field-last-docs' class="fold-docs">
+<span class="md-text">				// value of pos after calling writeString</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="printer-fold-field-lastTok"><label for="printer-fold-field-lastTok"><a href="../../src/go/printer/printer.go.html#line-66">lastTok</a> <i><a href="token.html">token</a>.<a href="token.html#name-Token">Token</a></i></label><span id='printer-fold-field-lastTok-docs' class="fold-docs">
+<span class="md-text">				// last token printed (token.ILLEGAL if it's whitespace)</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="printer-fold-field-level"><label for="printer-fold-field-level"><a href="../../src/go/printer/printer.go.html#line-62">level</a> <i><a href="../builtin.html#name-int">int</a></i></label><span id='printer-fold-field-level-docs' class="fold-docs">
+<span class="md-text">				// level == 0: outside composite literal; level &gt; 0: inside composite literal</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="printer-fold-field-linePtr"><label for="printer-fold-field-linePtr"><a href="../../src/go/printer/printer.go.html#line-81">linePtr</a> <i>*<a href="../builtin.html#name-int">int</a></i></label><span id='printer-fold-field-linePtr-docs' class="fold-docs">
+<span class="md-text">				// if set, record out.Line for the next token in *linePtr</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="printer-fold-field-mode"><label for="printer-fold-field-mode"><a href="../../src/go/printer/printer.go.html#line-63">mode</a> <i><a href="#name-pmode">pmode</a></i></label><span id='printer-fold-field-mode-docs' class="fold-docs">
+<span class="md-text">				// current printer mode</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="printer-fold-field-nodeSizes"><label for="printer-fold-field-nodeSizes"><a href="../../src/go/printer/printer.go.html#line-92">nodeSizes</a> <i>map[<a href="ast.html">ast</a>.<a href="ast.html#name-Node">Node</a>]<a href="../builtin.html#name-int">int</a></i></label><span id='printer-fold-field-nodeSizes-docs' class="fold-docs">
+<span class="md-text">				Cache of already computed node sizes.</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="printer-fold-field-out"><label for="printer-fold-field-out"><a href="../../src/go/printer/printer.go.html#line-79">out</a> <i><a href="token.html">token</a>.<a href="token.html#name-Position">Position</a></i></label><span id='printer-fold-field-out-docs' class="fold-docs">
+<span class="md-text">				// current position in output space</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="printer-fold-field-output"><label for="printer-fold-field-output"><a href="../../src/go/printer/printer.go.html#line-60">output</a> <i>[]<a href="../builtin.html#name-byte">byte</a></i></label><span id='printer-fold-field-output-docs' class="fold-docs">
+<span class="md-text">				Current state</span>
+<span class="md-text">				// raw printer result</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="printer-fold-field-plusBuild"><label for="printer-fold-field-plusBuild"><a href="../../src/go/printer/printer.go.html#line-70">plusBuild</a> <i>[]<a href="../builtin.html#name-int">int</a></i></label><span id='printer-fold-field-plusBuild-docs' class="fold-docs">
+<span class="md-text">				// start index of all // +build comments in output</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="printer-fold-field-pos"><label for="printer-fold-field-pos"><a href="../../src/go/printer/printer.go.html#line-78">pos</a> <i><a href="token.html">token</a>.<a href="token.html#name-Position">Position</a></i></label><span id='printer-fold-field-pos-docs' class="fold-docs">
+<span class="md-text">				Positions
+				The out position differs from the pos position when the result
+				formatting differs from the source formatting (in the amount of
+				white space). If there's a difference and SourcePos is set in
+				ConfigMode, //line directives are used in the output to restore
+				original source positions for a reader.</span>
+<span class="md-text">				// current position in AST (source) space</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="printer-fold-field-prevOpen"><label for="printer-fold-field-prevOpen"><a href="../../src/go/printer/printer.go.html#line-67">prevOpen</a> <i><a href="token.html">token</a>.<a href="token.html#name-Token">Token</a></i></label><span id='printer-fold-field-prevOpen-docs' class="fold-docs">
+<span class="md-text">				// previous non-brace "open" token (, [, or token.ILLEGAL</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="printer-fold-field-sourcePosErr"><label for="printer-fold-field-sourcePosErr"><a href="../../src/go/printer/printer.go.html#line-82">sourcePosErr</a> <i><a href="../builtin.html#name-error">error</a></i></label><span id='printer-fold-field-sourcePosErr-docs' class="fold-docs">
+<span class="md-text">				// if non-nil, the first error emitting a //line directive</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="printer-fold-field-useNodeComments"><label for="printer-fold-field-useNodeComments"><a href="../../src/go/printer/printer.go.html#line-86">useNodeComments</a> <i><a href="../builtin.html#name-bool">bool</a></i></label><span id='printer-fold-field-useNodeComments-docs' class="fold-docs">
+<span class="md-text">				// if not set, ignore lead and line comments of nodes</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="printer-fold-field-wsbuf"><label for="printer-fold-field-wsbuf"><a href="../../src/go/printer/printer.go.html#line-68">wsbuf</a> <i>[]<a href="#name-whiteSpace">whiteSpace</a></i></label><span id='printer-fold-field-wsbuf-docs' class="fold-docs">
+<span class="md-text">				// delayed white space</span>
+</span></i></span></span>
+		<input type='checkbox' class="fold" id="printer-fold-methods"><label for="printer-fold-methods">Methods (<i>total 61, in which 1 is exported</i>)</label><span id='printer-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="printer-fold-method-Fprint"><label for="printer-fold-method-Fprint">(*printer) <a href="../../src/go/printer/printer.go.html#line-1423">Fprint</a>(output <a href="../io.html">io</a>.<a href="../io.html#name-Writer">Writer</a>, fset *<a href="token.html">token</a>.<a href="token.html#name-FileSet">FileSet</a>, node <a href="../builtin.html#name-any">any</a>) <a href="../builtin.html#name-error">error</a></label><span id='printer-fold-method-Fprint-docs' class="fold-docs">
+<span class="md-text">				Fprint "pretty-prints" an AST node to output for a given configuration cfg.
+				Position information is interpreted relative to the file set fset.
+				The node type must be *[ast.File], *[CommentedNode], [][ast.Decl], [][ast.Stmt],
+				or assignment-compatible to [ast.Expr], [ast.Decl], [ast.Spec], or [ast.Stmt].</span>
+</span></span>
+			<input type='checkbox' checked class="showhide" id="printer-showhide-methods"><i><label for="printer-showhide-methods" class="show-inline">/* 60 unexporteds ... */</label><label for="printer-showhide-methods" class="hide-inline">/* 60 unexporteds: */</label></i><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="printer-fold-method-binaryExpr"><label for="printer-fold-method-binaryExpr">(*printer) <a href="../../src/go/printer/nodes.go.html#line-768">binaryExpr</a>(x *<a href="ast.html">ast</a>.<a href="ast.html#name-BinaryExpr">BinaryExpr</a>, prec1, cutoff, depth <a href="../builtin.html#name-int">int</a>)</label><span id='printer-fold-method-binaryExpr-docs' class="fold-docs">
+<span class="md-text">				Format the binary expression: decide the cutoff and then format.
+				Let's call depth == 1 Normal mode, and depth &gt; 1 Compact mode.
+				(Algorithm suggestion by Russ Cox.)
+				
+				The precedences are:
+				
+					5             *  /  %  &lt;&lt;  &gt;&gt;  &amp;  &amp;^
+					4             +  -  |  ^
+					3             ==  !=  &lt;  &lt;=  &gt;  &gt;=
+					2             &amp;&amp;
+					1             ||
+				
+				The only decision is whether there will be spaces around levels 4 and 5.
+				There are never spaces at level 6 (unary), and always spaces at levels 3 and below.
+				
+				To choose the cutoff, look at the whole expression but excluding primary
+				expressions (function calls, parenthesized exprs), and apply these rules:
+				
+				 1. If there is a binary operator with a right side unary operand
+				    that would clash without a space, the cutoff must be (in order):
+				
+				    /*	6
+				    &amp;&amp;	6
+				    &amp;^	6
+				    ++	5
+				    --	5
+				
+				    (Comparison operators always have spaces around them.)
+				
+				 2. If there is a mix of level 5 and level 4 operators, then the cutoff
+				    is 5 (use spaces to distinguish precedence) in Normal mode
+				    and 4 (never use spaces) in Compact mode.
+				
+				 3. If there are no level 4 operators or no level 5 operators, then the
+				    cutoff is 6 (always use spaces) in Normal mode
+				    and 4 (never use spaces) in Compact mode.</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="printer-fold-method-block"><label for="printer-fold-method-block">(*printer) <a href="../../src/go/printer/nodes.go.html#line-1227">block</a>(b *<a href="ast.html">ast</a>.<a href="ast.html#name-BlockStmt">BlockStmt</a>, nindent <a href="../builtin.html#name-int">int</a>)</label><span id='printer-fold-method-block-docs' class="fold-docs">
+<span class="md-text">				block prints an *ast.BlockStmt; it always spans at least two lines.</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="printer-fold-method-bodySize"><label for="printer-fold-method-bodySize">(*printer) <a href="../../src/go/printer/nodes.go.html#line-1842">bodySize</a>(b *<a href="ast.html">ast</a>.<a href="ast.html#name-BlockStmt">BlockStmt</a>, maxSize <a href="../builtin.html#name-int">int</a>) <a href="../builtin.html#name-int">int</a></label><span id='printer-fold-method-bodySize-docs' class="fold-docs">
+<span class="md-text">				bodySize is like nodeSize but it is specialized for *ast.BlockStmt's.</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="printer-fold-method-commentBefore"><label for="printer-fold-method-commentBefore">(*printer) <a href="../../src/go/printer/printer.go.html#line-146">commentBefore</a>(next <a href="token.html">token</a>.<a href="token.html#name-Position">Position</a>) <a href="../builtin.html#name-bool">bool</a></label><span id='printer-fold-method-commentBefore-docs' class="fold-docs">
+<span class="md-text">				commentBefore reports whether the current comment group occurs
+				before the next position in the source code and printing it does
+				not introduce implicit semicolons.</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="printer-fold-method-commentSizeBefore"><label for="printer-fold-method-commentSizeBefore">(*printer) <a href="../../src/go/printer/printer.go.html#line-152">commentSizeBefore</a>(next <a href="token.html">token</a>.<a href="token.html#name-Position">Position</a>) <a href="../builtin.html#name-int">int</a></label><span id='printer-fold-method-commentSizeBefore-docs' class="fold-docs">
+<span class="md-text">				commentSizeBefore returns the estimated size of the
+				comments on the same line before the next position.</span>
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*printer) <a href="../../src/go/printer/gobuild.go.html#line-157">commentTextAt</a>(start <a href="../builtin.html#name-int">int</a>) <a href="../builtin.html#name-string">string</a></span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="printer-fold-method-commentsHaveNewline"><label for="printer-fold-method-commentsHaveNewline">(*printer) <a href="../../src/go/printer/printer.go.html#line-110">commentsHaveNewline</a>(list []*<a href="ast.html">ast</a>.<a href="ast.html#name-Comment">Comment</a>) <a href="../builtin.html#name-bool">bool</a></label><span id='printer-fold-method-commentsHaveNewline-docs' class="fold-docs">
+<span class="md-text">				commentsHaveNewline reports whether a list of comments belonging to
+				an *ast.CommentGroup contains newlines. Because the position information
+				may only be partially correct, we also have to read the comment text.</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="printer-fold-method-containsLinebreak"><label for="printer-fold-method-containsLinebreak">(*printer) <a href="../../src/go/printer/printer.go.html#line-723">containsLinebreak</a>() <a href="../builtin.html#name-bool">bool</a></label><span id='printer-fold-method-containsLinebreak-docs' class="fold-docs">
+<span class="md-text">				containsLinebreak reports whether the whitespace buffer contains any line breaks.</span>
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*printer) <a href="../../src/go/printer/nodes.go.html#line-1279">controlClause</a>(isForStmt <a href="../builtin.html#name-bool">bool</a>, init <a href="ast.html">ast</a>.<a href="ast.html#name-Stmt">Stmt</a>, expr <a href="ast.html">ast</a>.<a href="ast.html#name-Expr">Expr</a>, post <a href="ast.html">ast</a>.<a href="ast.html#name-Stmt">Stmt</a>)</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*printer) <a href="../../src/go/printer/nodes.go.html#line-1937">decl</a>(decl <a href="ast.html">ast</a>.<a href="ast.html#name-Decl">Decl</a>)</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*printer) <a href="../../src/go/printer/nodes.go.html#line-1965">declList</a>(list []<a href="ast.html">ast</a>.<a href="ast.html#name-Decl">Decl</a>)</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="printer-fold-method-distanceFrom"><label for="printer-fold-method-distanceFrom">(*printer) <a href="../../src/go/printer/nodes.go.html#line-1913">distanceFrom</a>(startPos <a href="token.html">token</a>.<a href="token.html#name-Pos">Pos</a>, startOutCol <a href="../builtin.html#name-int">int</a>) <a href="../builtin.html#name-int">int</a></label><span id='printer-fold-method-distanceFrom-docs' class="fold-docs">
+<span class="md-text">				distanceFrom returns the column difference between p.out (the current output
+				position) and startOutCol. If the start position is on a different line from
+				the current position (or either is unknown), the result is infinity.</span>
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*printer) <a href="../../src/go/printer/nodes.go.html#line-1178">expr</a>(x <a href="ast.html">ast</a>.<a href="ast.html#name-Expr">Expr</a>)</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*printer) <a href="../../src/go/printer/nodes.go.html#line-1174">expr0</a>(x <a href="ast.html">ast</a>.<a href="ast.html#name-Expr">Expr</a>, depth <a href="../builtin.html#name-int">int</a>)</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*printer) <a href="../../src/go/printer/nodes.go.html#line-813">expr1</a>(expr <a href="ast.html">ast</a>.<a href="ast.html#name-Expr">Expr</a>, prec1, depth <a href="../builtin.html#name-int">int</a>)</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="printer-fold-method-exprList"><label for="printer-fold-method-exprList">(*printer) <a href="../../src/go/printer/nodes.go.html#line-126">exprList</a>(prev0 <a href="token.html">token</a>.<a href="token.html#name-Pos">Pos</a>, list []<a href="ast.html">ast</a>.<a href="ast.html#name-Expr">Expr</a>, depth <a href="../builtin.html#name-int">int</a>, mode <a href="#name-exprListMode">exprListMode</a>, next0 <a href="token.html">token</a>.<a href="token.html#name-Pos">Pos</a>, isIncomplete <a href="../builtin.html#name-bool">bool</a>)</label><span id='printer-fold-method-exprList-docs' class="fold-docs">
+<span class="md-text">				Print a list of expressions. If the list spans multiple
+				source lines, the original line breaks are respected between
+				expressions.
+				
+				TODO(gri) Consider rewriting this to be independent of []ast.Expr
+				so that we can use the algorithm for any kind of list
+				
+					(e.g., pass list via a channel over which to range).</span>
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*printer) <a href="../../src/go/printer/nodes.go.html#line-493">fieldList</a>(fields *<a href="ast.html">ast</a>.<a href="ast.html#name-FieldList">FieldList</a>, isStruct, isIncomplete <a href="../builtin.html#name-bool">bool</a>)</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*printer) <a href="../../src/go/printer/nodes.go.html#line-1992">file</a>(src *<a href="ast.html">ast</a>.<a href="ast.html#name-File">File</a>)</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*printer) <a href="../../src/go/printer/gobuild.go.html#line-13">fixGoBuildLines</a>()</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="printer-fold-method-flush"><label for="printer-fold-method-flush">(*printer) <a href="../../src/go/printer/printer.go.html#line-1037">flush</a>(next <a href="token.html">token</a>.<a href="token.html#name-Position">Position</a>, tok <a href="token.html">token</a>.<a href="token.html#name-Token">Token</a>) (wroteNewline, droppedFF <a href="../builtin.html#name-bool">bool</a>)</label><span id='printer-fold-method-flush-docs' class="fold-docs">
+<span class="md-text">				flush prints any pending comments and whitespace occurring textually
+				before the position of the next token tok. The flush result indicates
+				if a newline was written or if a formfeed was dropped from the whitespace
+				buffer.</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="printer-fold-method-fprint"><label for="printer-fold-method-fprint">(*printer) <a href="../../src/go/printer/printer.go.html#line-1360">fprint</a>(output <a href="../io.html">io</a>.<a href="../io.html#name-Writer">Writer</a>, fset *<a href="token.html">token</a>.<a href="token.html#name-FileSet">FileSet</a>, node <a href="../builtin.html#name-any">any</a>, nodeSizes map[<a href="ast.html">ast</a>.<a href="ast.html#name-Node">Node</a>]<a href="../builtin.html#name-int">int</a>) (err <a href="../builtin.html#name-error">error</a>)</label><span id='printer-fold-method-fprint-docs' class="fold-docs">
+<span class="md-text">				fprint implements Fprint and takes a nodesSizes map for setting up the printer state.</span>
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*printer) <a href="../../src/go/printer/printer.go.html#line-1350">free</a>()</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="printer-fold-method-funcBody"><label for="printer-fold-method-funcBody">(*printer) <a href="../../src/go/printer/nodes.go.html#line-1872">funcBody</a>(headerSize <a href="../builtin.html#name-int">int</a>, sep <a href="#name-whiteSpace">whiteSpace</a>, b *<a href="ast.html">ast</a>.<a href="ast.html#name-BlockStmt">BlockStmt</a>)</label><span id='printer-fold-method-funcBody-docs' class="fold-docs">
+<span class="md-text">				funcBody prints a function body following a function header of given headerSize.
+				If the header's and block's size are "small enough" and the block is "simple enough",
+				the block is printed on the current line, without line breaks, spaced from the header
+				by sep. Otherwise the block's opening "{" is printed on the current line, followed by
+				lines for the block's statements and its closing "}".</span>
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*printer) <a href="../../src/go/printer/nodes.go.html#line-1920">funcDecl</a>(d *<a href="ast.html">ast</a>.<a href="ast.html#name-FuncDecl">FuncDecl</a>)</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*printer) <a href="../../src/go/printer/nodes.go.html#line-1735">genDecl</a>(d *<a href="ast.html">ast</a>.<a href="ast.html#name-GenDecl">GenDecl</a>)</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="printer-fold-method-identList"><label for="printer-fold-method-identList">(*printer) <a href="../../src/go/printer/nodes.go.html#line-103">identList</a>(list []*<a href="ast.html">ast</a>.<a href="ast.html#name-Ident">Ident</a>, indent <a href="../builtin.html#name-bool">bool</a>)</label><span id='printer-fold-method-identList-docs' class="fold-docs">
+<span class="md-text">				If indent is set, a multi-line identifier list is indented after the
+				first linebreak encountered.</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="printer-fold-method-indentList"><label for="printer-fold-method-indentList">(*printer) <a href="../../src/go/printer/nodes.go.html#line-1316">indentList</a>(list []<a href="ast.html">ast</a>.<a href="ast.html#name-Expr">Expr</a>) <a href="../builtin.html#name-bool">bool</a></label><span id='printer-fold-method-indentList-docs' class="fold-docs">
+<span class="md-text">				indentList reports whether an expression list would look better if it
+				were indented wholesale (starting with the very first element, rather
+				than starting at the first line break).</span>
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*printer) <a href="../../src/go/printer/printer.go.html#line-99">internalError</a>(msg ...<a href="../builtin.html#name-any">any</a>)</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="printer-fold-method-intersperseComments"><label for="printer-fold-method-intersperseComments">(*printer) <a href="../../src/go/printer/printer.go.html#line-737">intersperseComments</a>(next <a href="token.html">token</a>.<a href="token.html#name-Position">Position</a>, tok <a href="token.html">token</a>.<a href="token.html#name-Token">Token</a>) (wroteNewline, droppedFF <a href="../builtin.html#name-bool">bool</a>)</label><span id='printer-fold-method-intersperseComments-docs' class="fold-docs">
+<span class="md-text">				intersperseComments consumes all comments that appear before the next token
+				tok and prints it together with the buffered whitespace (i.e., the whitespace
+				that needs to be written before the next token). A heuristic is used to mix
+				the comments and whitespace. The intersperseComments result indicates if a
+				newline was written or if a formfeed was dropped from the whitespace buffer.</span>
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*printer) <a href="../../src/go/printer/nodes.go.html#line-471">isOneLineFieldList</a>(list []*<a href="ast.html">ast</a>.<a href="ast.html#name-Field">Field</a>) <a href="../builtin.html#name-bool">bool</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*printer) <a href="../../src/go/printer/gobuild.go.html#line-146">lineAt</a>(start <a href="../builtin.html#name-int">int</a>) []<a href="../builtin.html#name-byte">byte</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*printer) <a href="../../src/go/printer/printer.go.html#line-189">lineFor</a>(pos <a href="token.html">token</a>.<a href="token.html#name-Pos">Pos</a>) <a href="../builtin.html#name-int">int</a></span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="printer-fold-method-linebreak"><label for="printer-fold-method-linebreak">(*printer) <a href="../../src/go/printer/nodes.go.html#line-46">linebreak</a>(line, min <a href="../builtin.html#name-int">int</a>, ws <a href="#name-whiteSpace">whiteSpace</a>, newSection <a href="../builtin.html#name-bool">bool</a>) (nbreaks <a href="../builtin.html#name-int">int</a>)</label><span id='printer-fold-method-linebreak-docs' class="fold-docs">
+<span class="md-text">				Print as many newlines as necessary (but at least min newlines) to get to
+				the current line. ws is printed before the first line break. If newSection
+				is set, the first line break is printed as formfeed. Returns 0 if no line
+				breaks were printed, returns 1 if there was exactly one newline printed,
+				and returns a value &gt; 1 if there was a formfeed or more than one newline
+				printed.
+				
+				TODO(gri): linebreak may add too many lines if the next statement at "line"
+				is preceded by comments because the computation of n assumes
+				the current position before the comment and the target position
+				after the comment. Thus, after interspersing such comments, the
+				space taken up by them is not considered to reduce the number of
+				linebreaks. At the moment there is no easy way to know about
+				future (not yet interspersed) comments in this function.</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="printer-fold-method-linesFrom"><label for="printer-fold-method-linesFrom">(*printer) <a href="../../src/go/printer/printer.go.html#line-180">linesFrom</a>(line <a href="../builtin.html#name-int">int</a>) <a href="../builtin.html#name-int">int</a></label><span id='printer-fold-method-linesFrom-docs' class="fold-docs">
+<span class="md-text">				linesFrom returns the number of output lines between the current
+				output line and the line argument, ignoring any pending (not yet
+				emitted) whitespace or comments. It is used to compute an accurate
+				size (in number of lines) for a formatted construct.</span>
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*printer) <a href="../../src/go/printer/printer.go.html#line-126">nextComment</a>()</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="printer-fold-method-nodeSize"><label for="printer-fold-method-nodeSize">(*printer) <a href="../../src/go/printer/nodes.go.html#line-1803">nodeSize</a>(n <a href="ast.html">ast</a>.<a href="ast.html#name-Node">Node</a>, maxSize <a href="../builtin.html#name-int">int</a>) (size <a href="../builtin.html#name-int">int</a>)</label><span id='printer-fold-method-nodeSize-docs' class="fold-docs">
+<span class="md-text">				nodeSize determines the size of n in chars after formatting.
+				The result is &lt;= maxSize if the node fits on one line with at
+				most maxSize chars and the formatted output doesn't contain
+				any control chars. Otherwise, the result is &gt; maxSize.</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="printer-fold-method-numLines"><label for="printer-fold-method-numLines">(*printer) <a href="../../src/go/printer/nodes.go.html#line-1832">numLines</a>(n <a href="ast.html">ast</a>.<a href="ast.html#name-Node">Node</a>) <a href="../builtin.html#name-int">int</a></label><span id='printer-fold-method-numLines-docs' class="fold-docs">
+<span class="md-text">				numLines returns the number of lines spanned by node n in the original source.</span>
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*printer) <a href="../../src/go/printer/nodes.go.html#line-328">parameters</a>(fields *<a href="ast.html">ast</a>.<a href="ast.html#name-FieldList">FieldList</a>, mode <a href="#name-paramMode">paramMode</a>)</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*printer) <a href="../../src/go/printer/printer.go.html#line-184">posFor</a>(pos <a href="token.html">token</a>.<a href="token.html#name-Pos">Pos</a>) <a href="token.html">token</a>.<a href="token.html#name-Position">Position</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*printer) <a href="../../src/go/printer/nodes.go.html#line-1147">possibleSelectorExpr</a>(expr <a href="ast.html">ast</a>.<a href="ast.html#name-Expr">Expr</a>, prec1, depth <a href="../builtin.html#name-int">int</a>) <a href="../builtin.html#name-bool">bool</a></span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="printer-fold-method-print"><label for="printer-fold-method-print">(*printer) <a href="../../src/go/printer/printer.go.html#line-901">print</a>(args ...<a href="../builtin.html#name-any">any</a>)</label><span id='printer-fold-method-print-docs' class="fold-docs">
+<span class="md-text">				print prints a list of "items" (roughly corresponding to syntactic
+				tokens, but also including whitespace and formatting information).
+				It is the only print function that should be called directly from
+				any of the AST printing functions in nodes.go.
+				
+				Whitespace is accumulated until a non-whitespace token appears. Any
+				comments that need to appear before that token are printed first,
+				taking into account the amount and structure of any pending white-
+				space for best comment placement. Then, any leftover whitespace is
+				printed, followed by the actual token.</span>
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*printer) <a href="../../src/go/printer/printer.go.html#line-1091">printNode</a>(node <a href="../builtin.html#name-any">any</a>) <a href="../builtin.html#name-error">error</a></span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="printer-fold-method-recordLine"><label for="printer-fold-method-recordLine">(*printer) <a href="../../src/go/printer/printer.go.html#line-172">recordLine</a>(linePtr *<a href="../builtin.html#name-int">int</a>)</label><span id='printer-fold-method-recordLine-docs' class="fold-docs">
+<span class="md-text">				recordLine records the output line number for the next non-whitespace
+				token in *linePtr. It is used to compute an accurate line number for a
+				formatted construct, independent of pending (not yet emitted) whitespace
+				or comments.</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="printer-fold-method-selectorExpr"><label for="printer-fold-method-selectorExpr">(*printer) <a href="../../src/go/printer/nodes.go.html#line-1157">selectorExpr</a>(x *<a href="ast.html">ast</a>.<a href="ast.html#name-SelectorExpr">SelectorExpr</a>, depth <a href="../builtin.html#name-int">int</a>, isMethod <a href="../builtin.html#name-bool">bool</a>) <a href="../builtin.html#name-bool">bool</a></label><span id='printer-fold-method-selectorExpr-docs' class="fold-docs">
+<span class="md-text">				selectorExpr handles an *ast.SelectorExpr node and reports whether x spans
+				multiple lines.</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="printer-fold-method-setComment"><label for="printer-fold-method-setComment">(*printer) <a href="../../src/go/printer/nodes.go.html#line-67">setComment</a>(g *<a href="ast.html">ast</a>.<a href="ast.html#name-CommentGroup">CommentGroup</a>)</label><span id='printer-fold-method-setComment-docs' class="fold-docs">
+<span class="md-text">				setComment sets g as the next comment if g != nil and if node comments
+				are enabled - this mode is used when printing source code fragments such
+				as exports only. It assumes that there is no pending comment in p.comments
+				and at most one pending comment in the p.comment cache.</span>
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*printer) <a href="../../src/go/printer/nodes.go.html#line-489">setLineComment</a>(text <a href="../builtin.html#name-string">string</a>)</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*printer) <a href="../../src/go/printer/printer.go.html#line-885">setPos</a>(pos <a href="token.html">token</a>.<a href="token.html#name-Pos">Pos</a>)</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*printer) <a href="../../src/go/printer/nodes.go.html#line-435">signature</a>(sig *<a href="ast.html">ast</a>.<a href="ast.html#name-FuncType">FuncType</a>)</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="printer-fold-method-spec"><label for="printer-fold-method-spec">(*printer) <a href="../../src/go/printer/nodes.go.html#line-1685">spec</a>(spec <a href="ast.html">ast</a>.<a href="ast.html#name-Spec">Spec</a>, n <a href="../builtin.html#name-int">int</a>, doIndent <a href="../builtin.html#name-bool">bool</a>)</label><span id='printer-fold-method-spec-docs' class="fold-docs">
+<span class="md-text">				The parameter n is the number of specs in the group. If doIndent is set,
+				multi-line identifier lists in the spec are indented when the first
+				linebreak is encountered.</span>
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*printer) <a href="../../src/go/printer/nodes.go.html#line-1347">stmt</a>(stmt <a href="ast.html">ast</a>.<a href="ast.html#name-Stmt">Stmt</a>, nextIsRBrace <a href="../builtin.html#name-bool">bool</a>)</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="printer-fold-method-stmtList"><label for="printer-fold-method-stmtList">(*printer) <a href="../../src/go/printer/nodes.go.html#line-1189">stmtList</a>(list []<a href="ast.html">ast</a>.<a href="ast.html#name-Stmt">Stmt</a>, nindent <a href="../builtin.html#name-int">int</a>, nextIsRBrace <a href="../builtin.html#name-bool">bool</a>)</label><span id='printer-fold-method-stmtList-docs' class="fold-docs">
+<span class="md-text">				Print the statement list indented, but without a newline after the last statement.
+				Extra line breaks between statements in the source are respected but at most one
+				empty line is printed between statements.</span>
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*printer) <a href="../../src/go/printer/nodes.go.html#line-1615">valueSpec</a>(s *<a href="ast.html">ast</a>.<a href="ast.html#name-ValueSpec">ValueSpec</a>, keepType <a href="../builtin.html#name-bool">bool</a>)</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="printer-fold-method-writeByte"><label for="printer-fold-method-writeByte">(*printer) <a href="../../src/go/printer/printer.go.html#line-233">writeByte</a>(ch <a href="../builtin.html#name-byte">byte</a>, n <a href="../builtin.html#name-int">int</a>)</label><span id='printer-fold-method-writeByte-docs' class="fold-docs">
+<span class="md-text">				writeByte writes ch n times to p.output and updates p.pos.
+				Only used to write formatting (white space) characters.</span>
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*printer) <a href="../../src/go/printer/printer.go.html#line-629">writeComment</a>(comment *<a href="ast.html">ast</a>.<a href="ast.html#name-Comment">Comment</a>)</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="printer-fold-method-writeCommentPrefix"><label for="printer-fold-method-writeCommentPrefix">(*printer) <a href="../../src/go/printer/printer.go.html#line-349">writeCommentPrefix</a>(pos, next <a href="token.html">token</a>.<a href="token.html#name-Position">Position</a>, prev *<a href="ast.html">ast</a>.<a href="ast.html#name-Comment">Comment</a>, tok <a href="token.html">token</a>.<a href="token.html#name-Token">Token</a>)</label><span id='printer-fold-method-writeCommentPrefix-docs' class="fold-docs">
+<span class="md-text">				writeCommentPrefix writes the whitespace before a comment.
+				If there is any pending whitespace, it consumes as much of
+				it as is likely to help position the comment nicely.
+				pos is the comment position, next the position of the item
+				after all pending comments, prev is the previous comment in
+				a group of comments (or nil), and tok is the next token.</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="printer-fold-method-writeCommentSuffix"><label for="printer-fold-method-writeCommentSuffix">(*printer) <a href="../../src/go/printer/printer.go.html#line-689">writeCommentSuffix</a>(needsLinebreak <a href="../builtin.html#name-bool">bool</a>) (wroteNewline, droppedFF <a href="../builtin.html#name-bool">bool</a>)</label><span id='printer-fold-method-writeCommentSuffix-docs' class="fold-docs">
+<span class="md-text">				writeCommentSuffix writes a line break after a comment if indicated
+				and processes any leftover indentation information. If a line break
+				is needed, the kind of break (newline vs formfeed) depends on the
+				pending whitespace. The writeCommentSuffix result indicates if a
+				newline was written or if a formfeed was dropped from the whitespace
+				buffer.</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="printer-fold-method-writeIndent"><label for="printer-fold-method-writeIndent">(*printer) <a href="../../src/go/printer/printer.go.html#line-217">writeIndent</a>()</label><span id='printer-fold-method-writeIndent-docs' class="fold-docs">
+<span class="md-text">				writeIndent writes indentation.</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="printer-fold-method-writeLineDirective"><label for="printer-fold-method-writeLineDirective">(*printer) <a href="../../src/go/printer/printer.go.html#line-198">writeLineDirective</a>(pos <a href="token.html">token</a>.<a href="token.html#name-Position">Position</a>)</label><span id='printer-fold-method-writeLineDirective-docs' class="fold-docs">
+<span class="md-text">				writeLineDirective writes a //line directive if necessary.</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="printer-fold-method-writeString"><label for="printer-fold-method-writeString">(*printer) <a href="../../src/go/printer/printer.go.html#line-280">writeString</a>(pos <a href="token.html">token</a>.<a href="token.html#name-Position">Position</a>, s <a href="../builtin.html#name-string">string</a>, isLit <a href="../builtin.html#name-bool">bool</a>)</label><span id='printer-fold-method-writeString-docs' class="fold-docs">
+<span class="md-text">				writeString writes the string s to p.output and updates p.pos, p.out,
+				and p.last. If isLit is set, s is escaped w/ tabwriter.Escape characters
+				to protect s from being interpreted by the tabwriter.
+				
+				Note: writeString is only used to write Go tokens, literals, and
+				comments, all of which must be written literally. Thus, it is correct
+				to always set isLit = true. However, setting it explicitly only when
+				needed (i.e., when we don't know that s contains no tabs or line breaks)
+				avoids processing extra escape characters and reduces run time of the
+				printer benchmark by up to 10%.</span>
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="printer-fold-method-writeWhitespace"><label for="printer-fold-method-writeWhitespace">(*printer) <a href="../../src/go/printer/printer.go.html#line-817">writeWhitespace</a>(n <a href="../builtin.html#name-int">int</a>)</label><span id='printer-fold-method-writeWhitespace-docs' class="fold-docs">
+<span class="md-text">				writeWhitespace writes the first n whitespace entries.</span>
+</span></i></span></span>
+		<input type='checkbox' class="fold" id="printer-fold-results"><label for="printer-fold-results">As Outputs Of (<i>at least one unexported</i>)</label><span id='printer-fold-results-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="printer-showhide-inputofs"><i><label for="printer-showhide-inputofs" class="show-inline">/* at least one unexported ... */</label><label for="printer-showhide-inputofs" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			func <a href="#name-newPrinter">newPrinter</a>(cfg *<a href="#name-Config">Config</a>, fset *<a href="token.html">token</a>.<a href="token.html#name-FileSet">FileSet</a>, nodeSizes map[<a href="ast.html">ast</a>.<a href="ast.html#name-Node">Node</a>]<a href="../builtin.html#name-int">int</a>) *<b>printer</b></i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-sizeCounter" data-popularity="200">	<input type='checkbox' class="fold" id="sizeCounter-fold-content"><label for="sizeCounter-fold-content"> <a href="../../use/go/printer..sizeCounter^62490.html">type</a> <a href="../../src/go/printer/nodes.go.html#line-1781">sizeCounter</a> <i>(struct)</i></label><span id='sizeCounter-fold-content-docs' class="fold-docs">
+<span class="md-text">		sizeCounter is an io.Writer which counts the number of bytes written,
+		as well as whether a newline character was seen.</span>
+
+		<input type='checkbox' class="fold" id="sizeCounter-fold-fields"><label for="sizeCounter-fold-fields">Fields (<i>total 2, neither is exported</i>)</label><span id='sizeCounter-fold-fields-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="sizeCounter-showhide-fields"><i><label for="sizeCounter-showhide-fields" class="show-inline">/* 2 unexporteds ... */</label><label for="sizeCounter-showhide-fields" class="hide-inline">/* 2 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs"><a href="../../src/go/printer/nodes.go.html#line-1782">hasNewline</a> <i><a href="../builtin.html#name-bool">bool</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../src/go/printer/nodes.go.html#line-1783">size</a> <i><a href="../builtin.html#name-int">int</a></i></span></i></span></span>
+		<input type='checkbox' class="fold" id="sizeCounter-fold-methods"><label for="sizeCounter-fold-methods">Methods (<i>only one, which is exported</i>)</label><span id='sizeCounter-fold-methods-items' class="fold-items"><span>
+			<span class="nodocs">(*sizeCounter) <a href="../../src/go/printer/nodes.go.html#line-1786">Write</a>(p []<a href="../builtin.html#name-byte">byte</a>) (<a href="../builtin.html#name-int">int</a>, <a href="../builtin.html#name-error">error</a>)</span></span></span>
+		<input type='checkbox' class="fold" id="sizeCounter-fold-impls"><label for="sizeCounter-fold-impls">Implements (<i>at least 3, in which 2 are exported</i>)</label><span id='sizeCounter-fold-impls-items' class="fold-items"><span>
+			*sizeCounter : internal/bisect.<a href="../internal/bisect.html#name-Writer">Writer</a></span><span>
+			*sizeCounter : io.<a href="../io.html#name-Writer">Writer</a></span>
+			<input type='checkbox' checked class="showhide" id="sizeCounter-showhide-impls"><i><label for="sizeCounter-showhide-impls" class="show-inline">/* at least one unexported ... */</label><label for="sizeCounter-showhide-impls" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			*sizeCounter : crypto/tls.<a href="../crypto/tls.html#name-transcriptHash">transcriptHash</a></i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-trimmer" data-popularity="250">	<input type='checkbox' class="fold" id="trimmer-fold-content"><label for="trimmer-fold-content"> <a href="../../use/go/printer..trimmer^cb6d3.html">type</a> <a href="../../src/go/printer/printer.go.html#line-1191">trimmer</a> <i>(struct)</i></label><span id='trimmer-fold-content-docs' class="fold-docs">
+<span class="md-text">		A trimmer is an io.Writer filter for stripping tabwriter.Escape
+		characters, trailing blanks and tabs, and for converting formfeed
+		and vtab characters into newlines and htabs (in case no tabwriter
+		is used). Text bracketed by tabwriter.Escape characters is passed
+		through unchanged.</span>
+
+		<input type='checkbox' class="fold" id="trimmer-fold-fields"><label for="trimmer-fold-fields">Fields (<i>total 3, none are exported</i>)</label><span id='trimmer-fold-fields-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="trimmer-showhide-fields"><i><label for="trimmer-showhide-fields" class="show-inline">/* 3 unexporteds ... */</label><label for="trimmer-showhide-fields" class="hide-inline">/* 3 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs"><a href="../../src/go/printer/printer.go.html#line-1192">output</a> <i><a href="../io.html">io</a>.<a href="../io.html#name-Writer">Writer</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../src/go/printer/printer.go.html#line-1194">space</a> <i>[]<a href="../builtin.html#name-byte">byte</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../src/go/printer/printer.go.html#line-1193">state</a> <i><a href="../builtin.html#name-int">int</a></i></span></i></span></span>
+		<input type='checkbox' class="fold" id="trimmer-fold-methods"><label for="trimmer-fold-methods">Methods (<i>total 2, in which 1 is exported</i>)</label><span id='trimmer-fold-methods-items' class="fold-items"><span>
+			<span class="nodocs">(*trimmer) <a href="../../src/go/printer/printer.go.html#line-1218">Write</a>(data []<a href="../builtin.html#name-byte">byte</a>) (n <a href="../builtin.html#name-int">int</a>, err <a href="../builtin.html#name-error">error</a>)</span></span>
+			<input type='checkbox' checked class="showhide" id="trimmer-showhide-methods"><i><label for="trimmer-showhide-methods" class="show-inline">/* one unexported ... */</label><label for="trimmer-showhide-methods" class="hide-inline">/* one unexported: */</label></i><span class="hidden"><i>
+			<span class="nodocs">(*trimmer) <a href="../../src/go/printer/printer.go.html#line-1205">resetSpace</a>()</span></i></span></span>
+		<input type='checkbox' class="fold" id="trimmer-fold-impls"><label for="trimmer-fold-impls">Implements (<i>at least 3, in which 2 are exported</i>)</label><span id='trimmer-fold-impls-items' class="fold-items"><span>
+			*trimmer : internal/bisect.<a href="../internal/bisect.html#name-Writer">Writer</a></span><span>
+			*trimmer : io.<a href="../io.html#name-Writer">Writer</a></span>
+			<input type='checkbox' checked class="showhide" id="trimmer-showhide-impls"><i><label for="trimmer-showhide-impls" class="show-inline">/* at least one unexported ... */</label><label for="trimmer-showhide-impls" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			*trimmer : crypto/tls.<a href="../crypto/tls.html#name-transcriptHash">transcriptHash</a></i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-whiteSpace" data-popularity="15">	<input type='checkbox' class="fold" id="whiteSpace-fold-content"><label for="whiteSpace-fold-content"> <a href="../../use/go/printer..whiteSpace^2a27e.html">type</a> <a href="../../src/go/printer/printer.go.html#line-27">whiteSpace</a> <a href="../builtin.html#name-byte">byte</a> <i>(basic type)</i></label><span id='whiteSpace-fold-content-docs' class="fold-docs">
+
+		<input type='checkbox' class="fold" id="whiteSpace-fold-values"><label for="whiteSpace-fold-values">As Types Of (<i>total 7, none are exported</i>)</label><span id='whiteSpace-fold-values-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="whiteSpace-showhide-values"><i><label for="whiteSpace-showhide-values" class="show-inline">/* 7 unexporteds ... */</label><label for="whiteSpace-showhide-values" class="hide-inline">/* 7 unexporteds: */</label></i><span class="hidden"><i>
+			const <a href="#name-blank">blank</a></i></span><span class="hidden"><i>
+			const <a href="#name-formfeed">formfeed</a></i></span><span class="hidden"><i>
+			const <a href="#name-ignore">ignore</a></i></span><span class="hidden"><i>
+			const <a href="#name-indent">indent</a></i></span><span class="hidden"><i>
+			const <a href="#name-newline">newline</a></i></span><span class="hidden"><i>
+			const <a href="#name-unindent">unindent</a></i></span><span class="hidden"><i>
+			const <a href="#name-vtab">vtab</a></i></span></span>
+
+</span></div></div>
+<div id="exported-functions"><span class="title">Package-Level Functions<span class="title-stat"><i> (total 30, in which 1 is exported)</i></span></span>
+
+<div class="anchor value-res" id="name-Fprint">	<input type='checkbox' class="fold" id="Fprint-fold-content"><label for="Fprint-fold-content"> <a href="../../use/go/printer..Fprint.html">func</a> <a href="../../src/go/printer/printer.go.html#line-1431">Fprint</a>(output <a href="../io.html">io</a>.<a href="../io.html#name-Writer">Writer</a>, fset *<a href="token.html">token</a>.<a href="token.html#name-FileSet">FileSet</a>, node <a href="../builtin.html#name-any">any</a>) <a href="../builtin.html#name-error">error</a></label><span id='Fprint-fold-content-docs' class="fold-docs">
+<span class="md-text">		Fprint "pretty-prints" an AST node to output.
+		It calls [Config.Fprint] with default settings.
+		Note that gofmt uses tabs for indentation but spaces for alignment;
+		use format.Node (package go/format) for output that matches gofmt.</span>
+
+</span></div>	<input type='checkbox' class="showhide" id="unexported-functions-showhide"><i><label for="unexported-functions-showhide" class="show-inline">/* 29 unexporteds ... */</label><label for="unexported-functions-showhide" class="hide-inline">/* 29 unexporteds: */</label></i><div class="anchor value-res hidden" id="name-allStars"><i>	<input type='checkbox' class="fold" id="allStars-fold-content"><label for="allStars-fold-content"> <a href="../../use/go/printer..allStars^8072b.html">func</a> <a href="../../src/go/printer/comment.go.html#line-142">allStars</a>(text <a href="../builtin.html#name-string">string</a>) <a href="../builtin.html#name-bool">bool</a></label><span id='allStars-fold-content-docs' class="fold-docs">
+<span class="md-text">		allStars reports whether text is the interior of an
+		old-style /* */ comment with a star at the start of each line.</span>
+
+</span></i></div><div class="anchor value-res hidden" id="name-appendLines"><i>	<input type='checkbox' class="fold" id="appendLines-fold-content"><label for="appendLines-fold-content"> <a href="../../use/go/printer..appendLines^b3059.html">func</a> <a href="../../src/go/printer/gobuild.go.html#line-138">appendLines</a>(x, y []<a href="../builtin.html#name-byte">byte</a>) []<a href="../builtin.html#name-byte">byte</a></label><span id='appendLines-fold-content-docs' class="fold-docs">
+<span class="md-text">		appendLines is like append(x, y...)
+		but it avoids creating doubled blank lines,
+		which would not be gofmt-standard output.
+		It assumes that only whole blocks of lines are being appended,
+		not line fragments.</span>
+
+</span></i></div><div class="anchor value-res hidden" id="name-combinesWithName"><i>	<input type='checkbox' class="fold" id="combinesWithName-fold-content"><label for="combinesWithName-fold-content"> <a href="../../use/go/printer..combinesWithName^aa503.html">func</a> <a href="../../src/go/printer/nodes.go.html#line-406">combinesWithName</a>(x <a href="ast.html">ast</a>.<a href="ast.html#name-Expr">Expr</a>) <a href="../builtin.html#name-bool">bool</a></label><span id='combinesWithName-fold-content-docs' class="fold-docs">
+<span class="md-text">		combinesWithName reports whether a name followed by the expression x
+		syntactically combines to another valid (value) expression. For instance
+		using *T for x, "name *T" syntactically appears as the expression x*T.
+		On the other hand, using  P|Q or *P|~Q for x, "name P|Q" or "name *P|~Q"
+		cannot be combined into a valid (value) expression.</span>
+
+</span></i></div><div class="anchor value-res hidden" id="name-commonPrefix"><i>	<input type='checkbox' class="fold" id="commonPrefix-fold-content"><label for="commonPrefix-fold-content"> <a href="../../use/go/printer..commonPrefix^dd10c.html">func</a> <a href="../../src/go/printer/printer.go.html#line-484">commonPrefix</a>(a, b <a href="../builtin.html#name-string">string</a>) <a href="../builtin.html#name-string">string</a></label><span id='commonPrefix-fold-content-docs' class="fold-docs">
+<span class="md-text">		commonPrefix returns the common prefix of a and b.</span>
+
+</span></i></div><div class="anchor value-res hidden" id="name-cutoff"><i>	<span class="nodocs"> <a href="../../use/go/printer..cutoff^9ff7e.html">func</a> <a href="../../src/go/printer/nodes.go.html#line-699">cutoff</a>(e *<a href="ast.html">ast</a>.<a href="ast.html#name-BinaryExpr">BinaryExpr</a>, depth <a href="../builtin.html#name-int">int</a>) <a href="../builtin.html#name-int">int</a></span></i></div><div class="anchor value-res hidden" id="name-declToken"><i>	<span class="nodocs"> <a href="../../use/go/printer..declToken^dc918.html">func</a> <a href="../../src/go/printer/nodes.go.html#line-1954">declToken</a>(decl <a href="ast.html">ast</a>.<a href="ast.html#name-Decl">Decl</a>) (tok <a href="token.html">token</a>.<a href="token.html#name-Token">Token</a>)</span></i></div><div class="anchor value-res hidden" id="name-diffPrec"><i>	<span class="nodocs"> <a href="../../use/go/printer..diffPrec^b0adf.html">func</a> <a href="../../src/go/printer/nodes.go.html#line-716">diffPrec</a>(expr <a href="ast.html">ast</a>.<a href="ast.html#name-Expr">Expr</a>, prec <a href="../builtin.html#name-int">int</a>) <a href="../builtin.html#name-int">int</a></span></i></div><div class="anchor value-res hidden" id="name-formatDocComment"><i>	<input type='checkbox' class="fold" id="formatDocComment-fold-content"><label for="formatDocComment-fold-content"> <a href="../../use/go/printer..formatDocComment^132e0.html">func</a> <a href="../../src/go/printer/comment.go.html#line-15">formatDocComment</a>(list []*<a href="ast.html">ast</a>.<a href="ast.html#name-Comment">Comment</a>) []*<a href="ast.html">ast</a>.<a href="ast.html#name-Comment">Comment</a></label><span id='formatDocComment-fold-content-docs' class="fold-docs">
+<span class="md-text">		formatDocComment reformats the doc comment list,
+		returning the canonical formatting.</span>
+
+</span></i></div><div class="anchor value-res hidden" id="name-getDoc"><i>	<input type='checkbox' class="fold" id="getDoc-fold-content"><label for="getDoc-fold-content"> <a href="../../use/go/printer..getDoc^9b3eb.html">func</a> <a href="../../src/go/printer/printer.go.html#line-1049">getDoc</a>(n <a href="ast.html">ast</a>.<a href="ast.html#name-Node">Node</a>) *<a href="ast.html">ast</a>.<a href="ast.html#name-CommentGroup">CommentGroup</a></label><span id='getDoc-fold-content-docs' class="fold-docs">
+<span class="md-text">		getDoc returns the ast.CommentGroup associated with n, if any.</span>
+
+</span></i></div><div class="anchor value-res hidden" id="name-getLastComment"><i>	<span class="nodocs"> <a href="../../use/go/printer..getLastComment^69538.html">func</a> <a href="../../src/go/printer/printer.go.html#line-1069">getLastComment</a>(n <a href="ast.html">ast</a>.<a href="ast.html#name-Node">Node</a>) *<a href="ast.html">ast</a>.<a href="ast.html#name-CommentGroup">CommentGroup</a></span></i></div><div class="anchor value-res hidden" id="name-identListSize"><i>	<span class="nodocs"> <a href="../../use/go/printer..identListSize^313fe.html">func</a> <a href="../../src/go/printer/nodes.go.html#line-458">identListSize</a>(list []*<a href="ast.html">ast</a>.<a href="ast.html#name-Ident">Ident</a>, maxSize <a href="../builtin.html#name-int">int</a>) (size <a href="../builtin.html#name-int">int</a>)</span></i></div><div class="anchor value-res hidden" id="name-isBinary"><i>	<span class="nodocs"> <a href="../../use/go/printer..isBinary^3f3f0.html">func</a> <a href="../../src/go/printer/nodes.go.html#line-808">isBinary</a>(expr <a href="ast.html">ast</a>.<a href="ast.html#name-Expr">Expr</a>) <a href="../builtin.html#name-bool">bool</a></span></i></div><div class="anchor value-res hidden" id="name-isBlank"><i>	<input type='checkbox' class="fold" id="isBlank-fold-content"><label for="isBlank-fold-content"> <a href="../../use/go/printer..isBlank^5affb.html">func</a> <a href="../../src/go/printer/printer.go.html#line-474">isBlank</a>(s <a href="../builtin.html#name-string">string</a>) <a href="../builtin.html#name-bool">bool</a></label><span id='isBlank-fold-content-docs' class="fold-docs">
+<span class="md-text">		Returns true if s contains only white space
+		(only tabs and blanks can appear in the printer's context).</span>
+
+</span></i></div><div class="anchor value-res hidden" id="name-isDirective"><i>	<input type='checkbox' class="fold" id="isDirective-fold-content"><label for="isDirective-fold-content"> <a href="../../use/go/printer..isDirective^5121a.html">func</a> <a href="../../src/go/printer/comment.go.html#line-113">isDirective</a>(c <a href="../builtin.html#name-string">string</a>) <a href="../builtin.html#name-bool">bool</a></label><span id='isDirective-fold-content-docs' class="fold-docs">
+<span class="md-text">		isDirective reports whether c is a comment directive.
+		See go.dev/issue/37974.
+		This code is also in go/ast.</span>
+
+</span></i></div><div class="anchor value-res hidden" id="name-isNL"><i>	<span class="nodocs"> <a href="../../use/go/printer..isNL^65a56.html">func</a> <a href="../../src/go/printer/gobuild.go.html#line-168">isNL</a>(b <a href="../builtin.html#name-byte">byte</a>) <a href="../builtin.html#name-bool">bool</a></span></i></div><div class="anchor value-res hidden" id="name-isTypeElem"><i>	<input type='checkbox' class="fold" id="isTypeElem-fold-content"><label for="isTypeElem-fold-content"> <a href="../../use/go/printer..isTypeElem^9c723.html">func</a> <a href="../../src/go/printer/nodes.go.html#line-421">isTypeElem</a>(x <a href="ast.html">ast</a>.<a href="ast.html#name-Expr">Expr</a>) <a href="../builtin.html#name-bool">bool</a></label><span id='isTypeElem-fold-content-docs' class="fold-docs">
+<span class="md-text">		isTypeElem reports whether x is a (possibly parenthesized) type element expression.
+		The result is false if x could be a type element OR an ordinary (value) expression.</span>
+
+</span></i></div><div class="anchor value-res hidden" id="name-isTypeName"><i>	<span class="nodocs"> <a href="../../use/go/printer..isTypeName^8ae19.html">func</a> <a href="../../src/go/printer/nodes.go.html#line-1236">isTypeName</a>(x <a href="ast.html">ast</a>.<a href="ast.html#name-Expr">Expr</a>) <a href="../builtin.html#name-bool">bool</a></span></i></div><div class="anchor value-res hidden" id="name-keepTypeColumn"><i>	<input type='checkbox' class="fold" id="keepTypeColumn-fold-content"><label for="keepTypeColumn-fold-content"> <a href="../../use/go/printer..keepTypeColumn^b001e.html">func</a> <a href="../../src/go/printer/nodes.go.html#line-1575">keepTypeColumn</a>(specs []<a href="ast.html">ast</a>.<a href="ast.html#name-Spec">Spec</a>) []<a href="../builtin.html#name-bool">bool</a></label><span id='keepTypeColumn-fold-content-docs' class="fold-docs">
+<span class="md-text">		The keepTypeColumn function determines if the type column of a series of
+		consecutive const or var declarations must be kept, or if initialization
+		values (V) can be placed in the type column (T) instead. The i'th entry
+		in the result slice is true if the type column in spec[i] must be kept.
+		
+		For example, the declaration:
+		
+				const (
+					foobar int = 42 // comment
+					x          = 7  // comment
+					foo
+			             bar = 991
+				)
+		
+		leads to the type/values matrix below. A run of value columns (V) can
+		be moved into the type column if there is no type for any of the values
+		in that column (we only move entire columns so that they align properly).
+		
+				matrix        formatted     result
+			                   matrix
+				T  V    -&gt;    T  V     -&gt;   true      there is a T and so the type
+				-  V          -  V          true      column must be kept
+				-  -          -  -          false
+				-  V          V  -          false     V is moved into T column</span>
+
+</span></i></div><div class="anchor value-res hidden" id="name-mayCombine"><i>	<span class="nodocs"> <a href="../../use/go/printer..mayCombine^427ed.html">func</a> <a href="../../src/go/printer/printer.go.html#line-867">mayCombine</a>(prev <a href="token.html">token</a>.<a href="token.html#name-Token">Token</a>, next <a href="../builtin.html#name-byte">byte</a>) (b <a href="../builtin.html#name-bool">bool</a>)</span></i></div><div class="anchor value-res hidden" id="name-newPrinter"><i>	<span class="nodocs"> <a href="../../use/go/printer..newPrinter^33676.html">func</a> <a href="../../src/go/printer/printer.go.html#line-1335">newPrinter</a>(cfg *<a href="#name-Config">Config</a>, fset *<a href="token.html">token</a>.<a href="token.html#name-FileSet">FileSet</a>, nodeSizes map[<a href="ast.html">ast</a>.<a href="ast.html#name-Node">Node</a>]<a href="../builtin.html#name-int">int</a>) *<a href="#name-printer">printer</a></span></i></div><div class="anchor value-res hidden" id="name-nlimit"><i>	<input type='checkbox' class="fold" id="nlimit-fold-content"><label for="nlimit-fold-content"> <a href="../../use/go/printer..nlimit^9bc13.html">func</a> <a href="../../src/go/printer/printer.go.html#line-863">nlimit</a>(n <a href="../builtin.html#name-int">int</a>) <a href="../builtin.html#name-int">int</a></label><span id='nlimit-fold-content-docs' class="fold-docs">
+<span class="md-text">		nlimit limits n to maxNewlines.</span>
+
+</span></i></div><div class="anchor value-res hidden" id="name-normalizedNumber"><i>	<input type='checkbox' class="fold" id="normalizedNumber-fold-content"><label for="normalizedNumber-fold-content"> <a href="../../use/go/printer..normalizedNumber^d27ec.html">func</a> <a href="../../src/go/printer/nodes.go.html#line-1095">normalizedNumber</a>(lit *<a href="ast.html">ast</a>.<a href="ast.html#name-BasicLit">BasicLit</a>) *<a href="ast.html">ast</a>.<a href="ast.html#name-BasicLit">BasicLit</a></label><span id='normalizedNumber-fold-content-docs' class="fold-docs">
+<span class="md-text">		normalizedNumber rewrites base prefixes and exponents
+		of numbers to use lower-case letters (0X123 to 0x123 and 1.2E3 to 1.2e3),
+		and removes leading 0's from integer imaginary literals (0765i to 765i).
+		It leaves hexadecimal digits alone.
+		
+		normalizedNumber doesn't modify the ast.BasicLit value lit points to.
+		If lit is not a number or a number in canonical format already,
+		lit is returned as is. Otherwise a new ast.BasicLit is created.</span>
+
+</span></i></div><div class="anchor value-res hidden" id="name-reduceDepth"><i>	<span class="nodocs"> <a href="../../use/go/printer..reduceDepth^8b548.html">func</a> <a href="../../src/go/printer/nodes.go.html#line-724">reduceDepth</a>(depth <a href="../builtin.html#name-int">int</a>) <a href="../builtin.html#name-int">int</a></span></i></div><div class="anchor value-res hidden" id="name-sanitizeImportPath"><i>	<span class="nodocs"> <a href="../../use/go/printer..sanitizeImportPath^5885f.html">func</a> <a href="../../src/go/printer/nodes.go.html#line-1639">sanitizeImportPath</a>(lit *<a href="ast.html">ast</a>.<a href="ast.html#name-BasicLit">BasicLit</a>) *<a href="ast.html">ast</a>.<a href="ast.html#name-BasicLit">BasicLit</a></span></i></div><div class="anchor value-res hidden" id="name-stripCommonPrefix"><i>	<input type='checkbox' class="fold" id="stripCommonPrefix-fold-content"><label for="stripCommonPrefix-fold-content"> <a href="../../use/go/printer..stripCommonPrefix^75fc1.html">func</a> <a href="../../src/go/printer/printer.go.html#line-502">stripCommonPrefix</a>(lines []<a href="../builtin.html#name-string">string</a>)</label><span id='stripCommonPrefix-fold-content-docs' class="fold-docs">
+<span class="md-text">		stripCommonPrefix removes a common prefix from /*-style comment lines (unless no
+		comment line is indented, all but the first line have some form of space prefix).
+		The prefix is computed using heuristics such that is likely that the comment
+		contents are nicely laid out after re-printing each line using the printer's
+		current indentation.</span>
+
+</span></i></div><div class="anchor value-res hidden" id="name-stripParens"><i>	<span class="nodocs"> <a href="../../use/go/printer..stripParens^05b6f.html">func</a> <a href="../../src/go/printer/nodes.go.html#line-1246">stripParens</a>(x <a href="ast.html">ast</a>.<a href="ast.html#name-Expr">Expr</a>) <a href="ast.html">ast</a>.<a href="ast.html#name-Expr">Expr</a></span></i></div><div class="anchor value-res hidden" id="name-stripParensAlways"><i>	<span class="nodocs"> <a href="../../use/go/printer..stripParensAlways^c4437.html">func</a> <a href="../../src/go/printer/nodes.go.html#line-1272">stripParensAlways</a>(x <a href="ast.html">ast</a>.<a href="ast.html#name-Expr">Expr</a>) <a href="ast.html">ast</a>.<a href="ast.html#name-Expr">Expr</a></span></i></div><div class="anchor value-res hidden" id="name-trimRight"><i>	<input type='checkbox' class="fold" id="trimRight-fold-content"><label for="trimRight-fold-content"> <a href="../../use/go/printer..trimRight^91b11.html">func</a> <a href="../../src/go/printer/printer.go.html#line-493">trimRight</a>(s <a href="../builtin.html#name-string">string</a>) <a href="../builtin.html#name-string">string</a></label><span id='trimRight-fold-content-docs' class="fold-docs">
+<span class="md-text">		trimRight returns s with trailing whitespace removed.</span>
+
+</span></i></div><div class="anchor value-res hidden" id="name-walkBinary"><i>	<span class="nodocs"> <a href="../../use/go/printer..walkBinary^31224.html">func</a> <a href="../../src/go/printer/nodes.go.html#line-650">walkBinary</a>(e *<a href="ast.html">ast</a>.<a href="ast.html#name-BinaryExpr">BinaryExpr</a>) (has4, has5 <a href="../builtin.html#name-bool">bool</a>, maxProblem <a href="../builtin.html#name-int">int</a>)</span></i></div></div>
+<div id="exported-variables"><span class="title">Package-Level Variables<span class="title-stat"><i> (total 2, neither is exported)</i></span></span>
+
+	<input type='checkbox' class="showhide" id="unexported-variables-showhide"><i><label for="unexported-variables-showhide" class="show-inline">/* 2 unexporteds ... */</label><label for="unexported-variables-showhide" class="hide-inline">/* 2 unexporteds: */</label></i><div class="anchor value-res hidden" id="name-aNewline"><i>	<span class="nodocs">  <a href="../../use/go/printer..aNewline^ad261.html">var</a> <a href="../../src/go/printer/printer.go.html#line-1216">aNewline</a> []<a href="../builtin.html#name-byte">byte</a></span></i></div><div class="anchor value-res hidden" id="name-printerPool"><i>	<span class="nodocs">  <a href="../../use/go/printer..printerPool^6b226.html">var</a> <a href="../../src/go/printer/printer.go.html#line-1323">printerPool</a> <a href="../sync.html">sync</a>.<a href="../sync.html#name-Pool">Pool</a></span></i></div></div>
+<div id="exported-constants"><span class="title">Package-Level Constants<span class="title-stat"><i> (total 26, in which 4 are exported)</i></span></span>
+
+<div class="anchor value-res" id="name-RawFormat">	<span class="nodocs"><a href="../../use/go/printer..RawFormat.html">const</a> <a href="../../src/go/printer/printer.go.html#line-1294">RawFormat</a> <a href="#name-Mode">Mode</a> = 1 // <span class="md-text">do not use a tabwriter; if set, UseSpaces is ignored</span></span></div><div class="anchor value-res" id="name-SourcePos">	<span class="nodocs"><a href="../../use/go/printer..SourcePos.html">const</a> <a href="../../src/go/printer/printer.go.html#line-1297">SourcePos</a> <a href="#name-Mode">Mode</a> = 8 // <span class="md-text">emit //line directives to preserve original source positions</span></span></div><div class="anchor value-res" id="name-TabIndent">	<span class="nodocs"><a href="../../use/go/printer..TabIndent.html">const</a> <a href="../../src/go/printer/printer.go.html#line-1295">TabIndent</a> <a href="#name-Mode">Mode</a> = 2 // <span class="md-text">use tabs for indentation independent of UseSpaces</span></span></div><div class="anchor value-res" id="name-UseSpaces">	<span class="nodocs"><a href="../../use/go/printer..UseSpaces.html">const</a> <a href="../../src/go/printer/printer.go.html#line-1296">UseSpaces</a> <a href="#name-Mode">Mode</a> = 4 // <span class="md-text">use spaces instead of tabs for alignment</span></span></div>	<input type='checkbox' class="showhide" id="unexported-constants-showhide"><i><label for="unexported-constants-showhide" class="show-inline">/* 22 unexporteds ... */</label><label for="unexported-constants-showhide" class="hide-inline">/* 22 unexporteds: */</label></i><div class="anchor value-res hidden" id="name-blank"><i>	<span class="nodocs"><a href="../../use/go/printer..blank^ff71c.html">const</a> <a href="../../src/go/printer/printer.go.html#line-31">blank</a> <a href="#name-whiteSpace">whiteSpace</a> = 32</span></i></div><div class="anchor value-res hidden" id="name-commaTerm"><i>	<span class="nodocs"><a href="../../use/go/printer..commaTerm^f6b89.html">const</a> <a href="../../src/go/printer/nodes.go.html#line-97">commaTerm</a> <a href="#name-exprListMode">exprListMode</a> = 1 // <span class="md-text">list is optionally terminated by a comma</span></span></i></div><div class="anchor value-res hidden" id="name-debug"><i>	<span class="nodocs"><a href="../../use/go/printer..debug^0b8e9.html">const</a> <a href="../../src/go/printer/printer.go.html#line-23">debug</a> = false // <span class="md-text">enable for debugging</span></span></i></div><div class="anchor value-res hidden" id="name-filteredMsg"><i>	<span class="nodocs"><a href="../../use/go/printer..filteredMsg^26f7e.html">const</a> <a href="../../src/go/printer/nodes.go.html#line-116">filteredMsg</a> = "contains filtered or unexported fields"</span></i></div><div class="anchor value-res hidden" id="name-formfeed"><i>	<span class="nodocs"><a href="../../use/go/printer..formfeed^ceb7c.html">const</a> <a href="../../src/go/printer/printer.go.html#line-34">formfeed</a> <a href="#name-whiteSpace">whiteSpace</a> = 12</span></i></div><div class="anchor value-res hidden" id="name-funcParam"><i>	<span class="nodocs"><a href="../../use/go/printer..funcParam^bd845.html">const</a> <a href="../../src/go/printer/nodes.go.html#line-323">funcParam</a> <a href="#name-paramMode">paramMode</a> = 0</span></i></div><div class="anchor value-res hidden" id="name-funcTParam"><i>	<span class="nodocs"><a href="../../use/go/printer..funcTParam^ee49e.html">const</a> <a href="../../src/go/printer/nodes.go.html#line-324">funcTParam</a> <a href="#name-paramMode">paramMode</a> = 1</span></i></div><div class="anchor value-res hidden" id="name-ignore"><i>	<span class="nodocs"><a href="../../use/go/printer..ignore^5f0af.html">const</a> <a href="../../src/go/printer/printer.go.html#line-30">ignore</a> <a href="#name-whiteSpace">whiteSpace</a> = 0</span></i></div><div class="anchor value-res hidden" id="name-indent"><i>	<span class="nodocs"><a href="../../use/go/printer..indent^7f113.html">const</a> <a href="../../src/go/printer/printer.go.html#line-35">indent</a> <a href="#name-whiteSpace">whiteSpace</a> = 62</span></i></div><div class="anchor value-res hidden" id="name-inEscape"><i>	<input type='checkbox' class="fold" id="inEscape-fold-content"><label for="inEscape-fold-content"><a href="../../use/go/printer..inEscape^40cfc.html">const</a> <a href="../../src/go/printer/printer.go.html#line-1201">inEscape</a> = 1 // <span class="md-text">inside text bracketed by tabwriter.Escapes</span></label><span id='inEscape-fold-content-docs' class="fold-docs">
+<span class="md-text">		trimmer is implemented as a state machine.
+		It can be in one of the following states:</span>
+
+</span></i></div><div class="anchor value-res hidden" id="name-infinity"><i>	<span class="nodocs"><a href="../../use/go/printer..infinity^d7998.html">const</a> <a href="../../src/go/printer/printer.go.html#line-24">infinity</a> = 1073741824</span></i></div><div class="anchor value-res hidden" id="name-inSpace"><i>	<input type='checkbox' class="fold" id="inSpace-fold-content"><label for="inSpace-fold-content"><a href="../../use/go/printer..inSpace^e62d3.html">const</a> <a href="../../src/go/printer/printer.go.html#line-1200">inSpace</a> = 0 // <span class="md-text">inside space</span></label><span id='inSpace-fold-content-docs' class="fold-docs">
+<span class="md-text">		trimmer is implemented as a state machine.
+		It can be in one of the following states:</span>
+
+</span></i></div><div class="anchor value-res hidden" id="name-inText"><i>	<input type='checkbox' class="fold" id="inText-fold-content"><label for="inText-fold-content"><a href="../../use/go/printer..inText^1d87f.html">const</a> <a href="../../src/go/printer/printer.go.html#line-1202">inText</a> = 2 // <span class="md-text">inside text</span></label><span id='inText-fold-content-docs' class="fold-docs">
+<span class="md-text">		trimmer is implemented as a state machine.
+		It can be in one of the following states:</span>
+
+</span></i></div><div class="anchor value-res hidden" id="name-maxNewlines"><i>	<span class="nodocs"><a href="../../use/go/printer..maxNewlines^3d349.html">const</a> <a href="../../src/go/printer/printer.go.html#line-22">maxNewlines</a> = 2 // <span class="md-text">max. number of newlines between source text</span></span></i></div><div class="anchor value-res hidden" id="name-newline"><i>	<span class="nodocs"><a href="../../use/go/printer..newline^ea889.html">const</a> <a href="../../src/go/printer/printer.go.html#line-33">newline</a> <a href="#name-whiteSpace">whiteSpace</a> = 10</span></i></div><div class="anchor value-res hidden" id="name-noExtraBlank"><i>	<span class="nodocs"><a href="../../use/go/printer..noExtraBlank^e76de.html">const</a> <a href="../../src/go/printer/printer.go.html#line-43">noExtraBlank</a> <a href="#name-pmode">pmode</a> = 1 // <span class="md-text">disables extra blank after /*-style comment</span></span></i></div><div class="anchor value-res hidden" id="name-noExtraLinebreak"><i>	<span class="nodocs"><a href="../../use/go/printer..noExtraLinebreak^09bbf.html">const</a> <a href="../../src/go/printer/printer.go.html#line-44">noExtraLinebreak</a> <a href="#name-pmode">pmode</a> = 2 // <span class="md-text">disables extra line break after /*-style comment</span></span></i></div><div class="anchor value-res hidden" id="name-noIndent"><i>	<span class="nodocs"><a href="../../use/go/printer..noIndent^93cff.html">const</a> <a href="../../src/go/printer/nodes.go.html#line-98">noIndent</a> <a href="#name-exprListMode">exprListMode</a> = 2 // <span class="md-text">no extra indentation in multi-line lists</span></span></i></div><div class="anchor value-res hidden" id="name-normalizeNumbers"><i>	<input type='checkbox' class="fold" id="normalizeNumbers-fold-content"><label for="normalizeNumbers-fold-content"><a href="../../use/go/printer..normalizeNumbers^4854f.html">const</a> <a href="../../src/go/printer/printer.go.html#line-1313">normalizeNumbers</a> <a href="#name-Mode">Mode</a> = 1073741824</label><span id='normalizeNumbers-fold-content-docs' class="fold-docs">
+<span class="md-text">		normalizeNumbers means to canonicalize number
+		literal prefixes and exponents while printing.
+		
+		This value is known in and used by go/format and cmd/gofmt.
+		It is currently more convenient and performant for those
+		packages to apply number normalization during printing,
+		rather than by modifying the AST in advance.</span>
+
+</span></i></div><div class="anchor value-res hidden" id="name-typeTParam"><i>	<span class="nodocs"><a href="../../use/go/printer..typeTParam^aa28d.html">const</a> <a href="../../src/go/printer/nodes.go.html#line-325">typeTParam</a> <a href="#name-paramMode">paramMode</a> = 2</span></i></div><div class="anchor value-res hidden" id="name-unindent"><i>	<span class="nodocs"><a href="../../use/go/printer..unindent^20694.html">const</a> <a href="../../src/go/printer/printer.go.html#line-36">unindent</a> <a href="#name-whiteSpace">whiteSpace</a> = 60</span></i></div><div class="anchor value-res hidden" id="name-vtab"><i>	<span class="nodocs"><a href="../../use/go/printer..vtab^51510.html">const</a> <a href="../../src/go/printer/printer.go.html#line-32">vtab</a> <a href="#name-whiteSpace">whiteSpace</a> = 11</span></i></div></div></code></pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

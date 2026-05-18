@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Package: internal/trace/tracev2</title>
+<link href="../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="package-details"><code><span style="font-size:xx-large;">package <b>tracev2</b></span>
+
+<span class="title">Import Path</span>
+	<a href="../../../index.html#pkg-internal/trace/tracev2">internal/trace/tracev2</a><i> (on <a href="https://pkg.go.dev/internal/trace/tracev2" target="_blank">go.dev</a>)</i>
+
+<span class="title">Dependency Relation</span>
+	imports 0 packages, and imported by <a href="../../../dep/internal/trace/tracev2.html#imported-by">2 packages</a>
+
+<div id="files"><span class="title">Involved Source Files</span>
+
+	<input type='checkbox' checked class="fold" id="file-0-fold-content"><label for="file-0-fold-content">  <a href="../../../src/internal/trace/tracev2/doc.go.html#doc">d</a> <a href="../../../src/internal/trace/tracev2/doc.go.html">doc.go</a></label><span id='file-0-fold-content-items' class="fold-items">
+<span class="md-text">		Package tracev2 contains definitions for the v2 execution trace wire format.
+		
+		These definitions are shared between the trace parser and the runtime, so it
+		must not depend on any package that depends on the runtime (most packages).</span>
+</span>
+	<span class="nodocs">    <a href="../../../src/internal/trace/tracev2/events.go.html">events.go</a></span>
+	<span class="nodocs">    <a href="../../../src/internal/trace/tracev2/spec.go.html">spec.go</a></span></div>
+<div id="exported-types"><span class="title">Package-Level Type Names<span class="title-stat"><i> (total 5, all are exported)</i></span></span>
+
+<div id="exported-types-buttons" class="js-on">	/* sort exporteds by: <label id="sort-types-by-alphabet" class="button">alphabet</label> | <label id="sort-types-by-popularity" class="button">popularity</label> */</div><div class="anchor type-res" id="name-EventSpec" data-popularity="110">	<input type='checkbox' class="fold" id="EventSpec-fold-content"><label for="EventSpec-fold-content"> <a href="../../../use/internal/trace/tracev2..EventSpec.html">type</a> <a href="../../../src/internal/trace/tracev2/spec.go.html#line-14">EventSpec</a> <i>(struct)</i></label><span id='EventSpec-fold-content-docs' class="fold-docs">
+<span class="md-text">		EventSpec is a specification for a trace event. It contains sufficient information
+		to perform basic parsing of any trace event for any version of Go.</span>
+
+		<input type='checkbox' class="fold" id="EventSpec-fold-fields"><label for="EventSpec-fold-fields">Fields (<i>total 9, all are exported</i>)</label><span id='EventSpec-fold-fields-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="EventSpec-fold-field-Args"><label for="EventSpec-fold-field-Args"><a href="../../../src/internal/trace/tracev2/spec.go.html#line-34">Args</a> <i>[]<a href="../../builtin.html#name-string">string</a></i></label><span id='EventSpec-fold-field-Args-docs' class="fold-docs">
+<span class="md-text">				Args contains the names of each trace event's argument.
+				Its length determines the number of arguments an event has.
+				
+				Argument names follow a certain structure and this structure
+				is relied on by the testing framework to type-check arguments
+				and to produce Values for experimental events.
+				
+				The structure is:
+				
+				    (?P&lt;name&gt;[A-Za-z]+)(_(?P&lt;type&gt;[A-Za-z]+))?
+				
+				In sum, it's a name followed by an optional type.
+				If the type is present, it is preceded with an underscore.
+				Arguments without types will be interpreted as just raw uint64s.
+				The valid argument types and the Go types they map to are listed
+				in the ArgTypes variable.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="EventSpec-fold-field-Experiment"><label for="EventSpec-fold-field-Experiment"><a href="../../../src/internal/trace/tracev2/spec.go.html#line-75">Experiment</a> <i><a href="#name-Experiment">Experiment</a></i></label><span id='EventSpec-fold-field-Experiment-docs' class="fold-docs">
+<span class="md-text">				Experiment indicates the ID of an experiment this event is associated
+				with. If Experiment is not NoExperiment, then the event is experimental
+				and will be exposed as an EventExperiment.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="EventSpec-fold-field-HasData"><label for="EventSpec-fold-field-HasData"><a href="../../../src/internal/trace/tracev2/spec.go.html#line-63">HasData</a> <i><a href="../../builtin.html#name-bool">bool</a></i></label><span id='EventSpec-fold-field-HasData-docs' class="fold-docs">
+<span class="md-text">				HasData is true if the event has trailer consisting of a
+				varint length followed by unencoded bytes of some data.
+				
+				An event may not be both a timed event and have data.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="EventSpec-fold-field-IsStack"><label for="EventSpec-fold-field-IsStack"><a href="../../../src/internal/trace/tracev2/spec.go.html#line-70">IsStack</a> <i><a href="../../builtin.html#name-bool">bool</a></i></label><span id='EventSpec-fold-field-IsStack-docs' class="fold-docs">
+<span class="md-text">				IsStack indicates that the event represents a complete
+				stack trace. Specifically, it means that after the arguments
+				there's a varint length, followed by 4*length varints. Each
+				group of 4 represents the PC, file ID, func ID, and line number
+				in that order.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="EventSpec-fold-field-IsTimedEvent"><label for="EventSpec-fold-field-IsTimedEvent"><a href="../../../src/internal/trace/tracev2/spec.go.html#line-57">IsTimedEvent</a> <i><a href="../../builtin.html#name-bool">bool</a></i></label><span id='EventSpec-fold-field-IsTimedEvent-docs' class="fold-docs">
+<span class="md-text">				IsTimedEvent indicates whether this is an event that both
+				appears in the main event stream and is surfaced to the
+				trace reader.
+				
+				Events that are not "timed" are considered "structural"
+				since they either need significant reinterpretation or
+				otherwise aren't actually surfaced by the trace reader.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="EventSpec-fold-field-Name"><label for="EventSpec-fold-field-Name"><a href="../../../src/internal/trace/tracev2/spec.go.html#line-16">Name</a> <i><a href="../../builtin.html#name-string">string</a></i></label><span id='EventSpec-fold-field-Name-docs' class="fold-docs">
+<span class="md-text">				Name is the human-readable name of the trace event.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="EventSpec-fold-field-StackIDs"><label for="EventSpec-fold-field-StackIDs"><a href="../../../src/internal/trace/tracev2/spec.go.html#line-43">StackIDs</a> <i>[]<a href="../../builtin.html#name-int">int</a></i></label><span id='EventSpec-fold-field-StackIDs-docs' class="fold-docs">
+<span class="md-text">				StackIDs indicates which of the arguments are stack IDs.
+				
+				The list is not sorted. The first index always refers to
+				the main stack for the current execution context of the event.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="EventSpec-fold-field-StartEv"><label for="EventSpec-fold-field-StartEv"><a href="../../../src/internal/trace/tracev2/spec.go.html#line-48">StartEv</a> <i><a href="#name-EventType">EventType</a></i></label><span id='EventSpec-fold-field-StartEv-docs' class="fold-docs">
+<span class="md-text">				StartEv indicates the event type of the corresponding "start"
+				event, if this event is an "end," for a pair of events that
+				represent a time range.</span>
+</span></span><span>
+			<input type='checkbox' class="fold" id="EventSpec-fold-field-StringIDs"><label for="EventSpec-fold-field-StringIDs"><a href="../../../src/internal/trace/tracev2/spec.go.html#line-37">StringIDs</a> <i>[]<a href="../../builtin.html#name-int">int</a></i></label><span id='EventSpec-fold-field-StringIDs-docs' class="fold-docs">
+<span class="md-text">				StringIDs indicates which of the arguments are string IDs.</span>
+</span></span></span>
+		<input type='checkbox' class="fold" id="EventSpec-fold-results"><label for="EventSpec-fold-results">As Outputs Of (<i>at least one exported</i>)</label><span id='EventSpec-fold-results-items' class="fold-items"><span>
+			func <a href="#name-Specs">Specs</a>() []<b>EventSpec</b></span></span>
+		<input type='checkbox' class="fold" id="EventSpec-fold-params"><label for="EventSpec-fold-params">As Inputs Of (<i>at least one exported</i>)</label><span id='EventSpec-fold-params-items' class="fold-items"><span>
+			func <a href="#name-EventNames">EventNames</a>(specs []<b>EventSpec</b>) map[<a href="../../builtin.html#name-string">string</a>]<a href="#name-EventType">EventType</a></span></span>
+
+</span></div><div class="anchor type-res" id="name-EventType" data-popularity="140">	<input type='checkbox' class="fold" id="EventType-fold-content"><label for="EventType-fold-content"> <a href="../../../use/internal/trace/tracev2..EventType.html">type</a> <a href="../../../src/internal/trace/tracev2/spec.go.html#line-10">EventType</a> <a href="../../builtin.html#name-uint8">uint8</a> <i>(basic type)</i></label><span id='EventType-fold-content-docs' class="fold-docs">
+<span class="md-text">		EventType indicates an event's type from which its arguments and semantics can be
+		derived. Its representation matches the wire format's representation of the event
+		types that precede all event data.</span>
+
+		<input type='checkbox' class="fold" id="EventType-fold-methods"><label for="EventType-fold-methods">Methods (<i>only one, which is exported</i>)</label><span id='EventType-fold-methods-items' class="fold-items"><span>
+			<span class="nodocs">( EventType) <a href="../../../src/internal/trace/tracev2/events.go.html#line-97">Experimental</a>() <a href="../../builtin.html#name-bool">bool</a></span></span></span>
+		<input type='checkbox' class="fold" id="EventType-fold-results"><label for="EventType-fold-results">As Outputs Of (<i>at least one exported</i>)</label><span id='EventType-fold-results-items' class="fold-items"><span>
+			func <a href="#name-EventNames">EventNames</a>(specs []<a href="#name-EventSpec">EventSpec</a>) map[<a href="../../builtin.html#name-string">string</a>]<b>EventType</b></span></span>
+		<input type='checkbox' class="fold" id="EventType-fold-values"><label for="EventType-fold-values">As Types Of (<i>total 66, all are exported</i>)</label><span id='EventType-fold-values-items' class="fold-items"><span>
+			const <a href="#name-EvClockSnapshot">EvClockSnapshot</a></span><span>
+			const <a href="#name-EvCPUSample">EvCPUSample</a></span><span>
+			const <a href="#name-EvCPUSamples">EvCPUSamples</a></span><span>
+			const <a href="#name-EvEndOfGeneration">EvEndOfGeneration</a></span><span>
+			const <a href="#name-EvEventBatch">EvEventBatch</a></span><span>
+			const <a href="#name-EvExperimentalBatch">EvExperimentalBatch</a></span><span>
+			const <a href="#name-EvFrequency">EvFrequency</a></span><span>
+			const <a href="#name-EvGCActive">EvGCActive</a></span><span>
+			const <a href="#name-EvGCBegin">EvGCBegin</a></span><span>
+			const <a href="#name-EvGCEnd">EvGCEnd</a></span><span>
+			const <a href="#name-EvGCMarkAssistActive">EvGCMarkAssistActive</a></span><span>
+			const <a href="#name-EvGCMarkAssistBegin">EvGCMarkAssistBegin</a></span><span>
+			const <a href="#name-EvGCMarkAssistEnd">EvGCMarkAssistEnd</a></span><span>
+			const <a href="#name-EvGCSweepActive">EvGCSweepActive</a></span><span>
+			const <a href="#name-EvGCSweepBegin">EvGCSweepBegin</a></span><span>
+			const <a href="#name-EvGCSweepEnd">EvGCSweepEnd</a></span><span>
+			const <a href="#name-EvGoBlock">EvGoBlock</a></span><span>
+			const <a href="#name-EvGoCreate">EvGoCreate</a></span><span>
+			const <a href="#name-EvGoCreateBlocked">EvGoCreateBlocked</a></span><span>
+			const <a href="#name-EvGoCreateSyscall">EvGoCreateSyscall</a></span><span>
+			const <a href="#name-EvGoDestroy">EvGoDestroy</a></span><span>
+			const <a href="#name-EvGoDestroySyscall">EvGoDestroySyscall</a></span><span>
+			const <a href="#name-EvGoLabel">EvGoLabel</a></span><span>
+			const <a href="#name-EvGoroutineStack">EvGoroutineStack</a></span><span>
+			const <a href="#name-EvGoroutineStackAlloc">EvGoroutineStackAlloc</a></span><span>
+			const <a href="#name-EvGoroutineStackFree">EvGoroutineStackFree</a></span><span>
+			const <a href="#name-EvGoStart">EvGoStart</a></span><span>
+			const <a href="#name-EvGoStatus">EvGoStatus</a></span><span>
+			const <a href="#name-EvGoStatusStack">EvGoStatusStack</a></span><span>
+			const <a href="#name-EvGoStop">EvGoStop</a></span><span>
+			const <a href="#name-EvGoSwitch">EvGoSwitch</a></span><span>
+			const <a href="#name-EvGoSwitchDestroy">EvGoSwitchDestroy</a></span><span>
+			const <a href="#name-EvGoSyscallBegin">EvGoSyscallBegin</a></span><span>
+			const <a href="#name-EvGoSyscallEnd">EvGoSyscallEnd</a></span><span>
+			const <a href="#name-EvGoSyscallEndBlocked">EvGoSyscallEndBlocked</a></span><span>
+			const <a href="#name-EvGoUnblock">EvGoUnblock</a></span><span>
+			const <a href="#name-EvHeapAlloc">EvHeapAlloc</a></span><span>
+			const <a href="#name-EvHeapGoal">EvHeapGoal</a></span><span>
+			const <a href="#name-EvHeapObject">EvHeapObject</a></span><span>
+			const <a href="#name-EvHeapObjectAlloc">EvHeapObjectAlloc</a></span><span>
+			const <a href="#name-EvHeapObjectFree">EvHeapObjectFree</a></span><span>
+			const <a href="#name-EvNone">EvNone</a></span><span>
+			const <a href="#name-EvProcsChange">EvProcsChange</a></span><span>
+			const <a href="#name-EvProcStart">EvProcStart</a></span><span>
+			const <a href="#name-EvProcStatus">EvProcStatus</a></span><span>
+			const <a href="#name-EvProcSteal">EvProcSteal</a></span><span>
+			const <a href="#name-EvProcStop">EvProcStop</a></span><span>
+			const <a href="#name-EvSpan">EvSpan</a></span><span>
+			const <a href="#name-EvSpanAlloc">EvSpanAlloc</a></span><span>
+			const <a href="#name-EvSpanFree">EvSpanFree</a></span><span>
+			const <a href="#name-EvStack">EvStack</a></span><span>
+			const <a href="#name-EvStacks">EvStacks</a></span><span>
+			const <a href="#name-EvString">EvString</a></span><span>
+			const <a href="#name-EvStrings">EvStrings</a></span><span>
+			const <a href="#name-EvSTWBegin">EvSTWBegin</a></span><span>
+			const <a href="#name-EvSTWEnd">EvSTWEnd</a></span><span>
+			const <a href="#name-EvSync">EvSync</a></span><span>
+			const <a href="#name-EvUserLog">EvUserLog</a></span><span>
+			const <a href="#name-EvUserRegionBegin">EvUserRegionBegin</a></span><span>
+			const <a href="#name-EvUserRegionEnd">EvUserRegionEnd</a></span><span>
+			const <a href="#name-EvUserTaskBegin">EvUserTaskBegin</a></span><span>
+			const <a href="#name-EvUserTaskEnd">EvUserTaskEnd</a></span><span>
+			const <a href="#name-MaxEvent">MaxEvent</a></span><span>
+			const <a href="#name-MaxExperimentalEvent">MaxExperimentalEvent</a></span><span>
+			const <a href="#name-NumEvents">NumEvents</a></span><span>
+			const <a href="#name-NumExperimentalEvents">NumExperimentalEvents</a></span></span>
+
+</span></div><div class="anchor type-res" id="name-Experiment" data-popularity="50">	<input type='checkbox' class="fold" id="Experiment-fold-content"><label for="Experiment-fold-content"> <a href="../../../use/internal/trace/tracev2..Experiment.html">type</a> <a href="../../../src/internal/trace/tracev2/spec.go.html#line-104">Experiment</a> <a href="../../builtin.html#name-uint">uint</a> <i>(basic type)</i></label><span id='Experiment-fold-content-docs' class="fold-docs">
+<span class="md-text">		Experiment is an experiment ID that events may be associated with.</span>
+
+		<input type='checkbox' class="fold" id="Experiment-fold-params"><label for="Experiment-fold-params">As Inputs Of (<i>at least one unexported</i>)</label><span id='Experiment-fold-params-items' class="fold-items">
+			<input type='checkbox' class="showhide" id="Experiment-showhide-outputofs"><i><label for="Experiment-showhide-outputofs" class="show-inline">/* at least one unexported ... */</label><label for="Experiment-showhide-outputofs" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			func runtime.<a href="../../runtime.html#name-unsafeTraceExpWriter">unsafeTraceExpWriter</a>(gen <a href="../../builtin.html#name-uintptr">uintptr</a>, buf *<a href="../../runtime.html">runtime</a>.<a href="../../runtime.html#name-traceBuf">traceBuf</a>, exp <b>Experiment</b>) <a href="../../runtime.html">runtime</a>.<a href="../../runtime.html#name-traceWriter">traceWriter</a></i></span></span>
+		<input type='checkbox' class="fold" id="Experiment-fold-values"><label for="Experiment-fold-values">As Types Of (<i>total 3, all are exported</i>)</label><span id='Experiment-fold-values-items' class="fold-items"><span>
+			const <a href="#name-AllocFree">AllocFree</a></span><span>
+			const <a href="#name-NoExperiment">NoExperiment</a></span><span>
+			const <a href="#name-NumExperiments">NumExperiments</a></span></span>
+
+</span></div><div class="anchor type-res" id="name-GoStatus" data-popularity="340">	<input type='checkbox' class="fold" id="GoStatus-fold-content"><label for="GoStatus-fold-content"> <a href="../../../use/internal/trace/tracev2..GoStatus.html">type</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-503">GoStatus</a> <a href="../../builtin.html#name-uint8">uint8</a> <i>(basic type)</i></label><span id='GoStatus-fold-content-docs' class="fold-docs">
+<span class="md-text">		GoStatus is the status of a goroutine.
+		
+		They correspond directly to the various goroutine states.</span>
+
+		<input type='checkbox' class="fold" id="GoStatus-fold-methods"><label for="GoStatus-fold-methods">Methods (<i>only one, which is exported</i>)</label><span id='GoStatus-fold-methods-items' class="fold-items"><span>
+			<span class="nodocs">( GoStatus) <a href="../../../src/internal/trace/tracev2/events.go.html#line-513">String</a>() <a href="../../builtin.html#name-string">string</a></span></span></span>
+		<input type='checkbox' class="fold" id="GoStatus-fold-impls"><label for="GoStatus-fold-impls">Implements (<i>at least 4, in which 2 are exported</i>)</label><span id='GoStatus-fold-impls-items' class="fold-items"><span>
+			 GoStatus : expvar.<a href="../../expvar.html#name-Var">Var</a></span><span>
+			 GoStatus : fmt.<a href="../../fmt.html#name-Stringer">Stringer</a></span>
+			<input type='checkbox' class="showhide" id="GoStatus-showhide-impls"><i><label for="GoStatus-showhide-impls" class="show-inline">/* 2+ unexporteds ... */</label><label for="GoStatus-showhide-impls" class="hide-inline">/* 2+ unexporteds: */</label></i><span class="hidden"><i>
+			 GoStatus : context.<a href="../../context.html#name-stringer">stringer</a></i></span><span class="hidden"><i>
+			 GoStatus : runtime.<a href="../../runtime.html#name-stringer">stringer</a></i></span></span>
+		<input type='checkbox' class="fold" id="GoStatus-fold-results"><label for="GoStatus-fold-results">As Outputs Of (<i>at least one unexported</i>)</label><span id='GoStatus-fold-results-items' class="fold-items">
+			<input type='checkbox' class="showhide" id="GoStatus-showhide-inputofs"><i><label for="GoStatus-showhide-inputofs" class="show-inline">/* at least one unexported ... */</label><label for="GoStatus-showhide-inputofs" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			func runtime.<a href="../../runtime.html#name-goStatusToTraceGoStatus">goStatusToTraceGoStatus</a>(status <a href="../../builtin.html#name-uint32">uint32</a>, wr <a href="../../runtime.html">runtime</a>.<a href="../../runtime.html#name-waitReason">waitReason</a>) <b>GoStatus</b></i></span></span>
+		<input type='checkbox' class="fold" id="GoStatus-fold-values"><label for="GoStatus-fold-values">As Types Of (<i>total 5, all are exported</i>)</label><span id='GoStatus-fold-values-items' class="fold-items"><span>
+			const <a href="#name-GoBad">GoBad</a></span><span>
+			const <a href="#name-GoRunnable">GoRunnable</a></span><span>
+			const <a href="#name-GoRunning">GoRunning</a></span><span>
+			const <a href="#name-GoSyscall">GoSyscall</a></span><span>
+			const <a href="#name-GoWaiting">GoWaiting</a></span></span>
+
+</span></div><div class="anchor type-res" id="name-ProcStatus" data-popularity="265">	<input type='checkbox' class="fold" id="ProcStatus-fold-content"><label for="ProcStatus-fold-content"> <a href="../../../use/internal/trace/tracev2..ProcStatus.html">type</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-530">ProcStatus</a> <a href="../../builtin.html#name-uint8">uint8</a> <i>(basic type)</i></label><span id='ProcStatus-fold-content-docs' class="fold-docs">
+<span class="md-text">		ProcStatus is the status of a P.
+		
+		They mostly correspond to the various P states.</span>
+
+		<input type='checkbox' class="fold" id="ProcStatus-fold-methods"><label for="ProcStatus-fold-methods">Methods (<i>only one, which is exported</i>)</label><span id='ProcStatus-fold-methods-items' class="fold-items"><span>
+			<span class="nodocs">( ProcStatus) <a href="../../../src/internal/trace/tracev2/events.go.html#line-550">String</a>() <a href="../../builtin.html#name-string">string</a></span></span></span>
+		<input type='checkbox' class="fold" id="ProcStatus-fold-impls"><label for="ProcStatus-fold-impls">Implements (<i>at least 4, in which 2 are exported</i>)</label><span id='ProcStatus-fold-impls-items' class="fold-items"><span>
+			 ProcStatus : expvar.<a href="../../expvar.html#name-Var">Var</a></span><span>
+			 ProcStatus : fmt.<a href="../../fmt.html#name-Stringer">Stringer</a></span>
+			<input type='checkbox' class="showhide" id="ProcStatus-showhide-impls"><i><label for="ProcStatus-showhide-impls" class="show-inline">/* 2+ unexporteds ... */</label><label for="ProcStatus-showhide-impls" class="hide-inline">/* 2+ unexporteds: */</label></i><span class="hidden"><i>
+			 ProcStatus : context.<a href="../../context.html#name-stringer">stringer</a></i></span><span class="hidden"><i>
+			 ProcStatus : runtime.<a href="../../runtime.html#name-stringer">stringer</a></i></span></span>
+		<input type='checkbox' class="fold" id="ProcStatus-fold-values"><label for="ProcStatus-fold-values">As Types Of (<i>total 5, all are exported</i>)</label><span id='ProcStatus-fold-values-items' class="fold-items"><span>
+			const <a href="#name-ProcBad">ProcBad</a></span><span>
+			const <a href="#name-ProcIdle">ProcIdle</a></span><span>
+			const <a href="#name-ProcRunning">ProcRunning</a></span><span>
+			const <a href="#name-ProcSyscall">ProcSyscall</a></span><span>
+			const <a href="#name-ProcSyscallAbandoned">ProcSyscallAbandoned</a></span></span>
+
+</span></div></div>
+<div id="exported-functions"><span class="title">Package-Level Functions<span class="title-stat"><i> (total 3, all are exported)</i></span></span>
+
+<div class="anchor value-res" id="name-EventNames">	<input type='checkbox' class="fold" id="EventNames-fold-content"><label for="EventNames-fold-content"> <a href="../../../use/internal/trace/tracev2..EventNames.html">func</a> <a href="../../../src/internal/trace/tracev2/spec.go.html#line-95">EventNames</a>(specs []<a href="#name-EventSpec">EventSpec</a>) map[<a href="../../builtin.html#name-string">string</a>]<a href="#name-EventType">EventType</a></label><span id='EventNames-fold-content-docs' class="fold-docs">
+<span class="md-text">		EventNames is a helper that produces a mapping of event names to event types.</span>
+
+</span></div><div class="anchor value-res" id="name-Experiments">	<span class="nodocs"> <a href="../../../use/internal/trace/tracev2..Experiments.html">func</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-109">Experiments</a>() []<a href="../../builtin.html#name-string">string</a></span></div><div class="anchor value-res" id="name-Specs">	<span class="nodocs"> <a href="../../../use/internal/trace/tracev2..Specs.html">func</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-147">Specs</a>() []<a href="#name-EventSpec">EventSpec</a></span></div></div>
+<div id="exported-variables"><span class="title">Package-Level Variables<span class="title-stat"><i> (total 3, in which 1 is exported)</i></span></span>
+
+<div class="anchor value-res" id="name-EventArgTypes">	<input type='checkbox' class="fold" id="EventArgTypes-fold-content"><label for="EventArgTypes-fold-content">  <a href="../../../use/internal/trace/tracev2..EventArgTypes.html">var</a> <a href="../../../src/internal/trace/tracev2/spec.go.html#line-81">EventArgTypes</a> [10]<a href="../../builtin.html#name-string">string</a></label><span id='EventArgTypes-fold-content-docs' class="fold-docs">
+<span class="md-text">		EventArgTypes is a list of valid argument types for use in Args.
+		
+		See the documentation of Args for more details.</span>
+
+</span></div>	<input type='checkbox' class="showhide" id="unexported-variables-showhide"><i><label for="unexported-variables-showhide" class="show-inline">/* 2 unexporteds ... */</label><label for="unexported-variables-showhide" class="hide-inline">/* 2 unexporteds: */</label></i><div class="anchor value-res hidden" id="name-experiments"><i>	<span class="nodocs">  <a href="../../../use/internal/trace/tracev2..experiments^8b2df.html">var</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-113">experiments</a> [2]<a href="../../builtin.html#name-string">string</a></span></i></div><div class="anchor value-res hidden" id="name-specs"><i>	<span class="nodocs">  <a href="../../../use/internal/trace/tracev2..specs^78460.html">var</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-151">specs</a> [137]<a href="#name-EventSpec">EventSpec</a></span></i></div></div>
+<div id="exported-constants"><span class="title">Package-Level Constants<span class="title-stat"><i> (total 83, all are exported)</i></span></span>
+
+<div class="anchor value-res" id="name-AllocFree">	<input type='checkbox' class="fold" id="AllocFree-fold-content"><label for="AllocFree-fold-content"><a href="../../../use/internal/trace/tracev2..AllocFree.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-104">AllocFree</a> <a href="#name-Experiment">Experiment</a> = 1</label><span id='AllocFree-fold-content-docs' class="fold-docs">
+<span class="md-text">		AllocFree is the alloc-free events experiment.</span>
+
+</span></div><div class="anchor value-res" id="name-EvClockSnapshot">	<input type='checkbox' class="fold" id="EvClockSnapshot-fold-content"><label for="EvClockSnapshot-fold-content"><a href="../../../use/internal/trace/tracev2..EvClockSnapshot.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-88">EvClockSnapshot</a> <a href="#name-EventType">EventType</a> = 51 // <span class="md-text">snapshot of trace, mono and wall clocks [timestamp, mono, sec, nsec]</span></label><span id='EvClockSnapshot-fold-content-docs' class="fold-docs">
+<span class="md-text">		Event types in the trace, args are given in square brackets.
+		
+		Naming scheme:
+		  - Time range event pairs have suffixes "Begin" and "End".
+		  - "Start", "Stop", "Create", "Destroy", "Block", "Unblock"
+		    are suffixes reserved for scheduling resources.
+		
+		NOTE: If you add an event type, make sure you also update all
+		tables in this file!</span>
+
+</span></div><div class="anchor value-res" id="name-EvCPUSample">	<input type='checkbox' class="fold" id="EvCPUSample-fold-content"><label for="EvCPUSample-fold-content"><a href="../../../use/internal/trace/tracev2..EvCPUSample.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-26">EvCPUSample</a> <a href="#name-EventType">EventType</a> = 7 // <span class="md-text">CPU profiling sample [timestamp, M ID, P ID, goroutine ID, stack ID]</span></label><span id='EvCPUSample-fold-content-docs' class="fold-docs">
+<span class="md-text">		Event types in the trace, args are given in square brackets.
+		
+		Naming scheme:
+		  - Time range event pairs have suffixes "Begin" and "End".
+		  - "Start", "Stop", "Create", "Destroy", "Block", "Unblock"
+		    are suffixes reserved for scheduling resources.
+		
+		NOTE: If you add an event type, make sure you also update all
+		tables in this file!</span>
+
+</span></div><div class="anchor value-res" id="name-EvCPUSamples">	<input type='checkbox' class="fold" id="EvCPUSamples-fold-content"><label for="EvCPUSamples-fold-content"><a href="../../../use/internal/trace/tracev2..EvCPUSamples.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-25">EvCPUSamples</a> <a href="#name-EventType">EventType</a> = 6 // <span class="md-text">start of a section of CPU samples [...EvCPUSample]</span></label><span id='EvCPUSamples-fold-content-docs' class="fold-docs">
+<span class="md-text">		Event types in the trace, args are given in square brackets.
+		
+		Naming scheme:
+		  - Time range event pairs have suffixes "Begin" and "End".
+		  - "Start", "Stop", "Create", "Destroy", "Block", "Unblock"
+		    are suffixes reserved for scheduling resources.
+		
+		NOTE: If you add an event type, make sure you also update all
+		tables in this file!</span>
+
+</span></div><div class="anchor value-res" id="name-EvEndOfGeneration">	<input type='checkbox' class="fold" id="EvEndOfGeneration-fold-content"><label for="EvEndOfGeneration-fold-content"><a href="../../../use/internal/trace/tracev2..EvEndOfGeneration.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-92">EvEndOfGeneration</a> <a href="#name-EventType">EventType</a> = 52</label><span id='EvEndOfGeneration-fold-content-docs' class="fold-docs">
+<span class="md-text">		Reserved internal in-band end-of-generation signal. Must never appear in the trace. Added in Go 1.25.
+		This could be used as an explicit in-band end-of-generation signal in the future.</span>
+
+</span></div><div class="anchor value-res" id="name-EvEventBatch">	<input type='checkbox' class="fold" id="EvEventBatch-fold-content"><label for="EvEventBatch-fold-content"><a href="../../../use/internal/trace/tracev2..EvEventBatch.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-20">EvEventBatch</a> <a href="#name-EventType">EventType</a> = 1 // <span class="md-text">start of per-M batch of events [generation, M ID, timestamp, batch length]</span></label><span id='EvEventBatch-fold-content-docs' class="fold-docs">
+<span class="md-text">		Structural events.</span>
+
+</span></div><div class="anchor value-res" id="name-EvExperimentalBatch">	<input type='checkbox' class="fold" id="EvExperimentalBatch-fold-content"><label for="EvExperimentalBatch-fold-content"><a href="../../../use/internal/trace/tracev2..EvExperimentalBatch.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-84">EvExperimentalBatch</a> <a href="#name-EventType">EventType</a> = 49 // <span class="md-text">start of extra data [experiment ID, generation, M ID, timestamp, batch length, batch data...]</span></label><span id='EvExperimentalBatch-fold-content-docs' class="fold-docs">
+<span class="md-text">		Batch event for an experimental batch with a custom format. Added in Go 1.23.</span>
+
+</span></div><div class="anchor value-res" id="name-EvFrequency">	<input type='checkbox' class="fold" id="EvFrequency-fold-content"><label for="EvFrequency-fold-content"><a href="../../../use/internal/trace/tracev2..EvFrequency.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-27">EvFrequency</a> <a href="#name-EventType">EventType</a> = 8 // <span class="md-text">timestamp units per sec [freq]</span></label><span id='EvFrequency-fold-content-docs' class="fold-docs">
+<span class="md-text">		Event types in the trace, args are given in square brackets.
+		
+		Naming scheme:
+		  - Time range event pairs have suffixes "Begin" and "End".
+		  - "Start", "Stop", "Create", "Destroy", "Block", "Unblock"
+		    are suffixes reserved for scheduling resources.
+		
+		NOTE: If you add an event type, make sure you also update all
+		tables in this file!</span>
+
+</span></div><div class="anchor value-res" id="name-EvGCActive">	<input type='checkbox' class="fold" id="EvGCActive-fold-content"><label for="EvGCActive-fold-content"><a href="../../../use/internal/trace/tracev2..EvGCActive.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-55">EvGCActive</a> <a href="#name-EventType">EventType</a> = 28 // <span class="md-text">GC active [timestamp, seq]</span></label><span id='EvGCActive-fold-content-docs' class="fold-docs">
+<span class="md-text">		GC events.</span>
+
+</span></div><div class="anchor value-res" id="name-EvGCBegin">	<input type='checkbox' class="fold" id="EvGCBegin-fold-content"><label for="EvGCBegin-fold-content"><a href="../../../use/internal/trace/tracev2..EvGCBegin.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-56">EvGCBegin</a> <a href="#name-EventType">EventType</a> = 29 // <span class="md-text">GC start [timestamp, seq, stack ID]</span></label><span id='EvGCBegin-fold-content-docs' class="fold-docs">
+<span class="md-text">		Event types in the trace, args are given in square brackets.
+		
+		Naming scheme:
+		  - Time range event pairs have suffixes "Begin" and "End".
+		  - "Start", "Stop", "Create", "Destroy", "Block", "Unblock"
+		    are suffixes reserved for scheduling resources.
+		
+		NOTE: If you add an event type, make sure you also update all
+		tables in this file!</span>
+
+</span></div><div class="anchor value-res" id="name-EvGCEnd">	<input type='checkbox' class="fold" id="EvGCEnd-fold-content"><label for="EvGCEnd-fold-content"><a href="../../../use/internal/trace/tracev2..EvGCEnd.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-57">EvGCEnd</a> <a href="#name-EventType">EventType</a> = 30 // <span class="md-text">GC done [timestamp, seq]</span></label><span id='EvGCEnd-fold-content-docs' class="fold-docs">
+<span class="md-text">		Event types in the trace, args are given in square brackets.
+		
+		Naming scheme:
+		  - Time range event pairs have suffixes "Begin" and "End".
+		  - "Start", "Stop", "Create", "Destroy", "Block", "Unblock"
+		    are suffixes reserved for scheduling resources.
+		
+		NOTE: If you add an event type, make sure you also update all
+		tables in this file!</span>
+
+</span></div><div class="anchor value-res" id="name-EvGCMarkAssistActive">	<input type='checkbox' class="fold" id="EvGCMarkAssistActive-fold-content"><label for="EvGCMarkAssistActive-fold-content"><a href="../../../use/internal/trace/tracev2..EvGCMarkAssistActive.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-61">EvGCMarkAssistActive</a> <a href="#name-EventType">EventType</a> = 34 // <span class="md-text">GC mark assist active [timestamp, goroutine ID]</span></label><span id='EvGCMarkAssistActive-fold-content-docs' class="fold-docs">
+<span class="md-text">		Event types in the trace, args are given in square brackets.
+		
+		Naming scheme:
+		  - Time range event pairs have suffixes "Begin" and "End".
+		  - "Start", "Stop", "Create", "Destroy", "Block", "Unblock"
+		    are suffixes reserved for scheduling resources.
+		
+		NOTE: If you add an event type, make sure you also update all
+		tables in this file!</span>
+
+</span></div><div class="anchor value-res" id="name-EvGCMarkAssistBegin">	<input type='checkbox' class="fold" id="EvGCMarkAssistBegin-fold-content"><label for="EvGCMarkAssistBegin-fold-content"><a href="../../../use/internal/trace/tracev2..EvGCMarkAssistBegin.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-62">EvGCMarkAssistBegin</a> <a href="#name-EventType">EventType</a> = 35 // <span class="md-text">GC mark assist start [timestamp, stack ID]</span></label><span id='EvGCMarkAssistBegin-fold-content-docs' class="fold-docs">
+<span class="md-text">		Event types in the trace, args are given in square brackets.
+		
+		Naming scheme:
+		  - Time range event pairs have suffixes "Begin" and "End".
+		  - "Start", "Stop", "Create", "Destroy", "Block", "Unblock"
+		    are suffixes reserved for scheduling resources.
+		
+		NOTE: If you add an event type, make sure you also update all
+		tables in this file!</span>
+
+</span></div><div class="anchor value-res" id="name-EvGCMarkAssistEnd">	<input type='checkbox' class="fold" id="EvGCMarkAssistEnd-fold-content"><label for="EvGCMarkAssistEnd-fold-content"><a href="../../../use/internal/trace/tracev2..EvGCMarkAssistEnd.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-63">EvGCMarkAssistEnd</a> <a href="#name-EventType">EventType</a> = 36 // <span class="md-text">GC mark assist done [timestamp]</span></label><span id='EvGCMarkAssistEnd-fold-content-docs' class="fold-docs">
+<span class="md-text">		Event types in the trace, args are given in square brackets.
+		
+		Naming scheme:
+		  - Time range event pairs have suffixes "Begin" and "End".
+		  - "Start", "Stop", "Create", "Destroy", "Block", "Unblock"
+		    are suffixes reserved for scheduling resources.
+		
+		NOTE: If you add an event type, make sure you also update all
+		tables in this file!</span>
+
+</span></div><div class="anchor value-res" id="name-EvGCSweepActive">	<input type='checkbox' class="fold" id="EvGCSweepActive-fold-content"><label for="EvGCSweepActive-fold-content"><a href="../../../use/internal/trace/tracev2..EvGCSweepActive.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-58">EvGCSweepActive</a> <a href="#name-EventType">EventType</a> = 31 // <span class="md-text">GC sweep active [timestamp, P ID]</span></label><span id='EvGCSweepActive-fold-content-docs' class="fold-docs">
+<span class="md-text">		Event types in the trace, args are given in square brackets.
+		
+		Naming scheme:
+		  - Time range event pairs have suffixes "Begin" and "End".
+		  - "Start", "Stop", "Create", "Destroy", "Block", "Unblock"
+		    are suffixes reserved for scheduling resources.
+		
+		NOTE: If you add an event type, make sure you also update all
+		tables in this file!</span>
+
+</span></div><div class="anchor value-res" id="name-EvGCSweepBegin">	<input type='checkbox' class="fold" id="EvGCSweepBegin-fold-content"><label for="EvGCSweepBegin-fold-content"><a href="../../../use/internal/trace/tracev2..EvGCSweepBegin.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-59">EvGCSweepBegin</a> <a href="#name-EventType">EventType</a> = 32 // <span class="md-text">GC sweep start [timestamp, stack ID]</span></label><span id='EvGCSweepBegin-fold-content-docs' class="fold-docs">
+<span class="md-text">		Event types in the trace, args are given in square brackets.
+		
+		Naming scheme:
+		  - Time range event pairs have suffixes "Begin" and "End".
+		  - "Start", "Stop", "Create", "Destroy", "Block", "Unblock"
+		    are suffixes reserved for scheduling resources.
+		
+		NOTE: If you add an event type, make sure you also update all
+		tables in this file!</span>
+
+</span></div><div class="anchor value-res" id="name-EvGCSweepEnd">	<input type='checkbox' class="fold" id="EvGCSweepEnd-fold-content"><label for="EvGCSweepEnd-fold-content"><a href="../../../use/internal/trace/tracev2..EvGCSweepEnd.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-60">EvGCSweepEnd</a> <a href="#name-EventType">EventType</a> = 33 // <span class="md-text">GC sweep done [timestamp, swept bytes, reclaimed bytes]</span></label><span id='EvGCSweepEnd-fold-content-docs' class="fold-docs">
+<span class="md-text">		Event types in the trace, args are given in square brackets.
+		
+		Naming scheme:
+		  - Time range event pairs have suffixes "Begin" and "End".
+		  - "Start", "Stop", "Create", "Destroy", "Block", "Unblock"
+		    are suffixes reserved for scheduling resources.
+		
+		NOTE: If you add an event type, make sure you also update all
+		tables in this file!</span>
+
+</span></div><div class="anchor value-res" id="name-EvGoBlock">	<input type='checkbox' class="fold" id="EvGoBlock-fold-content"><label for="EvGoBlock-fold-content"><a href="../../../use/internal/trace/tracev2..EvGoBlock.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-43">EvGoBlock</a> <a href="#name-EventType">EventType</a> = 20 // <span class="md-text">goroutine blocks [timestamp, reason, stack ID]</span></label><span id='EvGoBlock-fold-content-docs' class="fold-docs">
+<span class="md-text">		Event types in the trace, args are given in square brackets.
+		
+		Naming scheme:
+		  - Time range event pairs have suffixes "Begin" and "End".
+		  - "Start", "Stop", "Create", "Destroy", "Block", "Unblock"
+		    are suffixes reserved for scheduling resources.
+		
+		NOTE: If you add an event type, make sure you also update all
+		tables in this file!</span>
+
+</span></div><div class="anchor value-res" id="name-EvGoCreate">	<input type='checkbox' class="fold" id="EvGoCreate-fold-content"><label for="EvGoCreate-fold-content"><a href="../../../use/internal/trace/tracev2..EvGoCreate.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-37">EvGoCreate</a> <a href="#name-EventType">EventType</a> = 14 // <span class="md-text">goroutine creation [timestamp, new goroutine ID, new stack ID, stack ID]</span></label><span id='EvGoCreate-fold-content-docs' class="fold-docs">
+<span class="md-text">		Goroutines.</span>
+
+</span></div><div class="anchor value-res" id="name-EvGoCreateBlocked">	<input type='checkbox' class="fold" id="EvGoCreateBlocked-fold-content"><label for="EvGoCreateBlocked-fold-content"><a href="../../../use/internal/trace/tracev2..EvGoCreateBlocked.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-78">EvGoCreateBlocked</a> <a href="#name-EventType">EventType</a> = 47 // <span class="md-text">goroutine creation (starts blocked) [timestamp, new goroutine ID, new stack ID, stack ID]</span></label><span id='EvGoCreateBlocked-fold-content-docs' class="fold-docs">
+<span class="md-text">		Event types in the trace, args are given in square brackets.
+		
+		Naming scheme:
+		  - Time range event pairs have suffixes "Begin" and "End".
+		  - "Start", "Stop", "Create", "Destroy", "Block", "Unblock"
+		    are suffixes reserved for scheduling resources.
+		
+		NOTE: If you add an event type, make sure you also update all
+		tables in this file!</span>
+
+</span></div><div class="anchor value-res" id="name-EvGoCreateSyscall">	<input type='checkbox' class="fold" id="EvGoCreateSyscall-fold-content"><label for="EvGoCreateSyscall-fold-content"><a href="../../../use/internal/trace/tracev2..EvGoCreateSyscall.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-38">EvGoCreateSyscall</a> <a href="#name-EventType">EventType</a> = 15 // <span class="md-text">goroutine appears in syscall (cgo callback) [timestamp, new goroutine ID]</span></label><span id='EvGoCreateSyscall-fold-content-docs' class="fold-docs">
+<span class="md-text">		Event types in the trace, args are given in square brackets.
+		
+		Naming scheme:
+		  - Time range event pairs have suffixes "Begin" and "End".
+		  - "Start", "Stop", "Create", "Destroy", "Block", "Unblock"
+		    are suffixes reserved for scheduling resources.
+		
+		NOTE: If you add an event type, make sure you also update all
+		tables in this file!</span>
+
+</span></div><div class="anchor value-res" id="name-EvGoDestroy">	<input type='checkbox' class="fold" id="EvGoDestroy-fold-content"><label for="EvGoDestroy-fold-content"><a href="../../../use/internal/trace/tracev2..EvGoDestroy.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-40">EvGoDestroy</a> <a href="#name-EventType">EventType</a> = 17 // <span class="md-text">goroutine ends [timestamp]</span></label><span id='EvGoDestroy-fold-content-docs' class="fold-docs">
+<span class="md-text">		Event types in the trace, args are given in square brackets.
+		
+		Naming scheme:
+		  - Time range event pairs have suffixes "Begin" and "End".
+		  - "Start", "Stop", "Create", "Destroy", "Block", "Unblock"
+		    are suffixes reserved for scheduling resources.
+		
+		NOTE: If you add an event type, make sure you also update all
+		tables in this file!</span>
+
+</span></div><div class="anchor value-res" id="name-EvGoDestroySyscall">	<input type='checkbox' class="fold" id="EvGoDestroySyscall-fold-content"><label for="EvGoDestroySyscall-fold-content"><a href="../../../use/internal/trace/tracev2..EvGoDestroySyscall.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-41">EvGoDestroySyscall</a> <a href="#name-EventType">EventType</a> = 18 // <span class="md-text">goroutine ends in syscall (cgo callback) [timestamp]</span></label><span id='EvGoDestroySyscall-fold-content-docs' class="fold-docs">
+<span class="md-text">		Event types in the trace, args are given in square brackets.
+		
+		Naming scheme:
+		  - Time range event pairs have suffixes "Begin" and "End".
+		  - "Start", "Stop", "Create", "Destroy", "Block", "Unblock"
+		    are suffixes reserved for scheduling resources.
+		
+		NOTE: If you add an event type, make sure you also update all
+		tables in this file!</span>
+
+</span></div><div class="anchor value-res" id="name-EvGoLabel">	<input type='checkbox' class="fold" id="EvGoLabel-fold-content"><label for="EvGoLabel-fold-content"><a href="../../../use/internal/trace/tracev2..EvGoLabel.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-68">EvGoLabel</a> <a href="#name-EventType">EventType</a> = 39 // <span class="md-text">apply string label to current running goroutine [timestamp, label string ID]</span></label><span id='EvGoLabel-fold-content-docs' class="fold-docs">
+<span class="md-text">		Annotations.</span>
+
+</span></div><div class="anchor value-res" id="name-EvGoroutineStack">	<input type='checkbox' class="fold" id="EvGoroutineStack-fold-content"><label for="EvGoroutineStack-fold-content"><a href="../../../use/internal/trace/tracev2..EvGoroutineStack.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-135">EvGoroutineStack</a> <a href="#name-EventType">EventType</a> = 134 // <span class="md-text">stack exists [timestamp, id, order]</span></label><span id='EvGoroutineStack-fold-content-docs' class="fold-docs">
+<span class="md-text">		Experimental goroutine stack events. Added in Go 1.23.</span>
+
+</span></div><div class="anchor value-res" id="name-EvGoroutineStackAlloc">	<input type='checkbox' class="fold" id="EvGoroutineStackAlloc-fold-content"><label for="EvGoroutineStackAlloc-fold-content"><a href="../../../use/internal/trace/tracev2..EvGoroutineStackAlloc.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-136">EvGoroutineStackAlloc</a> <a href="#name-EventType">EventType</a> = 135 // <span class="md-text">stack alloc [timestamp, id, order]</span></label><span id='EvGoroutineStackAlloc-fold-content-docs' class="fold-docs">
+<span class="md-text">		Experimental events.</span>
+
+</span></div><div class="anchor value-res" id="name-EvGoroutineStackFree">	<input type='checkbox' class="fold" id="EvGoroutineStackFree-fold-content"><label for="EvGoroutineStackFree-fold-content"><a href="../../../use/internal/trace/tracev2..EvGoroutineStackFree.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-137">EvGoroutineStackFree</a> <a href="#name-EventType">EventType</a> = 136 // <span class="md-text">stack free [timestamp, id]</span></label><span id='EvGoroutineStackFree-fold-content-docs' class="fold-docs">
+<span class="md-text">		Experimental events.</span>
+
+</span></div><div class="anchor value-res" id="name-EvGoStart">	<input type='checkbox' class="fold" id="EvGoStart-fold-content"><label for="EvGoStart-fold-content"><a href="../../../use/internal/trace/tracev2..EvGoStart.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-39">EvGoStart</a> <a href="#name-EventType">EventType</a> = 16 // <span class="md-text">goroutine starts running [timestamp, goroutine ID, goroutine seq]</span></label><span id='EvGoStart-fold-content-docs' class="fold-docs">
+<span class="md-text">		Event types in the trace, args are given in square brackets.
+		
+		Naming scheme:
+		  - Time range event pairs have suffixes "Begin" and "End".
+		  - "Start", "Stop", "Create", "Destroy", "Block", "Unblock"
+		    are suffixes reserved for scheduling resources.
+		
+		NOTE: If you add an event type, make sure you also update all
+		tables in this file!</span>
+
+</span></div><div class="anchor value-res" id="name-EvGoStatus">	<input type='checkbox' class="fold" id="EvGoStatus-fold-content"><label for="EvGoStatus-fold-content"><a href="../../../use/internal/trace/tracev2..EvGoStatus.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-48">EvGoStatus</a> <a href="#name-EventType">EventType</a> = 25 // <span class="md-text">goroutine status at the start of a generation [timestamp, goroutine ID, thread ID, status]</span></label><span id='EvGoStatus-fold-content-docs' class="fold-docs">
+<span class="md-text">		Event types in the trace, args are given in square brackets.
+		
+		Naming scheme:
+		  - Time range event pairs have suffixes "Begin" and "End".
+		  - "Start", "Stop", "Create", "Destroy", "Block", "Unblock"
+		    are suffixes reserved for scheduling resources.
+		
+		NOTE: If you add an event type, make sure you also update all
+		tables in this file!</span>
+
+</span></div><div class="anchor value-res" id="name-EvGoStatusStack">	<input type='checkbox' class="fold" id="EvGoStatusStack-fold-content"><label for="EvGoStatusStack-fold-content"><a href="../../../use/internal/trace/tracev2..EvGoStatusStack.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-81">EvGoStatusStack</a> <a href="#name-EventType">EventType</a> = 48 // <span class="md-text">goroutine status at the start of a generation, with a stack [timestamp, goroutine ID, M ID, status, stack ID]</span></label><span id='EvGoStatusStack-fold-content-docs' class="fold-docs">
+<span class="md-text">		GoStatus with stack. Added in Go 1.23.</span>
+
+</span></div><div class="anchor value-res" id="name-EvGoStop">	<input type='checkbox' class="fold" id="EvGoStop-fold-content"><label for="EvGoStop-fold-content"><a href="../../../use/internal/trace/tracev2..EvGoStop.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-42">EvGoStop</a> <a href="#name-EventType">EventType</a> = 19 // <span class="md-text">goroutine yields its time, but is runnable [timestamp, reason, stack ID]</span></label><span id='EvGoStop-fold-content-docs' class="fold-docs">
+<span class="md-text">		Event types in the trace, args are given in square brackets.
+		
+		Naming scheme:
+		  - Time range event pairs have suffixes "Begin" and "End".
+		  - "Start", "Stop", "Create", "Destroy", "Block", "Unblock"
+		    are suffixes reserved for scheduling resources.
+		
+		NOTE: If you add an event type, make sure you also update all
+		tables in this file!</span>
+
+</span></div><div class="anchor value-res" id="name-EvGoSwitch">	<input type='checkbox' class="fold" id="EvGoSwitch-fold-content"><label for="EvGoSwitch-fold-content"><a href="../../../use/internal/trace/tracev2..EvGoSwitch.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-76">EvGoSwitch</a> <a href="#name-EventType">EventType</a> = 45 // <span class="md-text">goroutine switch (coroswitch) [timestamp, goroutine ID, goroutine seq]</span></label><span id='EvGoSwitch-fold-content-docs' class="fold-docs">
+<span class="md-text">		Coroutines. Added in Go 1.23.</span>
+
+</span></div><div class="anchor value-res" id="name-EvGoSwitchDestroy">	<input type='checkbox' class="fold" id="EvGoSwitchDestroy-fold-content"><label for="EvGoSwitchDestroy-fold-content"><a href="../../../use/internal/trace/tracev2..EvGoSwitchDestroy.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-77">EvGoSwitchDestroy</a> <a href="#name-EventType">EventType</a> = 46 // <span class="md-text">goroutine switch and destroy [timestamp, goroutine ID, goroutine seq]</span></label><span id='EvGoSwitchDestroy-fold-content-docs' class="fold-docs">
+<span class="md-text">		Event types in the trace, args are given in square brackets.
+		
+		Naming scheme:
+		  - Time range event pairs have suffixes "Begin" and "End".
+		  - "Start", "Stop", "Create", "Destroy", "Block", "Unblock"
+		    are suffixes reserved for scheduling resources.
+		
+		NOTE: If you add an event type, make sure you also update all
+		tables in this file!</span>
+
+</span></div><div class="anchor value-res" id="name-EvGoSyscallBegin">	<input type='checkbox' class="fold" id="EvGoSyscallBegin-fold-content"><label for="EvGoSyscallBegin-fold-content"><a href="../../../use/internal/trace/tracev2..EvGoSyscallBegin.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-45">EvGoSyscallBegin</a> <a href="#name-EventType">EventType</a> = 22 // <span class="md-text">syscall enter [timestamp, P seq, stack ID]</span></label><span id='EvGoSyscallBegin-fold-content-docs' class="fold-docs">
+<span class="md-text">		Event types in the trace, args are given in square brackets.
+		
+		Naming scheme:
+		  - Time range event pairs have suffixes "Begin" and "End".
+		  - "Start", "Stop", "Create", "Destroy", "Block", "Unblock"
+		    are suffixes reserved for scheduling resources.
+		
+		NOTE: If you add an event type, make sure you also update all
+		tables in this file!</span>
+
+</span></div><div class="anchor value-res" id="name-EvGoSyscallEnd">	<input type='checkbox' class="fold" id="EvGoSyscallEnd-fold-content"><label for="EvGoSyscallEnd-fold-content"><a href="../../../use/internal/trace/tracev2..EvGoSyscallEnd.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-46">EvGoSyscallEnd</a> <a href="#name-EventType">EventType</a> = 23 // <span class="md-text">syscall exit [timestamp]</span></label><span id='EvGoSyscallEnd-fold-content-docs' class="fold-docs">
+<span class="md-text">		Event types in the trace, args are given in square brackets.
+		
+		Naming scheme:
+		  - Time range event pairs have suffixes "Begin" and "End".
+		  - "Start", "Stop", "Create", "Destroy", "Block", "Unblock"
+		    are suffixes reserved for scheduling resources.
+		
+		NOTE: If you add an event type, make sure you also update all
+		tables in this file!</span>
+
+</span></div><div class="anchor value-res" id="name-EvGoSyscallEndBlocked">	<input type='checkbox' class="fold" id="EvGoSyscallEndBlocked-fold-content"><label for="EvGoSyscallEndBlocked-fold-content"><a href="../../../use/internal/trace/tracev2..EvGoSyscallEndBlocked.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-47">EvGoSyscallEndBlocked</a> <a href="#name-EventType">EventType</a> = 24 // <span class="md-text">syscall exit and it blocked at some point [timestamp]</span></label><span id='EvGoSyscallEndBlocked-fold-content-docs' class="fold-docs">
+<span class="md-text">		Event types in the trace, args are given in square brackets.
+		
+		Naming scheme:
+		  - Time range event pairs have suffixes "Begin" and "End".
+		  - "Start", "Stop", "Create", "Destroy", "Block", "Unblock"
+		    are suffixes reserved for scheduling resources.
+		
+		NOTE: If you add an event type, make sure you also update all
+		tables in this file!</span>
+
+</span></div><div class="anchor value-res" id="name-EvGoUnblock">	<input type='checkbox' class="fold" id="EvGoUnblock-fold-content"><label for="EvGoUnblock-fold-content"><a href="../../../use/internal/trace/tracev2..EvGoUnblock.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-44">EvGoUnblock</a> <a href="#name-EventType">EventType</a> = 21 // <span class="md-text">goroutine is unblocked [timestamp, goroutine ID, goroutine seq, stack ID]</span></label><span id='EvGoUnblock-fold-content-docs' class="fold-docs">
+<span class="md-text">		Event types in the trace, args are given in square brackets.
+		
+		Naming scheme:
+		  - Time range event pairs have suffixes "Begin" and "End".
+		  - "Start", "Stop", "Create", "Destroy", "Block", "Unblock"
+		    are suffixes reserved for scheduling resources.
+		
+		NOTE: If you add an event type, make sure you also update all
+		tables in this file!</span>
+
+</span></div><div class="anchor value-res" id="name-EvHeapAlloc">	<input type='checkbox' class="fold" id="EvHeapAlloc-fold-content"><label for="EvHeapAlloc-fold-content"><a href="../../../use/internal/trace/tracev2..EvHeapAlloc.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-64">EvHeapAlloc</a> <a href="#name-EventType">EventType</a> = 37 // <span class="md-text">gcController.heapLive change [timestamp, heap alloc in bytes]</span></label><span id='EvHeapAlloc-fold-content-docs' class="fold-docs">
+<span class="md-text">		Event types in the trace, args are given in square brackets.
+		
+		Naming scheme:
+		  - Time range event pairs have suffixes "Begin" and "End".
+		  - "Start", "Stop", "Create", "Destroy", "Block", "Unblock"
+		    are suffixes reserved for scheduling resources.
+		
+		NOTE: If you add an event type, make sure you also update all
+		tables in this file!</span>
+
+</span></div><div class="anchor value-res" id="name-EvHeapGoal">	<input type='checkbox' class="fold" id="EvHeapGoal-fold-content"><label for="EvHeapGoal-fold-content"><a href="../../../use/internal/trace/tracev2..EvHeapGoal.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-65">EvHeapGoal</a> <a href="#name-EventType">EventType</a> = 38 // <span class="md-text">gcController.heapGoal() change [timestamp, heap goal in bytes]</span></label><span id='EvHeapGoal-fold-content-docs' class="fold-docs">
+<span class="md-text">		Event types in the trace, args are given in square brackets.
+		
+		Naming scheme:
+		  - Time range event pairs have suffixes "Begin" and "End".
+		  - "Start", "Stop", "Create", "Destroy", "Block", "Unblock"
+		    are suffixes reserved for scheduling resources.
+		
+		NOTE: If you add an event type, make sure you also update all
+		tables in this file!</span>
+
+</span></div><div class="anchor value-res" id="name-EvHeapObject">	<input type='checkbox' class="fold" id="EvHeapObject-fold-content"><label for="EvHeapObject-fold-content"><a href="../../../use/internal/trace/tracev2..EvHeapObject.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-130">EvHeapObject</a> <a href="#name-EventType">EventType</a> = 131 // <span class="md-text">heap object exists [timestamp, id, type]</span></label><span id='EvHeapObject-fold-content-docs' class="fold-docs">
+<span class="md-text">		Experimental heap object events. Added in Go 1.23.</span>
+
+</span></div><div class="anchor value-res" id="name-EvHeapObjectAlloc">	<input type='checkbox' class="fold" id="EvHeapObjectAlloc-fold-content"><label for="EvHeapObjectAlloc-fold-content"><a href="../../../use/internal/trace/tracev2..EvHeapObjectAlloc.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-131">EvHeapObjectAlloc</a> <a href="#name-EventType">EventType</a> = 132 // <span class="md-text">heap object alloc [timestamp, id, type]</span></label><span id='EvHeapObjectAlloc-fold-content-docs' class="fold-docs">
+<span class="md-text">		Experimental events.</span>
+
+</span></div><div class="anchor value-res" id="name-EvHeapObjectFree">	<input type='checkbox' class="fold" id="EvHeapObjectFree-fold-content"><label for="EvHeapObjectFree-fold-content"><a href="../../../use/internal/trace/tracev2..EvHeapObjectFree.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-132">EvHeapObjectFree</a> <a href="#name-EventType">EventType</a> = 133 // <span class="md-text">heap object free [timestamp, id]</span></label><span id='EvHeapObjectFree-fold-content-docs' class="fold-docs">
+<span class="md-text">		Experimental events.</span>
+
+</span></div><div class="anchor value-res" id="name-EvNone">	<input type='checkbox' class="fold" id="EvNone-fold-content"><label for="EvNone-fold-content"><a href="../../../use/internal/trace/tracev2..EvNone.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-17">EvNone</a> <a href="#name-EventType">EventType</a> = 0 // <span class="md-text">unused</span></label><span id='EvNone-fold-content-docs' class="fold-docs">
+<span class="md-text">		Event types in the trace, args are given in square brackets.
+		
+		Naming scheme:
+		  - Time range event pairs have suffixes "Begin" and "End".
+		  - "Start", "Stop", "Create", "Destroy", "Block", "Unblock"
+		    are suffixes reserved for scheduling resources.
+		
+		NOTE: If you add an event type, make sure you also update all
+		tables in this file!</span>
+
+</span></div><div class="anchor value-res" id="name-EvProcsChange">	<input type='checkbox' class="fold" id="EvProcsChange-fold-content"><label for="EvProcsChange-fold-content"><a href="../../../use/internal/trace/tracev2..EvProcsChange.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-30">EvProcsChange</a> <a href="#name-EventType">EventType</a> = 9 // <span class="md-text">current value of GOMAXPROCS [timestamp, GOMAXPROCS, stack ID]</span></label><span id='EvProcsChange-fold-content-docs' class="fold-docs">
+<span class="md-text">		Procs.</span>
+
+</span></div><div class="anchor value-res" id="name-EvProcStart">	<input type='checkbox' class="fold" id="EvProcStart-fold-content"><label for="EvProcStart-fold-content"><a href="../../../use/internal/trace/tracev2..EvProcStart.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-31">EvProcStart</a> <a href="#name-EventType">EventType</a> = 10 // <span class="md-text">start of P [timestamp, P ID, P seq]</span></label><span id='EvProcStart-fold-content-docs' class="fold-docs">
+<span class="md-text">		Event types in the trace, args are given in square brackets.
+		
+		Naming scheme:
+		  - Time range event pairs have suffixes "Begin" and "End".
+		  - "Start", "Stop", "Create", "Destroy", "Block", "Unblock"
+		    are suffixes reserved for scheduling resources.
+		
+		NOTE: If you add an event type, make sure you also update all
+		tables in this file!</span>
+
+</span></div><div class="anchor value-res" id="name-EvProcStatus">	<input type='checkbox' class="fold" id="EvProcStatus-fold-content"><label for="EvProcStatus-fold-content"><a href="../../../use/internal/trace/tracev2..EvProcStatus.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-34">EvProcStatus</a> <a href="#name-EventType">EventType</a> = 13 // <span class="md-text">P status at the start of a generation [timestamp, P ID, status]</span></label><span id='EvProcStatus-fold-content-docs' class="fold-docs">
+<span class="md-text">		Event types in the trace, args are given in square brackets.
+		
+		Naming scheme:
+		  - Time range event pairs have suffixes "Begin" and "End".
+		  - "Start", "Stop", "Create", "Destroy", "Block", "Unblock"
+		    are suffixes reserved for scheduling resources.
+		
+		NOTE: If you add an event type, make sure you also update all
+		tables in this file!</span>
+
+</span></div><div class="anchor value-res" id="name-EvProcSteal">	<input type='checkbox' class="fold" id="EvProcSteal-fold-content"><label for="EvProcSteal-fold-content"><a href="../../../use/internal/trace/tracev2..EvProcSteal.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-33">EvProcSteal</a> <a href="#name-EventType">EventType</a> = 12 // <span class="md-text">P was stolen [timestamp, P ID, P seq, M ID]</span></label><span id='EvProcSteal-fold-content-docs' class="fold-docs">
+<span class="md-text">		Event types in the trace, args are given in square brackets.
+		
+		Naming scheme:
+		  - Time range event pairs have suffixes "Begin" and "End".
+		  - "Start", "Stop", "Create", "Destroy", "Block", "Unblock"
+		    are suffixes reserved for scheduling resources.
+		
+		NOTE: If you add an event type, make sure you also update all
+		tables in this file!</span>
+
+</span></div><div class="anchor value-res" id="name-EvProcStop">	<input type='checkbox' class="fold" id="EvProcStop-fold-content"><label for="EvProcStop-fold-content"><a href="../../../use/internal/trace/tracev2..EvProcStop.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-32">EvProcStop</a> <a href="#name-EventType">EventType</a> = 11 // <span class="md-text">stop of P [timestamp]</span></label><span id='EvProcStop-fold-content-docs' class="fold-docs">
+<span class="md-text">		Event types in the trace, args are given in square brackets.
+		
+		Naming scheme:
+		  - Time range event pairs have suffixes "Begin" and "End".
+		  - "Start", "Stop", "Create", "Destroy", "Block", "Unblock"
+		    are suffixes reserved for scheduling resources.
+		
+		NOTE: If you add an event type, make sure you also update all
+		tables in this file!</span>
+
+</span></div><div class="anchor value-res" id="name-EvSpan">	<input type='checkbox' class="fold" id="EvSpan-fold-content"><label for="EvSpan-fold-content"><a href="../../../use/internal/trace/tracev2..EvSpan.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-125">EvSpan</a> <a href="#name-EventType">EventType</a> = 128 // <span class="md-text">heap span exists [timestamp, id, npages, type/class]</span></label><span id='EvSpan-fold-content-docs' class="fold-docs">
+<span class="md-text">		Experimental heap span events. Added in Go 1.23.</span>
+
+</span></div><div class="anchor value-res" id="name-EvSpanAlloc">	<input type='checkbox' class="fold" id="EvSpanAlloc-fold-content"><label for="EvSpanAlloc-fold-content"><a href="../../../use/internal/trace/tracev2..EvSpanAlloc.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-126">EvSpanAlloc</a> <a href="#name-EventType">EventType</a> = 129 // <span class="md-text">heap span alloc [timestamp, id, npages, type/class]</span></label><span id='EvSpanAlloc-fold-content-docs' class="fold-docs">
+<span class="md-text">		Experimental events.</span>
+
+</span></div><div class="anchor value-res" id="name-EvSpanFree">	<input type='checkbox' class="fold" id="EvSpanFree-fold-content"><label for="EvSpanFree-fold-content"><a href="../../../use/internal/trace/tracev2..EvSpanFree.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-127">EvSpanFree</a> <a href="#name-EventType">EventType</a> = 130 // <span class="md-text">heap span free [timestamp, id]</span></label><span id='EvSpanFree-fold-content-docs' class="fold-docs">
+<span class="md-text">		Experimental events.</span>
+
+</span></div><div class="anchor value-res" id="name-EvStack">	<input type='checkbox' class="fold" id="EvStack-fold-content"><label for="EvStack-fold-content"><a href="../../../use/internal/trace/tracev2..EvStack.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-22">EvStack</a> <a href="#name-EventType">EventType</a> = 3 // <span class="md-text">stack table entry [ID, ...{PC, func string ID, file string ID, line #}]</span></label><span id='EvStack-fold-content-docs' class="fold-docs">
+<span class="md-text">		Event types in the trace, args are given in square brackets.
+		
+		Naming scheme:
+		  - Time range event pairs have suffixes "Begin" and "End".
+		  - "Start", "Stop", "Create", "Destroy", "Block", "Unblock"
+		    are suffixes reserved for scheduling resources.
+		
+		NOTE: If you add an event type, make sure you also update all
+		tables in this file!</span>
+
+</span></div><div class="anchor value-res" id="name-EvStacks">	<input type='checkbox' class="fold" id="EvStacks-fold-content"><label for="EvStacks-fold-content"><a href="../../../use/internal/trace/tracev2..EvStacks.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-21">EvStacks</a> <a href="#name-EventType">EventType</a> = 2 // <span class="md-text">start of a section of the stack table [...EvStack]</span></label><span id='EvStacks-fold-content-docs' class="fold-docs">
+<span class="md-text">		Event types in the trace, args are given in square brackets.
+		
+		Naming scheme:
+		  - Time range event pairs have suffixes "Begin" and "End".
+		  - "Start", "Stop", "Create", "Destroy", "Block", "Unblock"
+		    are suffixes reserved for scheduling resources.
+		
+		NOTE: If you add an event type, make sure you also update all
+		tables in this file!</span>
+
+</span></div><div class="anchor value-res" id="name-EvString">	<input type='checkbox' class="fold" id="EvString-fold-content"><label for="EvString-fold-content"><a href="../../../use/internal/trace/tracev2..EvString.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-24">EvString</a> <a href="#name-EventType">EventType</a> = 5 // <span class="md-text">string dictionary entry [ID, length, string]</span></label><span id='EvString-fold-content-docs' class="fold-docs">
+<span class="md-text">		Event types in the trace, args are given in square brackets.
+		
+		Naming scheme:
+		  - Time range event pairs have suffixes "Begin" and "End".
+		  - "Start", "Stop", "Create", "Destroy", "Block", "Unblock"
+		    are suffixes reserved for scheduling resources.
+		
+		NOTE: If you add an event type, make sure you also update all
+		tables in this file!</span>
+
+</span></div><div class="anchor value-res" id="name-EvStrings">	<input type='checkbox' class="fold" id="EvStrings-fold-content"><label for="EvStrings-fold-content"><a href="../../../use/internal/trace/tracev2..EvStrings.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-23">EvStrings</a> <a href="#name-EventType">EventType</a> = 4 // <span class="md-text">start of a section of the string dictionary [...EvString]</span></label><span id='EvStrings-fold-content-docs' class="fold-docs">
+<span class="md-text">		Event types in the trace, args are given in square brackets.
+		
+		Naming scheme:
+		  - Time range event pairs have suffixes "Begin" and "End".
+		  - "Start", "Stop", "Create", "Destroy", "Block", "Unblock"
+		    are suffixes reserved for scheduling resources.
+		
+		NOTE: If you add an event type, make sure you also update all
+		tables in this file!</span>
+
+</span></div><div class="anchor value-res" id="name-EvSTWBegin">	<input type='checkbox' class="fold" id="EvSTWBegin-fold-content"><label for="EvSTWBegin-fold-content"><a href="../../../use/internal/trace/tracev2..EvSTWBegin.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-51">EvSTWBegin</a> <a href="#name-EventType">EventType</a> = 26 // <span class="md-text">STW start [timestamp, kind]</span></label><span id='EvSTWBegin-fold-content-docs' class="fold-docs">
+<span class="md-text">		STW.</span>
+
+</span></div><div class="anchor value-res" id="name-EvSTWEnd">	<input type='checkbox' class="fold" id="EvSTWEnd-fold-content"><label for="EvSTWEnd-fold-content"><a href="../../../use/internal/trace/tracev2..EvSTWEnd.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-52">EvSTWEnd</a> <a href="#name-EventType">EventType</a> = 27 // <span class="md-text">STW done [timestamp]</span></label><span id='EvSTWEnd-fold-content-docs' class="fold-docs">
+<span class="md-text">		Event types in the trace, args are given in square brackets.
+		
+		Naming scheme:
+		  - Time range event pairs have suffixes "Begin" and "End".
+		  - "Start", "Stop", "Create", "Destroy", "Block", "Unblock"
+		    are suffixes reserved for scheduling resources.
+		
+		NOTE: If you add an event type, make sure you also update all
+		tables in this file!</span>
+
+</span></div><div class="anchor value-res" id="name-EvSync">	<input type='checkbox' class="fold" id="EvSync-fold-content"><label for="EvSync-fold-content"><a href="../../../use/internal/trace/tracev2..EvSync.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-87">EvSync</a> <a href="#name-EventType">EventType</a> = 50 // <span class="md-text">start of a sync batch [...EvFrequency|EvClockSnapshot]</span></label><span id='EvSync-fold-content-docs' class="fold-docs">
+<span class="md-text">		Sync batch. Added in Go 1.25. Previously a lone EvFrequency event.</span>
+
+</span></div><div class="anchor value-res" id="name-EvUserLog">	<input type='checkbox' class="fold" id="EvUserLog-fold-content"><label for="EvUserLog-fold-content"><a href="../../../use/internal/trace/tracev2..EvUserLog.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-73">EvUserLog</a> <a href="#name-EventType">EventType</a> = 44 // <span class="md-text">trace.Log [timestamp, internal task ID, key string ID, value string ID, stack]</span></label><span id='EvUserLog-fold-content-docs' class="fold-docs">
+<span class="md-text">		Event types in the trace, args are given in square brackets.
+		
+		Naming scheme:
+		  - Time range event pairs have suffixes "Begin" and "End".
+		  - "Start", "Stop", "Create", "Destroy", "Block", "Unblock"
+		    are suffixes reserved for scheduling resources.
+		
+		NOTE: If you add an event type, make sure you also update all
+		tables in this file!</span>
+
+</span></div><div class="anchor value-res" id="name-EvUserRegionBegin">	<input type='checkbox' class="fold" id="EvUserRegionBegin-fold-content"><label for="EvUserRegionBegin-fold-content"><a href="../../../use/internal/trace/tracev2..EvUserRegionBegin.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-71">EvUserRegionBegin</a> <a href="#name-EventType">EventType</a> = 42 // <span class="md-text">trace.{Start,With}Region [timestamp, internal task ID, name string ID, stack ID]</span></label><span id='EvUserRegionBegin-fold-content-docs' class="fold-docs">
+<span class="md-text">		Event types in the trace, args are given in square brackets.
+		
+		Naming scheme:
+		  - Time range event pairs have suffixes "Begin" and "End".
+		  - "Start", "Stop", "Create", "Destroy", "Block", "Unblock"
+		    are suffixes reserved for scheduling resources.
+		
+		NOTE: If you add an event type, make sure you also update all
+		tables in this file!</span>
+
+</span></div><div class="anchor value-res" id="name-EvUserRegionEnd">	<input type='checkbox' class="fold" id="EvUserRegionEnd-fold-content"><label for="EvUserRegionEnd-fold-content"><a href="../../../use/internal/trace/tracev2..EvUserRegionEnd.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-72">EvUserRegionEnd</a> <a href="#name-EventType">EventType</a> = 43 // <span class="md-text">trace.{End,With}Region [timestamp, internal task ID, name string ID, stack ID]</span></label><span id='EvUserRegionEnd-fold-content-docs' class="fold-docs">
+<span class="md-text">		Event types in the trace, args are given in square brackets.
+		
+		Naming scheme:
+		  - Time range event pairs have suffixes "Begin" and "End".
+		  - "Start", "Stop", "Create", "Destroy", "Block", "Unblock"
+		    are suffixes reserved for scheduling resources.
+		
+		NOTE: If you add an event type, make sure you also update all
+		tables in this file!</span>
+
+</span></div><div class="anchor value-res" id="name-EvUserTaskBegin">	<input type='checkbox' class="fold" id="EvUserTaskBegin-fold-content"><label for="EvUserTaskBegin-fold-content"><a href="../../../use/internal/trace/tracev2..EvUserTaskBegin.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-69">EvUserTaskBegin</a> <a href="#name-EventType">EventType</a> = 40 // <span class="md-text">trace.NewTask [timestamp, internal task ID, internal parent task ID, name string ID, stack ID]</span></label><span id='EvUserTaskBegin-fold-content-docs' class="fold-docs">
+<span class="md-text">		Event types in the trace, args are given in square brackets.
+		
+		Naming scheme:
+		  - Time range event pairs have suffixes "Begin" and "End".
+		  - "Start", "Stop", "Create", "Destroy", "Block", "Unblock"
+		    are suffixes reserved for scheduling resources.
+		
+		NOTE: If you add an event type, make sure you also update all
+		tables in this file!</span>
+
+</span></div><div class="anchor value-res" id="name-EvUserTaskEnd">	<input type='checkbox' class="fold" id="EvUserTaskEnd-fold-content"><label for="EvUserTaskEnd-fold-content"><a href="../../../use/internal/trace/tracev2..EvUserTaskEnd.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-70">EvUserTaskEnd</a> <a href="#name-EventType">EventType</a> = 41 // <span class="md-text">end of a task [timestamp, internal task ID, stack ID]</span></label><span id='EvUserTaskEnd-fold-content-docs' class="fold-docs">
+<span class="md-text">		Event types in the trace, args are given in square brackets.
+		
+		Naming scheme:
+		  - Time range event pairs have suffixes "Begin" and "End".
+		  - "Start", "Stop", "Create", "Destroy", "Block", "Unblock"
+		    are suffixes reserved for scheduling resources.
+		
+		NOTE: If you add an event type, make sure you also update all
+		tables in this file!</span>
+
+</span></div><div class="anchor value-res" id="name-GoBad">	<span class="nodocs"><a href="../../../use/internal/trace/tracev2..GoBad.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-506">GoBad</a> <a href="#name-GoStatus">GoStatus</a> = 0</span></div><div class="anchor value-res" id="name-GoRunnable">	<span class="nodocs"><a href="../../../use/internal/trace/tracev2..GoRunnable.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-507">GoRunnable</a> <a href="#name-GoStatus">GoStatus</a> = 1</span></div><div class="anchor value-res" id="name-GoRunning">	<span class="nodocs"><a href="../../../use/internal/trace/tracev2..GoRunning.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-508">GoRunning</a> <a href="#name-GoStatus">GoStatus</a> = 2</span></div><div class="anchor value-res" id="name-GoSyscall">	<span class="nodocs"><a href="../../../use/internal/trace/tracev2..GoSyscall.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-509">GoSyscall</a> <a href="#name-GoStatus">GoStatus</a> = 3</span></div><div class="anchor value-res" id="name-GoWaiting">	<span class="nodocs"><a href="../../../use/internal/trace/tracev2..GoWaiting.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-510">GoWaiting</a> <a href="#name-GoStatus">GoStatus</a> = 4</span></div><div class="anchor value-res" id="name-MaxBatchSize">	<input type='checkbox' class="fold" id="MaxBatchSize-fold-content"><label for="MaxBatchSize-fold-content"><a href="../../../use/internal/trace/tracev2..MaxBatchSize.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-568">MaxBatchSize</a> = 65536</label><span id='MaxBatchSize-fold-content-docs' class="fold-docs">
+<span class="md-text">		MaxBatchSize sets the maximum size that a batch can be.
+		
+		Directly controls the trace batch size in the runtime.
+		
+		NOTE: If this number decreases, the trace format version must change.</span>
+
+</span></div><div class="anchor value-res" id="name-MaxEvent">	<input type='checkbox' class="fold" id="MaxEvent-fold-content"><label for="MaxEvent-fold-content"><a href="../../../use/internal/trace/tracev2..MaxEvent.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-120">MaxEvent</a> <a href="#name-EventType">EventType</a> = 127</label><span id='MaxEvent-fold-content-docs' class="fold-docs">
+<span class="md-text">		Experimental events.</span>
+
+</span></div><div class="anchor value-res" id="name-MaxEventTrailerDataSize">	<input type='checkbox' class="fold" id="MaxEventTrailerDataSize-fold-content"><label for="MaxEventTrailerDataSize-fold-content"><a href="../../../use/internal/trace/tracev2..MaxEventTrailerDataSize.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-588">MaxEventTrailerDataSize</a> = 1024</label><span id='MaxEventTrailerDataSize-fold-content-docs' class="fold-docs">
+<span class="md-text">		MaxEventTrailerDataSize controls the amount of trailer data that
+		an event can have in bytes. Must be smaller than MaxBatchSize.
+		Controls the maximum string size in the trace.
+		
+		Directly controls the maximum such value in the runtime.
+		
+		NOTE: If this number decreases, the trace format version must change.</span>
+
+</span></div><div class="anchor value-res" id="name-MaxExperimentalEvent">	<input type='checkbox' class="fold" id="MaxExperimentalEvent-fold-content"><label for="MaxExperimentalEvent-fold-content"><a href="../../../use/internal/trace/tracev2..MaxExperimentalEvent.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-139">MaxExperimentalEvent</a> <a href="#name-EventType">EventType</a> = 137</label><span id='MaxExperimentalEvent-fold-content-docs' class="fold-docs">
+<span class="md-text">		Experimental events.</span>
+
+</span></div><div class="anchor value-res" id="name-MaxFramesPerStack">	<input type='checkbox' class="fold" id="MaxFramesPerStack-fold-content"><label for="MaxFramesPerStack-fold-content"><a href="../../../use/internal/trace/tracev2..MaxFramesPerStack.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-579">MaxFramesPerStack</a> = 128</label><span id='MaxFramesPerStack-fold-content-docs' class="fold-docs">
+<span class="md-text">		Maximum number of PCs in a single stack trace.
+		
+		Since events contain only stack ID rather than whole stack trace,
+		we can allow quite large values here.
+		
+		Directly controls the maximum number of frames per stack
+		in the runtime.
+		
+		NOTE: If this number decreases, the trace format version must change.</span>
+
+</span></div><div class="anchor value-res" id="name-MaxTimedEventArgs">	<input type='checkbox' class="fold" id="MaxTimedEventArgs-fold-content"><label for="MaxTimedEventArgs-fold-content"><a href="../../../use/internal/trace/tracev2..MaxTimedEventArgs.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-145">MaxTimedEventArgs</a> = 5</label><span id='MaxTimedEventArgs-fold-content-docs' class="fold-docs">
+<span class="md-text">		MaxTimedEventArgs is the maximum number of arguments for timed events.</span>
+
+</span></div><div class="anchor value-res" id="name-NoExperiment">	<input type='checkbox' class="fold" id="NoExperiment-fold-content"><label for="NoExperiment-fold-content"><a href="../../../use/internal/trace/tracev2..NoExperiment.html">const</a> <a href="../../../src/internal/trace/tracev2/spec.go.html#line-107">NoExperiment</a> <a href="#name-Experiment">Experiment</a> = 0</label><span id='NoExperiment-fold-content-docs' class="fold-docs">
+<span class="md-text">		NoExperiment is the reserved ID 0 indicating no experiment.</span>
+
+</span></div><div class="anchor value-res" id="name-NumEvents">	<input type='checkbox' class="fold" id="NumEvents-fold-content"><label for="NumEvents-fold-content"><a href="../../../use/internal/trace/tracev2..NumEvents.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-94">NumEvents</a> <a href="#name-EventType">EventType</a> = 53</label><span id='NumEvents-fold-content-docs' class="fold-docs">
+<span class="md-text">		Event types in the trace, args are given in square brackets.
+		
+		Naming scheme:
+		  - Time range event pairs have suffixes "Begin" and "End".
+		  - "Start", "Stop", "Create", "Destroy", "Block", "Unblock"
+		    are suffixes reserved for scheduling resources.
+		
+		NOTE: If you add an event type, make sure you also update all
+		tables in this file!</span>
+
+</span></div><div class="anchor value-res" id="name-NumExperimentalEvents">	<span class="nodocs"><a href="../../../use/internal/trace/tracev2..NumExperimentalEvents.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-142">NumExperimentalEvents</a> <a href="#name-EventType">EventType</a> = 10</span></div><div class="anchor value-res" id="name-NumExperiments">	<input type='checkbox' class="fold" id="NumExperiments-fold-content"><label for="NumExperiments-fold-content"><a href="../../../use/internal/trace/tracev2..NumExperiments.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-106">NumExperiments</a> <a href="#name-Experiment">Experiment</a> = 2</label><span id='NumExperiments-fold-content-docs' class="fold-docs">
+<span class="md-text">		Experiments.</span>
+
+</span></div><div class="anchor value-res" id="name-ProcBad">	<span class="nodocs"><a href="../../../use/internal/trace/tracev2..ProcBad.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-533">ProcBad</a> <a href="#name-ProcStatus">ProcStatus</a> = 0</span></div><div class="anchor value-res" id="name-ProcIdle">	<span class="nodocs"><a href="../../../use/internal/trace/tracev2..ProcIdle.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-535">ProcIdle</a> <a href="#name-ProcStatus">ProcStatus</a> = 2</span></div><div class="anchor value-res" id="name-ProcRunning">	<span class="nodocs"><a href="../../../use/internal/trace/tracev2..ProcRunning.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-534">ProcRunning</a> <a href="#name-ProcStatus">ProcStatus</a> = 1</span></div><div class="anchor value-res" id="name-ProcSyscall">	<span class="nodocs"><a href="../../../use/internal/trace/tracev2..ProcSyscall.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-536">ProcSyscall</a> <a href="#name-ProcStatus">ProcStatus</a> = 3</span></div><div class="anchor value-res" id="name-ProcSyscallAbandoned">	<input type='checkbox' class="fold" id="ProcSyscallAbandoned-fold-content"><label for="ProcSyscallAbandoned-fold-content"><a href="../../../use/internal/trace/tracev2..ProcSyscallAbandoned.html">const</a> <a href="../../../src/internal/trace/tracev2/events.go.html#line-547">ProcSyscallAbandoned</a> <a href="#name-ProcStatus">ProcStatus</a> = 4</label><span id='ProcSyscallAbandoned-fold-content-docs' class="fold-docs">
+<span class="md-text">		ProcSyscallAbandoned is a special case of
+		ProcSyscall. It's used in the very specific case
+		where the first a P is mentioned in a generation is
+		part of a ProcSteal event. If that's the first time
+		it's mentioned, then there's no GoSyscallBegin to
+		connect the P stealing back to at that point. This
+		special state indicates this to the parser, so it
+		doesn't try to find a GoSyscallEndBlocked that
+		corresponds with the ProcSteal.</span>
+
+</span></div></div></code></pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

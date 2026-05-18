@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: frontend.go in package github.com/jackc/pgx/v5/pgproto3</title>
+<link href="../../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	frontend.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../../pkg/github.com/jackc/pgx/v5/pgproto3.html">github.com/jackc/pgx/v5/pgproto3</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30],
+input[id=r31]:checked ~pre label[for=r31],
+input[id=r32]:checked ~pre label[for=r32],
+input[id=r33]:checked ~pre label[for=r33],
+input[id=r34]:checked ~pre label[for=r34],
+input[id=r35]:checked ~pre label[for=r35],
+input[id=r36]:checked ~pre label[for=r36],
+input[id=r37]:checked ~pre label[for=r37],
+input[id=r38]:checked ~pre label[for=r38],
+input[id=r39]:checked ~pre label[for=r39],
+input[id=r40]:checked ~pre label[for=r40],
+input[id=r41]:checked ~pre label[for=r41],
+input[id=r42]:checked ~pre label[for=r42],
+input[id=r43]:checked ~pre label[for=r43],
+input[id=r44]:checked ~pre label[for=r44],
+input[id=r45]:checked ~pre label[for=r45],
+input[id=r46]:checked ~pre label[for=r46],
+input[id=r47]:checked ~pre label[for=r47],
+input[id=r48]:checked ~pre label[for=r48],
+input[id=r49]:checked ~pre label[for=r49],
+input[id=r50]:checked ~pre label[for=r50],
+input[id=r51]:checked ~pre label[for=r51],
+input[id=r52]:checked ~pre label[for=r52],
+input[id=r53]:checked ~pre label[for=r53],
+input[id=r54]:checked ~pre label[for=r54],
+input[id=r55]:checked ~pre label[for=r55],
+input[id=r56]:checked ~pre label[for=r56],
+input[id=r57]:checked ~pre label[for=r57],
+input[id=r58]:checked ~pre label[for=r58],
+input[id=r59]:checked ~pre label[for=r59],
+input[id=r60]:checked ~pre label[for=r60],
+input[id=r61]:checked ~pre label[for=r61],
+input[id=r62]:checked ~pre label[for=r62],
+input[id=r63]:checked ~pre label[for=r63],
+input[id=r64]:checked ~pre label[for=r64],
+input[id=r65]:checked ~pre label[for=r65],
+input[id=r66]:checked ~pre label[for=r66],
+input[id=r67]:checked ~pre label[for=r67],
+input[id=r68]:checked ~pre label[for=r68],
+input[id=r69]:checked ~pre label[for=r69],
+input[id=r70]:checked ~pre label[for=r70],
+input[id=r71]:checked ~pre label[for=r71],
+input[id=r72]:checked ~pre label[for=r72],
+input[id=r73]:checked ~pre label[for=r73],
+input[id=r74]:checked ~pre label[for=r74],
+input[id=r75]:checked ~pre label[for=r75],
+input[id=r76]:checked ~pre label[for=r76],
+input[id=r77]:checked ~pre label[for=r77],
+input[id=r78]:checked ~pre label[for=r78],
+input[id=r79]:checked ~pre label[for=r79],
+input[id=r80]:checked ~pre label[for=r80],
+input[id=r81]:checked ~pre label[for=r81],
+input[id=r82]:checked ~pre label[for=r82],
+input[id=r83]:checked ~pre label[for=r83],
+input[id=r84]:checked ~pre label[for=r84],
+input[id=r85]:checked ~pre label[for=r85],
+input[id=r86]:checked ~pre label[for=r86],
+input[id=r87]:checked ~pre label[for=r87],
+input[id=r88]:checked ~pre label[for=r88],
+input[id=r89]:checked ~pre label[for=r89]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3,
+input[id=i4]:checked ~pre .i4
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="r31" type="radio" name="g"/>
+<input id="r32" type="radio" name="g"/>
+<input id="r33" type="radio" name="g"/>
+<input id="r34" type="radio" name="g"/>
+<input id="r35" type="radio" name="g"/>
+<input id="r36" type="radio" name="g"/>
+<input id="r37" type="radio" name="g"/>
+<input id="r38" type="radio" name="g"/>
+<input id="r39" type="radio" name="g"/>
+<input id="r40" type="radio" name="g"/>
+<input id="r41" type="radio" name="g"/>
+<input id="r42" type="radio" name="g"/>
+<input id="r43" type="radio" name="g"/>
+<input id="r44" type="radio" name="g"/>
+<input id="r45" type="radio" name="g"/>
+<input id="r46" type="radio" name="g"/>
+<input id="r47" type="radio" name="g"/>
+<input id="r48" type="radio" name="g"/>
+<input id="r49" type="radio" name="g"/>
+<input id="r50" type="radio" name="g"/>
+<input id="r51" type="radio" name="g"/>
+<input id="r52" type="radio" name="g"/>
+<input id="r53" type="radio" name="g"/>
+<input id="r54" type="radio" name="g"/>
+<input id="r55" type="radio" name="g"/>
+<input id="r56" type="radio" name="g"/>
+<input id="r57" type="radio" name="g"/>
+<input id="r58" type="radio" name="g"/>
+<input id="r59" type="radio" name="g"/>
+<input id="r60" type="radio" name="g"/>
+<input id="r61" type="radio" name="g"/>
+<input id="r62" type="radio" name="g"/>
+<input id="r63" type="radio" name="g"/>
+<input id="r64" type="radio" name="g"/>
+<input id="r65" type="radio" name="g"/>
+<input id="r66" type="radio" name="g"/>
+<input id="r67" type="radio" name="g"/>
+<input id="r68" type="radio" name="g"/>
+<input id="r69" type="radio" name="g"/>
+<input id="r70" type="radio" name="g"/>
+<input id="r71" type="radio" name="g"/>
+<input id="r72" type="radio" name="g"/>
+<input id="r73" type="radio" name="g"/>
+<input id="r74" type="radio" name="g"/>
+<input id="r75" type="radio" name="g"/>
+<input id="r76" type="radio" name="g"/>
+<input id="r77" type="radio" name="g"/>
+<input id="r78" type="radio" name="g"/>
+<input id="r79" type="radio" name="g"/>
+<input id="r80" type="radio" name="g"/>
+<input id="r81" type="radio" name="g"/>
+<input id="r82" type="radio" name="g"/>
+<input id="r83" type="radio" name="g"/>
+<input id="r84" type="radio" name="g"/>
+<input id="r85" type="radio" name="g"/>
+<input id="r86" type="radio" name="g"/>
+<input id="r87" type="radio" name="g"/>
+<input id="r88" type="radio" name="g"/>
+<input id="r89" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+<input id="i4" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="keyword">package</span> pgproto3</code></span>
+<span class="codeline" id="line-2"><code></code></span>
+<span class="codeline" id="line-3"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-4"><code>	<label for="i0"><span class="lit-string i0">"bytes"</span></label></code></span>
+<span class="codeline" id="line-5"><code>	<label for="i1"><span class="lit-string i1">"encoding/binary"</span></label></code></span>
+<span class="codeline" id="line-6"><code>	<label for="i2"><span class="lit-string i2">"errors"</span></label></code></span>
+<span class="codeline" id="line-7"><code>	<label for="i3"><span class="lit-string i3">"fmt"</span></label></code></span>
+<span class="codeline" id="line-8"><code>	<label for="i4"><span class="lit-string i4">"io"</span></label></code></span>
+<span class="codeline" id="line-9"><code>)</code></span>
+<span class="codeline" id="line-10"><code></code></span>
+<span class="codeline" id="line-11"><code><span class="comment">// Frontend acts as a client for the PostgreSQL wire protocol version 3.</span></code></span>
+<span class="codeline" id="line-12"><code><span class="keyword">type</span> <a href="../../../../../../pkg/github.com/jackc/pgx/v5/pgproto3.html#name-Frontend" class="ident">Frontend</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-13"><code>	<a href="../../../../../../use/github.com/jackc/pgx/v5/pgproto3..Frontend.cr^2b6bd.html" class="ident">cr</a> *<a href="chunkreader.go.html#line-14" class="ident">chunkReader</a></code></span>
+<span class="codeline" id="line-14"><code>	<a href="../../../../../../use/github.com/jackc/pgx/v5/pgproto3..Frontend.w^50e72.html" class="ident">w</a>  <a href="../../../../../../pkg/io.html" class="ident i4">io</a>.<a href="../../../../../io/io.go.html#line-99" class="ident">Writer</a></code></span>
+<span class="codeline" id="line-15"><code></code></span>
+<span class="codeline" id="line-16"><code>	<span class="comment">// tracer is used to trace messages when Send or Receive is called. This means an outbound message is traced</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">	// before it is actually transmitted (i.e. before Flush). It is safe to change this variable when the Frontend is</span></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">	// idle. Setting and unsetting tracer provides equivalent functionality to PQtrace and PQuntrace in libpq.</span></code></span>
+<span class="codeline" id="line-19"><code>	<a href="../../../../../../use/github.com/jackc/pgx/v5/pgproto3..Frontend.tracer^1e624.html" class="ident">tracer</a> *<a href="trace.go.html#line-15" class="ident">tracer</a></code></span>
+<span class="codeline" id="line-20"><code></code></span>
+<span class="codeline" id="line-21"><code>	<a href="../../../../../../use/github.com/jackc/pgx/v5/pgproto3..Frontend.wbuf^23733.html" class="ident">wbuf</a>        []<a href="../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
+<span class="codeline" id="line-22"><code>	<a href="../../../../../../use/github.com/jackc/pgx/v5/pgproto3..Frontend.encodeError^675c1.html" class="ident">encodeError</a> <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-23"><code></code></span>
+<span class="codeline" id="line-24"><code>	<span class="comment">// Backend message flyweights</span></code></span>
+<span class="codeline" id="line-25"><code>	<a href="../../../../../../use/github.com/jackc/pgx/v5/pgproto3..Frontend.authenticationOk^bd18a.html" class="ident">authenticationOk</a>                <a href="authentication_ok.go.html#line-12" class="ident">AuthenticationOk</a></code></span>
+<span class="codeline" id="line-26"><code>	<a href="../../../../../../use/github.com/jackc/pgx/v5/pgproto3..Frontend.authenticationCleartextPassword^0483c.html" class="ident">authenticationCleartextPassword</a> <a href="authentication_cleartext_password.go.html#line-12" class="ident">AuthenticationCleartextPassword</a></code></span>
+<span class="codeline" id="line-27"><code>	<a href="../../../../../../use/github.com/jackc/pgx/v5/pgproto3..Frontend.authenticationMD5Password^641c4.html" class="ident">authenticationMD5Password</a>       <a href="authentication_md5_password.go.html#line-12" class="ident">AuthenticationMD5Password</a></code></span>
+<span class="codeline" id="line-28"><code>	<a href="../../../../../../use/github.com/jackc/pgx/v5/pgproto3..Frontend.authenticationGSS^f501b.html" class="ident">authenticationGSS</a>               <a href="authentication_gss.go.html#line-11" class="ident">AuthenticationGSS</a></code></span>
+<span class="codeline" id="line-29"><code>	<a href="../../../../../../use/github.com/jackc/pgx/v5/pgproto3..Frontend.authenticationGSSContinue^50e80.html" class="ident">authenticationGSSContinue</a>       <a href="authentication_gss_continue.go.html#line-11" class="ident">AuthenticationGSSContinue</a></code></span>
+<span class="codeline" id="line-30"><code>	<a href="../../../../../../use/github.com/jackc/pgx/v5/pgproto3..Frontend.authenticationSASL^4beb3.html" class="ident">authenticationSASL</a>              <a href="authentication_sasl.go.html#line-13" class="ident">AuthenticationSASL</a></code></span>
+<span class="codeline" id="line-31"><code>	<a href="../../../../../../use/github.com/jackc/pgx/v5/pgproto3..Frontend.authenticationSASLContinue^5fd39.html" class="ident">authenticationSASLContinue</a>      <a href="authentication_sasl_continue.go.html#line-12" class="ident">AuthenticationSASLContinue</a></code></span>
+<span class="codeline" id="line-32"><code>	<a href="../../../../../../use/github.com/jackc/pgx/v5/pgproto3..Frontend.authenticationSASLFinal^c067a.html" class="ident">authenticationSASLFinal</a>         <a href="authentication_sasl_final.go.html#line-12" class="ident">AuthenticationSASLFinal</a></code></span>
+<span class="codeline" id="line-33"><code>	<a href="../../../../../../use/github.com/jackc/pgx/v5/pgproto3..Frontend.backendKeyData^5e932.html" class="ident">backendKeyData</a>                  <a href="backend_key_data.go.html#line-11" class="ident">BackendKeyData</a></code></span>
+<span class="codeline" id="line-34"><code>	<a href="../../../../../../use/github.com/jackc/pgx/v5/pgproto3..Frontend.bindComplete^ca860.html" class="ident">bindComplete</a>                    <a href="bind_complete.go.html#line-7" class="ident">BindComplete</a></code></span>
+<span class="codeline" id="line-35"><code>	<a href="../../../../../../use/github.com/jackc/pgx/v5/pgproto3..Frontend.closeComplete^dd777.html" class="ident">closeComplete</a>                   <a href="close_complete.go.html#line-7" class="ident">CloseComplete</a></code></span>
+<span class="codeline" id="line-36"><code>	<a href="../../../../../../use/github.com/jackc/pgx/v5/pgproto3..Frontend.commandComplete^6f106.html" class="ident">commandComplete</a>                 <a href="command_complete.go.html#line-8" class="ident">CommandComplete</a></code></span>
+<span class="codeline" id="line-37"><code>	<a href="../../../../../../use/github.com/jackc/pgx/v5/pgproto3..Frontend.copyBothResponse^fee9e.html" class="ident">copyBothResponse</a>                <a href="copy_both_response.go.html#line-13" class="ident">CopyBothResponse</a></code></span>
+<span class="codeline" id="line-38"><code>	<a href="../../../../../../use/github.com/jackc/pgx/v5/pgproto3..Frontend.copyData^2a071.html" class="ident">copyData</a>                        <a href="copy_data.go.html#line-8" class="ident">CopyData</a></code></span>
+<span class="codeline" id="line-39"><code>	<a href="../../../../../../use/github.com/jackc/pgx/v5/pgproto3..Frontend.copyInResponse^659a5.html" class="ident">copyInResponse</a>                  <a href="copy_in_response.go.html#line-13" class="ident">CopyInResponse</a></code></span>
+<span class="codeline" id="line-40"><code>	<a href="../../../../../../use/github.com/jackc/pgx/v5/pgproto3..Frontend.copyOutResponse^25a7f.html" class="ident">copyOutResponse</a>                 <a href="copy_out_response.go.html#line-13" class="ident">CopyOutResponse</a></code></span>
+<span class="codeline" id="line-41"><code>	<a href="../../../../../../use/github.com/jackc/pgx/v5/pgproto3..Frontend.copyDone^b5384.html" class="ident">copyDone</a>                        <a href="copy_done.go.html#line-7" class="ident">CopyDone</a></code></span>
+<span class="codeline" id="line-42"><code>	<a href="../../../../../../use/github.com/jackc/pgx/v5/pgproto3..Frontend.dataRow^a2446.html" class="ident">dataRow</a>                         <a href="data_row.go.html#line-13" class="ident">DataRow</a></code></span>
+<span class="codeline" id="line-43"><code>	<a href="../../../../../../use/github.com/jackc/pgx/v5/pgproto3..Frontend.emptyQueryResponse^4d9e6.html" class="ident">emptyQueryResponse</a>              <a href="empty_query_response.go.html#line-7" class="ident">EmptyQueryResponse</a></code></span>
+<span class="codeline" id="line-44"><code>	<a href="../../../../../../use/github.com/jackc/pgx/v5/pgproto3..Frontend.errorResponse^dc3eb.html" class="ident">errorResponse</a>                   <a href="error_response.go.html#line-9" class="ident">ErrorResponse</a></code></span>
+<span class="codeline" id="line-45"><code>	<a href="../../../../../../use/github.com/jackc/pgx/v5/pgproto3..Frontend.functionCallResponse^01a2a.html" class="ident">functionCallResponse</a>            <a href="function_call_response.go.html#line-11" class="ident">FunctionCallResponse</a></code></span>
+<span class="codeline" id="line-46"><code>	<a href="../../../../../../use/github.com/jackc/pgx/v5/pgproto3..Frontend.noData^9da12.html" class="ident">noData</a>                          <a href="no_data.go.html#line-7" class="ident">NoData</a></code></span>
+<span class="codeline" id="line-47"><code>	<a href="../../../../../../use/github.com/jackc/pgx/v5/pgproto3..Frontend.noticeResponse^a0994.html" class="ident">noticeResponse</a>                  <a href="notice_response.go.html#line-3" class="ident">NoticeResponse</a></code></span>
+<span class="codeline" id="line-48"><code>	<a href="../../../../../../use/github.com/jackc/pgx/v5/pgproto3..Frontend.notificationResponse^f9281.html" class="ident">notificationResponse</a>            <a href="notification_response.go.html#line-11" class="ident">NotificationResponse</a></code></span>
+<span class="codeline" id="line-49"><code>	<a href="../../../../../../use/github.com/jackc/pgx/v5/pgproto3..Frontend.parameterDescription^786d5.html" class="ident">parameterDescription</a>            <a href="parameter_description.go.html#line-13" class="ident">ParameterDescription</a></code></span>
+<span class="codeline" id="line-50"><code>	<a href="../../../../../../use/github.com/jackc/pgx/v5/pgproto3..Frontend.parameterStatus^e5ec5.html" class="ident">parameterStatus</a>                 <a href="parameter_status.go.html#line-8" class="ident">ParameterStatus</a></code></span>
+<span class="codeline" id="line-51"><code>	<a href="../../../../../../use/github.com/jackc/pgx/v5/pgproto3..Frontend.parseComplete^ed844.html" class="ident">parseComplete</a>                   <a href="parse_complete.go.html#line-7" class="ident">ParseComplete</a></code></span>
+<span class="codeline" id="line-52"><code>	<a href="../../../../../../use/github.com/jackc/pgx/v5/pgproto3..Frontend.readyForQuery^fc18d.html" class="ident">readyForQuery</a>                   <a href="ready_for_query.go.html#line-8" class="ident">ReadyForQuery</a></code></span>
+<span class="codeline" id="line-53"><code>	<a href="../../../../../../use/github.com/jackc/pgx/v5/pgproto3..Frontend.rowDescription^1fba0.html" class="ident">rowDescription</a>                  <a href="row_description.go.html#line-49" class="ident">RowDescription</a></code></span>
+<span class="codeline" id="line-54"><code>	<a href="../../../../../../use/github.com/jackc/pgx/v5/pgproto3..Frontend.portalSuspended^d2fc1.html" class="ident">portalSuspended</a>                 <a href="portal_suspended.go.html#line-7" class="ident">PortalSuspended</a></code></span>
+<span class="codeline" id="line-55"><code>	<a href="../../../../../../use/github.com/jackc/pgx/v5/pgproto3..Frontend.negotiateProtocolVersion^e9b82.html" class="ident">negotiateProtocolVersion</a>        <a href="negotiate_protocol_version.go.html#line-10" class="ident">NegotiateProtocolVersion</a></code></span>
+<span class="codeline" id="line-56"><code></code></span>
+<span class="codeline" id="line-57"><code>	<a href="../../../../../../use/github.com/jackc/pgx/v5/pgproto3..Frontend.bodyLen^a3d9a.html" class="ident">bodyLen</a>    <a href="../../../../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-58"><code>	<a href="../../../../../../use/github.com/jackc/pgx/v5/pgproto3..Frontend.maxBodyLen^e923f.html" class="ident">maxBodyLen</a> <a href="../../../../../../pkg/builtin.html#name-int" class="ident">int</a> <span class="comment">// maxBodyLen is the maximum length of a message body in octets. If a message body exceeds this length, Receive will return an error.</span></code></span>
+<span class="codeline" id="line-59"><code>	<a href="../../../../../../use/github.com/jackc/pgx/v5/pgproto3..Frontend.msgType^e4288.html" class="ident">msgType</a>    <a href="../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
+<span class="codeline" id="line-60"><code>	<a href="../../../../../../use/github.com/jackc/pgx/v5/pgproto3..Frontend.partialMsg^d27bf.html" class="ident">partialMsg</a> <a href="../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-61"><code>	<a href="../../../../../../use/github.com/jackc/pgx/v5/pgproto3..Frontend.authType^69dfe.html" class="ident">authType</a>   <a href="../../../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a></code></span>
+<span class="codeline" id="line-62"><code>}</code></span>
+<span class="codeline" id="line-63"><code></code></span>
+<span class="codeline" id="line-64"><code><span class="comment">// NewFrontend creates a new Frontend.</span></code></span>
+<span class="codeline" id="line-65"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../../../pkg/github.com/jackc/pgx/v5/pgproto3.html#name-NewFrontend" class="ident">NewFrontend</a></label>(<label for="r1" class="ident">r</label> <a href="../../../../../../pkg/io.html" class="ident i4">io</a>.<a href="../../../../../io/io.go.html#line-86" class="ident">Reader</a>, <label for="r2" class="ident">w</label> <a href="../../../../../../pkg/io.html" class="ident i4">io</a>.<a href="../../../../../io/io.go.html#line-99" class="ident">Writer</a>) *<a href="#line-12" class="ident">Frontend</a> {</code></span>
+<span class="codeline" id="line-66"><code>	<label for="r3" class="ident">cr</label> := <a href="chunkreader.go.html#line-25" class="ident">newChunkReader</a>(<label for="r1" class="ident">r</label>, <span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-67"><code>	<span class="keyword">return</span> &amp;<a href="#line-12" class="ident">Frontend</a>{<a href="#line-13" class="ident">cr</a>: <label for="r3" class="ident">cr</label>, <a href="#line-14" class="ident">w</a>: <label for="r2" class="ident">w</label>}</code></span>
+<span class="codeline" id="line-68"><code>}</code></span>
+<span class="codeline" id="line-69"><code></code></span>
+<span class="codeline" id="line-70"><code><span class="comment">// Send sends a message to the backend (i.e. the server). The message is buffered until Flush is called. Any error</span></code></span>
+<span class="codeline" id="line-71"><code><span class="comment">// encountered will be returned from Flush.</span></code></span>
+<span class="codeline" id="line-72"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-73"><code><span class="comment">// Send can work with any FrontendMessage. Some commonly used message types such as Bind have specialized send methods</span></code></span>
+<span class="codeline" id="line-74"><code><span class="comment">// such as SendBind. These methods should be preferred when the type of message is known up front (e.g. when building an</span></code></span>
+<span class="codeline" id="line-75"><code><span class="comment">// extended query protocol query) as they may be faster due to knowing the type of msg rather than it being hidden</span></code></span>
+<span class="codeline" id="line-76"><code><span class="comment">// behind an interface.</span></code></span>
+<span class="codeline" id="line-77"><code><span class="keyword">func</span> (<label for="r4" class="ident">f</label> *<a href="#line-12" class="ident">Frontend</a>) <label for="r5" class="ident"><a href="../../../../../../use/github.com/jackc/pgx/v5/pgproto3..Frontend.Send^f6f46.html" class="ident">Send</a></label>(<label for="r6" class="ident">msg</label> <a href="pgproto3.go.html#line-27" class="ident">FrontendMessage</a>) {</code></span>
+<span class="codeline" id="line-78"><code>	<span class="keyword">if</span> <label for="r4" class="ident">f</label>.<a href="#line-22" class="ident">encodeError</a> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-79"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-80"><code>	}</code></span>
+<span class="codeline" id="line-81"><code></code></span>
+<span class="codeline" id="line-82"><code>	<label for="r7" class="ident">prevLen</label> := <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r4" class="ident">f</label>.<a href="#line-21" class="ident">wbuf</a>)</code></span>
+<span class="codeline" id="line-83"><code>	<label for="r8" class="ident">newBuf</label>, <label for="r9" class="ident">err</label> := <label for="r6" class="ident">msg</label>.<a href="pgproto3.go.html#line-23" class="ident">Encode</a>(<label for="r4" class="ident">f</label>.<a href="#line-21" class="ident">wbuf</a>)</code></span>
+<span class="codeline" id="line-84"><code>	<span class="keyword">if</span> <label for="r9" class="ident">err</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-85"><code>		<label for="r4" class="ident">f</label>.<a href="#line-22" class="ident">encodeError</a> = <label for="r9" class="ident">err</label></code></span>
+<span class="codeline" id="line-86"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-87"><code>	}</code></span>
+<span class="codeline" id="line-88"><code>	<label for="r4" class="ident">f</label>.<a href="#line-21" class="ident">wbuf</a> = <label for="r8" class="ident">newBuf</label></code></span>
+<span class="codeline" id="line-89"><code></code></span>
+<span class="codeline" id="line-90"><code>	<span class="keyword">if</span> <label for="r4" class="ident">f</label>.<a href="#line-19" class="ident">tracer</a> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-91"><code>		<label for="r4" class="ident">f</label>.<a href="#line-19" class="ident">tracer</a>.<a href="trace.go.html#line-32" class="ident">traceMessage</a>(<span class="lit-number">'F'</span>, <a href="../../../../../../pkg/builtin.html#name-int32" class="ident">int32</a>(<a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r4" class="ident">f</label>.<a href="#line-21" class="ident">wbuf</a>)-<label for="r7" class="ident">prevLen</label>), <label for="r6" class="ident">msg</label>)</code></span>
+<span class="codeline" id="line-92"><code>	}</code></span>
+<span class="codeline" id="line-93"><code>}</code></span>
+<span class="codeline" id="line-94"><code></code></span>
+<span class="codeline" id="line-95"><code><span class="comment">// Flush writes any pending messages to the backend (i.e. the server).</span></code></span>
+<span class="codeline" id="line-96"><code><span class="keyword">func</span> (<label for="r10" class="ident">f</label> *<a href="#line-12" class="ident">Frontend</a>) <label for="r11" class="ident"><a href="../../../../../../use/github.com/jackc/pgx/v5/pgproto3..Frontend.Flush.html" class="ident">Flush</a></label>() <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-97"><code>	<span class="keyword">if</span> <label for="r12" class="ident">err</label> := <label for="r10" class="ident">f</label>.<a href="#line-22" class="ident">encodeError</a>; <label for="r12" class="ident">err</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-98"><code>		<label for="r10" class="ident">f</label>.<a href="#line-22" class="ident">encodeError</a> = <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-99"><code>		<label for="r10" class="ident">f</label>.<a href="#line-21" class="ident">wbuf</a> = <label for="r10" class="ident">f</label>.<a href="#line-21" class="ident">wbuf</a>[:<span class="lit-number">0</span>]</code></span>
+<span class="codeline" id="line-100"><code>		<span class="keyword">return</span> &amp;<a href="pgproto3.go.html#line-62" class="ident">writeError</a>{<a href="pgproto3.go.html#line-63" class="ident">err</a>: <label for="r12" class="ident">err</label>, <a href="pgproto3.go.html#line-64" class="ident">safeToRetry</a>: <a href="../../../../../../pkg/builtin.html#name-true" class="ident">true</a>}</code></span>
+<span class="codeline" id="line-101"><code>	}</code></span>
+<span class="codeline" id="line-102"><code></code></span>
+<span class="codeline" id="line-103"><code>	<span class="keyword">if</span> <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r10" class="ident">f</label>.<a href="#line-21" class="ident">wbuf</a>) == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-104"><code>		<span class="keyword">return</span> <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-105"><code>	}</code></span>
+<span class="codeline" id="line-106"><code></code></span>
+<span class="codeline" id="line-107"><code>	<label for="r13" class="ident">n</label>, <label for="r14" class="ident">err</label> := <label for="r10" class="ident">f</label>.<a href="#line-14" class="ident">w</a>.<a href="../../../../../io/io.go.html#line-100" class="ident">Write</a>(<label for="r10" class="ident">f</label>.<a href="#line-21" class="ident">wbuf</a>)</code></span>
+<span class="codeline" id="line-108"><code></code></span>
+<span class="codeline" id="line-109"><code>	<span class="keyword">const</span> <label for="r15" class="ident">maxLen</label> = <span class="lit-number">1024</span></code></span>
+<span class="codeline" id="line-110"><code>	<span class="keyword">if</span> <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r10" class="ident">f</label>.<a href="#line-21" class="ident">wbuf</a>) &gt; <label for="r15" class="ident">maxLen</label> {</code></span>
+<span class="codeline" id="line-111"><code>		<label for="r10" class="ident">f</label>.<a href="#line-21" class="ident">wbuf</a> = <a href="../../../../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <span class="lit-number">0</span>, <label for="r15" class="ident">maxLen</label>)</code></span>
+<span class="codeline" id="line-112"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-113"><code>		<label for="r10" class="ident">f</label>.<a href="#line-21" class="ident">wbuf</a> = <label for="r10" class="ident">f</label>.<a href="#line-21" class="ident">wbuf</a>[:<span class="lit-number">0</span>]</code></span>
+<span class="codeline" id="line-114"><code>	}</code></span>
+<span class="codeline" id="line-115"><code></code></span>
+<span class="codeline" id="line-116"><code>	<span class="keyword">if</span> <label for="r14" class="ident">err</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-117"><code>		<span class="keyword">return</span> &amp;<a href="pgproto3.go.html#line-62" class="ident">writeError</a>{<a href="pgproto3.go.html#line-63" class="ident">err</a>: <label for="r14" class="ident">err</label>, <a href="pgproto3.go.html#line-64" class="ident">safeToRetry</a>: <label for="r13" class="ident">n</label> == <span class="lit-number">0</span>}</code></span>
+<span class="codeline" id="line-118"><code>	}</code></span>
+<span class="codeline" id="line-119"><code></code></span>
+<span class="codeline" id="line-120"><code>	<span class="keyword">return</span> <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-121"><code>}</code></span>
+<span class="codeline" id="line-122"><code></code></span>
+<span class="codeline" id="line-123"><code><span class="comment">// Trace starts tracing the message traffic to w. It writes in a similar format to that produced by the libpq function</span></code></span>
+<span class="codeline" id="line-124"><code><span class="comment">// PQtrace.</span></code></span>
+<span class="codeline" id="line-125"><code><span class="keyword">func</span> (<label for="r16" class="ident">f</label> *<a href="#line-12" class="ident">Frontend</a>) <label for="r17" class="ident"><a href="../../../../../../use/github.com/jackc/pgx/v5/pgproto3..Frontend.Trace.html" class="ident">Trace</a></label>(<label for="r18" class="ident">w</label> <a href="../../../../../../pkg/io.html" class="ident i4">io</a>.<a href="../../../../../io/io.go.html#line-99" class="ident">Writer</a>, <label for="r19" class="ident">options</label> <a href="trace.go.html#line-24" class="ident">TracerOptions</a>) {</code></span>
+<span class="codeline" id="line-126"><code>	<label for="r16" class="ident">f</label>.<a href="#line-19" class="ident">tracer</a> = &amp;<a href="trace.go.html#line-15" class="ident">tracer</a>{</code></span>
+<span class="codeline" id="line-127"><code>		<a href="trace.go.html#line-19" class="ident">w</a>:             <label for="r18" class="ident">w</label>,</code></span>
+<span class="codeline" id="line-128"><code>		<a href="trace.go.html#line-20" class="ident">buf</a>:           &amp;<a href="../../../../../../pkg/bytes.html" class="ident i0">bytes</a>.<a href="../../../../../bytes/buffer.go.html#line-20" class="ident">Buffer</a>{},</code></span>
+<span class="codeline" id="line-129"><code>		<a href="trace.go.html#line-16" class="ident">TracerOptions</a>: <label for="r19" class="ident">options</label>,</code></span>
+<span class="codeline" id="line-130"><code>	}</code></span>
+<span class="codeline" id="line-131"><code>}</code></span>
+<span class="codeline" id="line-132"><code></code></span>
+<span class="codeline" id="line-133"><code><span class="comment">// Untrace stops tracing.</span></code></span>
+<span class="codeline" id="line-134"><code><span class="keyword">func</span> (<label for="r20" class="ident">f</label> *<a href="#line-12" class="ident">Frontend</a>) <label for="r21" class="ident"><a href="../../../../../../use/github.com/jackc/pgx/v5/pgproto3..Frontend.Untrace.html" class="ident">Untrace</a></label>() {</code></span>
+<span class="codeline" id="line-135"><code>	<label for="r20" class="ident">f</label>.<a href="#line-19" class="ident">tracer</a> = <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-136"><code>}</code></span>
+<span class="codeline" id="line-137"><code></code></span>
+<span class="codeline" id="line-138"><code><span class="comment">// SendBind sends a Bind message to the backend (i.e. the server). The message is buffered until Flush is called. Any</span></code></span>
+<span class="codeline" id="line-139"><code><span class="comment">// error encountered will be returned from Flush.</span></code></span>
+<span class="codeline" id="line-140"><code><span class="keyword">func</span> (<label for="r22" class="ident">f</label> *<a href="#line-12" class="ident">Frontend</a>) <label for="r23" class="ident"><a href="../../../../../../use/github.com/jackc/pgx/v5/pgproto3..Frontend.SendBind.html" class="ident">SendBind</a></label>(<label for="r24" class="ident">msg</label> *<a href="bind.go.html#line-15" class="ident">Bind</a>) {</code></span>
+<span class="codeline" id="line-141"><code>	<span class="keyword">if</span> <label for="r22" class="ident">f</label>.<a href="#line-22" class="ident">encodeError</a> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-142"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-143"><code>	}</code></span>
+<span class="codeline" id="line-144"><code></code></span>
+<span class="codeline" id="line-145"><code>	<label for="r25" class="ident">prevLen</label> := <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r22" class="ident">f</label>.<a href="#line-21" class="ident">wbuf</a>)</code></span>
+<span class="codeline" id="line-146"><code>	<label for="r26" class="ident">newBuf</label>, <label for="r27" class="ident">err</label> := <label for="r24" class="ident">msg</label>.<a href="bind.go.html#line-113" class="ident">Encode</a>(<label for="r22" class="ident">f</label>.<a href="#line-21" class="ident">wbuf</a>)</code></span>
+<span class="codeline" id="line-147"><code>	<span class="keyword">if</span> <label for="r27" class="ident">err</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-148"><code>		<label for="r22" class="ident">f</label>.<a href="#line-22" class="ident">encodeError</a> = <label for="r27" class="ident">err</label></code></span>
+<span class="codeline" id="line-149"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-150"><code>	}</code></span>
+<span class="codeline" id="line-151"><code>	<label for="r22" class="ident">f</label>.<a href="#line-21" class="ident">wbuf</a> = <label for="r26" class="ident">newBuf</label></code></span>
+<span class="codeline" id="line-152"><code></code></span>
+<span class="codeline" id="line-153"><code>	<span class="keyword">if</span> <label for="r22" class="ident">f</label>.<a href="#line-19" class="ident">tracer</a> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-154"><code>		<label for="r22" class="ident">f</label>.<a href="#line-19" class="ident">tracer</a>.<a href="trace.go.html#line-171" class="ident">traceBind</a>(<span class="lit-number">'F'</span>, <a href="../../../../../../pkg/builtin.html#name-int32" class="ident">int32</a>(<a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r22" class="ident">f</label>.<a href="#line-21" class="ident">wbuf</a>)-<label for="r25" class="ident">prevLen</label>), <label for="r24" class="ident">msg</label>)</code></span>
+<span class="codeline" id="line-155"><code>	}</code></span>
+<span class="codeline" id="line-156"><code>}</code></span>
+<span class="codeline" id="line-157"><code></code></span>
+<span class="codeline" id="line-158"><code><span class="comment">// SendParse sends a Parse message to the backend (i.e. the server). The message is buffered until Flush is called. Any</span></code></span>
+<span class="codeline" id="line-159"><code><span class="comment">// error encountered will be returned from Flush.</span></code></span>
+<span class="codeline" id="line-160"><code><span class="keyword">func</span> (<label for="r28" class="ident">f</label> *<a href="#line-12" class="ident">Frontend</a>) <label for="r29" class="ident"><a href="../../../../../../use/github.com/jackc/pgx/v5/pgproto3..Frontend.SendParse.html" class="ident">SendParse</a></label>(<label for="r30" class="ident">msg</label> *<a href="parse.go.html#line-13" class="ident">Parse</a>) {</code></span>
+<span class="codeline" id="line-161"><code>	<span class="keyword">if</span> <label for="r28" class="ident">f</label>.<a href="#line-22" class="ident">encodeError</a> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-162"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-163"><code>	}</code></span>
+<span class="codeline" id="line-164"><code></code></span>
+<span class="codeline" id="line-165"><code>	<label for="r31" class="ident">prevLen</label> := <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r28" class="ident">f</label>.<a href="#line-21" class="ident">wbuf</a>)</code></span>
+<span class="codeline" id="line-166"><code>	<label for="r32" class="ident">newBuf</label>, <label for="r33" class="ident">err</label> := <label for="r30" class="ident">msg</label>.<a href="parse.go.html#line-57" class="ident">Encode</a>(<label for="r28" class="ident">f</label>.<a href="#line-21" class="ident">wbuf</a>)</code></span>
+<span class="codeline" id="line-167"><code>	<span class="keyword">if</span> <label for="r33" class="ident">err</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-168"><code>		<label for="r28" class="ident">f</label>.<a href="#line-22" class="ident">encodeError</a> = <label for="r33" class="ident">err</label></code></span>
+<span class="codeline" id="line-169"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-170"><code>	}</code></span>
+<span class="codeline" id="line-171"><code>	<label for="r28" class="ident">f</label>.<a href="#line-21" class="ident">wbuf</a> = <label for="r32" class="ident">newBuf</label></code></span>
+<span class="codeline" id="line-172"><code></code></span>
+<span class="codeline" id="line-173"><code>	<span class="keyword">if</span> <label for="r28" class="ident">f</label>.<a href="#line-19" class="ident">tracer</a> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-174"><code>		<label for="r28" class="ident">f</label>.<a href="#line-19" class="ident">tracer</a>.<a href="trace.go.html#line-309" class="ident">traceParse</a>(<span class="lit-number">'F'</span>, <a href="../../../../../../pkg/builtin.html#name-int32" class="ident">int32</a>(<a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r28" class="ident">f</label>.<a href="#line-21" class="ident">wbuf</a>)-<label for="r31" class="ident">prevLen</label>), <label for="r30" class="ident">msg</label>)</code></span>
+<span class="codeline" id="line-175"><code>	}</code></span>
+<span class="codeline" id="line-176"><code>}</code></span>
+<span class="codeline" id="line-177"><code></code></span>
+<span class="codeline" id="line-178"><code><span class="comment">// SendClose sends a Close message to the backend (i.e. the server). The message is buffered until Flush is called. Any</span></code></span>
+<span class="codeline" id="line-179"><code><span class="comment">// error encountered will be returned from Flush.</span></code></span>
+<span class="codeline" id="line-180"><code><span class="keyword">func</span> (<label for="r34" class="ident">f</label> *<a href="#line-12" class="ident">Frontend</a>) <label for="r35" class="ident"><a href="../../../../../../use/github.com/jackc/pgx/v5/pgproto3..Frontend.SendClose.html" class="ident">SendClose</a></label>(<label for="r36" class="ident">msg</label> *<a href="close.go.html#line-9" class="ident">Close</a>) {</code></span>
+<span class="codeline" id="line-181"><code>	<span class="keyword">if</span> <label for="r34" class="ident">f</label>.<a href="#line-22" class="ident">encodeError</a> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-182"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-183"><code>	}</code></span>
+<span class="codeline" id="line-184"><code></code></span>
+<span class="codeline" id="line-185"><code>	<label for="r37" class="ident">prevLen</label> := <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r34" class="ident">f</label>.<a href="#line-21" class="ident">wbuf</a>)</code></span>
+<span class="codeline" id="line-186"><code>	<label for="r38" class="ident">newBuf</label>, <label for="r39" class="ident">err</label> := <label for="r36" class="ident">msg</label>.<a href="close.go.html#line-38" class="ident">Encode</a>(<label for="r34" class="ident">f</label>.<a href="#line-21" class="ident">wbuf</a>)</code></span>
+<span class="codeline" id="line-187"><code>	<span class="keyword">if</span> <label for="r39" class="ident">err</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-188"><code>		<label for="r34" class="ident">f</label>.<a href="#line-22" class="ident">encodeError</a> = <label for="r39" class="ident">err</label></code></span>
+<span class="codeline" id="line-189"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-190"><code>	}</code></span>
+<span class="codeline" id="line-191"><code>	<label for="r34" class="ident">f</label>.<a href="#line-21" class="ident">wbuf</a> = <label for="r38" class="ident">newBuf</label></code></span>
+<span class="codeline" id="line-192"><code></code></span>
+<span class="codeline" id="line-193"><code>	<span class="keyword">if</span> <label for="r34" class="ident">f</label>.<a href="#line-19" class="ident">tracer</a> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-194"><code>		<label for="r34" class="ident">f</label>.<a href="#line-19" class="ident">tracer</a>.<a href="trace.go.html#line-196" class="ident">traceClose</a>(<span class="lit-number">'F'</span>, <a href="../../../../../../pkg/builtin.html#name-int32" class="ident">int32</a>(<a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r34" class="ident">f</label>.<a href="#line-21" class="ident">wbuf</a>)-<label for="r37" class="ident">prevLen</label>), <label for="r36" class="ident">msg</label>)</code></span>
+<span class="codeline" id="line-195"><code>	}</code></span>
+<span class="codeline" id="line-196"><code>}</code></span>
+<span class="codeline" id="line-197"><code></code></span>
+<span class="codeline" id="line-198"><code><span class="comment">// SendDescribe sends a Describe message to the backend (i.e. the server). The message is buffered until Flush is</span></code></span>
+<span class="codeline" id="line-199"><code><span class="comment">// called. Any error encountered will be returned from Flush.</span></code></span>
+<span class="codeline" id="line-200"><code><span class="keyword">func</span> (<label for="r40" class="ident">f</label> *<a href="#line-12" class="ident">Frontend</a>) <label for="r41" class="ident"><a href="../../../../../../use/github.com/jackc/pgx/v5/pgproto3..Frontend.SendDescribe.html" class="ident">SendDescribe</a></label>(<label for="r42" class="ident">msg</label> *<a href="describe.go.html#line-9" class="ident">Describe</a>) {</code></span>
+<span class="codeline" id="line-201"><code>	<span class="keyword">if</span> <label for="r40" class="ident">f</label>.<a href="#line-22" class="ident">encodeError</a> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-202"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-203"><code>	}</code></span>
+<span class="codeline" id="line-204"><code></code></span>
+<span class="codeline" id="line-205"><code>	<label for="r43" class="ident">prevLen</label> := <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r40" class="ident">f</label>.<a href="#line-21" class="ident">wbuf</a>)</code></span>
+<span class="codeline" id="line-206"><code>	<label for="r44" class="ident">newBuf</label>, <label for="r45" class="ident">err</label> := <label for="r42" class="ident">msg</label>.<a href="describe.go.html#line-38" class="ident">Encode</a>(<label for="r40" class="ident">f</label>.<a href="#line-21" class="ident">wbuf</a>)</code></span>
+<span class="codeline" id="line-207"><code>	<span class="keyword">if</span> <label for="r45" class="ident">err</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-208"><code>		<label for="r40" class="ident">f</label>.<a href="#line-22" class="ident">encodeError</a> = <label for="r45" class="ident">err</label></code></span>
+<span class="codeline" id="line-209"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-210"><code>	}</code></span>
+<span class="codeline" id="line-211"><code>	<label for="r40" class="ident">f</label>.<a href="#line-21" class="ident">wbuf</a> = <label for="r44" class="ident">newBuf</label></code></span>
+<span class="codeline" id="line-212"><code></code></span>
+<span class="codeline" id="line-213"><code>	<span class="keyword">if</span> <label for="r40" class="ident">f</label>.<a href="#line-19" class="ident">tracer</a> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-214"><code>		<label for="r40" class="ident">f</label>.<a href="#line-19" class="ident">tracer</a>.<a href="trace.go.html#line-249" class="ident">traceDescribe</a>(<span class="lit-number">'F'</span>, <a href="../../../../../../pkg/builtin.html#name-int32" class="ident">int32</a>(<a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r40" class="ident">f</label>.<a href="#line-21" class="ident">wbuf</a>)-<label for="r43" class="ident">prevLen</label>), <label for="r42" class="ident">msg</label>)</code></span>
+<span class="codeline" id="line-215"><code>	}</code></span>
+<span class="codeline" id="line-216"><code>}</code></span>
+<span class="codeline" id="line-217"><code></code></span>
+<span class="codeline" id="line-218"><code><span class="comment">// SendExecute sends an Execute message to the backend (i.e. the server). The message is buffered until Flush is called.</span></code></span>
+<span class="codeline" id="line-219"><code><span class="comment">// Any error encountered will be returned from Flush.</span></code></span>
+<span class="codeline" id="line-220"><code><span class="keyword">func</span> (<label for="r46" class="ident">f</label> *<a href="#line-12" class="ident">Frontend</a>) <label for="r47" class="ident"><a href="../../../../../../use/github.com/jackc/pgx/v5/pgproto3..Frontend.SendExecute.html" class="ident">SendExecute</a></label>(<label for="r48" class="ident">msg</label> *<a href="execute.go.html#line-11" class="ident">Execute</a>) {</code></span>
+<span class="codeline" id="line-221"><code>	<span class="keyword">if</span> <label for="r46" class="ident">f</label>.<a href="#line-22" class="ident">encodeError</a> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-222"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-223"><code>	}</code></span>
+<span class="codeline" id="line-224"><code></code></span>
+<span class="codeline" id="line-225"><code>	<label for="r49" class="ident">prevLen</label> := <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r46" class="ident">f</label>.<a href="#line-21" class="ident">wbuf</a>)</code></span>
+<span class="codeline" id="line-226"><code>	<label for="r50" class="ident">newBuf</label>, <label for="r51" class="ident">err</label> := <label for="r48" class="ident">msg</label>.<a href="execute.go.html#line-39" class="ident">Encode</a>(<label for="r46" class="ident">f</label>.<a href="#line-21" class="ident">wbuf</a>)</code></span>
+<span class="codeline" id="line-227"><code>	<span class="keyword">if</span> <label for="r51" class="ident">err</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-228"><code>		<label for="r46" class="ident">f</label>.<a href="#line-22" class="ident">encodeError</a> = <label for="r51" class="ident">err</label></code></span>
+<span class="codeline" id="line-229"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-230"><code>	}</code></span>
+<span class="codeline" id="line-231"><code>	<label for="r46" class="ident">f</label>.<a href="#line-21" class="ident">wbuf</a> = <label for="r50" class="ident">newBuf</label></code></span>
+<span class="codeline" id="line-232"><code></code></span>
+<span class="codeline" id="line-233"><code>	<span class="keyword">if</span> <label for="r46" class="ident">f</label>.<a href="#line-19" class="ident">tracer</a> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-234"><code>		<label for="r46" class="ident">f</label>.<a href="#line-19" class="ident">tracer</a>.<a href="trace.go.html#line-263" class="ident">traceExecute</a>(<span class="lit-number">'F'</span>, <a href="../../../../../../pkg/builtin.html#name-int32" class="ident">int32</a>(<a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r46" class="ident">f</label>.<a href="#line-21" class="ident">wbuf</a>)-<label for="r49" class="ident">prevLen</label>), <label for="r48" class="ident">msg</label>)</code></span>
+<span class="codeline" id="line-235"><code>	}</code></span>
+<span class="codeline" id="line-236"><code>}</code></span>
+<span class="codeline" id="line-237"><code></code></span>
+<span class="codeline" id="line-238"><code><span class="comment">// SendSync sends a Sync message to the backend (i.e. the server). The message is buffered until Flush is called. Any</span></code></span>
+<span class="codeline" id="line-239"><code><span class="comment">// error encountered will be returned from Flush.</span></code></span>
+<span class="codeline" id="line-240"><code><span class="keyword">func</span> (<label for="r52" class="ident">f</label> *<a href="#line-12" class="ident">Frontend</a>) <label for="r53" class="ident"><a href="../../../../../../use/github.com/jackc/pgx/v5/pgproto3..Frontend.SendSync.html" class="ident">SendSync</a></label>(<label for="r54" class="ident">msg</label> *<a href="sync.go.html#line-7" class="ident">Sync</a>) {</code></span>
+<span class="codeline" id="line-241"><code>	<span class="keyword">if</span> <label for="r52" class="ident">f</label>.<a href="#line-22" class="ident">encodeError</a> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-242"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-243"><code>	}</code></span>
+<span class="codeline" id="line-244"><code></code></span>
+<span class="codeline" id="line-245"><code>	<label for="r55" class="ident">prevLen</label> := <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r52" class="ident">f</label>.<a href="#line-21" class="ident">wbuf</a>)</code></span>
+<span class="codeline" id="line-246"><code>	<label for="r56" class="ident">newBuf</label>, <label for="r57" class="ident">err</label> := <label for="r54" class="ident">msg</label>.<a href="sync.go.html#line-23" class="ident">Encode</a>(<label for="r52" class="ident">f</label>.<a href="#line-21" class="ident">wbuf</a>)</code></span>
+<span class="codeline" id="line-247"><code>	<span class="keyword">if</span> <label for="r57" class="ident">err</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-248"><code>		<label for="r52" class="ident">f</label>.<a href="#line-22" class="ident">encodeError</a> = <label for="r57" class="ident">err</label></code></span>
+<span class="codeline" id="line-249"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-250"><code>	}</code></span>
+<span class="codeline" id="line-251"><code>	<label for="r52" class="ident">f</label>.<a href="#line-21" class="ident">wbuf</a> = <label for="r56" class="ident">newBuf</label></code></span>
+<span class="codeline" id="line-252"><code></code></span>
+<span class="codeline" id="line-253"><code>	<span class="keyword">if</span> <label for="r52" class="ident">f</label>.<a href="#line-19" class="ident">tracer</a> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-254"><code>		<label for="r52" class="ident">f</label>.<a href="#line-19" class="ident">tracer</a>.<a href="trace.go.html#line-355" class="ident">traceSync</a>(<span class="lit-number">'F'</span>, <a href="../../../../../../pkg/builtin.html#name-int32" class="ident">int32</a>(<a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r52" class="ident">f</label>.<a href="#line-21" class="ident">wbuf</a>)-<label for="r55" class="ident">prevLen</label>), <label for="r54" class="ident">msg</label>)</code></span>
+<span class="codeline" id="line-255"><code>	}</code></span>
+<span class="codeline" id="line-256"><code>}</code></span>
+<span class="codeline" id="line-257"><code></code></span>
+<span class="codeline" id="line-258"><code><span class="comment">// SendQuery sends a Query message to the backend (i.e. the server). The message is buffered until Flush is called. Any</span></code></span>
+<span class="codeline" id="line-259"><code><span class="comment">// error encountered will be returned from Flush.</span></code></span>
+<span class="codeline" id="line-260"><code><span class="keyword">func</span> (<label for="r58" class="ident">f</label> *<a href="#line-12" class="ident">Frontend</a>) <label for="r59" class="ident"><a href="../../../../../../use/github.com/jackc/pgx/v5/pgproto3..Frontend.SendQuery.html" class="ident">SendQuery</a></label>(<label for="r60" class="ident">msg</label> *<a href="query.go.html#line-8" class="ident">Query</a>) {</code></span>
+<span class="codeline" id="line-261"><code>	<span class="keyword">if</span> <label for="r58" class="ident">f</label>.<a href="#line-22" class="ident">encodeError</a> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-262"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-263"><code>	}</code></span>
+<span class="codeline" id="line-264"><code></code></span>
+<span class="codeline" id="line-265"><code>	<label for="r61" class="ident">prevLen</label> := <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r58" class="ident">f</label>.<a href="#line-21" class="ident">wbuf</a>)</code></span>
+<span class="codeline" id="line-266"><code>	<label for="r62" class="ident">newBuf</label>, <label for="r63" class="ident">err</label> := <label for="r60" class="ident">msg</label>.<a href="query.go.html#line-33" class="ident">Encode</a>(<label for="r58" class="ident">f</label>.<a href="#line-21" class="ident">wbuf</a>)</code></span>
+<span class="codeline" id="line-267"><code>	<span class="keyword">if</span> <label for="r63" class="ident">err</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-268"><code>		<label for="r58" class="ident">f</label>.<a href="#line-22" class="ident">encodeError</a> = <label for="r63" class="ident">err</label></code></span>
+<span class="codeline" id="line-269"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-270"><code>	}</code></span>
+<span class="codeline" id="line-271"><code>	<label for="r58" class="ident">f</label>.<a href="#line-21" class="ident">wbuf</a> = <label for="r62" class="ident">newBuf</label></code></span>
+<span class="codeline" id="line-272"><code></code></span>
+<span class="codeline" id="line-273"><code>	<span class="keyword">if</span> <label for="r58" class="ident">f</label>.<a href="#line-19" class="ident">tracer</a> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-274"><code>		<label for="r58" class="ident">f</label>.<a href="#line-19" class="ident">tracer</a>.<a href="trace.go.html#line-326" class="ident">traceQuery</a>(<span class="lit-number">'F'</span>, <a href="../../../../../../pkg/builtin.html#name-int32" class="ident">int32</a>(<a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r58" class="ident">f</label>.<a href="#line-21" class="ident">wbuf</a>)-<label for="r61" class="ident">prevLen</label>), <label for="r60" class="ident">msg</label>)</code></span>
+<span class="codeline" id="line-275"><code>	}</code></span>
+<span class="codeline" id="line-276"><code>}</code></span>
+<span class="codeline" id="line-277"><code></code></span>
+<span class="codeline" id="line-278"><code><span class="comment">// SendUnbufferedEncodedCopyData immediately sends an encoded CopyData message to the backend (i.e. the server). This method</span></code></span>
+<span class="codeline" id="line-279"><code><span class="comment">// is more efficient than sending a CopyData message with Send as the message data is not copied to the internal buffer</span></code></span>
+<span class="codeline" id="line-280"><code><span class="comment">// before being written out. The internal buffer is flushed before the message is sent.</span></code></span>
+<span class="codeline" id="line-281"><code><span class="keyword">func</span> (<label for="r64" class="ident">f</label> *<a href="#line-12" class="ident">Frontend</a>) <label for="r65" class="ident"><a href="../../../../../../use/github.com/jackc/pgx/v5/pgproto3..Frontend.SendUnbufferedEncodedCopyData.html" class="ident">SendUnbufferedEncodedCopyData</a></label>(<label for="r66" class="ident">msg</label> []<a href="../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-282"><code>	<label for="r67" class="ident">err</label> := <label for="r64" class="ident">f</label>.<a href="#line-96" class="ident">Flush</a>()</code></span>
+<span class="codeline" id="line-283"><code>	<span class="keyword">if</span> <label for="r67" class="ident">err</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-284"><code>		<span class="keyword">return</span> <label for="r67" class="ident">err</label></code></span>
+<span class="codeline" id="line-285"><code>	}</code></span>
+<span class="codeline" id="line-286"><code></code></span>
+<span class="codeline" id="line-287"><code>	<label for="r68" class="ident">n</label>, <label for="r67" class="ident">err</label> := <label for="r64" class="ident">f</label>.<a href="#line-14" class="ident">w</a>.<a href="../../../../../io/io.go.html#line-100" class="ident">Write</a>(<label for="r66" class="ident">msg</label>)</code></span>
+<span class="codeline" id="line-288"><code>	<span class="keyword">if</span> <label for="r67" class="ident">err</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-289"><code>		<span class="keyword">return</span> &amp;<a href="pgproto3.go.html#line-62" class="ident">writeError</a>{<a href="pgproto3.go.html#line-63" class="ident">err</a>: <label for="r67" class="ident">err</label>, <a href="pgproto3.go.html#line-64" class="ident">safeToRetry</a>: <label for="r68" class="ident">n</label> == <span class="lit-number">0</span>}</code></span>
+<span class="codeline" id="line-290"><code>	}</code></span>
+<span class="codeline" id="line-291"><code></code></span>
+<span class="codeline" id="line-292"><code>	<span class="keyword">if</span> <label for="r64" class="ident">f</label>.<a href="#line-19" class="ident">tracer</a> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-293"><code>		<label for="r64" class="ident">f</label>.<a href="#line-19" class="ident">tracer</a>.<a href="trace.go.html#line-214" class="ident">traceCopyData</a>(<span class="lit-number">'F'</span>, <a href="../../../../../../pkg/builtin.html#name-int32" class="ident">int32</a>(<a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r66" class="ident">msg</label>)-<span class="lit-number">1</span>), &amp;<a href="copy_data.go.html#line-8" class="ident">CopyData</a>{})</code></span>
+<span class="codeline" id="line-294"><code>	}</code></span>
+<span class="codeline" id="line-295"><code></code></span>
+<span class="codeline" id="line-296"><code>	<span class="keyword">return</span> <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-297"><code>}</code></span>
+<span class="codeline" id="line-298"><code></code></span>
+<span class="codeline" id="line-299"><code><span class="keyword">func</span> <label for="r69" class="ident"><a href="../../../../../../pkg/github.com/jackc/pgx/v5/pgproto3.html#name-translateEOFtoErrUnexpectedEOF" class="ident">translateEOFtoErrUnexpectedEOF</a></label>(<label for="r70" class="ident">err</label> <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>) <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-300"><code>	<span class="keyword">if</span> <label for="r70" class="ident">err</label> == <a href="../../../../../../pkg/io.html" class="ident i4">io</a>.<a href="../../../../../io/io.go.html#line-44" class="ident">EOF</a> {</code></span>
+<span class="codeline" id="line-301"><code>		<span class="keyword">return</span> <a href="../../../../../../pkg/io.html" class="ident i4">io</a>.<a href="../../../../../io/io.go.html#line-48" class="ident">ErrUnexpectedEOF</a></code></span>
+<span class="codeline" id="line-302"><code>	}</code></span>
+<span class="codeline" id="line-303"><code>	<span class="keyword">return</span> <label for="r70" class="ident">err</label></code></span>
+<span class="codeline" id="line-304"><code>}</code></span>
+<span class="codeline" id="line-305"><code></code></span>
+<span class="codeline" id="line-306"><code><span class="comment">// Receive receives a message from the backend. The returned message is only valid until the next call to Receive.</span></code></span>
+<span class="codeline" id="line-307"><code><span class="keyword">func</span> (<label for="r71" class="ident">f</label> *<a href="#line-12" class="ident">Frontend</a>) <label for="r72" class="ident"><a href="../../../../../../use/github.com/jackc/pgx/v5/pgproto3..Frontend.Receive.html" class="ident">Receive</a></label>() (<a href="pgproto3.go.html#line-33" class="ident">BackendMessage</a>, <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-308"><code>	<span class="keyword">if</span> !<label for="r71" class="ident">f</label>.<a href="#line-60" class="ident">partialMsg</a> {</code></span>
+<span class="codeline" id="line-309"><code>		<label for="r73" class="ident">header</label>, <label for="r74" class="ident">err</label> := <label for="r71" class="ident">f</label>.<a href="#line-13" class="ident">cr</a>.<a href="chunkreader.go.html#line-45" class="ident">Next</a>(<span class="lit-number">5</span>)</code></span>
+<span class="codeline" id="line-310"><code>		<span class="keyword">if</span> <label for="r74" class="ident">err</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-311"><code>			<span class="keyword">return</span> <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="#line-299" class="ident">translateEOFtoErrUnexpectedEOF</a>(<label for="r74" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-312"><code>		}</code></span>
+<span class="codeline" id="line-313"><code></code></span>
+<span class="codeline" id="line-314"><code>		<label for="r71" class="ident">f</label>.<a href="#line-59" class="ident">msgType</a> = <label for="r73" class="ident">header</label>[<span class="lit-number">0</span>]</code></span>
+<span class="codeline" id="line-315"><code></code></span>
+<span class="codeline" id="line-316"><code>		<label for="r75" class="ident">msgLength</label> := <a href="../../../../../../pkg/builtin.html#name-int" class="ident">int</a>(<a href="../../../../../../pkg/builtin.html#name-int32" class="ident">int32</a>(<a href="../../../../../../pkg/encoding/binary.html" class="ident i1">binary</a>.<a href="../../../../../encoding/binary/binary.go.html#line-64" class="ident">BigEndian</a>.<a href="../../../../../encoding/binary/binary.go.html#line-176" class="ident">Uint32</a>(<label for="r73" class="ident">header</label>[<span class="lit-number">1</span>:])))</code></span>
+<span class="codeline" id="line-317"><code>		<span class="keyword">if</span> <label for="r75" class="ident">msgLength</label> &lt; <span class="lit-number">4</span> {</code></span>
+<span class="codeline" id="line-318"><code>			<span class="keyword">return</span> <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../../../../pkg/fmt.html" class="ident i3">fmt</a>.<a href="../../../../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"invalid message length: %d"</span>, <label for="r75" class="ident">msgLength</label>)</code></span>
+<span class="codeline" id="line-319"><code>		}</code></span>
+<span class="codeline" id="line-320"><code></code></span>
+<span class="codeline" id="line-321"><code>		<label for="r71" class="ident">f</label>.<a href="#line-57" class="ident">bodyLen</a> = <label for="r75" class="ident">msgLength</label> - <span class="lit-number">4</span></code></span>
+<span class="codeline" id="line-322"><code>		<span class="keyword">if</span> <label for="r71" class="ident">f</label>.<a href="#line-58" class="ident">maxBodyLen</a> &gt; <span class="lit-number">0</span> &amp;&amp; <label for="r71" class="ident">f</label>.<a href="#line-57" class="ident">bodyLen</a> &gt; <label for="r71" class="ident">f</label>.<a href="#line-58" class="ident">maxBodyLen</a> {</code></span>
+<span class="codeline" id="line-323"><code>			<span class="keyword">return</span> <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, &amp;<a href="pgproto3.go.html#line-79" class="ident">ExceededMaxBodyLenErr</a>{<label for="r71" class="ident">f</label>.<a href="#line-58" class="ident">maxBodyLen</a>, <label for="r71" class="ident">f</label>.<a href="#line-57" class="ident">bodyLen</a>}</code></span>
+<span class="codeline" id="line-324"><code>		}</code></span>
+<span class="codeline" id="line-325"><code>		<label for="r71" class="ident">f</label>.<a href="#line-60" class="ident">partialMsg</a> = <a href="../../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-326"><code>	}</code></span>
+<span class="codeline" id="line-327"><code></code></span>
+<span class="codeline" id="line-328"><code>	<label for="r76" class="ident">msgBody</label>, <label for="r77" class="ident">err</label> := <label for="r71" class="ident">f</label>.<a href="#line-13" class="ident">cr</a>.<a href="chunkreader.go.html#line-45" class="ident">Next</a>(<label for="r71" class="ident">f</label>.<a href="#line-57" class="ident">bodyLen</a>)</code></span>
+<span class="codeline" id="line-329"><code>	<span class="keyword">if</span> <label for="r77" class="ident">err</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-330"><code>		<span class="keyword">return</span> <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="#line-299" class="ident">translateEOFtoErrUnexpectedEOF</a>(<label for="r77" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-331"><code>	}</code></span>
+<span class="codeline" id="line-332"><code></code></span>
+<span class="codeline" id="line-333"><code>	<label for="r71" class="ident">f</label>.<a href="#line-60" class="ident">partialMsg</a> = <a href="../../../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-334"><code></code></span>
+<span class="codeline" id="line-335"><code>	<span class="keyword">var</span> <label for="r78" class="ident">msg</label> <a href="pgproto3.go.html#line-33" class="ident">BackendMessage</a></code></span>
+<span class="codeline" id="line-336"><code>	<span class="keyword">switch</span> <label for="r71" class="ident">f</label>.<a href="#line-59" class="ident">msgType</a> {</code></span>
+<span class="codeline" id="line-337"><code>	<span class="keyword">case</span> <span class="lit-number">'1'</span>:</code></span>
+<span class="codeline" id="line-338"><code>		<label for="r78" class="ident">msg</label> = &amp;<label for="r71" class="ident">f</label>.<a href="#line-51" class="ident">parseComplete</a></code></span>
+<span class="codeline" id="line-339"><code>	<span class="keyword">case</span> <span class="lit-number">'2'</span>:</code></span>
+<span class="codeline" id="line-340"><code>		<label for="r78" class="ident">msg</label> = &amp;<label for="r71" class="ident">f</label>.<a href="#line-34" class="ident">bindComplete</a></code></span>
+<span class="codeline" id="line-341"><code>	<span class="keyword">case</span> <span class="lit-number">'3'</span>:</code></span>
+<span class="codeline" id="line-342"><code>		<label for="r78" class="ident">msg</label> = &amp;<label for="r71" class="ident">f</label>.<a href="#line-35" class="ident">closeComplete</a></code></span>
+<span class="codeline" id="line-343"><code>	<span class="keyword">case</span> <span class="lit-number">'A'</span>:</code></span>
+<span class="codeline" id="line-344"><code>		<label for="r78" class="ident">msg</label> = &amp;<label for="r71" class="ident">f</label>.<a href="#line-48" class="ident">notificationResponse</a></code></span>
+<span class="codeline" id="line-345"><code>	<span class="keyword">case</span> <span class="lit-number">'c'</span>:</code></span>
+<span class="codeline" id="line-346"><code>		<label for="r78" class="ident">msg</label> = &amp;<label for="r71" class="ident">f</label>.<a href="#line-41" class="ident">copyDone</a></code></span>
+<span class="codeline" id="line-347"><code>	<span class="keyword">case</span> <span class="lit-number">'C'</span>:</code></span>
+<span class="codeline" id="line-348"><code>		<label for="r78" class="ident">msg</label> = &amp;<label for="r71" class="ident">f</label>.<a href="#line-36" class="ident">commandComplete</a></code></span>
+<span class="codeline" id="line-349"><code>	<span class="keyword">case</span> <span class="lit-number">'d'</span>:</code></span>
+<span class="codeline" id="line-350"><code>		<label for="r78" class="ident">msg</label> = &amp;<label for="r71" class="ident">f</label>.<a href="#line-38" class="ident">copyData</a></code></span>
+<span class="codeline" id="line-351"><code>	<span class="keyword">case</span> <span class="lit-number">'D'</span>:</code></span>
+<span class="codeline" id="line-352"><code>		<label for="r78" class="ident">msg</label> = &amp;<label for="r71" class="ident">f</label>.<a href="#line-42" class="ident">dataRow</a></code></span>
+<span class="codeline" id="line-353"><code>	<span class="keyword">case</span> <span class="lit-number">'E'</span>:</code></span>
+<span class="codeline" id="line-354"><code>		<label for="r78" class="ident">msg</label> = &amp;<label for="r71" class="ident">f</label>.<a href="#line-44" class="ident">errorResponse</a></code></span>
+<span class="codeline" id="line-355"><code>	<span class="keyword">case</span> <span class="lit-number">'G'</span>:</code></span>
+<span class="codeline" id="line-356"><code>		<label for="r78" class="ident">msg</label> = &amp;<label for="r71" class="ident">f</label>.<a href="#line-39" class="ident">copyInResponse</a></code></span>
+<span class="codeline" id="line-357"><code>	<span class="keyword">case</span> <span class="lit-number">'H'</span>:</code></span>
+<span class="codeline" id="line-358"><code>		<label for="r78" class="ident">msg</label> = &amp;<label for="r71" class="ident">f</label>.<a href="#line-40" class="ident">copyOutResponse</a></code></span>
+<span class="codeline" id="line-359"><code>	<span class="keyword">case</span> <span class="lit-number">'I'</span>:</code></span>
+<span class="codeline" id="line-360"><code>		<label for="r78" class="ident">msg</label> = &amp;<label for="r71" class="ident">f</label>.<a href="#line-43" class="ident">emptyQueryResponse</a></code></span>
+<span class="codeline" id="line-361"><code>	<span class="keyword">case</span> <span class="lit-number">'K'</span>:</code></span>
+<span class="codeline" id="line-362"><code>		<label for="r78" class="ident">msg</label> = &amp;<label for="r71" class="ident">f</label>.<a href="#line-33" class="ident">backendKeyData</a></code></span>
+<span class="codeline" id="line-363"><code>	<span class="keyword">case</span> <span class="lit-number">'n'</span>:</code></span>
+<span class="codeline" id="line-364"><code>		<label for="r78" class="ident">msg</label> = &amp;<label for="r71" class="ident">f</label>.<a href="#line-46" class="ident">noData</a></code></span>
+<span class="codeline" id="line-365"><code>	<span class="keyword">case</span> <span class="lit-number">'N'</span>:</code></span>
+<span class="codeline" id="line-366"><code>		<label for="r78" class="ident">msg</label> = &amp;<label for="r71" class="ident">f</label>.<a href="#line-47" class="ident">noticeResponse</a></code></span>
+<span class="codeline" id="line-367"><code>	<span class="keyword">case</span> <span class="lit-number">'R'</span>:</code></span>
+<span class="codeline" id="line-368"><code>		<span class="keyword">var</span> <label for="r79" class="ident">err</label> <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-369"><code>		<label for="r78" class="ident">msg</label>, <label for="r79" class="ident">err</label> = <label for="r71" class="ident">f</label>.<a href="#line-421" class="ident">findAuthenticationMessageType</a>(<label for="r76" class="ident">msgBody</label>)</code></span>
+<span class="codeline" id="line-370"><code>		<span class="keyword">if</span> <label for="r79" class="ident">err</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-371"><code>			<span class="keyword">return</span> <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r79" class="ident">err</label></code></span>
+<span class="codeline" id="line-372"><code>		}</code></span>
+<span class="codeline" id="line-373"><code>	<span class="keyword">case</span> <span class="lit-number">'s'</span>:</code></span>
+<span class="codeline" id="line-374"><code>		<label for="r78" class="ident">msg</label> = &amp;<label for="r71" class="ident">f</label>.<a href="#line-54" class="ident">portalSuspended</a></code></span>
+<span class="codeline" id="line-375"><code>	<span class="keyword">case</span> <span class="lit-number">'S'</span>:</code></span>
+<span class="codeline" id="line-376"><code>		<label for="r78" class="ident">msg</label> = &amp;<label for="r71" class="ident">f</label>.<a href="#line-50" class="ident">parameterStatus</a></code></span>
+<span class="codeline" id="line-377"><code>	<span class="keyword">case</span> <span class="lit-number">'t'</span>:</code></span>
+<span class="codeline" id="line-378"><code>		<label for="r78" class="ident">msg</label> = &amp;<label for="r71" class="ident">f</label>.<a href="#line-49" class="ident">parameterDescription</a></code></span>
+<span class="codeline" id="line-379"><code>	<span class="keyword">case</span> <span class="lit-number">'T'</span>:</code></span>
+<span class="codeline" id="line-380"><code>		<label for="r78" class="ident">msg</label> = &amp;<label for="r71" class="ident">f</label>.<a href="#line-53" class="ident">rowDescription</a></code></span>
+<span class="codeline" id="line-381"><code>	<span class="keyword">case</span> <span class="lit-number">'V'</span>:</code></span>
+<span class="codeline" id="line-382"><code>		<label for="r78" class="ident">msg</label> = &amp;<label for="r71" class="ident">f</label>.<a href="#line-45" class="ident">functionCallResponse</a></code></span>
+<span class="codeline" id="line-383"><code>	<span class="keyword">case</span> <span class="lit-number">'W'</span>:</code></span>
+<span class="codeline" id="line-384"><code>		<label for="r78" class="ident">msg</label> = &amp;<label for="r71" class="ident">f</label>.<a href="#line-37" class="ident">copyBothResponse</a></code></span>
+<span class="codeline" id="line-385"><code>	<span class="keyword">case</span> <span class="lit-number">'Z'</span>:</code></span>
+<span class="codeline" id="line-386"><code>		<label for="r78" class="ident">msg</label> = &amp;<label for="r71" class="ident">f</label>.<a href="#line-52" class="ident">readyForQuery</a></code></span>
+<span class="codeline" id="line-387"><code>	<span class="keyword">case</span> <span class="lit-number">'v'</span>:</code></span>
+<span class="codeline" id="line-388"><code>		<label for="r78" class="ident">msg</label> = &amp;<label for="r71" class="ident">f</label>.<a href="#line-55" class="ident">negotiateProtocolVersion</a></code></span>
+<span class="codeline" id="line-389"><code>	<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-390"><code>		<span class="keyword">return</span> <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../../../../pkg/fmt.html" class="ident i3">fmt</a>.<a href="../../../../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"unknown message type: %c"</span>, <label for="r71" class="ident">f</label>.<a href="#line-59" class="ident">msgType</a>)</code></span>
+<span class="codeline" id="line-391"><code>	}</code></span>
+<span class="codeline" id="line-392"><code></code></span>
+<span class="codeline" id="line-393"><code>	<label for="r77" class="ident">err</label> = <label for="r78" class="ident">msg</label>.<a href="pgproto3.go.html#line-20" class="ident">Decode</a>(<label for="r76" class="ident">msgBody</label>)</code></span>
+<span class="codeline" id="line-394"><code>	<span class="keyword">if</span> <label for="r77" class="ident">err</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-395"><code>		<span class="keyword">return</span> <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r77" class="ident">err</label></code></span>
+<span class="codeline" id="line-396"><code>	}</code></span>
+<span class="codeline" id="line-397"><code></code></span>
+<span class="codeline" id="line-398"><code>	<span class="keyword">if</span> <label for="r71" class="ident">f</label>.<a href="#line-19" class="ident">tracer</a> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-399"><code>		<label for="r71" class="ident">f</label>.<a href="#line-19" class="ident">tracer</a>.<a href="trace.go.html#line-32" class="ident">traceMessage</a>(<span class="lit-number">'B'</span>, <a href="../../../../../../pkg/builtin.html#name-int32" class="ident">int32</a>(<span class="lit-number">5</span>+<a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r76" class="ident">msgBody</label>)), <label for="r78" class="ident">msg</label>)</code></span>
+<span class="codeline" id="line-400"><code>	}</code></span>
+<span class="codeline" id="line-401"><code></code></span>
+<span class="codeline" id="line-402"><code>	<span class="keyword">return</span> <label for="r78" class="ident">msg</label>, <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-403"><code>}</code></span>
+<span class="codeline" id="line-404"><code></code></span>
+<span class="codeline" id="line-405"><code><span class="comment">// Authentication message type constants.</span></code></span>
+<span class="codeline" id="line-406"><code><span class="comment">// See src/include/libpq/pqcomm.h for all</span></code></span>
+<span class="codeline" id="line-407"><code><span class="comment">// constants.</span></code></span>
+<span class="codeline" id="line-408"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-409"><code>	<a href="../../../../../../pkg/github.com/jackc/pgx/v5/pgproto3.html#name-AuthTypeOk" class="ident">AuthTypeOk</a>                = <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-410"><code>	<a href="../../../../../../pkg/github.com/jackc/pgx/v5/pgproto3.html#name-AuthTypeCleartextPassword" class="ident">AuthTypeCleartextPassword</a> = <span class="lit-number">3</span></code></span>
+<span class="codeline" id="line-411"><code>	<a href="../../../../../../pkg/github.com/jackc/pgx/v5/pgproto3.html#name-AuthTypeMD5Password" class="ident">AuthTypeMD5Password</a>       = <span class="lit-number">5</span></code></span>
+<span class="codeline" id="line-412"><code>	<a href="../../../../../../pkg/github.com/jackc/pgx/v5/pgproto3.html#name-AuthTypeSCMCreds" class="ident">AuthTypeSCMCreds</a>          = <span class="lit-number">6</span></code></span>
+<span class="codeline" id="line-413"><code>	<a href="../../../../../../pkg/github.com/jackc/pgx/v5/pgproto3.html#name-AuthTypeGSS" class="ident">AuthTypeGSS</a>               = <span class="lit-number">7</span></code></span>
+<span class="codeline" id="line-414"><code>	<a href="../../../../../../pkg/github.com/jackc/pgx/v5/pgproto3.html#name-AuthTypeGSSCont" class="ident">AuthTypeGSSCont</a>           = <span class="lit-number">8</span></code></span>
+<span class="codeline" id="line-415"><code>	<a href="../../../../../../pkg/github.com/jackc/pgx/v5/pgproto3.html#name-AuthTypeSSPI" class="ident">AuthTypeSSPI</a>              = <span class="lit-number">9</span></code></span>
+<span class="codeline" id="line-416"><code>	<a href="../../../../../../pkg/github.com/jackc/pgx/v5/pgproto3.html#name-AuthTypeSASL" class="ident">AuthTypeSASL</a>              = <span class="lit-number">10</span></code></span>
+<span class="codeline" id="line-417"><code>	<a href="../../../../../../pkg/github.com/jackc/pgx/v5/pgproto3.html#name-AuthTypeSASLContinue" class="ident">AuthTypeSASLContinue</a>      = <span class="lit-number">11</span></code></span>
+<span class="codeline" id="line-418"><code>	<a href="../../../../../../pkg/github.com/jackc/pgx/v5/pgproto3.html#name-AuthTypeSASLFinal" class="ident">AuthTypeSASLFinal</a>         = <span class="lit-number">12</span></code></span>
+<span class="codeline" id="line-419"><code>)</code></span>
+<span class="codeline" id="line-420"><code></code></span>
+<span class="codeline" id="line-421"><code><span class="keyword">func</span> (<label for="r80" class="ident">f</label> *<a href="#line-12" class="ident">Frontend</a>) <label for="r81" class="ident"><a href="../../../../../../use/github.com/jackc/pgx/v5/pgproto3..Frontend.findAuthenticationMessageType^c6040.html" class="ident">findAuthenticationMessageType</a></label>(<label for="r82" class="ident">src</label> []<a href="../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) (<a href="pgproto3.go.html#line-33" class="ident">BackendMessage</a>, <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-422"><code>	<span class="keyword">if</span> <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r82" class="ident">src</label>) &lt; <span class="lit-number">4</span> {</code></span>
+<span class="codeline" id="line-423"><code>		<span class="keyword">return</span> <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../../../../pkg/errors.html" class="ident i2">errors</a>.<a href="../../../../../errors/errors.go.html#line-64" class="ident">New</a>(<span class="lit-string">"authentication message too short"</span>)</code></span>
+<span class="codeline" id="line-424"><code>	}</code></span>
+<span class="codeline" id="line-425"><code>	<label for="r80" class="ident">f</label>.<a href="#line-61" class="ident">authType</a> = <a href="../../../../../../pkg/encoding/binary.html" class="ident i1">binary</a>.<a href="../../../../../encoding/binary/binary.go.html#line-64" class="ident">BigEndian</a>.<a href="../../../../../encoding/binary/binary.go.html#line-176" class="ident">Uint32</a>(<label for="r82" class="ident">src</label>[:<span class="lit-number">4</span>])</code></span>
+<span class="codeline" id="line-426"><code></code></span>
+<span class="codeline" id="line-427"><code>	<span class="keyword">switch</span> <label for="r80" class="ident">f</label>.<a href="#line-61" class="ident">authType</a> {</code></span>
+<span class="codeline" id="line-428"><code>	<span class="keyword">case</span> <a href="#line-409" class="ident">AuthTypeOk</a>:</code></span>
+<span class="codeline" id="line-429"><code>		<span class="keyword">return</span> &amp;<label for="r80" class="ident">f</label>.<a href="#line-25" class="ident">authenticationOk</a>, <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-430"><code>	<span class="keyword">case</span> <a href="#line-410" class="ident">AuthTypeCleartextPassword</a>:</code></span>
+<span class="codeline" id="line-431"><code>		<span class="keyword">return</span> &amp;<label for="r80" class="ident">f</label>.<a href="#line-26" class="ident">authenticationCleartextPassword</a>, <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-432"><code>	<span class="keyword">case</span> <a href="#line-411" class="ident">AuthTypeMD5Password</a>:</code></span>
+<span class="codeline" id="line-433"><code>		<span class="keyword">return</span> &amp;<label for="r80" class="ident">f</label>.<a href="#line-27" class="ident">authenticationMD5Password</a>, <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-434"><code>	<span class="keyword">case</span> <a href="#line-412" class="ident">AuthTypeSCMCreds</a>:</code></span>
+<span class="codeline" id="line-435"><code>		<span class="keyword">return</span> <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../../../../pkg/errors.html" class="ident i2">errors</a>.<a href="../../../../../errors/errors.go.html#line-64" class="ident">New</a>(<span class="lit-string">"AuthTypeSCMCreds is unimplemented"</span>)</code></span>
+<span class="codeline" id="line-436"><code>	<span class="keyword">case</span> <a href="#line-413" class="ident">AuthTypeGSS</a>:</code></span>
+<span class="codeline" id="line-437"><code>		<span class="keyword">return</span> &amp;<label for="r80" class="ident">f</label>.<a href="#line-28" class="ident">authenticationGSS</a>, <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-438"><code>	<span class="keyword">case</span> <a href="#line-414" class="ident">AuthTypeGSSCont</a>:</code></span>
+<span class="codeline" id="line-439"><code>		<span class="keyword">return</span> &amp;<label for="r80" class="ident">f</label>.<a href="#line-29" class="ident">authenticationGSSContinue</a>, <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-440"><code>	<span class="keyword">case</span> <a href="#line-415" class="ident">AuthTypeSSPI</a>:</code></span>
+<span class="codeline" id="line-441"><code>		<span class="keyword">return</span> <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../../../../pkg/errors.html" class="ident i2">errors</a>.<a href="../../../../../errors/errors.go.html#line-64" class="ident">New</a>(<span class="lit-string">"AuthTypeSSPI is unimplemented"</span>)</code></span>
+<span class="codeline" id="line-442"><code>	<span class="keyword">case</span> <a href="#line-416" class="ident">AuthTypeSASL</a>:</code></span>
+<span class="codeline" id="line-443"><code>		<span class="keyword">return</span> &amp;<label for="r80" class="ident">f</label>.<a href="#line-30" class="ident">authenticationSASL</a>, <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-444"><code>	<span class="keyword">case</span> <a href="#line-417" class="ident">AuthTypeSASLContinue</a>:</code></span>
+<span class="codeline" id="line-445"><code>		<span class="keyword">return</span> &amp;<label for="r80" class="ident">f</label>.<a href="#line-31" class="ident">authenticationSASLContinue</a>, <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-446"><code>	<span class="keyword">case</span> <a href="#line-418" class="ident">AuthTypeSASLFinal</a>:</code></span>
+<span class="codeline" id="line-447"><code>		<span class="keyword">return</span> &amp;<label for="r80" class="ident">f</label>.<a href="#line-32" class="ident">authenticationSASLFinal</a>, <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-448"><code>	<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-449"><code>		<span class="keyword">return</span> <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../../../../pkg/fmt.html" class="ident i3">fmt</a>.<a href="../../../../../fmt/errors.go.html#line-22" class="ident">Errorf</a>(<span class="lit-string">"unknown authentication type: %d"</span>, <label for="r80" class="ident">f</label>.<a href="#line-61" class="ident">authType</a>)</code></span>
+<span class="codeline" id="line-450"><code>	}</code></span>
+<span class="codeline" id="line-451"><code>}</code></span>
+<span class="codeline" id="line-452"><code></code></span>
+<span class="codeline" id="line-453"><code><span class="comment">// GetAuthType returns the authType used in the current state of the frontend.</span></code></span>
+<span class="codeline" id="line-454"><code><span class="comment">// See SetAuthType for more information.</span></code></span>
+<span class="codeline" id="line-455"><code><span class="keyword">func</span> (<label for="r83" class="ident">f</label> *<a href="#line-12" class="ident">Frontend</a>) <label for="r84" class="ident"><a href="../../../../../../use/github.com/jackc/pgx/v5/pgproto3..Frontend.GetAuthType.html" class="ident">GetAuthType</a></label>() <a href="../../../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a> {</code></span>
+<span class="codeline" id="line-456"><code>	<span class="keyword">return</span> <label for="r83" class="ident">f</label>.<a href="#line-61" class="ident">authType</a></code></span>
+<span class="codeline" id="line-457"><code>}</code></span>
+<span class="codeline" id="line-458"><code></code></span>
+<span class="codeline" id="line-459"><code><span class="keyword">func</span> (<label for="r85" class="ident">f</label> *<a href="#line-12" class="ident">Frontend</a>) <label for="r86" class="ident"><a href="../../../../../../use/github.com/jackc/pgx/v5/pgproto3..Frontend.ReadBufferLen.html" class="ident">ReadBufferLen</a></label>() <a href="../../../../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-460"><code>	<span class="keyword">return</span> <label for="r85" class="ident">f</label>.<a href="#line-13" class="ident">cr</a>.<a href="chunkreader.go.html#line-18" class="ident">wp</a> - <label for="r85" class="ident">f</label>.<a href="#line-13" class="ident">cr</a>.<a href="chunkreader.go.html#line-18" class="ident">rp</a></code></span>
+<span class="codeline" id="line-461"><code>}</code></span>
+<span class="codeline" id="line-462"><code></code></span>
+<span class="codeline" id="line-463"><code><span class="comment">// SetMaxBodyLen sets the maximum length of a message body in octets.</span></code></span>
+<span class="codeline" id="line-464"><code><span class="comment">// If a message body exceeds this length, Receive will return an error.</span></code></span>
+<span class="codeline" id="line-465"><code><span class="comment">// This is useful for protecting against a corrupted server that sends</span></code></span>
+<span class="codeline" id="line-466"><code><span class="comment">// messages with incorrect length, which can cause memory exhaustion.</span></code></span>
+<span class="codeline" id="line-467"><code><span class="comment">// The default value is 0.</span></code></span>
+<span class="codeline" id="line-468"><code><span class="comment">// If maxBodyLen is 0, then no maximum is enforced.</span></code></span>
+<span class="codeline" id="line-469"><code><span class="keyword">func</span> (<label for="r87" class="ident">f</label> *<a href="#line-12" class="ident">Frontend</a>) <label for="r88" class="ident"><a href="../../../../../../use/github.com/jackc/pgx/v5/pgproto3..Frontend.SetMaxBodyLen.html" class="ident">SetMaxBodyLen</a></label>(<label for="r89" class="ident">maxBodyLen</label> <a href="../../../../../../pkg/builtin.html#name-int" class="ident">int</a>) {</code></span>
+<span class="codeline" id="line-470"><code>	<label for="r87" class="ident">f</label>.<a href="#line-58" class="ident">maxBodyLen</a> = <label for="r89" class="ident">maxBodyLen</label></code></span>
+<span class="codeline" id="line-471"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

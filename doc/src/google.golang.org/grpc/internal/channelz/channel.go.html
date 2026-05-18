@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: channel.go in package google.golang.org/grpc/internal/channelz</title>
+<link href="../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	channel.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../pkg/google.golang.org/grpc/internal/channelz.html">google.golang.org/grpc/internal/channelz</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30],
+input[id=r31]:checked ~pre label[for=r31],
+input[id=r32]:checked ~pre label[for=r32],
+input[id=r33]:checked ~pre label[for=r33],
+input[id=r34]:checked ~pre label[for=r34],
+input[id=r35]:checked ~pre label[for=r35],
+input[id=r36]:checked ~pre label[for=r36],
+input[id=r37]:checked ~pre label[for=r37],
+input[id=r38]:checked ~pre label[for=r38],
+input[id=r39]:checked ~pre label[for=r39],
+input[id=r40]:checked ~pre label[for=r40],
+input[id=r41]:checked ~pre label[for=r41],
+input[id=r42]:checked ~pre label[for=r42],
+input[id=r43]:checked ~pre label[for=r43],
+input[id=r44]:checked ~pre label[for=r44],
+input[id=r45]:checked ~pre label[for=r45],
+input[id=r46]:checked ~pre label[for=r46],
+input[id=r47]:checked ~pre label[for=r47],
+input[id=r48]:checked ~pre label[for=r48],
+input[id=r49]:checked ~pre label[for=r49],
+input[id=r50]:checked ~pre label[for=r50],
+input[id=r51]:checked ~pre label[for=r51],
+input[id=r52]:checked ~pre label[for=r52],
+input[id=r53]:checked ~pre label[for=r53],
+input[id=r54]:checked ~pre label[for=r54],
+input[id=r55]:checked ~pre label[for=r55],
+input[id=r56]:checked ~pre label[for=r56],
+input[id=r57]:checked ~pre label[for=r57],
+input[id=r58]:checked ~pre label[for=r58],
+input[id=r59]:checked ~pre label[for=r59],
+input[id=r60]:checked ~pre label[for=r60],
+input[id=r61]:checked ~pre label[for=r61],
+input[id=r62]:checked ~pre label[for=r62],
+input[id=r63]:checked ~pre label[for=r63]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="r31" type="radio" name="g"/>
+<input id="r32" type="radio" name="g"/>
+<input id="r33" type="radio" name="g"/>
+<input id="r34" type="radio" name="g"/>
+<input id="r35" type="radio" name="g"/>
+<input id="r36" type="radio" name="g"/>
+<input id="r37" type="radio" name="g"/>
+<input id="r38" type="radio" name="g"/>
+<input id="r39" type="radio" name="g"/>
+<input id="r40" type="radio" name="g"/>
+<input id="r41" type="radio" name="g"/>
+<input id="r42" type="radio" name="g"/>
+<input id="r43" type="radio" name="g"/>
+<input id="r44" type="radio" name="g"/>
+<input id="r45" type="radio" name="g"/>
+<input id="r46" type="radio" name="g"/>
+<input id="r47" type="radio" name="g"/>
+<input id="r48" type="radio" name="g"/>
+<input id="r49" type="radio" name="g"/>
+<input id="r50" type="radio" name="g"/>
+<input id="r51" type="radio" name="g"/>
+<input id="r52" type="radio" name="g"/>
+<input id="r53" type="radio" name="g"/>
+<input id="r54" type="radio" name="g"/>
+<input id="r55" type="radio" name="g"/>
+<input id="r56" type="radio" name="g"/>
+<input id="r57" type="radio" name="g"/>
+<input id="r58" type="radio" name="g"/>
+<input id="r59" type="radio" name="g"/>
+<input id="r60" type="radio" name="g"/>
+<input id="r61" type="radio" name="g"/>
+<input id="r62" type="radio" name="g"/>
+<input id="r63" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">/*</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment"> * Copyright 2024 gRPC authors.</span></code></span>
+<span class="codeline" id="line-4"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-5"><code><span class="comment"> * Licensed under the Apache License, Version 2.0 (the "License");</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment"> * you may not use this file except in compliance with the License.</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment"> * You may obtain a copy of the License at</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment"> *     http://www.apache.org/licenses/LICENSE-2.0</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment"> * Unless required by applicable law or agreed to in writing, software</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment"> * distributed under the License is distributed on an "AS IS" BASIS,</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment"> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment"> * See the License for the specific language governing permissions and</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment"> * limitations under the License.</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment"> */</span></code></span>
+<span class="codeline" id="line-18"><code></code></span>
+<span class="codeline" id="line-19"><code><span class="keyword">package</span> channelz</code></span>
+<span class="codeline" id="line-20"><code></code></span>
+<span class="codeline" id="line-21"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-22"><code>	<label for="i0"><span class="lit-string i0">"fmt"</span></label></code></span>
+<span class="codeline" id="line-23"><code>	<label for="i1"><span class="lit-string i1">"sync/atomic"</span></label></code></span>
+<span class="codeline" id="line-24"><code></code></span>
+<span class="codeline" id="line-25"><code>	<label for="i2"><span class="lit-string i2">"google.golang.org/grpc/connectivity"</span></label></code></span>
+<span class="codeline" id="line-26"><code>)</code></span>
+<span class="codeline" id="line-27"><code></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">// Channel represents a channel within channelz, which includes metrics and</span></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">// internal channelz data, such as channelz id, child list, etc.</span></code></span>
+<span class="codeline" id="line-30"><code><span class="keyword">type</span> <a href="../../../../../pkg/google.golang.org/grpc/internal/channelz.html#name-Channel" class="ident">Channel</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-31"><code>	<a href="channelmap.go.html#line-391" class="ident">Entity</a></code></span>
+<span class="codeline" id="line-32"><code>	<span class="comment">// ID is the channelz id of this channel.</span></code></span>
+<span class="codeline" id="line-33"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/channelz..Channel.ID^38439.html" class="ident">ID</a> <a href="../../../../../pkg/builtin.html#name-int64" class="ident">int64</a></code></span>
+<span class="codeline" id="line-34"><code>	<span class="comment">// RefName is the human readable reference string of this channel.</span></code></span>
+<span class="codeline" id="line-35"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/channelz..Channel.RefName.html" class="ident">RefName</a> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-36"><code></code></span>
+<span class="codeline" id="line-37"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/channelz..Channel.closeCalled^a7a07.html" class="ident">closeCalled</a> <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-38"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/channelz..Channel.nestedChans^c2865.html" class="ident">nestedChans</a> <span class="keyword">map</span>[<a href="../../../../../pkg/builtin.html#name-int64" class="ident">int64</a>]<a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-39"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/channelz..Channel.subChans^8e6ad.html" class="ident">subChans</a>    <span class="keyword">map</span>[<a href="../../../../../pkg/builtin.html#name-int64" class="ident">int64</a>]<a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-40"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/channelz..Channel.Parent.html" class="ident">Parent</a>      *<a href="#line-30" class="ident">Channel</a></code></span>
+<span class="codeline" id="line-41"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/channelz..Channel.trace^eafe8.html" class="ident">trace</a>       *<a href="trace.go.html#line-85" class="ident">ChannelTrace</a></code></span>
+<span class="codeline" id="line-42"><code>	<span class="comment">// traceRefCount is the number of trace events that reference this channel.</span></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">	// Non-zero traceRefCount means the trace of this channel cannot be deleted.</span></code></span>
+<span class="codeline" id="line-44"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/channelz..Channel.traceRefCount^795e2.html" class="ident">traceRefCount</a> <a href="../../../../../pkg/builtin.html#name-int32" class="ident">int32</a></code></span>
+<span class="codeline" id="line-45"><code></code></span>
+<span class="codeline" id="line-46"><code>	<span class="comment">// ChannelMetrics holds connectivity state, target and call metrics for the</span></code></span>
+<span class="codeline" id="line-47"><code><span class="comment">	// channel within channelz.</span></code></span>
+<span class="codeline" id="line-48"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/channelz..Channel.ChannelMetrics.html" class="ident">ChannelMetrics</a> <a href="#line-93" class="ident">ChannelMetrics</a></code></span>
+<span class="codeline" id="line-49"><code>}</code></span>
+<span class="codeline" id="line-50"><code></code></span>
+<span class="codeline" id="line-51"><code><span class="comment">// Implemented to make Channel implement the Identifier interface used for</span></code></span>
+<span class="codeline" id="line-52"><code><span class="comment">// nesting.</span></code></span>
+<span class="codeline" id="line-53"><code><span class="keyword">func</span> (<label for="r0" class="ident">c</label> *<a href="#line-30" class="ident">Channel</a>) <label for="r1" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/channelz..Channel.channelzIdentifier^1c25f.html" class="ident">channelzIdentifier</a></label>() {}</code></span>
+<span class="codeline" id="line-54"><code></code></span>
+<span class="codeline" id="line-55"><code><span class="comment">// String returns a string representation of the Channel, including its parent</span></code></span>
+<span class="codeline" id="line-56"><code><span class="comment">// entity and ID.</span></code></span>
+<span class="codeline" id="line-57"><code><span class="keyword">func</span> (<label for="r2" class="ident">c</label> *<a href="#line-30" class="ident">Channel</a>) <label for="r3" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/channelz..Channel.String.html" class="ident">String</a></label>() <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-58"><code>	<span class="keyword">if</span> <label for="r2" class="ident">c</label>.<a href="#line-40" class="ident">Parent</a> == <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-59"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/fmt.html" class="ident i0">fmt</a>.<a href="../../../../fmt/print.go.html#line-237" class="ident">Sprintf</a>(<span class="lit-string">"Channel #%d"</span>, <label for="r2" class="ident">c</label>.<a href="#line-33" class="ident">ID</a>)</code></span>
+<span class="codeline" id="line-60"><code>	}</code></span>
+<span class="codeline" id="line-61"><code>	<span class="keyword">return</span> <a href="../../../../../pkg/fmt.html" class="ident i0">fmt</a>.<a href="../../../../fmt/print.go.html#line-237" class="ident">Sprintf</a>(<span class="lit-string">"%s Channel #%d"</span>, <label for="r2" class="ident">c</label>.<a href="#line-40" class="ident">Parent</a>, <label for="r2" class="ident">c</label>.<a href="#line-33" class="ident">ID</a>)</code></span>
+<span class="codeline" id="line-62"><code>}</code></span>
+<span class="codeline" id="line-63"><code></code></span>
+<span class="codeline" id="line-64"><code><span class="keyword">func</span> (<label for="r4" class="ident">c</label> *<a href="#line-30" class="ident">Channel</a>) <label for="r5" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/channelz..Channel.id^a5614.html" class="ident">id</a></label>() <a href="../../../../../pkg/builtin.html#name-int64" class="ident">int64</a> {</code></span>
+<span class="codeline" id="line-65"><code>	<span class="keyword">return</span> <label for="r4" class="ident">c</label>.<a href="#line-33" class="ident">ID</a></code></span>
+<span class="codeline" id="line-66"><code>}</code></span>
+<span class="codeline" id="line-67"><code></code></span>
+<span class="codeline" id="line-68"><code><span class="comment">// SubChans returns a copy of the map of sub-channels associated with the</span></code></span>
+<span class="codeline" id="line-69"><code><span class="comment">// Channel.</span></code></span>
+<span class="codeline" id="line-70"><code><span class="keyword">func</span> (<label for="r6" class="ident">c</label> *<a href="#line-30" class="ident">Channel</a>) <label for="r7" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/channelz..Channel.SubChans.html" class="ident">SubChans</a></label>() <span class="keyword">map</span>[<a href="../../../../../pkg/builtin.html#name-int64" class="ident">int64</a>]<a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-71"><code>	<a href="funcs.go.html#line-36" class="ident">db</a>.<a href="channelmap.go.html#line-57" class="ident">mu</a>.<a href="../../../../sync/rwmutex.go.html#line-67" class="ident">RLock</a>()</code></span>
+<span class="codeline" id="line-72"><code>	<span class="keyword">defer</span> <a href="funcs.go.html#line-36" class="ident">db</a>.<a href="channelmap.go.html#line-57" class="ident">mu</a>.<a href="../../../../sync/rwmutex.go.html#line-114" class="ident">RUnlock</a>()</code></span>
+<span class="codeline" id="line-73"><code>	<span class="keyword">return</span> <a href="channelmap.go.html#line-229" class="ident">copyMap</a>(<label for="r6" class="ident">c</label>.<a href="#line-39" class="ident">subChans</a>)</code></span>
+<span class="codeline" id="line-74"><code>}</code></span>
+<span class="codeline" id="line-75"><code></code></span>
+<span class="codeline" id="line-76"><code><span class="comment">// NestedChans returns a copy of the map of nested channels associated with the</span></code></span>
+<span class="codeline" id="line-77"><code><span class="comment">// Channel.</span></code></span>
+<span class="codeline" id="line-78"><code><span class="keyword">func</span> (<label for="r8" class="ident">c</label> *<a href="#line-30" class="ident">Channel</a>) <label for="r9" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/channelz..Channel.NestedChans.html" class="ident">NestedChans</a></label>() <span class="keyword">map</span>[<a href="../../../../../pkg/builtin.html#name-int64" class="ident">int64</a>]<a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-79"><code>	<a href="funcs.go.html#line-36" class="ident">db</a>.<a href="channelmap.go.html#line-57" class="ident">mu</a>.<a href="../../../../sync/rwmutex.go.html#line-67" class="ident">RLock</a>()</code></span>
+<span class="codeline" id="line-80"><code>	<span class="keyword">defer</span> <a href="funcs.go.html#line-36" class="ident">db</a>.<a href="channelmap.go.html#line-57" class="ident">mu</a>.<a href="../../../../sync/rwmutex.go.html#line-114" class="ident">RUnlock</a>()</code></span>
+<span class="codeline" id="line-81"><code>	<span class="keyword">return</span> <a href="channelmap.go.html#line-229" class="ident">copyMap</a>(<label for="r8" class="ident">c</label>.<a href="#line-38" class="ident">nestedChans</a>)</code></span>
+<span class="codeline" id="line-82"><code>}</code></span>
+<span class="codeline" id="line-83"><code></code></span>
+<span class="codeline" id="line-84"><code><span class="comment">// Trace returns a copy of the Channel's trace data.</span></code></span>
+<span class="codeline" id="line-85"><code><span class="keyword">func</span> (<label for="r10" class="ident">c</label> *<a href="#line-30" class="ident">Channel</a>) <label for="r11" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/channelz..Channel.Trace.html" class="ident">Trace</a></label>() *<a href="trace.go.html#line-85" class="ident">ChannelTrace</a> {</code></span>
+<span class="codeline" id="line-86"><code>	<a href="funcs.go.html#line-36" class="ident">db</a>.<a href="channelmap.go.html#line-57" class="ident">mu</a>.<a href="../../../../sync/rwmutex.go.html#line-67" class="ident">RLock</a>()</code></span>
+<span class="codeline" id="line-87"><code>	<span class="keyword">defer</span> <a href="funcs.go.html#line-36" class="ident">db</a>.<a href="channelmap.go.html#line-57" class="ident">mu</a>.<a href="../../../../sync/rwmutex.go.html#line-114" class="ident">RUnlock</a>()</code></span>
+<span class="codeline" id="line-88"><code>	<span class="keyword">return</span> <label for="r10" class="ident">c</label>.<a href="#line-41" class="ident">trace</a>.<a href="trace.go.html#line-99" class="ident">copy</a>()</code></span>
+<span class="codeline" id="line-89"><code>}</code></span>
+<span class="codeline" id="line-90"><code></code></span>
+<span class="codeline" id="line-91"><code><span class="comment">// ChannelMetrics holds connectivity state, target and call metrics for the</span></code></span>
+<span class="codeline" id="line-92"><code><span class="comment">// channel within channelz.</span></code></span>
+<span class="codeline" id="line-93"><code><span class="keyword">type</span> <a href="../../../../../pkg/google.golang.org/grpc/internal/channelz.html#name-ChannelMetrics" class="ident">ChannelMetrics</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-94"><code>	<span class="comment">// The current connectivity state of the channel.</span></code></span>
+<span class="codeline" id="line-95"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/channelz..ChannelMetrics.State.html" class="ident">State</a> <a href="../../../../../pkg/sync/atomic.html" class="ident i1">atomic</a>.<a href="../../../../sync/atomic/type.go.html#line-47" class="ident">Pointer</a>[<a href="../../../../../pkg/google.golang.org/grpc/connectivity.html" class="ident i2">connectivity</a>.<a href="../../connectivity/connectivity.go.html#line-31" class="ident">State</a>]</code></span>
+<span class="codeline" id="line-96"><code>	<span class="comment">// The target this channel originally tried to connect to.  May be absent</span></code></span>
+<span class="codeline" id="line-97"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/channelz..ChannelMetrics.Target.html" class="ident">Target</a> <a href="../../../../../pkg/sync/atomic.html" class="ident i1">atomic</a>.<a href="../../../../sync/atomic/type.go.html#line-47" class="ident">Pointer</a>[<a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>]</code></span>
+<span class="codeline" id="line-98"><code>	<span class="comment">// The number of calls started on the channel.</span></code></span>
+<span class="codeline" id="line-99"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/channelz..ChannelMetrics.CallsStarted.html" class="ident">CallsStarted</a> <a href="../../../../../pkg/sync/atomic.html" class="ident i1">atomic</a>.<a href="../../../../sync/atomic/type.go.html#line-107" class="ident">Int64</a></code></span>
+<span class="codeline" id="line-100"><code>	<span class="comment">// The number of calls that have completed with an OK status.</span></code></span>
+<span class="codeline" id="line-101"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/channelz..ChannelMetrics.CallsSucceeded.html" class="ident">CallsSucceeded</a> <a href="../../../../../pkg/sync/atomic.html" class="ident i1">atomic</a>.<a href="../../../../sync/atomic/type.go.html#line-107" class="ident">Int64</a></code></span>
+<span class="codeline" id="line-102"><code>	<span class="comment">// The number of calls that have a completed with a non-OK status.</span></code></span>
+<span class="codeline" id="line-103"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/channelz..ChannelMetrics.CallsFailed.html" class="ident">CallsFailed</a> <a href="../../../../../pkg/sync/atomic.html" class="ident i1">atomic</a>.<a href="../../../../sync/atomic/type.go.html#line-107" class="ident">Int64</a></code></span>
+<span class="codeline" id="line-104"><code>	<span class="comment">// The last time a call was started on the channel.</span></code></span>
+<span class="codeline" id="line-105"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/channelz..ChannelMetrics.LastCallStartedTimestamp.html" class="ident">LastCallStartedTimestamp</a> <a href="../../../../../pkg/sync/atomic.html" class="ident i1">atomic</a>.<a href="../../../../sync/atomic/type.go.html#line-107" class="ident">Int64</a></code></span>
+<span class="codeline" id="line-106"><code>}</code></span>
+<span class="codeline" id="line-107"><code></code></span>
+<span class="codeline" id="line-108"><code><span class="comment">// CopyFrom copies the metrics in o to c.  For testing only.</span></code></span>
+<span class="codeline" id="line-109"><code><span class="keyword">func</span> (<label for="r12" class="ident">c</label> *<a href="#line-93" class="ident">ChannelMetrics</a>) <label for="r13" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/channelz..ChannelMetrics.CopyFrom.html" class="ident">CopyFrom</a></label>(<label for="r14" class="ident">o</label> *<a href="#line-93" class="ident">ChannelMetrics</a>) {</code></span>
+<span class="codeline" id="line-110"><code>	<label for="r12" class="ident">c</label>.<a href="#line-95" class="ident">State</a>.<a href="../../../../sync/atomic/type.go.html#line-61" class="ident">Store</a>(<label for="r14" class="ident">o</label>.<a href="#line-95" class="ident">State</a>.<a href="../../../../sync/atomic/type.go.html#line-58" class="ident">Load</a>())</code></span>
+<span class="codeline" id="line-111"><code>	<label for="r12" class="ident">c</label>.<a href="#line-97" class="ident">Target</a>.<a href="../../../../sync/atomic/type.go.html#line-61" class="ident">Store</a>(<label for="r14" class="ident">o</label>.<a href="#line-97" class="ident">Target</a>.<a href="../../../../sync/atomic/type.go.html#line-58" class="ident">Load</a>())</code></span>
+<span class="codeline" id="line-112"><code>	<label for="r12" class="ident">c</label>.<a href="#line-99" class="ident">CallsStarted</a>.<a href="../../../../sync/atomic/type.go.html#line-117" class="ident">Store</a>(<label for="r14" class="ident">o</label>.<a href="#line-99" class="ident">CallsStarted</a>.<a href="../../../../sync/atomic/type.go.html#line-114" class="ident">Load</a>())</code></span>
+<span class="codeline" id="line-113"><code>	<label for="r12" class="ident">c</label>.<a href="#line-101" class="ident">CallsSucceeded</a>.<a href="../../../../sync/atomic/type.go.html#line-117" class="ident">Store</a>(<label for="r14" class="ident">o</label>.<a href="#line-101" class="ident">CallsSucceeded</a>.<a href="../../../../sync/atomic/type.go.html#line-114" class="ident">Load</a>())</code></span>
+<span class="codeline" id="line-114"><code>	<label for="r12" class="ident">c</label>.<a href="#line-103" class="ident">CallsFailed</a>.<a href="../../../../sync/atomic/type.go.html#line-117" class="ident">Store</a>(<label for="r14" class="ident">o</label>.<a href="#line-103" class="ident">CallsFailed</a>.<a href="../../../../sync/atomic/type.go.html#line-114" class="ident">Load</a>())</code></span>
+<span class="codeline" id="line-115"><code>	<label for="r12" class="ident">c</label>.<a href="#line-105" class="ident">LastCallStartedTimestamp</a>.<a href="../../../../sync/atomic/type.go.html#line-117" class="ident">Store</a>(<label for="r14" class="ident">o</label>.<a href="#line-105" class="ident">LastCallStartedTimestamp</a>.<a href="../../../../sync/atomic/type.go.html#line-114" class="ident">Load</a>())</code></span>
+<span class="codeline" id="line-116"><code>}</code></span>
+<span class="codeline" id="line-117"><code></code></span>
+<span class="codeline" id="line-118"><code><span class="comment">// Equal returns true iff the metrics of c are the same as the metrics of o.</span></code></span>
+<span class="codeline" id="line-119"><code><span class="comment">// For testing only.</span></code></span>
+<span class="codeline" id="line-120"><code><span class="keyword">func</span> (<label for="r15" class="ident">c</label> *<a href="#line-93" class="ident">ChannelMetrics</a>) <label for="r16" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/channelz..ChannelMetrics.Equal.html" class="ident">Equal</a></label>(<label for="r17" class="ident">o</label> <a href="../../../../../pkg/builtin.html#name-any" class="ident">any</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-121"><code>	<label for="r18" class="ident">oc</label>, <label for="r19" class="ident">ok</label> := <label for="r17" class="ident">o</label>.(*<a href="#line-93" class="ident">ChannelMetrics</a>)</code></span>
+<span class="codeline" id="line-122"><code>	<span class="keyword">if</span> !<label for="r19" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-123"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-124"><code>	}</code></span>
+<span class="codeline" id="line-125"><code>	<span class="keyword">if</span> (<label for="r15" class="ident">c</label>.<a href="#line-95" class="ident">State</a>.<a href="../../../../sync/atomic/type.go.html#line-58" class="ident">Load</a>() == <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>) != (<label for="r18" class="ident">oc</label>.<a href="#line-95" class="ident">State</a>.<a href="../../../../sync/atomic/type.go.html#line-58" class="ident">Load</a>() == <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>) {</code></span>
+<span class="codeline" id="line-126"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-127"><code>	}</code></span>
+<span class="codeline" id="line-128"><code>	<span class="keyword">if</span> <label for="r15" class="ident">c</label>.<a href="#line-95" class="ident">State</a>.<a href="../../../../sync/atomic/type.go.html#line-58" class="ident">Load</a>() != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> &amp;&amp; *<label for="r15" class="ident">c</label>.<a href="#line-95" class="ident">State</a>.<a href="../../../../sync/atomic/type.go.html#line-58" class="ident">Load</a>() != *<label for="r18" class="ident">oc</label>.<a href="#line-95" class="ident">State</a>.<a href="../../../../sync/atomic/type.go.html#line-58" class="ident">Load</a>() {</code></span>
+<span class="codeline" id="line-129"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-130"><code>	}</code></span>
+<span class="codeline" id="line-131"><code>	<span class="keyword">if</span> (<label for="r15" class="ident">c</label>.<a href="#line-97" class="ident">Target</a>.<a href="../../../../sync/atomic/type.go.html#line-58" class="ident">Load</a>() == <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>) != (<label for="r18" class="ident">oc</label>.<a href="#line-97" class="ident">Target</a>.<a href="../../../../sync/atomic/type.go.html#line-58" class="ident">Load</a>() == <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>) {</code></span>
+<span class="codeline" id="line-132"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-133"><code>	}</code></span>
+<span class="codeline" id="line-134"><code>	<span class="keyword">if</span> <label for="r15" class="ident">c</label>.<a href="#line-97" class="ident">Target</a>.<a href="../../../../sync/atomic/type.go.html#line-58" class="ident">Load</a>() != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> &amp;&amp; *<label for="r15" class="ident">c</label>.<a href="#line-97" class="ident">Target</a>.<a href="../../../../sync/atomic/type.go.html#line-58" class="ident">Load</a>() != *<label for="r18" class="ident">oc</label>.<a href="#line-97" class="ident">Target</a>.<a href="../../../../sync/atomic/type.go.html#line-58" class="ident">Load</a>() {</code></span>
+<span class="codeline" id="line-135"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-136"><code>	}</code></span>
+<span class="codeline" id="line-137"><code>	<span class="keyword">return</span> <label for="r15" class="ident">c</label>.<a href="#line-99" class="ident">CallsStarted</a>.<a href="../../../../sync/atomic/type.go.html#line-114" class="ident">Load</a>() == <label for="r18" class="ident">oc</label>.<a href="#line-99" class="ident">CallsStarted</a>.<a href="../../../../sync/atomic/type.go.html#line-114" class="ident">Load</a>() &amp;&amp;</code></span>
+<span class="codeline" id="line-138"><code>		<label for="r15" class="ident">c</label>.<a href="#line-103" class="ident">CallsFailed</a>.<a href="../../../../sync/atomic/type.go.html#line-114" class="ident">Load</a>() == <label for="r18" class="ident">oc</label>.<a href="#line-103" class="ident">CallsFailed</a>.<a href="../../../../sync/atomic/type.go.html#line-114" class="ident">Load</a>() &amp;&amp;</code></span>
+<span class="codeline" id="line-139"><code>		<label for="r15" class="ident">c</label>.<a href="#line-101" class="ident">CallsSucceeded</a>.<a href="../../../../sync/atomic/type.go.html#line-114" class="ident">Load</a>() == <label for="r18" class="ident">oc</label>.<a href="#line-101" class="ident">CallsSucceeded</a>.<a href="../../../../sync/atomic/type.go.html#line-114" class="ident">Load</a>() &amp;&amp;</code></span>
+<span class="codeline" id="line-140"><code>		<label for="r15" class="ident">c</label>.<a href="#line-105" class="ident">LastCallStartedTimestamp</a>.<a href="../../../../sync/atomic/type.go.html#line-114" class="ident">Load</a>() == <label for="r18" class="ident">oc</label>.<a href="#line-105" class="ident">LastCallStartedTimestamp</a>.<a href="../../../../sync/atomic/type.go.html#line-114" class="ident">Load</a>()</code></span>
+<span class="codeline" id="line-141"><code>}</code></span>
+<span class="codeline" id="line-142"><code></code></span>
+<span class="codeline" id="line-143"><code><span class="keyword">func</span> <label for="r20" class="ident"><a href="../../../../../pkg/google.golang.org/grpc/internal/channelz.html#name-strFromPointer" class="ident">strFromPointer</a></label>(<label for="r21" class="ident">s</label> *<a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-144"><code>	<span class="keyword">if</span> <label for="r21" class="ident">s</label> == <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-145"><code>		<span class="keyword">return</span> <span class="lit-string">""</span></code></span>
+<span class="codeline" id="line-146"><code>	}</code></span>
+<span class="codeline" id="line-147"><code>	<span class="keyword">return</span> *<label for="r21" class="ident">s</label></code></span>
+<span class="codeline" id="line-148"><code>}</code></span>
+<span class="codeline" id="line-149"><code></code></span>
+<span class="codeline" id="line-150"><code><span class="comment">// String returns a string representation of the ChannelMetrics, including its</span></code></span>
+<span class="codeline" id="line-151"><code><span class="comment">// state, target, and call metrics.</span></code></span>
+<span class="codeline" id="line-152"><code><span class="keyword">func</span> (<label for="r22" class="ident">c</label> *<a href="#line-93" class="ident">ChannelMetrics</a>) <label for="r23" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/channelz..ChannelMetrics.String.html" class="ident">String</a></label>() <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-153"><code>	<span class="keyword">return</span> <a href="../../../../../pkg/fmt.html" class="ident i0">fmt</a>.<a href="../../../../fmt/print.go.html#line-237" class="ident">Sprintf</a>(<span class="lit-string">"State: %v, Target: %s, CallsStarted: %v, CallsSucceeded: %v, CallsFailed: %v, LastCallStartedTimestamp: %v"</span>,</code></span>
+<span class="codeline" id="line-154"><code>		<label for="r22" class="ident">c</label>.<a href="#line-95" class="ident">State</a>.<a href="../../../../sync/atomic/type.go.html#line-58" class="ident">Load</a>(), <a href="#line-143" class="ident">strFromPointer</a>(<label for="r22" class="ident">c</label>.<a href="#line-97" class="ident">Target</a>.<a href="../../../../sync/atomic/type.go.html#line-58" class="ident">Load</a>()), <label for="r22" class="ident">c</label>.<a href="#line-99" class="ident">CallsStarted</a>.<a href="../../../../sync/atomic/type.go.html#line-114" class="ident">Load</a>(), <label for="r22" class="ident">c</label>.<a href="#line-101" class="ident">CallsSucceeded</a>.<a href="../../../../sync/atomic/type.go.html#line-114" class="ident">Load</a>(), <label for="r22" class="ident">c</label>.<a href="#line-103" class="ident">CallsFailed</a>.<a href="../../../../sync/atomic/type.go.html#line-114" class="ident">Load</a>(), <label for="r22" class="ident">c</label>.<a href="#line-105" class="ident">LastCallStartedTimestamp</a>.<a href="../../../../sync/atomic/type.go.html#line-114" class="ident">Load</a>(),</code></span>
+<span class="codeline" id="line-155"><code>	)</code></span>
+<span class="codeline" id="line-156"><code>}</code></span>
+<span class="codeline" id="line-157"><code></code></span>
+<span class="codeline" id="line-158"><code><span class="comment">// NewChannelMetricForTesting creates a new instance of ChannelMetrics with</span></code></span>
+<span class="codeline" id="line-159"><code><span class="comment">// specified initial values for testing purposes.</span></code></span>
+<span class="codeline" id="line-160"><code><span class="keyword">func</span> <label for="r24" class="ident"><a href="../../../../../pkg/google.golang.org/grpc/internal/channelz.html#name-NewChannelMetricForTesting" class="ident">NewChannelMetricForTesting</a></label>(<label for="r25" class="ident">state</label> <a href="../../../../../pkg/google.golang.org/grpc/connectivity.html" class="ident i2">connectivity</a>.<a href="../../connectivity/connectivity.go.html#line-31" class="ident">State</a>, <label for="r26" class="ident">target</label> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r27" class="ident">started</label>, <label for="r28" class="ident">succeeded</label>, <label for="r29" class="ident">failed</label>, <label for="r30" class="ident">timestamp</label> <a href="../../../../../pkg/builtin.html#name-int64" class="ident">int64</a>) *<a href="#line-93" class="ident">ChannelMetrics</a> {</code></span>
+<span class="codeline" id="line-161"><code>	<label for="r31" class="ident">c</label> := &amp;<a href="#line-93" class="ident">ChannelMetrics</a>{}</code></span>
+<span class="codeline" id="line-162"><code>	<label for="r31" class="ident">c</label>.<a href="#line-95" class="ident">State</a>.<a href="../../../../sync/atomic/type.go.html#line-61" class="ident">Store</a>(&amp;<label for="r25" class="ident">state</label>)</code></span>
+<span class="codeline" id="line-163"><code>	<label for="r31" class="ident">c</label>.<a href="#line-97" class="ident">Target</a>.<a href="../../../../sync/atomic/type.go.html#line-61" class="ident">Store</a>(&amp;<label for="r26" class="ident">target</label>)</code></span>
+<span class="codeline" id="line-164"><code>	<label for="r31" class="ident">c</label>.<a href="#line-99" class="ident">CallsStarted</a>.<a href="../../../../sync/atomic/type.go.html#line-117" class="ident">Store</a>(<label for="r27" class="ident">started</label>)</code></span>
+<span class="codeline" id="line-165"><code>	<label for="r31" class="ident">c</label>.<a href="#line-101" class="ident">CallsSucceeded</a>.<a href="../../../../sync/atomic/type.go.html#line-117" class="ident">Store</a>(<label for="r28" class="ident">succeeded</label>)</code></span>
+<span class="codeline" id="line-166"><code>	<label for="r31" class="ident">c</label>.<a href="#line-103" class="ident">CallsFailed</a>.<a href="../../../../sync/atomic/type.go.html#line-117" class="ident">Store</a>(<label for="r29" class="ident">failed</label>)</code></span>
+<span class="codeline" id="line-167"><code>	<label for="r31" class="ident">c</label>.<a href="#line-105" class="ident">LastCallStartedTimestamp</a>.<a href="../../../../sync/atomic/type.go.html#line-117" class="ident">Store</a>(<label for="r30" class="ident">timestamp</label>)</code></span>
+<span class="codeline" id="line-168"><code>	<span class="keyword">return</span> <label for="r31" class="ident">c</label></code></span>
+<span class="codeline" id="line-169"><code>}</code></span>
+<span class="codeline" id="line-170"><code></code></span>
+<span class="codeline" id="line-171"><code><span class="keyword">func</span> (<label for="r32" class="ident">c</label> *<a href="#line-30" class="ident">Channel</a>) <label for="r33" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/channelz..Channel.addChild^954ed.html" class="ident">addChild</a></label>(<label for="r34" class="ident">id</label> <a href="../../../../../pkg/builtin.html#name-int64" class="ident">int64</a>, <label for="r35" class="ident">e</label> <a href="channelmap.go.html#line-29" class="ident">entry</a>) {</code></span>
+<span class="codeline" id="line-172"><code>	<span class="keyword">switch</span> v := <label for="r35" class="ident">e</label>.(<span class="keyword">type</span>) {</code></span>
+<span class="codeline" id="line-173"><code>	<span class="keyword">case</span> *<a href="subchannel.go.html#line-27" class="ident">SubChannel</a>:</code></span>
+<span class="codeline" id="line-174"><code>		<label for="r32" class="ident">c</label>.<a href="#line-39" class="ident">subChans</a>[<label for="r34" class="ident">id</label>] = <label for="r36" class="ident">v</label>.<a href="subchannel.go.html#line-32" class="ident">RefName</a></code></span>
+<span class="codeline" id="line-175"><code>	<span class="keyword">case</span> *<a href="#line-30" class="ident">Channel</a>:</code></span>
+<span class="codeline" id="line-176"><code>		<label for="r32" class="ident">c</label>.<a href="#line-38" class="ident">nestedChans</a>[<label for="r34" class="ident">id</label>] = <label for="r37" class="ident">v</label>.<a href="#line-35" class="ident">RefName</a></code></span>
+<span class="codeline" id="line-177"><code>	<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-178"><code>		<a href="logging.go.html#line-27" class="ident">logger</a>.<a href="../../grpclog/internal/loggerv2.go.html#line-48" class="ident">Errorf</a>(<span class="lit-string">"cannot add a child (id = %d) of type %T to a channel"</span>, <label for="r34" class="ident">id</label>, <label for="r35" class="ident">e</label>)</code></span>
+<span class="codeline" id="line-179"><code>	}</code></span>
+<span class="codeline" id="line-180"><code>}</code></span>
+<span class="codeline" id="line-181"><code></code></span>
+<span class="codeline" id="line-182"><code><span class="keyword">func</span> (<label for="r38" class="ident">c</label> *<a href="#line-30" class="ident">Channel</a>) <label for="r39" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/channelz..Channel.deleteChild^3bbd0.html" class="ident">deleteChild</a></label>(<label for="r40" class="ident">id</label> <a href="../../../../../pkg/builtin.html#name-int64" class="ident">int64</a>) {</code></span>
+<span class="codeline" id="line-183"><code>	<a href="../../../../../pkg/builtin.html#name-delete" class="ident">delete</a>(<label for="r38" class="ident">c</label>.<a href="#line-39" class="ident">subChans</a>, <label for="r40" class="ident">id</label>)</code></span>
+<span class="codeline" id="line-184"><code>	<a href="../../../../../pkg/builtin.html#name-delete" class="ident">delete</a>(<label for="r38" class="ident">c</label>.<a href="#line-38" class="ident">nestedChans</a>, <label for="r40" class="ident">id</label>)</code></span>
+<span class="codeline" id="line-185"><code>	<label for="r38" class="ident">c</label>.<a href="#line-240" class="ident">deleteSelfIfReady</a>()</code></span>
+<span class="codeline" id="line-186"><code>}</code></span>
+<span class="codeline" id="line-187"><code></code></span>
+<span class="codeline" id="line-188"><code><span class="keyword">func</span> (<label for="r41" class="ident">c</label> *<a href="#line-30" class="ident">Channel</a>) <label for="r42" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/channelz..Channel.triggerDelete^08bc0.html" class="ident">triggerDelete</a></label>() {</code></span>
+<span class="codeline" id="line-189"><code>	<label for="r41" class="ident">c</label>.<a href="#line-37" class="ident">closeCalled</a> = <a href="../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-190"><code>	<label for="r41" class="ident">c</label>.<a href="#line-240" class="ident">deleteSelfIfReady</a>()</code></span>
+<span class="codeline" id="line-191"><code>}</code></span>
+<span class="codeline" id="line-192"><code></code></span>
+<span class="codeline" id="line-193"><code><span class="keyword">func</span> (<label for="r43" class="ident">c</label> *<a href="#line-30" class="ident">Channel</a>) <label for="r44" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/channelz..Channel.getParentID^f09c2.html" class="ident">getParentID</a></label>() <a href="../../../../../pkg/builtin.html#name-int64" class="ident">int64</a> {</code></span>
+<span class="codeline" id="line-194"><code>	<span class="keyword">if</span> <label for="r43" class="ident">c</label>.<a href="#line-40" class="ident">Parent</a> == <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-195"><code>		<span class="keyword">return</span> -<span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-196"><code>	}</code></span>
+<span class="codeline" id="line-197"><code>	<span class="keyword">return</span> <label for="r43" class="ident">c</label>.<a href="#line-40" class="ident">Parent</a>.<a href="#line-33" class="ident">ID</a></code></span>
+<span class="codeline" id="line-198"><code>}</code></span>
+<span class="codeline" id="line-199"><code></code></span>
+<span class="codeline" id="line-200"><code><span class="comment">// deleteSelfFromTree tries to delete the channel from the channelz entry relation tree, which means</span></code></span>
+<span class="codeline" id="line-201"><code><span class="comment">// deleting the channel reference from its parent's child list.</span></code></span>
+<span class="codeline" id="line-202"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-203"><code><span class="comment">// In order for a channel to be deleted from the tree, it must meet the criteria that, removal of the</span></code></span>
+<span class="codeline" id="line-204"><code><span class="comment">// corresponding grpc object has been invoked, and the channel does not have any children left.</span></code></span>
+<span class="codeline" id="line-205"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-206"><code><span class="comment">// The returned boolean value indicates whether the channel has been successfully deleted from tree.</span></code></span>
+<span class="codeline" id="line-207"><code><span class="keyword">func</span> (<label for="r45" class="ident">c</label> *<a href="#line-30" class="ident">Channel</a>) <label for="r46" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/channelz..Channel.deleteSelfFromTree^61e50.html" class="ident">deleteSelfFromTree</a></label>() (<label for="r47" class="ident">deleted</label> <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a>) {</code></span>
+<span class="codeline" id="line-208"><code>	<span class="keyword">if</span> !<label for="r45" class="ident">c</label>.<a href="#line-37" class="ident">closeCalled</a> || <a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r45" class="ident">c</label>.<a href="#line-39" class="ident">subChans</a>)+<a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r45" class="ident">c</label>.<a href="#line-38" class="ident">nestedChans</a>) != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-209"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-210"><code>	}</code></span>
+<span class="codeline" id="line-211"><code>	<span class="comment">// not top channel</span></code></span>
+<span class="codeline" id="line-212"><code>	<span class="keyword">if</span> <label for="r45" class="ident">c</label>.<a href="#line-40" class="ident">Parent</a> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-213"><code>		<label for="r45" class="ident">c</label>.<a href="#line-40" class="ident">Parent</a>.<a href="#line-182" class="ident">deleteChild</a>(<label for="r45" class="ident">c</label>.<a href="#line-33" class="ident">ID</a>)</code></span>
+<span class="codeline" id="line-214"><code>	}</code></span>
+<span class="codeline" id="line-215"><code>	<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-216"><code>}</code></span>
+<span class="codeline" id="line-217"><code></code></span>
+<span class="codeline" id="line-218"><code><span class="comment">// deleteSelfFromMap checks whether it is valid to delete the channel from the map, which means</span></code></span>
+<span class="codeline" id="line-219"><code><span class="comment">// deleting the channel from channelz's tracking entirely. Users can no longer use id to query the</span></code></span>
+<span class="codeline" id="line-220"><code><span class="comment">// channel, and its memory will be garbage collected.</span></code></span>
+<span class="codeline" id="line-221"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-222"><code><span class="comment">// The trace reference count of the channel must be 0 in order to be deleted from the map. This is</span></code></span>
+<span class="codeline" id="line-223"><code><span class="comment">// specified in the channel tracing gRFC that as long as some other trace has reference to an entity,</span></code></span>
+<span class="codeline" id="line-224"><code><span class="comment">// the trace of the referenced entity must not be deleted. In order to release the resource allocated</span></code></span>
+<span class="codeline" id="line-225"><code><span class="comment">// by grpc, the reference to the grpc object is reset to a dummy object.</span></code></span>
+<span class="codeline" id="line-226"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-227"><code><span class="comment">// deleteSelfFromMap must be called after deleteSelfFromTree returns true.</span></code></span>
+<span class="codeline" id="line-228"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-229"><code><span class="comment">// It returns a bool to indicate whether the channel can be safely deleted from map.</span></code></span>
+<span class="codeline" id="line-230"><code><span class="keyword">func</span> (<label for="r48" class="ident">c</label> *<a href="#line-30" class="ident">Channel</a>) <label for="r49" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/channelz..Channel.deleteSelfFromMap^d5430.html" class="ident">deleteSelfFromMap</a></label>() (<label for="r50" class="ident">delete</label> <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a>) {</code></span>
+<span class="codeline" id="line-231"><code>	<span class="keyword">return</span> <label for="r48" class="ident">c</label>.<a href="#line-263" class="ident">getTraceRefCount</a>() == <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-232"><code>}</code></span>
+<span class="codeline" id="line-233"><code></code></span>
+<span class="codeline" id="line-234"><code><span class="comment">// deleteSelfIfReady tries to delete the channel itself from the channelz database.</span></code></span>
+<span class="codeline" id="line-235"><code><span class="comment">// The delete process includes two steps:</span></code></span>
+<span class="codeline" id="line-236"><code><span class="comment">//  1. delete the channel from the entry relation tree, i.e. delete the channel reference from its</span></code></span>
+<span class="codeline" id="line-237"><code><span class="comment">//     parent's child list.</span></code></span>
+<span class="codeline" id="line-238"><code><span class="comment">//  2. delete the channel from the map, i.e. delete the channel entirely from channelz. Lookup by id</span></code></span>
+<span class="codeline" id="line-239"><code><span class="comment">//     will return entry not found error.</span></code></span>
+<span class="codeline" id="line-240"><code><span class="keyword">func</span> (<label for="r51" class="ident">c</label> *<a href="#line-30" class="ident">Channel</a>) <label for="r52" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/channelz..Channel.deleteSelfIfReady^81fe6.html" class="ident">deleteSelfIfReady</a></label>() {</code></span>
+<span class="codeline" id="line-241"><code>	<span class="keyword">if</span> !<label for="r51" class="ident">c</label>.<a href="#line-207" class="ident">deleteSelfFromTree</a>() {</code></span>
+<span class="codeline" id="line-242"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-243"><code>	}</code></span>
+<span class="codeline" id="line-244"><code>	<span class="keyword">if</span> !<label for="r51" class="ident">c</label>.<a href="#line-230" class="ident">deleteSelfFromMap</a>() {</code></span>
+<span class="codeline" id="line-245"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-246"><code>	}</code></span>
+<span class="codeline" id="line-247"><code>	<a href="funcs.go.html#line-36" class="ident">db</a>.<a href="channelmap.go.html#line-170" class="ident">deleteEntry</a>(<label for="r51" class="ident">c</label>.<a href="#line-33" class="ident">ID</a>)</code></span>
+<span class="codeline" id="line-248"><code>	<label for="r51" class="ident">c</label>.<a href="#line-41" class="ident">trace</a>.<a href="trace.go.html#line-128" class="ident">clear</a>()</code></span>
+<span class="codeline" id="line-249"><code>}</code></span>
+<span class="codeline" id="line-250"><code></code></span>
+<span class="codeline" id="line-251"><code><span class="keyword">func</span> (<label for="r53" class="ident">c</label> *<a href="#line-30" class="ident">Channel</a>) <label for="r54" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/channelz..Channel.getChannelTrace^f2aba.html" class="ident">getChannelTrace</a></label>() *<a href="trace.go.html#line-85" class="ident">ChannelTrace</a> {</code></span>
+<span class="codeline" id="line-252"><code>	<span class="keyword">return</span> <label for="r53" class="ident">c</label>.<a href="#line-41" class="ident">trace</a></code></span>
+<span class="codeline" id="line-253"><code>}</code></span>
+<span class="codeline" id="line-254"><code></code></span>
+<span class="codeline" id="line-255"><code><span class="keyword">func</span> (<label for="r55" class="ident">c</label> *<a href="#line-30" class="ident">Channel</a>) <label for="r56" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/channelz..Channel.incrTraceRefCount^e3e72.html" class="ident">incrTraceRefCount</a></label>() {</code></span>
+<span class="codeline" id="line-256"><code>	<a href="../../../../../pkg/sync/atomic.html" class="ident i1">atomic</a>.<a href="../../../../sync/atomic/doc.go.html#line-115" class="ident">AddInt32</a>(&amp;<label for="r55" class="ident">c</label>.<a href="#line-44" class="ident">traceRefCount</a>, <span class="lit-number">1</span>)</code></span>
+<span class="codeline" id="line-257"><code>}</code></span>
+<span class="codeline" id="line-258"><code></code></span>
+<span class="codeline" id="line-259"><code><span class="keyword">func</span> (<label for="r57" class="ident">c</label> *<a href="#line-30" class="ident">Channel</a>) <label for="r58" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/channelz..Channel.decrTraceRefCount^dba72.html" class="ident">decrTraceRefCount</a></label>() {</code></span>
+<span class="codeline" id="line-260"><code>	<a href="../../../../../pkg/sync/atomic.html" class="ident i1">atomic</a>.<a href="../../../../sync/atomic/doc.go.html#line-115" class="ident">AddInt32</a>(&amp;<label for="r57" class="ident">c</label>.<a href="#line-44" class="ident">traceRefCount</a>, -<span class="lit-number">1</span>)</code></span>
+<span class="codeline" id="line-261"><code>}</code></span>
+<span class="codeline" id="line-262"><code></code></span>
+<span class="codeline" id="line-263"><code><span class="keyword">func</span> (<label for="r59" class="ident">c</label> *<a href="#line-30" class="ident">Channel</a>) <label for="r60" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/channelz..Channel.getTraceRefCount^7e52b.html" class="ident">getTraceRefCount</a></label>() <a href="../../../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-264"><code>	<label for="r61" class="ident">i</label> := <a href="../../../../../pkg/sync/atomic.html" class="ident i1">atomic</a>.<a href="../../../../sync/atomic/doc.go.html#line-177" class="ident">LoadInt32</a>(&amp;<label for="r59" class="ident">c</label>.<a href="#line-44" class="ident">traceRefCount</a>)</code></span>
+<span class="codeline" id="line-265"><code>	<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-int" class="ident">int</a>(<label for="r61" class="ident">i</label>)</code></span>
+<span class="codeline" id="line-266"><code>}</code></span>
+<span class="codeline" id="line-267"><code></code></span>
+<span class="codeline" id="line-268"><code><span class="keyword">func</span> (<label for="r62" class="ident">c</label> *<a href="#line-30" class="ident">Channel</a>) <label for="r63" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/channelz..Channel.getRefName^00bea.html" class="ident">getRefName</a></label>() <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-269"><code>	<span class="keyword">return</span> <label for="r62" class="ident">c</label>.<a href="#line-35" class="ident">RefName</a></code></span>
+<span class="codeline" id="line-270"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

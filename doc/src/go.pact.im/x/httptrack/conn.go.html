@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: conn.go in package go.pact.im/x/httptrack</title>
+<link href="../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	conn.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../pkg/go.pact.im/x/httptrack.html">go.pact.im/x/httptrack</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="keyword">package</span> httptrack</code></span>
+<span class="codeline" id="line-2"><code></code></span>
+<span class="codeline" id="line-3"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-4"><code>	<label for="i0"><span class="lit-string i0">"net"</span></label></code></span>
+<span class="codeline" id="line-5"><code>	<label for="i1"><span class="lit-string i1">"net/http"</span></label></code></span>
+<span class="codeline" id="line-6"><code>	<label for="i2"><span class="lit-string i2">"sync"</span></label></code></span>
+<span class="codeline" id="line-7"><code>)</code></span>
+<span class="codeline" id="line-8"><code></code></span>
+<span class="codeline" id="line-9"><code><span class="comment">// ConnTracker is a connection tracker for HTTP connections. It can be</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment">// used to wait for all existing HTTP connections to finish after performing</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment">// HTTP server shutdown.</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">// Note that [http.Server.Close] closes all connections but does not wait for</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">// per-connection goroutines to return. If the connection was active, it is up</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">// to the running [http.Handler] to handle connection error and eventually</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">// return. ConnTracker allows waiting for all in-flight handlers.</span></code></span>
+<span class="codeline" id="line-17"><code><span class="keyword">type</span> <a href="../../../../pkg/go.pact.im/x/httptrack.html#name-ConnTracker" class="ident">ConnTracker</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-18"><code>	<a href="../../../../use/go.pact.im/x/httptrack..ConnTracker.wg^99d38.html" class="ident">wg</a> <a href="../../../../pkg/sync.html" class="ident i2">sync</a>.<a href="../../../sync/waitgroup.go.html#line-48" class="ident">WaitGroup</a></code></span>
+<span class="codeline" id="line-19"><code>}</code></span>
+<span class="codeline" id="line-20"><code></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">// Track updates the connection counter based on the connection’s state.</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">// It should be assigned to the ConnState field of an [http.Server].</span></code></span>
+<span class="codeline" id="line-23"><code><span class="keyword">func</span> (<label for="r0" class="ident">c</label> *<a href="#line-17" class="ident">ConnTracker</a>) <label for="r1" class="ident"><a href="../../../../use/go.pact.im/x/httptrack..ConnTracker.Track.html" class="ident">Track</a></label>(<label for="r2" class="ident">_</label> <a href="../../../../pkg/net.html" class="ident i0">net</a>.<a href="../../../net/net.go.html#line-124" class="ident">Conn</a>, <label for="r3" class="ident">state</label> <a href="../../../../pkg/net/http.html" class="ident i1">http</a>.<a href="../../../net/http/server.go.html#line-3266" class="ident">ConnState</a>) {</code></span>
+<span class="codeline" id="line-24"><code>	<span class="keyword">switch</span> <label for="r3" class="ident">state</label> {</code></span>
+<span class="codeline" id="line-25"><code>	<span class="comment">// Newly accepted connection from http.Server.Serve method (same</span></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">	// goroutine as the caller).</span></code></span>
+<span class="codeline" id="line-27"><code>	<span class="keyword">case</span> <a href="../../../../pkg/net/http.html" class="ident i1">http</a>.<a href="../../../net/http/server.go.html#line-3273" class="ident">StateNew</a>:</code></span>
+<span class="codeline" id="line-28"><code>		<label for="r0" class="ident">c</label>.<a href="#line-18" class="ident">wg</a>.<a href="../../../sync/waitgroup.go.html#line-77" class="ident">Add</a>(<span class="lit-number">1</span>)</code></span>
+<span class="codeline" id="line-29"><code>	<span class="comment">// Hijacked (e.g. WebSockets) and closed connections from</span></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">	// http.conn.serve method (separate goroutine per connection).</span></code></span>
+<span class="codeline" id="line-31"><code>	<span class="keyword">case</span> <a href="../../../../pkg/net/http.html" class="ident i1">http</a>.<a href="../../../net/http/server.go.html#line-3296" class="ident">StateHijacked</a>, <a href="../../../../pkg/net/http.html" class="ident i1">http</a>.<a href="../../../net/http/server.go.html#line-3301" class="ident">StateClosed</a>:</code></span>
+<span class="codeline" id="line-32"><code>		<label for="r0" class="ident">c</label>.<a href="#line-18" class="ident">wg</a>.<a href="../../../sync/waitgroup.go.html#line-155" class="ident">Done</a>()</code></span>
+<span class="codeline" id="line-33"><code>	}</code></span>
+<span class="codeline" id="line-34"><code>}</code></span>
+<span class="codeline" id="line-35"><code></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">// Wait blocks until all tracked HTTP connections have completed. It should be</span></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">// called after [http.Server.Serve] has returned.</span></code></span>
+<span class="codeline" id="line-38"><code><span class="keyword">func</span> (<label for="r4" class="ident">c</label> *<a href="#line-17" class="ident">ConnTracker</a>) <label for="r5" class="ident"><a href="../../../../use/go.pact.im/x/httptrack..ConnTracker.Wait.html" class="ident">Wait</a></label>() {</code></span>
+<span class="codeline" id="line-39"><code>	<label for="r4" class="ident">c</label>.<a href="#line-18" class="ident">wg</a>.<a href="../../../sync/waitgroup.go.html#line-160" class="ident">Wait</a>()</code></span>
+<span class="codeline" id="line-40"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

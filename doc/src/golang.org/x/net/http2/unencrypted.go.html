@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: unencrypted.go in package golang.org/x/net/http2</title>
+<link href="../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	unencrypted.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../pkg/golang.org/x/net/http2.html">golang.org/x/net/http2</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2024 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> http2</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-8"><code>	<label for="i0"><span class="lit-string i0">"crypto/tls"</span></label></code></span>
+<span class="codeline" id="line-9"><code>	<label for="i1"><span class="lit-string i1">"errors"</span></label></code></span>
+<span class="codeline" id="line-10"><code>	<label for="i2"><span class="lit-string i2">"net"</span></label></code></span>
+<span class="codeline" id="line-11"><code>)</code></span>
+<span class="codeline" id="line-12"><code></code></span>
+<span class="codeline" id="line-13"><code><span class="keyword">const</span> <a href="../../../../../pkg/golang.org/x/net/http2.html#name-nextProtoUnencryptedHTTP2" class="ident">nextProtoUnencryptedHTTP2</a> = <span class="lit-string">"unencrypted_http2"</span></code></span>
+<span class="codeline" id="line-14"><code></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">// unencryptedNetConnFromTLSConn retrieves a net.Conn wrapped in a *tls.Conn.</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">// TLSNextProto functions accept a *tls.Conn.</span></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">// When passing an unencrypted HTTP/2 connection to a TLSNextProto function,</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">// we pass a *tls.Conn with an underlying net.Conn containing the unencrypted connection.</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">// To be extra careful about mistakes (accidentally dropping TLS encryption in a place</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">// where we want it), the tls.Conn contains a net.Conn with an UnencryptedNetConn method</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">// that returns the actual connection we want to use.</span></code></span>
+<span class="codeline" id="line-24"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../../pkg/golang.org/x/net/http2.html#name-unencryptedNetConnFromTLSConn" class="ident">unencryptedNetConnFromTLSConn</a></label>(<label for="r1" class="ident">tc</label> *<a href="../../../../../pkg/crypto/tls.html" class="ident i0">tls</a>.<a href="../../../../crypto/tls/conn.go.html#line-28" class="ident">Conn</a>) (<a href="../../../../../pkg/net.html" class="ident i2">net</a>.<a href="../../../../net/net.go.html#line-124" class="ident">Conn</a>, <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-25"><code>	<label for="r2" class="ident">conner</label>, <label for="r3" class="ident">ok</label> := <label for="r1" class="ident">tc</label>.<a href="../../../../crypto/tls/conn.go.html#line-163" class="ident">NetConn</a>().(<span class="keyword">interface</span> {</code></span>
+<span class="codeline" id="line-26"><code>		<label for="r4" class="ident">UnencryptedNetConn</label>() <a href="../../../../../pkg/net.html" class="ident i2">net</a>.<a href="../../../../net/net.go.html#line-124" class="ident">Conn</a></code></span>
+<span class="codeline" id="line-27"><code>	})</code></span>
+<span class="codeline" id="line-28"><code>	<span class="keyword">if</span> !<label for="r3" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-29"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../../../pkg/errors.html" class="ident i1">errors</a>.<a href="../../../../errors/errors.go.html#line-64" class="ident">New</a>(<span class="lit-string">"http2: TLS conn unexpectedly found in unencrypted handoff"</span>)</code></span>
+<span class="codeline" id="line-30"><code>	}</code></span>
+<span class="codeline" id="line-31"><code>	<span class="keyword">return</span> <label for="r2" class="ident">conner</label>.<label for="r4" class="ident">UnencryptedNetConn</label>(), <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-32"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

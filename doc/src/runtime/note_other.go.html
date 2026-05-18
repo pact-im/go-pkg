@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: note_other.go in package runtime</title>
+<link href="../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	note_other.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../pkg/runtime.html">runtime</a>
+</code></pre>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2024 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="comment">//go:build !js</span></code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">package</span> runtime</code></span>
+<span class="codeline" id="line-8"><code></code></span>
+<span class="codeline" id="line-9"><code><span class="comment">// sleep and wakeup on one-time events.</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment">// before any calls to notesleep or notewakeup,</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment">// must call noteclear to initialize the Note.</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment">// then, exactly one thread can call notesleep</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">// and exactly one thread can call notewakeup (once).</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">// once notewakeup has been called, the notesleep</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">// will return.  future notesleep will return immediately.</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">// subsequent noteclear must be called only after</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">// previous notesleep has returned, e.g. it's disallowed</span></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">// to call noteclear straight after notewakeup.</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">// notetsleep is like notesleep but wakes up after</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">// a given number of nanoseconds even if the event</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">// has not yet happened.  if a goroutine uses notetsleep to</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">// wake up early, it must wait to call noteclear until it</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">// can be sure that no other goroutine is calling</span></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">// notewakeup.</span></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">// notesleep/notetsleep are generally called on g0,</span></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">// notetsleepg is similar to notetsleep but is called on user g.</span></code></span>
+<span class="codeline" id="line-29"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-note" class="ident">note</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-30"><code>	<span class="comment">// Futex-based impl treats it as uint32 key,</span></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">	// while sema-based impl as M* waitm.</span></code></span>
+<span class="codeline" id="line-32"><code>	<a href="../../use/runtime..note^edb46.key^2c70e.html" class="ident">key</a> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a></code></span>
+<span class="codeline" id="line-33"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>

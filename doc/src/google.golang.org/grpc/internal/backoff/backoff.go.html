@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: backoff.go in package google.golang.org/grpc/internal/backoff</title>
+<link href="../../../../../css/auto-v0.7.6.css" rel="stylesheet">
+<script src="../../../../../jvs/golds-v0.7.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	backoff.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../pkg/google.golang.org/grpc/internal/backoff.html">google.golang.org/grpc/internal/backoff</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3,
+input[id=i4]:checked ~pre .i4
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+<input id="i4" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">/*</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment"> * Copyright 2017 gRPC authors.</span></code></span>
+<span class="codeline" id="line-4"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-5"><code><span class="comment"> * Licensed under the Apache License, Version 2.0 (the "License");</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment"> * you may not use this file except in compliance with the License.</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment"> * You may obtain a copy of the License at</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment"> *     http://www.apache.org/licenses/LICENSE-2.0</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment"> * Unless required by applicable law or agreed to in writing, software</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment"> * distributed under the License is distributed on an "AS IS" BASIS,</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment"> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment"> * See the License for the specific language governing permissions and</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment"> * limitations under the License.</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment"> */</span></code></span>
+<span class="codeline" id="line-18"><code></code></span>
+<div class="anchor" id="doc"><span class="codeline" id="line-19"><code><span class="comment">// Package backoff implement the backoff strategy for gRPC.</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">// This is kept in internal until the gRPC project decides whether or not to</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">// allow alternative backoff strategies.</span></code></span></div><span class="codeline" id="line-23"><code><span class="keyword">package</span> backoff</code></span>
+<span class="codeline" id="line-24"><code></code></span>
+<span class="codeline" id="line-25"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-26"><code>	<label for="i0"><span class="lit-string i0">"context"</span></label></code></span>
+<span class="codeline" id="line-27"><code>	<label for="i1"><span class="lit-string i1">"errors"</span></label></code></span>
+<span class="codeline" id="line-28"><code>	<a href="../../../../../pkg/math/rand/v2.html" class="ident i2">rand</a> <label for="i2"><span class="lit-string i2">"math/rand/v2"</span></label></code></span>
+<span class="codeline" id="line-29"><code>	<label for="i3"><span class="lit-string i3">"time"</span></label></code></span>
+<span class="codeline" id="line-30"><code></code></span>
+<span class="codeline" id="line-31"><code>	<a href="../../../../../pkg/google.golang.org/grpc/backoff.html" class="ident i4">grpcbackoff</a> <label for="i4"><span class="lit-string i4">"google.golang.org/grpc/backoff"</span></label></code></span>
+<span class="codeline" id="line-32"><code>)</code></span>
+<span class="codeline" id="line-33"><code></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">// Strategy defines the methodology for backing off after a grpc connection</span></code></span>
+<span class="codeline" id="line-35"><code><span class="comment">// failure.</span></code></span>
+<span class="codeline" id="line-36"><code><span class="keyword">type</span> <a href="../../../../../pkg/google.golang.org/grpc/internal/backoff.html#name-Strategy" class="ident">Strategy</a> <span class="keyword">interface</span> {</code></span>
+<span class="codeline" id="line-37"><code>	<span class="comment">// Backoff returns the amount of time to wait before the next retry given</span></code></span>
+<span class="codeline" id="line-38"><code><span class="comment">	// the number of consecutive failures.</span></code></span>
+<span class="codeline" id="line-39"><code>	<a href="../../../../../imp/google.golang.org/grpc/internal/backoff.Strategy.html#name-Backoff" class="ident">Backoff</a>(retries <a href="../../../../../pkg/builtin.html#name-int" class="ident">int</a>) <a href="../../../../../pkg/time.html" class="ident i3">time</a>.<a href="../../../../time/time.go.html#line-911" class="ident">Duration</a></code></span>
+<span class="codeline" id="line-40"><code>}</code></span>
+<span class="codeline" id="line-41"><code></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">// DefaultExponential is an exponential backoff implementation using the</span></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">// default values for all the configurable knobs defined in</span></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">// https://github.com/grpc/grpc/blob/master/doc/connection-backoff.md.</span></code></span>
+<span class="codeline" id="line-45"><code><span class="keyword">var</span> <a href="../../../../../pkg/google.golang.org/grpc/internal/backoff.html#name-DefaultExponential" class="ident">DefaultExponential</a> = <a href="#line-49" class="ident">Exponential</a>{<a href="#line-51" class="ident">Config</a>: <a href="../../../../../pkg/google.golang.org/grpc/backoff.html" class="ident i4">grpcbackoff</a>.<a href="../../backoff/backoff.go.html#line-47" class="ident">DefaultConfig</a>}</code></span>
+<span class="codeline" id="line-46"><code></code></span>
+<span class="codeline" id="line-47"><code><span class="comment">// Exponential implements exponential backoff algorithm as defined in</span></code></span>
+<span class="codeline" id="line-48"><code><span class="comment">// https://github.com/grpc/grpc/blob/master/doc/connection-backoff.md.</span></code></span>
+<span class="codeline" id="line-49"><code><span class="keyword">type</span> <a href="../../../../../pkg/google.golang.org/grpc/internal/backoff.html#name-Exponential" class="ident">Exponential</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-50"><code>	<span class="comment">// Config contains all options to configure the backoff algorithm.</span></code></span>
+<span class="codeline" id="line-51"><code>	<a href="../../../../../use/google.golang.org/grpc/internal/backoff..Exponential.Config.html" class="ident">Config</a> <a href="../../../../../pkg/google.golang.org/grpc/backoff.html" class="ident i4">grpcbackoff</a>.<a href="../../backoff/backoff.go.html#line-30" class="ident">Config</a></code></span>
+<span class="codeline" id="line-52"><code>}</code></span>
+<span class="codeline" id="line-53"><code></code></span>
+<span class="codeline" id="line-54"><code><span class="comment">// Backoff returns the amount of time to wait before the next retry given the</span></code></span>
+<span class="codeline" id="line-55"><code><span class="comment">// number of retries.</span></code></span>
+<span class="codeline" id="line-56"><code><span class="keyword">func</span> (<label for="r0" class="ident">bc</label> <a href="#line-49" class="ident">Exponential</a>) <label for="r1" class="ident"><a href="../../../../../use/google.golang.org/grpc/internal/backoff..Exponential.Backoff.html" class="ident">Backoff</a></label>(<label for="r2" class="ident">retries</label> <a href="../../../../../pkg/builtin.html#name-int" class="ident">int</a>) <a href="../../../../../pkg/time.html" class="ident i3">time</a>.<a href="../../../../time/time.go.html#line-911" class="ident">Duration</a> {</code></span>
+<span class="codeline" id="line-57"><code>	<span class="keyword">if</span> <label for="r2" class="ident">retries</label> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-58"><code>		<span class="keyword">return</span> <label for="r0" class="ident">bc</label>.<a href="#line-51" class="ident">Config</a>.<a href="../../backoff/backoff.go.html#line-32" class="ident">BaseDelay</a></code></span>
+<span class="codeline" id="line-59"><code>	}</code></span>
+<span class="codeline" id="line-60"><code>	<label for="r3" class="ident">backoff</label>, <label for="r4" class="ident">max</label> := <a href="../../../../../pkg/builtin.html#name-float64" class="ident">float64</a>(<label for="r0" class="ident">bc</label>.<a href="#line-51" class="ident">Config</a>.<a href="../../backoff/backoff.go.html#line-32" class="ident">BaseDelay</a>), <a href="../../../../../pkg/builtin.html#name-float64" class="ident">float64</a>(<label for="r0" class="ident">bc</label>.<a href="#line-51" class="ident">Config</a>.<a href="../../backoff/backoff.go.html#line-39" class="ident">MaxDelay</a>)</code></span>
+<span class="codeline" id="line-61"><code>	<span class="keyword">for</span> <label for="r3" class="ident">backoff</label> &lt; <label for="r4" class="ident">max</label> &amp;&amp; <label for="r2" class="ident">retries</label> &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-62"><code>		<label for="r3" class="ident">backoff</label> *= <label for="r0" class="ident">bc</label>.<a href="#line-51" class="ident">Config</a>.<a href="../../backoff/backoff.go.html#line-35" class="ident">Multiplier</a></code></span>
+<span class="codeline" id="line-63"><code>		<label for="r2" class="ident">retries</label>--</code></span>
+<span class="codeline" id="line-64"><code>	}</code></span>
+<span class="codeline" id="line-65"><code>	<span class="keyword">if</span> <label for="r3" class="ident">backoff</label> &gt; <label for="r4" class="ident">max</label> {</code></span>
+<span class="codeline" id="line-66"><code>		<label for="r3" class="ident">backoff</label> = <label for="r4" class="ident">max</label></code></span>
+<span class="codeline" id="line-67"><code>	}</code></span>
+<span class="codeline" id="line-68"><code>	<span class="comment">// Randomize backoff delays so that if a cluster of requests start at</span></code></span>
+<span class="codeline" id="line-69"><code><span class="comment">	// the same time, they won't operate in lockstep.</span></code></span>
+<span class="codeline" id="line-70"><code>	<label for="r3" class="ident">backoff</label> *= <span class="lit-number">1</span> + <label for="r0" class="ident">bc</label>.<a href="#line-51" class="ident">Config</a>.<a href="../../backoff/backoff.go.html#line-37" class="ident">Jitter</a>*(<a href="../../../../../pkg/math/rand/v2.html" class="ident i2">rand</a>.<a href="../../../../math/rand/v2/rand.go.html#line-337" class="ident">Float64</a>()*<span class="lit-number">2</span>-<span class="lit-number">1</span>)</code></span>
+<span class="codeline" id="line-71"><code>	<span class="keyword">if</span> <label for="r3" class="ident">backoff</label> &lt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-72"><code>		<span class="keyword">return</span> <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-73"><code>	}</code></span>
+<span class="codeline" id="line-74"><code>	<span class="keyword">return</span> <a href="../../../../../pkg/time.html" class="ident i3">time</a>.<a href="../../../../time/time.go.html#line-911" class="ident">Duration</a>(<label for="r3" class="ident">backoff</label>)</code></span>
+<span class="codeline" id="line-75"><code>}</code></span>
+<span class="codeline" id="line-76"><code></code></span>
+<span class="codeline" id="line-77"><code><span class="comment">// ErrResetBackoff is the error to be returned by the function executed by RunF,</span></code></span>
+<span class="codeline" id="line-78"><code><span class="comment">// to instruct the latter to reset its backoff state.</span></code></span>
+<span class="codeline" id="line-79"><code><span class="keyword">var</span> <a href="../../../../../pkg/google.golang.org/grpc/internal/backoff.html#name-ErrResetBackoff" class="ident">ErrResetBackoff</a> = <a href="../../../../../pkg/errors.html" class="ident i1">errors</a>.<a href="../../../../errors/errors.go.html#line-64" class="ident">New</a>(<span class="lit-string">"reset backoff state"</span>)</code></span>
+<span class="codeline" id="line-80"><code></code></span>
+<span class="codeline" id="line-81"><code><span class="comment">// RunF provides a convenient way to run a function f repeatedly until the</span></code></span>
+<span class="codeline" id="line-82"><code><span class="comment">// context expires or f returns a non-nil error that is not ErrResetBackoff.</span></code></span>
+<span class="codeline" id="line-83"><code><span class="comment">// When f returns ErrResetBackoff, RunF continues to run f, but resets its</span></code></span>
+<span class="codeline" id="line-84"><code><span class="comment">// backoff state before doing so. backoff accepts an integer representing the</span></code></span>
+<span class="codeline" id="line-85"><code><span class="comment">// number of retries, and returns the amount of time to backoff.</span></code></span>
+<span class="codeline" id="line-86"><code><span class="keyword">func</span> <label for="r5" class="ident"><a href="../../../../../pkg/google.golang.org/grpc/internal/backoff.html#name-RunF" class="ident">RunF</a></label>(<label for="r6" class="ident">ctx</label> <a href="../../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../../context/context.go.html#line-71" class="ident">Context</a>, <label for="r7" class="ident">f</label> <span class="keyword">func</span>() <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>, <label for="r8" class="ident">backoff</label> <span class="keyword">func</span>(<a href="../../../../../pkg/builtin.html#name-int" class="ident">int</a>) <a href="../../../../../pkg/time.html" class="ident i3">time</a>.<a href="../../../../time/time.go.html#line-911" class="ident">Duration</a>) {</code></span>
+<span class="codeline" id="line-87"><code>	<label for="r9" class="ident">attempt</label> := <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-88"><code>	<label for="r10" class="ident">timer</label> := <a href="../../../../../pkg/time.html" class="ident i3">time</a>.<a href="../../../../time/sleep.go.html#line-143" class="ident">NewTimer</a>(<span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-89"><code>	<span class="keyword">for</span> <label for="r6" class="ident">ctx</label>.<a href="../../../../context/context.go.html#line-115" class="ident">Err</a>() == <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-90"><code>		<a href="../../../../runtime/select.go.html#line-122"><span class="keyword">select</span></a> {</code></span>
+<span class="codeline" id="line-91"><code>		<span class="keyword">case</span> <a href="../../../../runtime/chan.go.html#line-508">&lt;-</a><label for="r10" class="ident">timer</label>.<a href="../../../../time/sleep.go.html#line-90" class="ident">C</a>:</code></span>
+<span class="codeline" id="line-92"><code>		<span class="keyword">case</span> <a href="../../../../runtime/chan.go.html#line-508">&lt;-</a><label for="r6" class="ident">ctx</label>.<a href="../../../../context/context.go.html#line-108" class="ident">Done</a>():</code></span>
+<span class="codeline" id="line-93"><code>			<label for="r10" class="ident">timer</label>.<a href="../../../../time/sleep.go.html#line-113" class="ident">Stop</a>()</code></span>
+<span class="codeline" id="line-94"><code>			<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-95"><code>		}</code></span>
+<span class="codeline" id="line-96"><code></code></span>
+<span class="codeline" id="line-97"><code>		<label for="r11" class="ident">err</label> := <label for="r7" class="ident">f</label>()</code></span>
+<span class="codeline" id="line-98"><code>		<span class="keyword">if</span> <a href="../../../../../pkg/errors.html" class="ident i1">errors</a>.<a href="../../../../errors/wrap.go.html#line-44" class="ident">Is</a>(<label for="r11" class="ident">err</label>, <a href="#line-79" class="ident">ErrResetBackoff</a>) {</code></span>
+<span class="codeline" id="line-99"><code>			<label for="r10" class="ident">timer</label>.<a href="../../../../time/sleep.go.html#line-171" class="ident">Reset</a>(<span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-100"><code>			<label for="r9" class="ident">attempt</label> = <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-101"><code>			<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-102"><code>		}</code></span>
+<span class="codeline" id="line-103"><code>		<span class="keyword">if</span> <label for="r11" class="ident">err</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-104"><code>			<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-105"><code>		}</code></span>
+<span class="codeline" id="line-106"><code>		<label for="r10" class="ident">timer</label>.<a href="../../../../time/sleep.go.html#line-171" class="ident">Reset</a>(<label for="r8" class="ident">backoff</label>(<label for="r9" class="ident">attempt</label>))</code></span>
+<span class="codeline" id="line-107"><code>		<label for="r9" class="ident">attempt</label>++</code></span>
+<span class="codeline" id="line-108"><code>	}</code></span>
+<span class="codeline" id="line-109"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.7.6</i>. (GOOS=linux GOARCH=amd64)</pre>
