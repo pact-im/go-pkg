@@ -5,17 +5,16 @@ import (
 	"context"
 	"errors"
 	"log/slog"
+	"strings"
 	"testing"
 	"time"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestNew(t *testing.T) {
+
 	testTime := time.Date(2026, time.May, 27, 12, 34, 56, 0, time.UTC)
 
 	t.Run("levels", func(t *testing.T) {
@@ -34,13 +33,13 @@ func TestNew(t *testing.T) {
 		loggerZap.Error("error level")
 
 		err := loggerZap.Sync()
-		require.NoError(t, err)
+		requireNoError(t, err)
 
 		got := b.String()
-		assert.Contains(t, got, `level=DEBUG msg="debug level"`)
-		assert.Contains(t, got, `level=INFO msg="info level"`)
-		assert.Contains(t, got, `level=WARN msg="warn level"`)
-		assert.Contains(t, got, `level=ERROR msg="error level"`)
+		assertContains(t, got, `level=DEBUG msg="debug level"`)
+		assertContains(t, got, `level=INFO msg="info level"`)
+		assertContains(t, got, `level=WARN msg="warn level"`)
+		assertContains(t, got, `level=ERROR msg="error level"`)
 	})
 
 	t.Run("named logger and fields", func(t *testing.T) {
@@ -69,20 +68,20 @@ func TestNew(t *testing.T) {
 		)
 
 		err := loggerZap.Sync()
-		require.NoError(t, err)
+		requireNoError(t, err)
 
 		got := b.String()
-		assert.Contains(t, got, `msg=fields`)
-		assert.Contains(t, got, `name=example`)
-		assert.Contains(t, got, `base_key=base_value`)
-		assert.Contains(t, got, `base_count=7`)
-		assert.Contains(t, got, `key=value`)
-		assert.Contains(t, got, `count=42`)
-		assert.Contains(t, got, `flag=true`)
-		assert.Contains(t, got, `timeout=2s`)
-		assert.Contains(t, got, `created_at=2026-05-27T12:34:56.000Z`)
-		assert.Contains(t, got, `stringer=stringer-value`)
-		assert.Contains(t, got, `error=boom`)
+		assertContains(t, got, `msg=fields`)
+		assertContains(t, got, `name=example`)
+		assertContains(t, got, `base_key=base_value`)
+		assertContains(t, got, `base_count=7`)
+		assertContains(t, got, `key=value`)
+		assertContains(t, got, `count=42`)
+		assertContains(t, got, `flag=true`)
+		assertContains(t, got, `timeout=2s`)
+		assertContains(t, got, `created_at=2026-05-27T12:34:56.000Z`)
+		assertContains(t, got, `stringer=stringer-value`)
+		assertContains(t, got, `error=boom`)
 	})
 
 	t.Run("level filtering", func(t *testing.T) {
@@ -99,11 +98,11 @@ func TestNew(t *testing.T) {
 		loggerZap.Info("keep info")
 
 		err := loggerZap.Sync()
-		require.NoError(t, err)
+		requireNoError(t, err)
 
 		got := b.String()
-		assert.NotContains(t, got, `skip debug`)
-		assert.Contains(t, got, `keep info`)
+		assertNotContains(t, got, `skip debug`)
+		assertContains(t, got, `keep info`)
 	})
 }
 
@@ -145,7 +144,7 @@ func BenchmarkZap(b *testing.B) {
 	loggerZap, err := zap.NewProduction(zap.WrapCore(func(zapcore.Core) zapcore.Core {
 		return zapcore.NewNopCore()
 	}))
-	require.NoError(b, err)
+	requireNoError(b, err)
 
 	b.ResetTimer()
 
@@ -175,4 +174,28 @@ type testStringer string
 
 func (s testStringer) String() string {
 	return string(s)
+}
+
+func requireNoError(tb testing.TB, err error) {
+	tb.Helper()
+
+	if err != nil {
+		tb.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func assertContains(tb testing.TB, s, substr string) {
+	tb.Helper()
+
+	if !strings.Contains(s, substr) {
+		tb.Fatalf("expected %q to contain %q", s, substr)
+	}
+}
+
+func assertNotContains(tb testing.TB, s, substr string) {
+	tb.Helper()
+
+	if strings.Contains(s, substr) {
+		tb.Fatalf("expected %q not to contain %q", s, substr)
+	}
 }
