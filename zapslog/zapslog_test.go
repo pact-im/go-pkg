@@ -14,7 +14,6 @@ import (
 )
 
 func TestNew(t *testing.T) {
-
 	testTime := time.Date(2026, time.May, 27, 12, 34, 56, 0, time.UTC)
 
 	t.Run("levels", func(t *testing.T) {
@@ -42,48 +41,6 @@ func TestNew(t *testing.T) {
 		assertContains(t, got, `level=ERROR msg="error level"`)
 	})
 
-	t.Run("named logger and fields", func(t *testing.T) {
-		var b bytes.Buffer
-		handler := slog.NewTextHandler(&b,
-			&slog.HandlerOptions{
-				Level: slog.LevelDebug,
-			},
-		)
-
-		loggerZap := zap.New(New(context.Background(), handler)).WithOptions(zap.WithCaller(false))
-
-		loggerZap = loggerZap.Named("example").With(
-			zap.String("base_key", "base_value"),
-			zap.Int("base_count", 7),
-		)
-
-		loggerZap.Info("fields",
-			zap.String("key", "value"),
-			zap.Int("count", 42),
-			zap.Bool("flag", true),
-			zap.Duration("timeout", 2*time.Second),
-			zap.Time("created_at", testTime),
-			zap.Stringer("stringer", testStringer("stringer-value")),
-			zap.Error(errors.New("boom")),
-		)
-
-		err := loggerZap.Sync()
-		requireNoError(t, err)
-
-		got := b.String()
-		assertContains(t, got, `msg=fields`)
-		assertContains(t, got, `name=example`)
-		assertContains(t, got, `base_key=base_value`)
-		assertContains(t, got, `base_count=7`)
-		assertContains(t, got, `key=value`)
-		assertContains(t, got, `count=42`)
-		assertContains(t, got, `flag=true`)
-		assertContains(t, got, `timeout=2s`)
-		assertContains(t, got, `created_at=2026-05-27T12:34:56.000Z`)
-		assertContains(t, got, `stringer=stringer-value`)
-		assertContains(t, got, `error=boom`)
-	})
-
 	t.Run("level filtering", func(t *testing.T) {
 		var b bytes.Buffer
 		handler := slog.NewTextHandler(&b,
@@ -103,6 +60,195 @@ func TestNew(t *testing.T) {
 		got := b.String()
 		assertNotContains(t, got, `skip debug`)
 		assertContains(t, got, `keep info`)
+	})
+
+	t.Run("named logger and fields", func(t *testing.T) {
+		var b bytes.Buffer
+		handler := slog.NewTextHandler(&b,
+			&slog.HandlerOptions{
+				Level: slog.LevelDebug,
+			},
+		)
+
+		loggerZap := zap.New(New(context.Background(), handler)).WithOptions(zap.WithCaller(false))
+		fullTime := testTime.Add(123 * time.Nanosecond)
+
+		loggerZap = loggerZap.Named("example").With(
+			zap.String("base_key", "base_value"),
+			zap.Int("base_count", 7),
+		)
+
+		loggerZap.Info("fields",
+			zap.String("key", "value"),
+			zap.Int("count", 42),
+			zap.Float64("float64", 123.456789),
+			zap.Float32("float32", 12.5),
+			zap.Bool("flag", true),
+			zap.Duration("timeout", 2*time.Second),
+			zap.Time("created_at", testTime),
+			zap.Int32("int32", 32),
+			zap.Int16("int16", 16),
+			zap.Int8("int8", 8),
+			zap.Uint64("uint64", 64),
+			zap.Uint32("uint32", 32),
+			zap.Uint16("uint16", 16),
+			zap.Uint8("uint8", 8),
+			zap.Stringer("stringer", testStringer("stringer-value")),
+			zap.Error(errors.New("boom")),
+			zap.Binary("binary", []byte("abc")),
+			zap.ByteString("byte_string", []byte("hello")),
+			zap.Complex64("complex64", complex64(1+2i)),
+			zap.Complex128("complex128", complex128(3+4i)),
+			zap.Array("array", testArray{1, "two"}),
+			zap.Array("array_objects", objectsArray{
+				{id: 1, name: "value1"},
+				{id: 2, name: "value2"},
+			}),
+			zap.Object("object", testObject{id: 1, name: "obj"}),
+			zap.Inline(testObject{id: 7, name: "inline"}),
+			zap.Reflect("reflect", map[string]any{"answer": 42}),
+			zap.Uintptr("pointer", uintptr(123)),
+			zap.Field{Key: "full_time", Type: zapcore.TimeFullType, Interface: fullTime},
+			zap.Skip(),
+			zap.Namespace("ns"),
+			zap.String("nested", "value"),
+			zap.Object("deep", testObject{id: 2, name: "nested-obj"}),
+		)
+
+		err := loggerZap.Sync()
+		requireNoError(t, err)
+
+		got := b.String()
+		assertContains(t, got, `msg=fields`)
+		assertContains(t, got, `name=example`)
+		assertContains(t, got, `base_key=base_value`)
+		assertContains(t, got, `base_count=7`)
+		assertContains(t, got, `key=value`)
+		assertContains(t, got, `count=42`)
+		assertContains(t, got, `float64=123.456789`)
+		assertContains(t, got, `float32=12.5`)
+		assertContains(t, got, `flag=true`)
+		assertContains(t, got, `timeout=2s`)
+		assertContains(t, got, `created_at=2026-05-27T12:34:56.000Z`)
+		assertContains(t, got, `int32=32`)
+		assertContains(t, got, `int16=16`)
+		assertContains(t, got, `int8=8`)
+		assertContains(t, got, `uint64=64`)
+		assertContains(t, got, `uint32=32`)
+		assertContains(t, got, `uint16=16`)
+		assertContains(t, got, `uint8=8`)
+		assertContains(t, got, `stringer=stringer-value`)
+		assertContains(t, got, `error=boom`)
+		assertContains(t, got, `binary="abc"`)
+		assertContains(t, got, `byte_string=hello`)
+		assertContains(t, got, `complex64=(1+2i)`)
+		assertContains(t, got, `complex128=(3+4i)`)
+		assertContains(t, got, `array="[1 two]"`)
+		assertContains(t, got, `array_objects="[map[id:1 name:value1] map[id:2 name:value2]]"`)
+		assertContains(t, got, `object.id=1`)
+		assertContains(t, got, `object.name=obj`)
+		assertContains(t, got, `id=7`)
+		assertContains(t, got, `name=inline`)
+		assertContains(t, got, `reflect=map[answer:42]`)
+		assertContains(t, got, `pointer=123`)
+		assertContains(t, got, `full_time=2026-05-27T12:34:56.000Z`)
+		assertContains(t, got, `ns.nested=value`)
+		assertContains(t, got, `ns.deep.id=2`)
+		assertContains(t, got, `ns.deep.name=nested-obj`)
+		assertNotContains(t, got, `skip`)
+	})
+
+	t.Run("named logger and fields json", func(t *testing.T) {
+		var b bytes.Buffer
+		handler := slog.NewJSONHandler(&b,
+			&slog.HandlerOptions{
+				Level: slog.LevelDebug,
+			},
+		)
+
+		loggerZap := zap.New(New(context.Background(), handler)).WithOptions(zap.WithCaller(false))
+		fullTime := testTime.Add(123 * time.Nanosecond)
+
+		loggerZap = loggerZap.Named("example").With(
+			zap.String("base_key", "base_value"),
+			zap.Int("base_count", 7),
+		)
+
+		loggerZap.Info("fields",
+			zap.String("key", "value"),
+			zap.Int("count", 42),
+			zap.Float64("float64", 123.456789),
+			zap.Float32("float32", 12.5),
+			zap.Bool("flag", true),
+			zap.Duration("timeout", 2*time.Second),
+			zap.Time("created_at", testTime),
+			zap.Int32("int32", 32),
+			zap.Int16("int16", 16),
+			zap.Int8("int8", 8),
+			zap.Uint64("uint64", 64),
+			zap.Uint32("uint32", 32),
+			zap.Uint16("uint16", 16),
+			zap.Uint8("uint8", 8),
+			zap.Stringer("stringer", testStringer("stringer-value")),
+			zap.Error(errors.New("boom")),
+			zap.Binary("binary", []byte("abc")),
+			zap.ByteString("byte_string", []byte("hello")),
+			zap.Complex64("complex64", complex64(1+2i)),
+			zap.Complex128("complex128", complex128(3+4i)),
+			zap.Array("array", testArray{1, "two"}),
+			zap.Array("array_objects", objectsArray{
+				{id: 1, name: "value1"},
+				{id: 2, name: "value2"},
+			}),
+			zap.Object("object", testObject{id: 1, name: "obj"}),
+			zap.Inline(testObject{id: 7, name: "inline"}),
+			zap.Reflect("reflect", map[string]any{"answer": 42}),
+			zap.Uintptr("pointer", uintptr(123)),
+			zap.Field{Key: "full_time", Type: zapcore.TimeFullType, Interface: fullTime},
+			zap.Skip(),
+			zap.Namespace("ns"),
+			zap.String("nested", "value"),
+			zap.Object("deep", testObject{id: 2, name: "nested-obj"}),
+		)
+
+		err := loggerZap.Sync()
+		requireNoError(t, err)
+
+		got := b.String()
+		assertContains(t, got, `"msg":"fields"`)
+		assertContains(t, got, `"name":"example"`)
+		assertContains(t, got, `"base_key":"base_value"`)
+		assertContains(t, got, `"base_count":7`)
+		assertContains(t, got, `"key":"value"`)
+		assertContains(t, got, `"count":42`)
+		assertContains(t, got, `"float64":123.456789`)
+		assertContains(t, got, `"float32":12.5`)
+		assertContains(t, got, `"flag":true`)
+		assertContains(t, got, `"timeout":2000000000`)
+		assertContains(t, got, `"created_at":"2026-05-27T12:34:56Z"`)
+		assertContains(t, got, `"int32":32`)
+		assertContains(t, got, `"int16":16`)
+		assertContains(t, got, `"int8":8`)
+		assertContains(t, got, `"uint64":64`)
+		assertContains(t, got, `"uint32":32`)
+		assertContains(t, got, `"uint16":16`)
+		assertContains(t, got, `"uint8":8`)
+		assertContains(t, got, `"stringer":"stringer-value"`)
+		assertContains(t, got, `"error":"boom"`)
+		assertContains(t, got, `"binary":"YWJj"`)
+		assertContains(t, got, `"byte_string":"hello"`)
+		assertContains(t, got, `"complex64":"(1+2i)"`)
+		assertContains(t, got, `"complex128":"(3+4i)"`)
+		assertContains(t, got, `"array":[1,"two"]`)
+		assertContains(t, got, `"array_objects":[{"id":1,"name":"value1"},{"id":2,"name":"value2"}]`)
+		assertContains(t, got, `"object":{"id":1,"name":"obj"}`)
+		assertContains(t, got, `"id":7`)
+		assertContains(t, got, `"name":"inline"`)
+		assertContains(t, got, `"reflect":{"answer":42}`)
+		assertContains(t, got, `"pointer":123`)
+		assertContains(t, got, `"full_time":"2026-05-27T12:34:56.000000123Z"`)
+		assertContains(t, got, `"ns":{"nested":"value","deep":{"id":2,"name":"nested-obj"}}`)
+		assertNotContains(t, got, `"skip"`)
 	})
 }
 
@@ -174,6 +320,49 @@ type testStringer string
 
 func (s testStringer) String() string {
 	return string(s)
+}
+
+type testObject struct {
+	id   int
+	name string
+}
+
+func (o testObject) MarshalLogObject(enc zapcore.ObjectEncoder) error {
+	enc.AddInt("id", o.id)
+	enc.AddString("name", o.name)
+
+	return nil
+}
+
+type testArray []any
+
+func (a testArray) MarshalLogArray(enc zapcore.ArrayEncoder) error {
+	for _, item := range a {
+		switch v := item.(type) {
+		case int:
+			enc.AppendInt(v)
+		case string:
+			enc.AppendString(v)
+		default:
+			if err := enc.AppendReflected(v); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+type objectsArray []testObject
+
+func (a objectsArray) MarshalLogArray(enc zapcore.ArrayEncoder) error {
+	for _, item := range a {
+		if err := enc.AppendObject(item); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func requireNoError(tb testing.TB, err error) {
