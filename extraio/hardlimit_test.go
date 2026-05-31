@@ -2,10 +2,9 @@ package extraio
 
 import (
 	"bytes"
+	"errors"
 	"io"
 	"testing"
-
-	"gotest.tools/v3/assert"
 )
 
 func TestHardLimitReader(t *testing.T) {
@@ -48,10 +47,16 @@ func TestHardLimitReader(t *testing.T) {
 			fallthrough
 		// Must succeed if data does not exceed the limit.
 		case uint64(len(tc.Data)) < tc.Limit:
-			assert.NilError(t, err)
-			assert.DeepEqual(t, tc.Data, data)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if !bytes.Equal(tc.Data, data) {
+				t.Fatalf("expected %v, got %v", tc.Data, data)
+			}
 		default:
-			assert.ErrorIs(t, err, ErrExceededReadLimit)
+			if !errors.Is(err, ErrExceededReadLimit) {
+				t.Fatalf("expected ErrExceededReadLimit, got %v", err)
+			}
 		}
 	}
 }

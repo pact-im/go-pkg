@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 	"testing"
-
-	"gotest.tools/v3/assert"
 )
 
 func TestContextifyCancel(t *testing.T) {
@@ -22,7 +20,9 @@ func TestContextifyCancel(t *testing.T) {
 	canceledContext, cancel := context.WithCancel(context.Background())
 	cancel()
 	err := c.Run(canceledContext)
-	assert.ErrorIs(t, err, oops)
+	if !errors.Is(err, oops) {
+		t.Fatalf("expected error %v, got %v", oops, err)
+	}
 }
 
 func TestContextifyReturn(t *testing.T) {
@@ -32,5 +32,7 @@ func TestContextifyReturn(t *testing.T) {
 		panic("unreachable")
 	})
 	err := c.Run(context.Background())
-	assert.NilError(t, err)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 }

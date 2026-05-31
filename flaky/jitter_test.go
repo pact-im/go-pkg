@@ -3,14 +3,13 @@ package flaky
 import (
 	"testing"
 	"time"
-
-	"gotest.tools/v3/assert"
-	is "gotest.tools/v3/assert/cmp"
 )
 
 func TestRandomJitter(t *testing.T) {
 	j := RandomJitter(func(n int64) int64 {
-		assert.Assert(t, n > 0, "Int63n must not be called with n <= 0")
+		if n <= 0 {
+			t.Fatalf("Int63n must not be called with n <= 0, got %d", n)
+		}
 		return n - 1
 	})
 	testCases := []struct {
@@ -59,6 +58,8 @@ func TestRandomJitter(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		d := j(tc.Interval)
-		assert.Check(t, is.Equal(tc.Output, d))
+		if d != tc.Output {
+			t.Errorf("expected %v, got %v", tc.Output, d)
+		}
 	}
 }

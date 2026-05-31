@@ -2,11 +2,10 @@ package extraio
 
 import (
 	"crypto/sha256"
+	"errors"
 	"io"
 	"testing"
 	"testing/iotest"
-
-	"gotest.tools/v3/assert"
 )
 
 func TestHashReader(t *testing.T) {
@@ -16,26 +15,36 @@ func TestHashReader(t *testing.T) {
 	h := NewHashReader(sha256.New())
 
 	_, err := h.Hash().Write(data)
-	assert.NilError(t, err)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 
 	err = iotest.TestReader(h, hash)
-	assert.NilError(t, err)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 
 	h.Reset()
 
 	err = iotest.TestReader(h, hash)
-	assert.NilError(t, err)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 
 	h.Hash().Reset()
 
 	_, err = h.Read(nil)
-	assert.ErrorIs(t, err, io.EOF)
+	if !errors.Is(err, io.EOF) {
+		t.Fatalf("expected io.EOF, got %v", err)
+	}
 
 	h.Reset()
 
 	hash = sha256ToSlice(sha256.Sum256(nil))
 	err = iotest.TestReader(h, hash)
-	assert.NilError(t, err)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 }
 
 func sha256ToSlice(b [sha256.Size]byte) []byte {

@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"go.uber.org/mock/gomock"
-	"gotest.tools/v3/assert"
 
 	"go.pact.im/x/clock"
 	"go.pact.im/x/clock/fakeclock"
@@ -35,8 +34,12 @@ func TestDebounceExecutor(t *testing.T) {
 	}()
 
 	d := new(DebounceExecutor).WithClock(clock.NewClock(observeClock)).WithWait(wait)
-	assert.Assert(t, nil == d.Execute(ctx, op))
-	assert.Assert(t, n == 1)
+	if err := d.Execute(ctx, op); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if n != 1 {
+		t.Fatalf("expected n==1, got %d", n)
+	}
 }
 
 func TestDebounceExecutorCancel(t *testing.T) {
@@ -62,8 +65,12 @@ func TestDebounceExecutorCancel(t *testing.T) {
 	debouncer := Debounce(wait).WithClock(clock.NewClock(observeClock))
 
 	err := debouncer.Execute(ctx, op)
-	assert.Assert(t, ctx.Err() == err)
-	assert.Assert(t, n == 0)
+	if ctx.Err() != err {
+		t.Fatalf("expected ctx.Err()==err, got err=%v, ctx.Err()=%v", err, ctx.Err())
+	}
+	if n != 0 {
+		t.Fatalf("expected n==0, got %d", n)
+	}
 }
 
 func TestDebounceExecutorConcurrentExecute(t *testing.T) {
@@ -90,11 +97,17 @@ func TestDebounceExecutorConcurrentExecute(t *testing.T) {
 
 	err := debouncer.Execute(ctx, func(ctx context.Context) error {
 		err := debouncer.Execute(ctx, op)
-		assert.ErrorIs(t, err, ErrDebounced)
+		if err != ErrDebounced {
+			t.Fatalf("expected ErrDebounced, got %v", err)
+		}
 		return op(ctx)
 	})
-	assert.NilError(t, err)
-	assert.Assert(t, n == 1)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if n != 1 {
+		t.Fatalf("expected n==1, got %d", n)
+	}
 }
 
 func TestDebounceExecutorConcurrentCancel(t *testing.T) {
@@ -128,7 +141,9 @@ func TestDebounceExecutorConcurrentCancel(t *testing.T) {
 		//
 		cancel()
 		err := debouncer.Execute(ctx, op)
-		assert.Assert(t, ctx.Err() == err)
+		if ctx.Err() != err {
+			t.Fatalf("expected ctx.Err()==err, got err=%v, ctx.Err()=%v", err, ctx.Err())
+		}
 
 		// Create a timer that never expires. Now that we’ve canceled
 		// the context and there are no other ongoing Execute calls, it
@@ -140,8 +155,12 @@ func TestDebounceExecutorConcurrentCancel(t *testing.T) {
 	})
 
 	err := debouncer.Execute(ctx, op)
-	assert.Assert(t, ctx.Err() == err)
-	assert.Assert(t, n == 0)
+	if ctx.Err() != err {
+		t.Fatalf("expected ctx.Err()==err, got err=%v, ctx.Err()=%v", err, ctx.Err())
+	}
+	if n != 0 {
+		t.Fatalf("expected n==0, got %d", n)
+	}
 }
 
 func TestDebounceExecutorConcurrentSteal(t *testing.T) {
@@ -189,9 +208,15 @@ func TestDebounceExecutorConcurrentSteal(t *testing.T) {
 
 	mockClock.EXPECT().Timer(wait).Times(1).Return(timer)
 
-	assert.Assert(t, ErrDebounced == debouncer.Execute(ctx, op))
-	assert.Assert(t, nil == <-stole)
-	assert.Assert(t, n == 1)
+	if err := debouncer.Execute(ctx, op); err != ErrDebounced {
+		t.Fatalf("expected ErrDebounced, got %v", err)
+	}
+	if err := <-stole; err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if n != 1 {
+		t.Fatalf("expected n==1, got %d", n)
+	}
 }
 
 func TestDebounceExecutorTimerStop(t *testing.T) {
@@ -238,6 +263,10 @@ func TestDebounceExecutorTimerStop(t *testing.T) {
 	mockClock.EXPECT().Timer(wait).Times(1).Return(timer)
 
 	err := debouncer.Execute(ctx, op)
-	assert.Assert(t, ctx.Err() == err)
-	assert.Assert(t, n == 0)
+	if ctx.Err() != err {
+		t.Fatalf("expected ctx.Err()==err, got err=%v, ctx.Err()=%v", err, ctx.Err())
+	}
+	if n != 0 {
+		t.Fatalf("expected n==0, got %d", n)
+	}
 }

@@ -5,8 +5,6 @@ import (
 	"io"
 	"strconv"
 	"testing"
-
-	"gotest.tools/v3/assert"
 )
 
 func TestUnpadReader(t *testing.T) {
@@ -70,8 +68,12 @@ func runTestUnpadReader(t testing.TB, data []byte, blockSize uint8) {
 	}
 
 	unpadded, err := io.ReadAll(NewUnpadReader(bytes.NewReader(data), blockSize))
-	assert.Check(t, success == (err == nil))
-	assert.Check(t, bytes.Equal(expect, unpadded))
+	if success != (err == nil) {
+		t.Errorf("expected success=%v, got err=%v", success, err)
+	}
+	if !bytes.Equal(expect, unpadded) {
+		t.Errorf("expected %v, got %v", expect, unpadded)
+	}
 }
 
 func TestUnpadPayload(t *testing.T) {
@@ -110,8 +112,12 @@ func TestUnpadPayload(t *testing.T) {
 	for i, tc := range testCases {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
 			payload, ok := unpadPayload(tc.Data, tc.Fill)
-			assert.Assert(t, ok == !tc.Fail)
-			assert.Assert(t, bytes.Equal(tc.Payload, payload))
+			if ok != !tc.Fail {
+				t.Errorf("expected ok=%v, got %v", !tc.Fail, ok)
+			}
+			if !bytes.Equal(tc.Payload, payload) {
+				t.Errorf("expected %v, got %v", tc.Payload, payload)
+			}
 		})
 	}
 }

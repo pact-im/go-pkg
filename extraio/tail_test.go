@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"testing"
 	"testing/iotest"
-
-	"gotest.tools/v3/assert"
 )
 
 func TestTailReader(t *testing.T) {
@@ -61,6 +59,10 @@ func runTestTailReader(t testing.TB, data []byte, n uint) {
 
 	tr := NewTailReader(bytes.NewReader(data), n)
 
-	assert.NilError(t, iotest.TestReader(tr, head))
-	assert.DeepEqual(t, tail, tr.Tail())
+	if err := iotest.TestReader(tr, head); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !bytes.Equal(tail, tr.Tail()) {
+		t.Fatalf("expected %v, got %v", tail, tr.Tail())
+	}
 }

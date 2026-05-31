@@ -6,8 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"gotest.tools/v3/assert"
-
 	"github.com/robfig/cron/v3"
 
 	"go.pact.im/x/clock"
@@ -17,7 +15,9 @@ import (
 
 func TestScheduleExecutorCancel(t *testing.T) {
 	sched, err := cron.ParseStandard("20 4 * * *") // At 04:20.
-	assert.NilError(t, err)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 
 	fakeClock := fakeclock.Unix()
 	observeClock := observeclock.New(fakeClock)
@@ -36,14 +36,18 @@ func TestScheduleExecutorCancel(t *testing.T) {
 	err = executor.Execute(ctx, func(_ context.Context) error {
 		panic("canceled operation should not be executed")
 	})
-	assert.Equal(t, ctx.Err(), err)
+	if ctx.Err() != err {
+		t.Fatalf("expected ctx.Err()==err, got err=%v, ctx.Err()=%v", err, ctx.Err())
+	}
 }
 
 func TestScheduleExecutorRetry(t *testing.T) {
 	const backoff = time.Second
 
 	sched, err := cron.ParseStandard("20 4 * * *") // At 04:20.
-	assert.NilError(t, err)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 
 	fakeClock := fakeclock.Time(time.Date(2038, time.January, 19, 3, 14, 7, 0, time.UTC)) // 03:14
 	observeClock := observeclock.New(fakeClock)
@@ -76,5 +80,7 @@ func TestScheduleExecutorRetry(t *testing.T) {
 		}
 		return err
 	})
-	assert.NilError(t, err)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 }

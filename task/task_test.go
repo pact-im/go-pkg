@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 	"testing"
-
-	"gotest.tools/v3/assert"
 )
 
 func TestNamed(t *testing.T) {
@@ -14,7 +12,9 @@ func TestNamed(t *testing.T) {
 		return oops
 	})
 	err := task.Run(context.Background())
-	assert.Equal(t, err.Error(), "test: oops")
+	if err.Error() != "test: oops" {
+		t.Fatalf("expected 'test: oops', got %v", err)
+	}
 }
 
 func TestParallelCancelOnError(t *testing.T) {
@@ -29,7 +29,9 @@ func TestParallelCancelOnError(t *testing.T) {
 		},
 	)
 	err := g.Run(context.Background())
-	assert.ErrorIs(t, err, oops)
+	if !errors.Is(err, oops) {
+		t.Fatalf("expected error %v, got %v", oops, err)
+	}
 }
 
 func TestParallelCancelOnReturn(t *testing.T) {
@@ -43,5 +45,7 @@ func TestParallelCancelOnReturn(t *testing.T) {
 		},
 	)
 	err := g.Run(context.Background())
-	assert.NilError(t, err)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 }

@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"go.uber.org/mock/gomock"
-	"gotest.tools/v3/assert"
 
 	"go.pact.im/x/clock"
 	"go.pact.im/x/clock/mockclock"
@@ -60,8 +59,12 @@ func TestRetry(t *testing.T) {
 			n++
 			return opError
 		})
-		assert.Equal(t, opError, err)
-		assert.Equal(t, len(backoff), n)
+		if err != opError {
+			t.Fatalf("expected opError, got %v", err)
+		}
+		if n != len(backoff) {
+			t.Fatalf("expected n==%d, got %d", len(backoff), n)
+		}
 	})
 
 	t.Run("Limit", func(t *testing.T) {
@@ -97,7 +100,11 @@ func TestRetry(t *testing.T) {
 			n++
 			return opError
 		})
-		assert.Equal(t, opError, err)
-		assert.Equal(t, 2, n)
+		if err != opError {
+			t.Fatalf("expected opError, got %v", err)
+		}
+		if n != 2 {
+			t.Fatalf("expected n==2, got %d", n)
+		}
 	})
 }
