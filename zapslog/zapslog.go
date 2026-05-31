@@ -9,22 +9,21 @@ import (
 	"math"
 	"time"
 
-	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
-// New creates a zap.Logger backed by the provided slog.Handler.
-func New(handler slog.Handler) *zap.Logger {
-	return zap.New(&zapSlogCore{handler: handler})
+// New creates a Core backed by the provided slog.Handler.
+func New(handler slog.Handler) *Core {
+	return &Core{handler: handler}
 }
 
-// zapSlogCore implements zapcore.Core and forwards log records to slog.Handler.
-type zapSlogCore struct {
+// Core implements zapcore.Core and forwards log records to slog.Handler.
+type Core struct {
 	handler slog.Handler
 }
 
 // Enabled reports whether the underlying slog handler accepts the given level.
-func (c *zapSlogCore) Enabled(level zapcore.Level) bool {
+func (c *Core) Enabled(level zapcore.Level) bool {
 	return c.handler.Enabled(context.Background(), zapCoreLevelToSlogLevel(level))
 }
 
@@ -76,14 +75,14 @@ func fieldToAttrs(fields []zapcore.Field) []slog.Attr {
 }
 
 // With implements the [zapcore.Core] interface.
-func (c *zapSlogCore) With(fields []zapcore.Field) zapcore.Core {
+func (c *Core) With(fields []zapcore.Field) zapcore.Core {
 	handler := c.handler.WithAttrs(fieldToAttrs(fields))
 
-	return &zapSlogCore{handler: handler}
+	return &Core{handler: handler}
 }
 
 // Check implements the [zapcore.Core] interface.
-func (c *zapSlogCore) Check(entry zapcore.Entry, ce *zapcore.CheckedEntry) *zapcore.CheckedEntry {
+func (c *Core) Check(entry zapcore.Entry, ce *zapcore.CheckedEntry) *zapcore.CheckedEntry {
 	if c.Enabled(entry.Level) {
 		return ce.AddCore(entry, c)
 	}
@@ -92,7 +91,7 @@ func (c *zapSlogCore) Check(entry zapcore.Entry, ce *zapcore.CheckedEntry) *zapc
 }
 
 // Write implements the [zapcore.Core] interface.
-func (c *zapSlogCore) Write(entry zapcore.Entry, fields []zapcore.Field) error {
+func (c *Core) Write(entry zapcore.Entry, fields []zapcore.Field) error {
 	// https://pkg.go.dev/log/slog#hdr-Writing_a_handler
 	record := slog.NewRecord(entry.Time, zapCoreLevelToSlogLevel(entry.Level), entry.Message, entry.Caller.PC)
 
@@ -117,7 +116,7 @@ func (c *zapSlogCore) Write(entry zapcore.Entry, fields []zapcore.Field) error {
 }
 
 // Sync implements the [zapcore.Core] interface.
-func (c *zapSlogCore) Sync() error {
+func (c *Core) Sync() error {
 	return nil
 }
 

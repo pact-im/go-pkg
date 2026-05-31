@@ -25,7 +25,7 @@ func TestNew(t *testing.T) {
 			},
 		)
 
-		loggerZap := New(handler)
+		loggerZap := zap.New(New(handler))
 
 		loggerZap.Debug("debug level")
 		loggerZap.Info("info level")
@@ -50,7 +50,7 @@ func TestNew(t *testing.T) {
 			},
 		)
 
-		loggerZap := New(handler).WithOptions(zap.WithCaller(false))
+		loggerZap := zap.New(New(handler)).WithOptions(zap.WithCaller(false))
 
 		loggerZap = loggerZap.Named("example").With(
 			zap.String("base_key", "base_value"),
@@ -92,7 +92,7 @@ func TestNew(t *testing.T) {
 			},
 		)
 
-		loggerZap := New(handler).WithOptions(zap.WithCaller(false))
+		loggerZap := zap.New(New(handler)).WithOptions(zap.WithCaller(false))
 
 		loggerZap.Debug("skip debug")
 		loggerZap.Info("keep info")
@@ -107,7 +107,7 @@ func TestNew(t *testing.T) {
 }
 
 func BenchmarkNew(b *testing.B) {
-	loggerZap := New(noopSlogHandler{})
+	loggerZap := zap.New(New(noopSlogHandler{}))
 
 	b.ResetTimer()
 
@@ -117,7 +117,7 @@ func BenchmarkNew(b *testing.B) {
 }
 
 func BenchmarkNewNoCaller(b *testing.B) {
-	loggerZap := New(noopSlogHandler{}).WithOptions(zap.WithCaller(false))
+	loggerZap := zap.New(New(noopSlogHandler{})).WithOptions(zap.WithCaller(false))
 
 	b.ResetTimer()
 
@@ -127,7 +127,7 @@ func BenchmarkNewNoCaller(b *testing.B) {
 }
 
 func BenchmarkNewFields(b *testing.B) {
-	loggerZap := New(noopSlogHandler{}).WithOptions(zap.WithCaller(false))
+	loggerZap := zap.New(New(noopSlogHandler{})).WithOptions(zap.WithCaller(false))
 
 	b.ResetTimer()
 
