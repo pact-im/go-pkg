@@ -12,19 +12,23 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-// New creates a Core backed by the provided slog.Handler.
-func New(handler slog.Handler) *Core {
-	return &Core{handler: handler}
+// New creates a Core backed by the provided context and slog.Handler.
+func New(ctx context.Context, handler slog.Handler) *Core {
+	return &Core{
+		ctx:     ctx,
+		handler: handler,
+	}
 }
 
 // Core implements zapcore.Core and forwards log records to slog.Handler.
 type Core struct {
+	ctx     context.Context
 	handler slog.Handler
 }
 
 // Enabled reports whether the underlying slog handler accepts the given level.
 func (c *Core) Enabled(level zapcore.Level) bool {
-	return c.handler.Enabled(context.Background(), zapCoreLevelToSlogLevel(level))
+	return c.handler.Enabled(c.ctx, zapCoreLevelToSlogLevel(level))
 }
 
 // fieldToAttr converts a zap field into a slog attribute.
@@ -78,7 +82,10 @@ func fieldToAttrs(fields []zapcore.Field) []slog.Attr {
 func (c *Core) With(fields []zapcore.Field) zapcore.Core {
 	handler := c.handler.WithAttrs(fieldToAttrs(fields))
 
-	return &Core{handler: handler}
+	return &Core{
+		ctx:     c.ctx,
+		handler: handler,
+	}
 }
 
 // Check implements the [zapcore.Core] interface.
@@ -107,7 +114,7 @@ func (c *Core) Write(entry zapcore.Entry, fields []zapcore.Field) error {
 		record.AddAttrs(slog.String("stack", entry.Stack))
 	}
 
-	err := c.handler.Handle(context.Background(), record)
+	err := c.handler.Handle(c.ctx, record)
 	if err != nil {
 		return fmt.Errorf("failed to write log: %w", err)
 	}
