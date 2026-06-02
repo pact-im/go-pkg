@@ -104,6 +104,10 @@ func TestNew(t *testing.T) {
 				{id: 1, name: "value1"},
 				{id: 2, name: "value2"},
 			}),
+			zap.Array("array_nested_objects", objectsArrayNested{
+				{name: "value1", nested: "nested1"},
+				{name: "value2", nested: "nested2"},
+			}),
 			zap.Object("object", testObject{id: 1, name: "obj"}),
 			zap.Inline(testObject{id: 7, name: "inline"}),
 			zap.Reflect("reflect", map[string]any{"answer": 42}),
@@ -145,6 +149,7 @@ func TestNew(t *testing.T) {
 		assertContains(t, got, `complex128=(3+4i)`)
 		assertContains(t, got, `array="[1 two]"`)
 		assertContains(t, got, `array_objects="[map[id:1 name:value1] map[id:2 name:value2]]"`)
+		assertContains(t, got, `array_nested_objects=`)
 		assertContains(t, got, `object.id=1`)
 		assertContains(t, got, `object.name=obj`)
 		assertContains(t, got, `id=7`)
@@ -200,6 +205,10 @@ func TestNew(t *testing.T) {
 				{id: 1, name: "value1"},
 				{id: 2, name: "value2"},
 			}),
+			zap.Array("array_nested_objects", objectsArrayNested{
+				{name: "value1", nested: "nested1"},
+				{name: "value2", nested: "nested2"},
+			}),
 			zap.Object("object", testObject{id: 1, name: "obj"}),
 			zap.Inline(testObject{id: 7, name: "inline"}),
 			zap.Reflect("reflect", map[string]any{"answer": 42}),
@@ -241,6 +250,7 @@ func TestNew(t *testing.T) {
 		assertContains(t, got, `"complex128":"(3+4i)"`)
 		assertContains(t, got, `"array":[1,"two"]`)
 		assertContains(t, got, `"array_objects":[{"id":1,"name":"value1"},{"id":2,"name":"value2"}]`)
+		assertContains(t, got, `"array_nested_objects":[{"name":"value1","ns":{"nested":"nested1"}},{"name":"value2","ns":{"nested":"nested2"}}]`)
 		assertContains(t, got, `"object":{"id":1,"name":"obj"}`)
 		assertContains(t, got, `"id":7`)
 		assertContains(t, got, `"name":"inline"`)
@@ -356,6 +366,31 @@ func (a testArray) MarshalLogArray(enc zapcore.ArrayEncoder) error {
 type objectsArray []testObject
 
 func (a objectsArray) MarshalLogArray(enc zapcore.ArrayEncoder) error {
+	for _, item := range a {
+		if err := enc.AppendObject(item); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+type testNestedObject struct {
+	name   string
+	nested string
+}
+
+func (o testNestedObject) MarshalLogObject(enc zapcore.ObjectEncoder) error {
+	enc.AddString("name", o.name)
+	enc.OpenNamespace("ns")
+	enc.AddString("nested", o.nested)
+
+	return nil
+}
+
+type objectsArrayNested []testNestedObject
+
+func (a objectsArrayNested) MarshalLogArray(enc zapcore.ArrayEncoder) error {
 	for _, item := range a {
 		if err := enc.AppendObject(item); err != nil {
 			return err

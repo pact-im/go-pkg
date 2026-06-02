@@ -281,6 +281,12 @@ func attrsToMap(attrs []slog.Attr) map[string]any {
 		if attr.Key == "" {
 			continue
 		}
+
+		if attr.Value.Kind() == slog.KindGroup {
+			fields[attr.Key] = attrsToMap(attr.Value.Group())
+			continue
+		}
+
 		fields[attr.Key] = attr.Value.Any()
 	}
 
