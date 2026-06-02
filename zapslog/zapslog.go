@@ -33,7 +33,7 @@ func (c *Core) Enabled(level zapcore.Level) bool {
 // encodeFields delegates field encoding to zap itself via Field.AddTo and
 // captures the result as slog attributes.
 func encodeFields(fields []zapcore.Field) []slog.Attr {
-	enc := newEncoder(len(fields))
+	enc := newObjectEncoder(len(fields))
 	for _, field := range fields {
 		field.AddTo(enc)
 	}
@@ -111,136 +111,118 @@ func zapCoreLevelToSlogLevel(level zapcore.Level) slog.Level {
 	}
 }
 
-// encoder implements [zapcore.ObjectEncoder].
+// objectEncoder implements [zapcore.ObjectEncoder].
 // Zap writes fields into an instance of this type, and it builds a tree of slog attributes.
-// root keeps the full result, cur points at the namespace/object currently
+// root keeps the full result, current points at the namespace currently
 // receiving fields.
-type encoder struct {
-	root *node
-	cur  *node
+type objectEncoder struct {
+	root, current *namespace
 }
 
-type node struct {
-	entries []objectEntry
+type namespace struct {
+	name    string
+	entries []slog.Attr
+	child   *namespace
 }
 
-type objectEntry struct {
-	attr  slog.Attr
-	child *groupEntry
-}
-
-type groupEntry struct {
-	key  string
-	node *node
-}
-
-func newEncoder(capEncoder int) *encoder {
-	root := &node{entries: make([]objectEntry, 0, capEncoder)}
-	return &encoder{
-		root: root,
-		cur:  root,
+func newObjectEncoder(capacity int) *objectEncoder {
+	root := &namespace{entries: make([]slog.Attr, 0, capacity)}
+	return &objectEncoder{
+		root:    root,
+		current: root,
 	}
 }
 
 // Attrs materializes the accumulated object tree into the final slog attrs.
-func (e *encoder) Attrs() []slog.Attr {
+func (e *objectEncoder) Attrs() []slog.Attr {
 	return e.root.attrs()
 }
 
-func (e *encoder) addAttr(attr slog.Attr) {
-	e.cur.entries = append(e.cur.entries, objectEntry{attr: attr})
+func (e *objectEncoder) addAttr(attr slog.Attr) {
+	e.current.entries = append(e.current.entries, attr)
 }
 
-// attrs materializes child groups lazily so namespaces can keep collecting
+// attrs materializes child namespace lazily so namespaces can keep collecting
 // fields until the entire object is finished.
-func (n *node) attrs() []slog.Attr {
+func (n *namespace) attrs() []slog.Attr {
 	attrs := make([]slog.Attr, 0, len(n.entries))
-	for _, entry := range n.entries {
-		if entry.child == nil {
-			attrs = append(attrs, entry.attr)
-			continue
-		}
-
+	attrs = append(attrs, n.entries...)
+	if n.child != nil {
 		attrs = append(attrs, slog.Attr{
-			Key:   entry.child.key,
-			Value: slog.GroupValue(entry.child.node.attrs()...),
+			Key:   n.child.name,
+			Value: slog.GroupValue(n.child.attrs()...),
 		})
 	}
 
 	return attrs
 }
 
-func (e *encoder) AddArray(key string, marshaler zapcore.ArrayMarshaler) error {
+func (e *objectEncoder) AddArray(key string, marshaler zapcore.ArrayMarshaler) error {
 	arr := &arrayEncoder{elems: make([]any, 0)}
 	err := marshaler.MarshalLogArray(arr)
 	e.addAttr(slog.Any(key, arr.elems))
 	return err
 }
 
-func (e *encoder) AddObject(key string, marshaler zapcore.ObjectMarshaler) error {
-	obj := newEncoder(0)
+func (e *objectEncoder) AddObject(key string, marshaler zapcore.ObjectMarshaler) error {
+	obj := newObjectEncoder(0)
 	err := marshaler.MarshalLogObject(obj)
 	e.addAttr(slog.Attr{Key: key, Value: slog.GroupValue(obj.Attrs()...)})
 	return err
 }
 
-func (e *encoder) AddBinary(key string, value []byte) { e.addAttr(slog.Any(key, value)) }
-func (e *encoder) AddByteString(key string, value []byte) {
+func (e *objectEncoder) AddBinary(key string, value []byte) { e.addAttr(slog.Any(key, value)) }
+func (e *objectEncoder) AddByteString(key string, value []byte) {
 	e.addAttr(slog.String(key, string(value)))
 }
-func (e *encoder) AddBool(key string, value bool) { e.addAttr(slog.Bool(key, value)) }
-func (e *encoder) AddComplex128(key string, value complex128) {
+func (e *objectEncoder) AddBool(key string, value bool) { e.addAttr(slog.Bool(key, value)) }
+func (e *objectEncoder) AddComplex128(key string, value complex128) {
 	e.addAttr(slog.String(key, fmt.Sprint(value)))
 }
 
-func (e *encoder) AddComplex64(key string, value complex64) {
+func (e *objectEncoder) AddComplex64(key string, value complex64) {
 	e.addAttr(slog.String(key, fmt.Sprint(value)))
 }
 
-func (e *encoder) AddDuration(key string, value time.Duration) {
+func (e *objectEncoder) AddDuration(key string, value time.Duration) {
 	e.addAttr(slog.Duration(key, value))
 }
-func (e *encoder) AddFloat64(key string, value float64) { e.addAttr(slog.Float64(key, value)) }
-func (e *encoder) AddFloat32(key string, value float32) {
+func (e *objectEncoder) AddFloat64(key string, value float64) { e.addAttr(slog.Float64(key, value)) }
+func (e *objectEncoder) AddFloat32(key string, value float32) {
 	e.addAttr(slog.Float64(key, float64(value)))
 }
-func (e *encoder) AddInt(key string, value int)        { e.addAttr(slog.Int(key, value)) }
-func (e *encoder) AddInt64(key string, value int64)    { e.addAttr(slog.Int64(key, value)) }
-func (e *encoder) AddInt32(key string, value int32)    { e.addAttr(slog.Int64(key, int64(value))) }
-func (e *encoder) AddInt16(key string, value int16)    { e.addAttr(slog.Int64(key, int64(value))) }
-func (e *encoder) AddInt8(key string, value int8)      { e.addAttr(slog.Int64(key, int64(value))) }
-func (e *encoder) AddString(key, value string)         { e.addAttr(slog.String(key, value)) }
-func (e *encoder) AddTime(key string, value time.Time) { e.addAttr(slog.Time(key, value)) }
-func (e *encoder) AddUint(key string, value uint)      { e.addAttr(slog.Uint64(key, uint64(value))) }
-func (e *encoder) AddUint64(key string, value uint64)  { e.addAttr(slog.Uint64(key, value)) }
-func (e *encoder) AddUint32(key string, value uint32) {
+func (e *objectEncoder) AddInt(key string, value int)        { e.addAttr(slog.Int(key, value)) }
+func (e *objectEncoder) AddInt64(key string, value int64)    { e.addAttr(slog.Int64(key, value)) }
+func (e *objectEncoder) AddInt32(key string, value int32)    { e.addAttr(slog.Int64(key, int64(value))) }
+func (e *objectEncoder) AddInt16(key string, value int16)    { e.addAttr(slog.Int64(key, int64(value))) }
+func (e *objectEncoder) AddInt8(key string, value int8)      { e.addAttr(slog.Int64(key, int64(value))) }
+func (e *objectEncoder) AddString(key, value string)         { e.addAttr(slog.String(key, value)) }
+func (e *objectEncoder) AddTime(key string, value time.Time) { e.addAttr(slog.Time(key, value)) }
+func (e *objectEncoder) AddUint(key string, value uint)      { e.addAttr(slog.Uint64(key, uint64(value))) }
+func (e *objectEncoder) AddUint64(key string, value uint64)  { e.addAttr(slog.Uint64(key, value)) }
+func (e *objectEncoder) AddUint32(key string, value uint32) {
 	e.addAttr(slog.Uint64(key, uint64(value)))
 }
 
-func (e *encoder) AddUint16(key string, value uint16) {
+func (e *objectEncoder) AddUint16(key string, value uint16) {
 	e.addAttr(slog.Uint64(key, uint64(value)))
 }
-func (e *encoder) AddUint8(key string, value uint8) { e.addAttr(slog.Uint64(key, uint64(value))) }
-func (e *encoder) AddUintptr(key string, value uintptr) {
+func (e *objectEncoder) AddUint8(key string, value uint8) { e.addAttr(slog.Uint64(key, uint64(value))) }
+func (e *objectEncoder) AddUintptr(key string, value uintptr) {
 	e.addAttr(slog.Uint64(key, uint64(value)))
 }
 
-func (e *encoder) AddReflected(key string, value any) error {
+func (e *objectEncoder) AddReflected(key string, value any) error {
 	e.addAttr(slog.Any(key, value))
 	return nil
 }
 
-// OpenNamespace switches subsequent writes into a child node, matching zap's
+// OpenNamespace switches subsequent writes into a child namespace, matching zap's
 // namespace semantics where all following fields belong to that group.
-func (e *encoder) OpenNamespace(key string) {
-	ns := &node{}
-	e.cur.entries = append(e.cur.entries, objectEntry{
-		child: &groupEntry{
-			key:  key,
-			node: ns,
-		},
-	})
-	e.cur = ns
+func (e *objectEncoder) OpenNamespace(key string) {
+	ns := &namespace{name: key}
+	e.current.child = ns
+	e.current = ns
 }
 
 // arrayEncoder collects unnamed array elements and implements
@@ -257,7 +239,7 @@ func (e *arrayEncoder) AppendArray(marshaler zapcore.ArrayMarshaler) error {
 }
 
 func (e *arrayEncoder) AppendObject(marshaler zapcore.ObjectMarshaler) error {
-	obj := newEncoder(0)
+	obj := newObjectEncoder(0)
 	err := marshaler.MarshalLogObject(obj)
 	e.elems = append(e.elems, attrsToMap(obj.Attrs()))
 	return err
