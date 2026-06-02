@@ -4,7 +4,6 @@ package zapslog
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"time"
 
@@ -37,7 +36,6 @@ func encodeFields(fields []zapcore.Field) []slog.Attr {
 	for _, field := range fields {
 		field.AddTo(enc)
 	}
-
 	return enc.Attrs()
 }
 
@@ -56,7 +54,6 @@ func (c *Core) Check(entry zapcore.Entry, ce *zapcore.CheckedEntry) *zapcore.Che
 	if c.Enabled(entry.Level) {
 		return ce.AddCore(entry, c)
 	}
-
 	return ce
 }
 
@@ -66,7 +63,7 @@ func (c *Core) Write(entry zapcore.Entry, fields []zapcore.Field) error {
 	record := slog.NewRecord(entry.Time, zapCoreLevelToSlogLevel(entry.Level), entry.Message, entry.Caller.PC)
 
 	if entry.LoggerName != "" {
-		record.AddAttrs(slog.String("name", entry.LoggerName))
+		record.AddAttrs(slog.String("logger_name", entry.LoggerName))
 	}
 
 	record.AddAttrs(encodeFields(fields)...)
@@ -75,12 +72,7 @@ func (c *Core) Write(entry zapcore.Entry, fields []zapcore.Field) error {
 		record.AddAttrs(slog.String("stack", entry.Stack))
 	}
 
-	err := c.handler.Handle(c.ctx, record)
-	if err != nil {
-		return fmt.Errorf("failed to write log: %w", err)
-	}
-
-	return nil
+	return c.handler.Handle(c.ctx, record)
 }
 
 // Sync implements the [zapcore.Core] interface.
@@ -125,8 +117,8 @@ type namespace struct {
 	child   *namespace
 }
 
-func newObjectEncoder(capacity int) *objectEncoder {
-	root := &namespace{entries: make([]slog.Attr, 0, capacity)}
+func newObjectEncoder(entriesCap int) *objectEncoder {
+	root := &namespace{entries: make([]slog.Attr, 0, entriesCap)}
 	return &objectEncoder{
 		root:    root,
 		current: root,
@@ -148,12 +140,8 @@ func (n *namespace) attrs() []slog.Attr {
 	attrs := make([]slog.Attr, 0, len(n.entries))
 	attrs = append(attrs, n.entries...)
 	if n.child != nil {
-		attrs = append(attrs, slog.Attr{
-			Key:   n.child.name,
-			Value: slog.GroupValue(n.child.attrs()...),
-		})
+		attrs = append(attrs, slog.GroupAttrs(n.child.name, n.child.attrs()...))
 	}
-
 	return attrs
 }
 
@@ -167,39 +155,78 @@ func (e *objectEncoder) AddArray(key string, marshaler zapcore.ArrayMarshaler) e
 func (e *objectEncoder) AddObject(key string, marshaler zapcore.ObjectMarshaler) error {
 	obj := newObjectEncoder(0)
 	err := marshaler.MarshalLogObject(obj)
-	e.addAttr(slog.Attr{Key: key, Value: slog.GroupValue(obj.Attrs()...)})
+	e.addAttr(slog.GroupAttrs(key, obj.Attrs()...))
 	return err
 }
 
-func (e *objectEncoder) AddBinary(key string, value []byte) { e.addAttr(slog.Any(key, value)) }
+func (e *objectEncoder) AddBinary(key string, value []byte) {
+	e.addAttr(slog.Any(key, value))
+}
+
 func (e *objectEncoder) AddByteString(key string, value []byte) {
 	e.addAttr(slog.String(key, string(value)))
 }
-func (e *objectEncoder) AddBool(key string, value bool) { e.addAttr(slog.Bool(key, value)) }
+
+func (e *objectEncoder) AddBool(key string, value bool) {
+	e.addAttr(slog.Bool(key, value))
+}
+
 func (e *objectEncoder) AddComplex128(key string, value complex128) {
-	e.addAttr(slog.String(key, fmt.Sprint(value)))
+	e.addAttr(slog.Any(key, value))
 }
 
 func (e *objectEncoder) AddComplex64(key string, value complex64) {
-	e.addAttr(slog.String(key, fmt.Sprint(value)))
+	e.addAttr(slog.Any(key, value))
 }
 
 func (e *objectEncoder) AddDuration(key string, value time.Duration) {
 	e.addAttr(slog.Duration(key, value))
 }
-func (e *objectEncoder) AddFloat64(key string, value float64) { e.addAttr(slog.Float64(key, value)) }
+
+func (e *objectEncoder) AddFloat64(key string, value float64) {
+	e.addAttr(slog.Float64(key, value))
+}
+
 func (e *objectEncoder) AddFloat32(key string, value float32) {
 	e.addAttr(slog.Float64(key, float64(value)))
 }
-func (e *objectEncoder) AddInt(key string, value int)        { e.addAttr(slog.Int(key, value)) }
-func (e *objectEncoder) AddInt64(key string, value int64)    { e.addAttr(slog.Int64(key, value)) }
-func (e *objectEncoder) AddInt32(key string, value int32)    { e.addAttr(slog.Int64(key, int64(value))) }
-func (e *objectEncoder) AddInt16(key string, value int16)    { e.addAttr(slog.Int64(key, int64(value))) }
-func (e *objectEncoder) AddInt8(key string, value int8)      { e.addAttr(slog.Int64(key, int64(value))) }
-func (e *objectEncoder) AddString(key, value string)         { e.addAttr(slog.String(key, value)) }
-func (e *objectEncoder) AddTime(key string, value time.Time) { e.addAttr(slog.Time(key, value)) }
-func (e *objectEncoder) AddUint(key string, value uint)      { e.addAttr(slog.Uint64(key, uint64(value))) }
-func (e *objectEncoder) AddUint64(key string, value uint64)  { e.addAttr(slog.Uint64(key, value)) }
+
+func (e *objectEncoder) AddInt(key string, value int) {
+	e.addAttr(slog.Int(key, value))
+}
+
+func (e *objectEncoder) AddInt64(key string, value int64) {
+	e.addAttr(slog.Int64(key, value))
+}
+
+func (e *objectEncoder) AddInt32(key string, value int32) {
+	e.addAttr(slog.Int64(key, int64(value)))
+}
+
+func (e *objectEncoder) AddInt16(key string, value int16) {
+	e.addAttr(slog.Int64(key, int64(value)))
+}
+
+func (e *objectEncoder) AddInt8(key string, value int8) {
+	e.addAttr(slog.Int64(key, int64(value)))
+}
+
+func (e *objectEncoder) AddString(key, value string) {
+	e.addAttr(slog.String(key, value))
+}
+
+func (e *objectEncoder) AddTime(key string, value time.Time) {
+	e.addAttr(slog.Time(key, value))
+}
+
+func (e *objectEncoder) AddUint(key string, value uint) {
+	e.addAttr(slog.Uint64(key, uint64(value)))
+}
+
+func (e *objectEncoder) AddUint64(key string, value uint64) {
+	e.addAttr(slog.Uint64(key, value))
+}
+
 func (e *objectEncoder) AddUint32(key string, value uint32) {
 	e.addAttr(slog.Uint64(key, uint64(value)))
 }
@@ -207,7 +234,11 @@ func (e *objectEncoder) AddUint32(key string, value uint32) {
 func (e *objectEncoder) AddUint16(key string, value uint16) {
 	e.addAttr(slog.Uint64(key, uint64(value)))
 }
-func (e *objectEncoder) AddUint8(key string, value uint8) { e.addAttr(slog.Uint64(key, uint64(value))) }
+
+func (e *objectEncoder) AddUint8(key string, value uint8) {
+	e.addAttr(slog.Uint64(key, uint64(value)))
+}
+
 func (e *objectEncoder) AddUintptr(key string, value uintptr) {
 	e.addAttr(slog.Uint64(key, uint64(value)))
 }
@@ -250,28 +281,85 @@ func (e *arrayEncoder) AppendReflected(value any) error {
 	return nil
 }
 
-func (e *arrayEncoder) AppendBool(value bool)         { e.elems = append(e.elems, value) }
-func (e *arrayEncoder) AppendByteString(value []byte) { e.elems = append(e.elems, string(value)) }
-func (e *arrayEncoder) AppendComplex128(value complex128) {
-	e.elems = append(e.elems, fmt.Sprint(value))
+func (e *arrayEncoder) AppendBool(value bool) {
+	e.elems = append(e.elems, value)
 }
-func (e *arrayEncoder) AppendComplex64(value complex64)    { e.elems = append(e.elems, fmt.Sprint(value)) }
-func (e *arrayEncoder) AppendDuration(value time.Duration) { e.elems = append(e.elems, value) }
-func (e *arrayEncoder) AppendFloat64(value float64)        { e.elems = append(e.elems, value) }
-func (e *arrayEncoder) AppendFloat32(value float32)        { e.elems = append(e.elems, value) }
-func (e *arrayEncoder) AppendInt(value int)                { e.elems = append(e.elems, value) }
-func (e *arrayEncoder) AppendInt64(value int64)            { e.elems = append(e.elems, value) }
-func (e *arrayEncoder) AppendInt32(value int32)            { e.elems = append(e.elems, value) }
-func (e *arrayEncoder) AppendInt16(value int16)            { e.elems = append(e.elems, value) }
-func (e *arrayEncoder) AppendInt8(value int8)              { e.elems = append(e.elems, value) }
-func (e *arrayEncoder) AppendString(value string)          { e.elems = append(e.elems, value) }
-func (e *arrayEncoder) AppendTime(value time.Time)         { e.elems = append(e.elems, value) }
-func (e *arrayEncoder) AppendUint(value uint)              { e.elems = append(e.elems, value) }
-func (e *arrayEncoder) AppendUint64(value uint64)          { e.elems = append(e.elems, value) }
-func (e *arrayEncoder) AppendUint32(value uint32)          { e.elems = append(e.elems, value) }
-func (e *arrayEncoder) AppendUint16(value uint16)          { e.elems = append(e.elems, value) }
-func (e *arrayEncoder) AppendUint8(value uint8)            { e.elems = append(e.elems, value) }
-func (e *arrayEncoder) AppendUintptr(value uintptr)        { e.elems = append(e.elems, value) }
+
+func (e *arrayEncoder) AppendByteString(value []byte) {
+	e.elems = append(e.elems, string(value))
+}
+
+func (e *arrayEncoder) AppendComplex128(value complex128) {
+	e.elems = append(e.elems, value)
+}
+
+func (e *arrayEncoder) AppendComplex64(value complex64) {
+	e.elems = append(e.elems, value)
+}
+
+func (e *arrayEncoder) AppendDuration(value time.Duration) {
+	e.elems = append(e.elems, value)
+}
+
+func (e *arrayEncoder) AppendFloat64(value float64) {
+	e.elems = append(e.elems, value)
+}
+
+func (e *arrayEncoder) AppendFloat32(value float32) {
+	e.elems = append(e.elems, value)
+}
+
+func (e *arrayEncoder) AppendInt(value int) {
+	e.elems = append(e.elems, value)
+}
+
+func (e *arrayEncoder) AppendInt64(value int64) {
+	e.elems = append(e.elems, value)
+}
+
+func (e *arrayEncoder) AppendInt32(value int32) {
+	e.elems = append(e.elems, value)
+}
+
+func (e *arrayEncoder) AppendInt16(value int16) {
+	e.elems = append(e.elems, value)
+}
+
+func (e *arrayEncoder) AppendInt8(value int8) {
+	e.elems = append(e.elems, value)
+}
+
+func (e *arrayEncoder) AppendString(value string) {
+	e.elems = append(e.elems, value)
+}
+
+func (e *arrayEncoder) AppendTime(value time.Time) {
+	e.elems = append(e.elems, value)
+}
+
+func (e *arrayEncoder) AppendUint(value uint) {
+	e.elems = append(e.elems, value)
+}
+
+func (e *arrayEncoder) AppendUint64(value uint64) {
+	e.elems = append(e.elems, value)
+}
+
+func (e *arrayEncoder) AppendUint32(value uint32) {
+	e.elems = append(e.elems, value)
+}
+
+func (e *arrayEncoder) AppendUint16(value uint16) {
+	e.elems = append(e.elems, value)
+}
+
+func (e *arrayEncoder) AppendUint8(value uint8) {
+	e.elems = append(e.elems, value)
+}
+
+func (e *arrayEncoder) AppendUintptr(value uintptr) {
+	e.elems = append(e.elems, value)
+}
 
 // attrsToMap turns an object's named attrs into a single value that can live
 // inside []any, for example as an element of a slog array.

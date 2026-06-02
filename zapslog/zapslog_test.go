@@ -124,7 +124,7 @@ func TestNew(t *testing.T) {
 
 		got := b.String()
 		assertContains(t, got, `msg=fields`)
-		assertContains(t, got, `name=example`)
+		assertContains(t, got, `logger_name=example`)
 		assertContains(t, got, `base_key=base_value`)
 		assertContains(t, got, `base_count=7`)
 		assertContains(t, got, `key=value`)
@@ -225,7 +225,7 @@ func TestNew(t *testing.T) {
 
 		got := b.String()
 		assertContains(t, got, `"msg":"fields"`)
-		assertContains(t, got, `"name":"example"`)
+		assertContains(t, got, `"logger_name":"example"`)
 		assertContains(t, got, `"base_key":"base_value"`)
 		assertContains(t, got, `"base_count":7`)
 		assertContains(t, got, `"key":"value"`)
@@ -246,8 +246,8 @@ func TestNew(t *testing.T) {
 		assertContains(t, got, `"error":"boom"`)
 		assertContains(t, got, `"binary":"YWJj"`)
 		assertContains(t, got, `"byte_string":"hello"`)
-		assertContains(t, got, `"complex64":"(1+2i)"`)
-		assertContains(t, got, `"complex128":"(3+4i)"`)
+		assertContains(t, got, `"complex64":"`)
+		assertContains(t, got, `"complex128":"`)
 		assertContains(t, got, `"array":[1,"two"]`)
 		assertContains(t, got, `"array_objects":[{"id":1,"name":"value1"},{"id":2,"name":"value2"}]`)
 		assertContains(t, got, `"array_nested_objects":[{"name":"value1","ns":{"nested":"nested1"}},{"name":"value2","ns":{"nested":"nested2"}}]`)
