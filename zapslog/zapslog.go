@@ -137,17 +137,16 @@ func (e *objectEncoder) addAttr(attr slog.Attr) {
 // attrs materializes child namespace lazily so namespaces can keep collecting
 // fields until the entire object is finished.
 func (n *namespace) attrs() []slog.Attr {
-	attrs := make([]slog.Attr, 0, len(n.entries))
-	attrs = append(attrs, n.entries...)
-	if n.child != nil {
-		attrs = append(attrs, slog.GroupAttrs(n.child.name, n.child.attrs()...))
+	if n.child == nil {
+		return n.entries
 	}
-	return attrs
+	attrs := append(make([]slog.Attr, 0, len(n.entries) + 1), n.entries...)
+	return append(attrs, slog.GroupAttrs(n.child.name, n.child.attrs()...))
 }
 
 func (e *objectEncoder) AddArray(key string, marshaler zapcore.ArrayMarshaler) error {
-	arr := &arrayEncoder{elems: make([]any, 0)}
-	err := marshaler.MarshalLogArray(arr)
+	var arr arrayEncoder
+	err := marshaler.MarshalLogArray(&arr)
 	e.addAttr(slog.Any(key, arr.elems))
 	return err
 }
@@ -263,8 +262,8 @@ type arrayEncoder struct {
 }
 
 func (e *arrayEncoder) AppendArray(marshaler zapcore.ArrayMarshaler) error {
-	arr := &arrayEncoder{elems: make([]any, 0)}
-	err := marshaler.MarshalLogArray(arr)
+	var arr arrayEncoder
+	err := marshaler.MarshalLogArray(&arr)
 	e.elems = append(e.elems, arr.elems)
 	return err
 }
