@@ -5,6 +5,7 @@ package zapslog
 import (
 	"context"
 	"log/slog"
+	"strconv"
 	"time"
 
 	"go.uber.org/zap/zapcore"
@@ -140,14 +141,14 @@ func (n *namespace) attrs() []slog.Attr {
 	if n.child == nil {
 		return n.entries
 	}
-	attrs := append(make([]slog.Attr, 0, len(n.entries) + 1), n.entries...)
+	attrs := append(make([]slog.Attr, 0, len(n.entries)+1), n.entries...)
 	return append(attrs, slog.GroupAttrs(n.child.name, n.child.attrs()...))
 }
 
 func (e *objectEncoder) AddArray(key string, marshaler zapcore.ArrayMarshaler) error {
 	var arr arrayEncoder
 	err := marshaler.MarshalLogArray(&arr)
-	e.addAttr(slog.Any(key, arr.elems))
+	e.addAttr(slog.GroupAttrs(key, arr.attrs...))
 	return err
 }
 
@@ -255,127 +256,115 @@ func (e *objectEncoder) OpenNamespace(key string) {
 	e.current = ns
 }
 
-// arrayEncoder collects unnamed array elements and implements
+// arrayEncoder represents array elements as indexed slog attrs and implements
 // [zapcore.ArrayEncoder].
 type arrayEncoder struct {
-	elems []any
+	attrs []slog.Attr
+}
+
+// addValue appends array element as an [slog.Attr] keyed by its position.
+func (e *arrayEncoder) addValue(v slog.Value) {
+	e.attrs = append(e.attrs, slog.Attr{
+		Key:   strconv.Itoa(len(e.attrs)),
+		Value: v,
+	})
 }
 
 func (e *arrayEncoder) AppendArray(marshaler zapcore.ArrayMarshaler) error {
 	var arr arrayEncoder
 	err := marshaler.MarshalLogArray(&arr)
-	e.elems = append(e.elems, arr.elems)
+	e.addValue(slog.GroupValue(arr.attrs...))
 	return err
 }
 
 func (e *arrayEncoder) AppendObject(marshaler zapcore.ObjectMarshaler) error {
 	obj := newObjectEncoder(0)
 	err := marshaler.MarshalLogObject(obj)
-	e.elems = append(e.elems, attrsToMap(obj.Attrs()))
+	e.addValue(slog.GroupValue(obj.Attrs()...))
 	return err
 }
 
 func (e *arrayEncoder) AppendReflected(value any) error {
-	e.elems = append(e.elems, value)
+	e.addValue(slog.AnyValue(value))
 	return nil
 }
 
 func (e *arrayEncoder) AppendBool(value bool) {
-	e.elems = append(e.elems, value)
+	e.addValue(slog.BoolValue(value))
 }
 
 func (e *arrayEncoder) AppendByteString(value []byte) {
-	e.elems = append(e.elems, string(value))
+	e.addValue(slog.StringValue(string(value)))
 }
 
 func (e *arrayEncoder) AppendComplex128(value complex128) {
-	e.elems = append(e.elems, value)
+	e.addValue(slog.AnyValue(value))
 }
 
 func (e *arrayEncoder) AppendComplex64(value complex64) {
-	e.elems = append(e.elems, value)
+	e.addValue(slog.AnyValue(value))
 }
 
 func (e *arrayEncoder) AppendDuration(value time.Duration) {
-	e.elems = append(e.elems, value)
+	e.addValue(slog.DurationValue(value))
 }
 
 func (e *arrayEncoder) AppendFloat64(value float64) {
-	e.elems = append(e.elems, value)
+	e.addValue(slog.Float64Value(value))
 }
 
 func (e *arrayEncoder) AppendFloat32(value float32) {
-	e.elems = append(e.elems, value)
+	e.addValue(slog.Float64Value(float64(value)))
 }
 
 func (e *arrayEncoder) AppendInt(value int) {
-	e.elems = append(e.elems, value)
+	e.addValue(slog.Int64Value(int64(value)))
 }
 
 func (e *arrayEncoder) AppendInt64(value int64) {
-	e.elems = append(e.elems, value)
+	e.addValue(slog.Int64Value(value))
 }
 
 func (e *arrayEncoder) AppendInt32(value int32) {
-	e.elems = append(e.elems, value)
+	e.addValue(slog.Int64Value(int64(value)))
 }
 
 func (e *arrayEncoder) AppendInt16(value int16) {
-	e.elems = append(e.elems, value)
+	e.addValue(slog.Int64Value(int64(value)))
 }
 
 func (e *arrayEncoder) AppendInt8(value int8) {
-	e.elems = append(e.elems, value)
+	e.addValue(slog.Int64Value(int64(value)))
 }
 
 func (e *arrayEncoder) AppendString(value string) {
-	e.elems = append(e.elems, value)
+	e.addValue(slog.StringValue(value))
 }
 
 func (e *arrayEncoder) AppendTime(value time.Time) {
-	e.elems = append(e.elems, value)
+	e.addValue(slog.TimeValue(value))
 }
 
 func (e *arrayEncoder) AppendUint(value uint) {
-	e.elems = append(e.elems, value)
+	e.addValue(slog.Uint64Value(uint64(value)))
 }
 
 func (e *arrayEncoder) AppendUint64(value uint64) {
-	e.elems = append(e.elems, value)
+	e.addValue(slog.Uint64Value(value))
 }
 
 func (e *arrayEncoder) AppendUint32(value uint32) {
-	e.elems = append(e.elems, value)
+	e.addValue(slog.Uint64Value(uint64(value)))
 }
 
 func (e *arrayEncoder) AppendUint16(value uint16) {
-	e.elems = append(e.elems, value)
+	e.addValue(slog.Uint64Value(uint64(value)))
 }
 
 func (e *arrayEncoder) AppendUint8(value uint8) {
-	e.elems = append(e.elems, value)
+	e.addValue(slog.Uint64Value(uint64(value)))
 }
 
 func (e *arrayEncoder) AppendUintptr(value uintptr) {
-	e.elems = append(e.elems, value)
-}
-
-// attrsToMap turns an object's named attrs into a single value that can live
-// inside []any, for example as an element of a slog array.
-func attrsToMap(attrs []slog.Attr) map[string]any {
-	fields := make(map[string]any, len(attrs))
-	for _, attr := range attrs {
-		if attr.Key == "" {
-			continue
-		}
-
-		if attr.Value.Kind() == slog.KindGroup {
-			fields[attr.Key] = attrsToMap(attr.Value.Group())
-			continue
-		}
-
-		fields[attr.Key] = attr.Value.Any()
-	}
-
-	return fields
+	e.addValue(slog.Uint64Value(uint64(value)))
 }
