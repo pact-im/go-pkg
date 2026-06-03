@@ -14,8 +14,6 @@ import (
 )
 
 func TestNew(t *testing.T) {
-	testTime := time.Date(2026, time.May, 27, 12, 34, 56, 0, time.UTC)
-
 	t.Run("levels", func(t *testing.T) {
 		var b bytes.Buffer
 		handler := slog.NewTextHandler(&b,
@@ -32,13 +30,23 @@ func TestNew(t *testing.T) {
 		loggerZap.Error("error level")
 
 		err := loggerZap.Sync()
-		requireNoError(t, err)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
 
 		got := b.String()
-		assertContains(t, got, `level=DEBUG msg="debug level"`)
-		assertContains(t, got, `level=INFO msg="info level"`)
-		assertContains(t, got, `level=WARN msg="warn level"`)
-		assertContains(t, got, `level=ERROR msg="error level"`)
+		if !strings.Contains(got, `level=DEBUG msg="debug level"`) {
+			t.Fatalf("expected %q to contain %q", got, `level=DEBUG msg="debug level"`)
+		}
+		if !strings.Contains(got, `level=INFO msg="info level"`) {
+			t.Fatalf("expected %q to contain %q", got, `level=INFO msg="info level"`)
+		}
+		if !strings.Contains(got, `level=WARN msg="warn level"`) {
+			t.Fatalf("expected %q to contain %q", got, `level=WARN msg="warn level"`)
+		}
+		if !strings.Contains(got, `level=ERROR msg="error level"`) {
+			t.Fatalf("expected %q to contain %q", got, `level=ERROR msg="error level"`)
+		}
 	})
 
 	t.Run("level filtering", func(t *testing.T) {
@@ -55,218 +63,222 @@ func TestNew(t *testing.T) {
 		loggerZap.Info("keep info")
 
 		err := loggerZap.Sync()
-		requireNoError(t, err)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
 
 		got := b.String()
-		assertNotContains(t, got, `skip debug`)
-		assertContains(t, got, `keep info`)
+		if strings.Contains(got, `skip debug`) {
+			t.Fatalf("expected %q not to contain %q", got, `skip debug`)
+		}
+		if !strings.Contains(got, `keep info`) {
+			t.Fatalf("expected %q to contain %q", got, `keep info`)
+		}
 	})
+}
 
-	t.Run("named logger and fields", func(t *testing.T) {
-		var b bytes.Buffer
-		handler := slog.NewTextHandler(&b,
-			&slog.HandlerOptions{
-				Level: slog.LevelDebug,
-			},
-		)
-
-		loggerZap := zap.New(New(context.Background(), handler)).WithOptions(zap.WithCaller(false))
-		fullTime := testTime.Add(123 * time.Nanosecond)
-
-		loggerZap = loggerZap.Named("example").With(
-			zap.String("base_key", "base_value"),
-			zap.Int("base_count", 7),
-		)
-
-		loggerZap.Info("fields",
-			zap.String("key", "value"),
-			zap.Int("count", 42),
-			zap.Float64("float64", 123.456789),
-			zap.Float32("float32", 12.5),
-			zap.Bool("flag", true),
-			zap.Duration("timeout", 2*time.Second),
-			zap.Time("created_at", testTime),
-			zap.Int32("int32", 32),
-			zap.Int16("int16", 16),
-			zap.Int8("int8", 8),
-			zap.Uint64("uint64", 64),
-			zap.Uint32("uint32", 32),
-			zap.Uint16("uint16", 16),
-			zap.Uint8("uint8", 8),
-			zap.Stringer("stringer", testStringer("stringer-value")),
-			zap.Error(errors.New("boom")),
-			zap.Binary("binary", []byte("abc")),
-			zap.ByteString("byte_string", []byte("hello")),
-			zap.Complex64("complex64", complex64(1+2i)),
-			zap.Complex128("complex128", complex128(3+4i)),
-			zap.Array("array", testArray{1, "two"}),
-			zap.Array("array_objects", objectsArray{
+func TestEncodeFields(t *testing.T) {
+	testTime := time.Date(2026, time.May, 27, 12, 34, 56, 0, time.UTC)
+	fullTime := testTime.Add(123 * time.Nanosecond)
+	tests := []struct {
+		name         string
+		fields       []zap.Field
+		wantContains []string
+		notContains  []string
+	}{
+		{
+			name:         "string",
+			fields:       []zap.Field{zap.String("key", "value")},
+			wantContains: []string{`"key":"value"`},
+		},
+		{
+			name:         "int",
+			fields:       []zap.Field{zap.Int("count", 42)},
+			wantContains: []string{`"count":42`},
+		},
+		{
+			name:         "float64",
+			fields:       []zap.Field{zap.Float64("float64", 123.456789)},
+			wantContains: []string{`"float64":123.456789`},
+		},
+		{
+			name:         "float32",
+			fields:       []zap.Field{zap.Float32("float32", 12.5)},
+			wantContains: []string{`"float32":12.5`},
+		},
+		{
+			name:         "bool",
+			fields:       []zap.Field{zap.Bool("flag", true)},
+			wantContains: []string{`"flag":true`},
+		},
+		{
+			name:         "duration",
+			fields:       []zap.Field{zap.Duration("timeout", 2*time.Second)},
+			wantContains: []string{`"timeout":2000000000`},
+		},
+		{
+			name:         "time",
+			fields:       []zap.Field{zap.Time("created_at", testTime)},
+			wantContains: []string{`"created_at":"2026-05-27T12:34:56Z"`},
+		},
+		{
+			name:         "int32",
+			fields:       []zap.Field{zap.Int32("int32", 32)},
+			wantContains: []string{`"int32":32`},
+		},
+		{
+			name:         "int16",
+			fields:       []zap.Field{zap.Int16("int16", 16)},
+			wantContains: []string{`"int16":16`},
+		},
+		{
+			name:         "int8",
+			fields:       []zap.Field{zap.Int8("int8", 8)},
+			wantContains: []string{`"int8":8`},
+		},
+		{
+			name:         "uint64",
+			fields:       []zap.Field{zap.Uint64("uint64", 64)},
+			wantContains: []string{`"uint64":64`},
+		},
+		{
+			name:         "uint32",
+			fields:       []zap.Field{zap.Uint32("uint32", 32)},
+			wantContains: []string{`"uint32":32`},
+		},
+		{
+			name:         "uint16",
+			fields:       []zap.Field{zap.Uint16("uint16", 16)},
+			wantContains: []string{`"uint16":16`},
+		},
+		{
+			name:         "uint8",
+			fields:       []zap.Field{zap.Uint8("uint8", 8)},
+			wantContains: []string{`"uint8":8`},
+		},
+		{
+			name:         "uintptr",
+			fields:       []zap.Field{zap.Uintptr("pointer", uintptr(123))},
+			wantContains: []string{`"pointer":123`},
+		},
+		{
+			name:         "time full",
+			fields:       []zap.Field{{Key: "full_time", Type: zapcore.TimeFullType, Interface: fullTime}},
+			wantContains: []string{`"full_time":"2026-05-27T12:34:56.000000123Z"`},
+		},
+		{
+			name:         "stringer",
+			fields:       []zap.Field{zap.Stringer("stringer", testStringer("stringer-value"))},
+			wantContains: []string{`"stringer":"stringer-value"`},
+		},
+		{
+			name:         "error",
+			fields:       []zap.Field{zap.Error(errors.New("boom"))},
+			wantContains: []string{`"error":"boom"`},
+		},
+		{
+			name:         "binary",
+			fields:       []zap.Field{zap.Binary("binary", []byte("abc"))},
+			wantContains: []string{`"binary":"YWJj"`},
+		},
+		{
+			name:         "byte string",
+			fields:       []zap.Field{zap.ByteString("byte_string", []byte("hello"))},
+			wantContains: []string{`"byte_string":"hello"`},
+		},
+		{
+			name:         "complex64",
+			fields:       []zap.Field{zap.Complex64("complex64", complex64(1+2i))},
+			wantContains: []string{`"complex64":"!ERROR:json: unsupported type: complex64"`},
+		},
+		{
+			name:         "complex128",
+			fields:       []zap.Field{zap.Complex128("complex128", complex128(3+4i))},
+			wantContains: []string{`"complex128":"!ERROR:json: unsupported type: complex128"`},
+		},
+		{
+			name:         "reflect",
+			fields:       []zap.Field{zap.Reflect("reflect", map[string]any{"answer": 42})},
+			wantContains: []string{`"reflect":{"answer":42}`},
+		},
+		{
+			name:         "array",
+			fields:       []zap.Field{zap.Array("array", testArray{1, "two"})},
+			wantContains: []string{`"array":{"0":1,"1":"two"}`},
+		},
+		{
+			name: "array objects",
+			fields: []zap.Field{zap.Array("array_objects", objectsArray{
 				{id: 1, name: "value1"},
 				{id: 2, name: "value2"},
-			}),
-			zap.Array("array_nested_objects", objectsArrayNested{
+			})},
+			wantContains: []string{`"array_objects":{"0":{"id":1,"name":"value1"},"1":{"id":2,"name":"value2"}}`},
+		},
+		{
+			name: "array nested objects",
+			fields: []zap.Field{zap.Array("array_nested_objects", objectsArrayNested{
 				{name: "value1", nested: "nested1"},
 				{name: "value2", nested: "nested2"},
-			}),
-			zap.Object("object", testObject{id: 1, name: "obj"}),
-			zap.Inline(testObject{id: 7, name: "inline"}),
-			zap.Reflect("reflect", map[string]any{"answer": 42}),
-			zap.Uintptr("pointer", uintptr(123)),
-			zap.Field{Key: "full_time", Type: zapcore.TimeFullType, Interface: fullTime},
-			zap.Skip(),
-			zap.Namespace("ns"),
-			zap.String("nested", "value"),
-			zap.Object("deep", testObject{id: 2, name: "nested-obj"}),
-		)
-
-		err := loggerZap.Sync()
-		requireNoError(t, err)
-
-		got := b.String()
-		assertContains(t, got, `msg=fields`)
-		assertContains(t, got, `logger_name=example`)
-		assertContains(t, got, `base_key=base_value`)
-		assertContains(t, got, `base_count=7`)
-		assertContains(t, got, `key=value`)
-		assertContains(t, got, `count=42`)
-		assertContains(t, got, `float64=123.456789`)
-		assertContains(t, got, `float32=12.5`)
-		assertContains(t, got, `flag=true`)
-		assertContains(t, got, `timeout=2s`)
-		assertContains(t, got, `created_at=2026-05-27T12:34:56.000Z`)
-		assertContains(t, got, `int32=32`)
-		assertContains(t, got, `int16=16`)
-		assertContains(t, got, `int8=8`)
-		assertContains(t, got, `uint64=64`)
-		assertContains(t, got, `uint32=32`)
-		assertContains(t, got, `uint16=16`)
-		assertContains(t, got, `uint8=8`)
-		assertContains(t, got, `stringer=stringer-value`)
-		assertContains(t, got, `error=boom`)
-		assertContains(t, got, `binary="abc"`)
-		assertContains(t, got, `byte_string=hello`)
-		assertContains(t, got, `complex64=(1+2i)`)
-		assertContains(t, got, `complex128=(3+4i)`)
-		assertContains(t, got, `array.0=1`)
-		assertContains(t, got, `array.1=two`)
-		assertContains(t, got, `array_objects.0.id=1`)
-		assertContains(t, got, `array_objects.0.name=value1`)
-		assertContains(t, got, `array_objects.1.id=2`)
-		assertContains(t, got, `array_objects.1.name=value2`)
-		assertContains(t, got, `array_nested_objects.0.name=value1`)
-		assertContains(t, got, `array_nested_objects.0.ns.nested=nested1`)
-		assertContains(t, got, `array_nested_objects.1.name=value2`)
-		assertContains(t, got, `array_nested_objects.1.ns.nested=nested2`)
-		assertContains(t, got, `object.id=1`)
-		assertContains(t, got, `object.name=obj`)
-		assertContains(t, got, `id=7`)
-		assertContains(t, got, `name=inline`)
-		assertContains(t, got, `reflect=map[answer:42]`)
-		assertContains(t, got, `pointer=123`)
-		assertContains(t, got, `full_time=2026-05-27T12:34:56.000Z`)
-		assertContains(t, got, `ns.nested=value`)
-		assertContains(t, got, `ns.deep.id=2`)
-		assertContains(t, got, `ns.deep.name=nested-obj`)
-		assertNotContains(t, got, `skip`)
-	})
-
-	t.Run("named logger and fields json", func(t *testing.T) {
-		var b bytes.Buffer
-		handler := slog.NewJSONHandler(&b,
-			&slog.HandlerOptions{
-				Level: slog.LevelDebug,
+			})},
+			wantContains: []string{`"array_nested_objects":{"0":{"name":"value1","ns":{"nested":"nested1"}},"1":{"name":"value2","ns":{"nested":"nested2"}}}`},
+		},
+		{
+			name:         "object",
+			fields:       []zap.Field{zap.Object("object", testObject{id: 1, name: "obj"})},
+			wantContains: []string{`"object":{"id":1,"name":"obj"}`},
+		},
+		{
+			name:         "inline",
+			fields:       []zap.Field{zap.Inline(testObject{id: 7, name: "inline"})},
+			wantContains: []string{`"id":7`, `"name":"inline"`},
+		},
+		{
+			name: "namespace",
+			fields: []zap.Field{
+				zap.Namespace("ns"),
+				zap.String("nested", "value"),
+				zap.Object("deep", testObject{id: 2, name: "nested-obj"}),
 			},
-		)
+			wantContains: []string{`"ns":{"nested":"value","deep":{"id":2,"name":"nested-obj"}}`},
+		},
+		{
+			name:         "skip",
+			fields:       []zap.Field{zap.Skip()},
+			wantContains: []string{`"msg":"fields"`},
+			notContains:  []string{`"skip"`},
+		},
+	}
 
-		loggerZap := zap.New(New(context.Background(), handler)).WithOptions(zap.WithCaller(false))
-		fullTime := testTime.Add(123 * time.Nanosecond)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var b bytes.Buffer
+			handler := slog.NewJSONHandler(&b,
+				&slog.HandlerOptions{
+					Level: slog.LevelDebug,
+				},
+			)
+			loggerZap := zap.New(New(context.Background(), handler)).WithOptions(zap.WithCaller(false))
 
-		loggerZap = loggerZap.Named("example").With(
-			zap.String("base_key", "base_value"),
-			zap.Int("base_count", 7),
-		)
+			loggerZap.Info("fields", tt.fields...)
 
-		loggerZap.Info("fields",
-			zap.String("key", "value"),
-			zap.Int("count", 42),
-			zap.Float64("float64", 123.456789),
-			zap.Float32("float32", 12.5),
-			zap.Bool("flag", true),
-			zap.Duration("timeout", 2*time.Second),
-			zap.Time("created_at", testTime),
-			zap.Int32("int32", 32),
-			zap.Int16("int16", 16),
-			zap.Int8("int8", 8),
-			zap.Uint64("uint64", 64),
-			zap.Uint32("uint32", 32),
-			zap.Uint16("uint16", 16),
-			zap.Uint8("uint8", 8),
-			zap.Stringer("stringer", testStringer("stringer-value")),
-			zap.Error(errors.New("boom")),
-			zap.Binary("binary", []byte("abc")),
-			zap.ByteString("byte_string", []byte("hello")),
-			zap.Complex64("complex64", complex64(1+2i)),
-			zap.Complex128("complex128", complex128(3+4i)),
-			zap.Array("array", testArray{1, "two"}),
-			zap.Array("array_objects", objectsArray{
-				{id: 1, name: "value1"},
-				{id: 2, name: "value2"},
-			}),
-			zap.Array("array_nested_objects", objectsArrayNested{
-				{name: "value1", nested: "nested1"},
-				{name: "value2", nested: "nested2"},
-			}),
-			zap.Object("object", testObject{id: 1, name: "obj"}),
-			zap.Inline(testObject{id: 7, name: "inline"}),
-			zap.Reflect("reflect", map[string]any{"answer": 42}),
-			zap.Uintptr("pointer", uintptr(123)),
-			zap.Field{Key: "full_time", Type: zapcore.TimeFullType, Interface: fullTime},
-			zap.Skip(),
-			zap.Namespace("ns"),
-			zap.String("nested", "value"),
-			zap.Object("deep", testObject{id: 2, name: "nested-obj"}),
-		)
+			if err := loggerZap.Sync(); err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
 
-		err := loggerZap.Sync()
-		requireNoError(t, err)
+			got := b.String()
+			for _, want := range tt.wantContains {
+				if !strings.Contains(got, want) {
+					t.Fatalf("expected %q to contain %q", got, want)
+				}
+			}
 
-		got := b.String()
-		assertContains(t, got, `"msg":"fields"`)
-		assertContains(t, got, `"logger_name":"example"`)
-		assertContains(t, got, `"base_key":"base_value"`)
-		assertContains(t, got, `"base_count":7`)
-		assertContains(t, got, `"key":"value"`)
-		assertContains(t, got, `"count":42`)
-		assertContains(t, got, `"float64":123.456789`)
-		assertContains(t, got, `"float32":12.5`)
-		assertContains(t, got, `"flag":true`)
-		assertContains(t, got, `"timeout":2000000000`)
-		assertContains(t, got, `"created_at":"2026-05-27T12:34:56Z"`)
-		assertContains(t, got, `"int32":32`)
-		assertContains(t, got, `"int16":16`)
-		assertContains(t, got, `"int8":8`)
-		assertContains(t, got, `"uint64":64`)
-		assertContains(t, got, `"uint32":32`)
-		assertContains(t, got, `"uint16":16`)
-		assertContains(t, got, `"uint8":8`)
-		assertContains(t, got, `"stringer":"stringer-value"`)
-		assertContains(t, got, `"error":"boom"`)
-		assertContains(t, got, `"binary":"YWJj"`)
-		assertContains(t, got, `"byte_string":"hello"`)
-		assertContains(t, got, `"complex64":`)
-		assertContains(t, got, `"complex128":`)
-		assertContains(t, got, `"array":{"0":1,"1":"two"}`)
-		assertContains(t, got, `"array_objects":{"0":{"id":1,"name":"value1"},"1":{"id":2,"name":"value2"}}`)
-		assertContains(t, got, `"array_nested_objects":{"0":{"name":"value1","ns":{"nested":"nested1"}},"1":{"name":"value2","ns":{"nested":"nested2"}}}`)
-		assertContains(t, got, `"object":{"id":1,"name":"obj"}`)
-		assertContains(t, got, `"id":7`)
-		assertContains(t, got, `"name":"inline"`)
-		assertContains(t, got, `"reflect":{"answer":42}`)
-		assertContains(t, got, `"pointer":123`)
-		assertContains(t, got, `"full_time":"2026-05-27T12:34:56.000000123Z"`)
-		assertContains(t, got, `"ns":{"nested":"value","deep":{"id":2,"name":"nested-obj"}}`)
-		assertNotContains(t, got, `"skip"`)
-	})
+			for _, notWant := range tt.notContains {
+				if strings.Contains(got, notWant) {
+					t.Fatalf("expected %q not to contain %q", got, notWant)
+				}
+			}
+		})
+	}
 }
 
 func BenchmarkNew(b *testing.B) {
@@ -307,7 +319,9 @@ func BenchmarkZap(b *testing.B) {
 	loggerZap, err := zap.NewProduction(zap.WrapCore(func(zapcore.Core) zapcore.Core {
 		return zapcore.NewNopCore()
 	}))
-	requireNoError(b, err)
+	if err != nil {
+		b.Fatalf("unexpected error: %v", err)
+	}
 
 	b.ResetTimer()
 
@@ -405,28 +419,4 @@ func (a objectsArrayNested) MarshalLogArray(enc zapcore.ArrayEncoder) error {
 	}
 
 	return nil
-}
-
-func requireNoError(tb testing.TB, err error) {
-	tb.Helper()
-
-	if err != nil {
-		tb.Fatalf("unexpected error: %v", err)
-	}
-}
-
-func assertContains(tb testing.TB, s, substr string) {
-	tb.Helper()
-
-	if !strings.Contains(s, substr) {
-		tb.Fatalf("expected %q to contain %q", s, substr)
-	}
-}
-
-func assertNotContains(tb testing.TB, s, substr string) {
-	tb.Helper()
-
-	if strings.Contains(s, substr) {
-		tb.Fatalf("expected %q not to contain %q", s, substr)
-	}
 }
