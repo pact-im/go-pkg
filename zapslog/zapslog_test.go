@@ -1,12 +1,10 @@
 package zapslog
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"log/slog"
 	"reflect"
-	"strings"
 	"testing"
 	"time"
 
@@ -14,14 +12,33 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
+type handler struct {
+	level   slog.Level
+	records []slog.Record
+}
+
+func (h *handler) Enabled(_ context.Context, lev slog.Level) bool {
+	return lev >= h.level
+}
+
+func (h *handler) Handle(_ context.Context, rec slog.Record) error {
+	h.records = append(h.records, rec)
+	return nil
+}
+
+func (h *handler) WithAttrs([]slog.Attr) slog.Handler {
+	return h
+}
+
+func (h *handler) WithGroup(string) slog.Handler {
+	return h
+}
+
 func TestNew(t *testing.T) {
 	t.Run("levels", func(t *testing.T) {
-		var b bytes.Buffer
-		handler := slog.NewTextHandler(&b,
-			&slog.HandlerOptions{
-				Level: slog.LevelDebug,
-			},
-		)
+		handler := &handler{
+			level: slog.LevelDebug,
+		}
 
 		loggerZap := zap.New(New(context.Background(), handler))
 
@@ -35,28 +52,28 @@ func TestNew(t *testing.T) {
 			t.Fatalf("unexpected error: %v", err)
 		}
 
-		got := b.String()
-		if !strings.Contains(got, `level=DEBUG msg="debug level"`) {
-			t.Fatalf("expected %q to contain %q", got, `level=DEBUG msg="debug level"`)
+		if len(handler.records) != 4 {
+			t.Fatalf("expected 4 records, got %d", len(handler.records))
 		}
-		if !strings.Contains(got, `level=INFO msg="info level"`) {
-			t.Fatalf("expected %q to contain %q", got, `level=INFO msg="info level"`)
+
+		if handler.records[0].Level != slog.LevelDebug || handler.records[0].Message != "debug level" {
+			t.Fatalf("unexpected first record: level=%v message=%q", handler.records[0].Level, handler.records[0].Message)
 		}
-		if !strings.Contains(got, `level=WARN msg="warn level"`) {
-			t.Fatalf("expected %q to contain %q", got, `level=WARN msg="warn level"`)
+		if handler.records[1].Level != slog.LevelInfo || handler.records[1].Message != "info level" {
+			t.Fatalf("unexpected second record: level=%v message=%q", handler.records[1].Level, handler.records[1].Message)
 		}
-		if !strings.Contains(got, `level=ERROR msg="error level"`) {
-			t.Fatalf("expected %q to contain %q", got, `level=ERROR msg="error level"`)
+		if handler.records[2].Level != slog.LevelWarn || handler.records[2].Message != "warn level" {
+			t.Fatalf("unexpected third record: level=%v message=%q", handler.records[2].Level, handler.records[2].Message)
+		}
+		if handler.records[3].Level != slog.LevelError || handler.records[3].Message != "error level" {
+			t.Fatalf("unexpected fourth record: level=%v message=%q", handler.records[3].Level, handler.records[3].Message)
 		}
 	})
 
 	t.Run("level filtering", func(t *testing.T) {
-		var b bytes.Buffer
-		handler := slog.NewTextHandler(&b,
-			&slog.HandlerOptions{
-				Level: slog.LevelInfo,
-			},
-		)
+		handler := &handler{
+			level: slog.LevelInfo,
+		}
 
 		loggerZap := zap.New(New(context.Background(), handler)).WithOptions(zap.WithCaller(false))
 
@@ -68,12 +85,12 @@ func TestNew(t *testing.T) {
 			t.Fatalf("unexpected error: %v", err)
 		}
 
-		got := b.String()
-		if strings.Contains(got, `skip debug`) {
-			t.Fatalf("expected %q not to contain %q", got, `skip debug`)
+		if len(handler.records) != 1 {
+			t.Fatalf("expected 1 record, got %d", len(handler.records))
 		}
-		if !strings.Contains(got, `keep info`) {
-			t.Fatalf("expected %q to contain %q", got, `keep info`)
+
+		if handler.records[0].Level != slog.LevelInfo || handler.records[0].Message != "keep info" {
+			t.Fatalf("unexpected record: level=%v message=%q", handler.records[0].Level, handler.records[0].Message)
 		}
 	})
 }
