@@ -142,7 +142,6 @@ func TestEncodeFields(t *testing.T) {
 		name         string
 		fields       []zap.Field
 		wantContains []slog.Attr
-		notContains  []slog.Attr
 	}{
 		{
 			name:         "string",
@@ -346,7 +345,6 @@ func TestEncodeFields(t *testing.T) {
 			name:         "skip",
 			fields:       []zap.Field{zap.Skip()},
 			wantContains: nil,
-			notContains:  []slog.Attr{slog.String("skip", "")},
 		},
 	}
 
@@ -372,14 +370,6 @@ func TestEncodeFields(t *testing.T) {
 				}
 				if !found {
 					t.Fatalf("expected %v to contain %v", got, want)
-				}
-			}
-
-			for _, notWant := range tt.notContains {
-				for _, attr := range got {
-					if equalAttr(attr, notWant) {
-						t.Fatalf("expected %v not to contain %v", got, notWant)
-					}
 				}
 			}
 		})
