@@ -5,7 +5,7 @@ go 1.25.0
 require (
 	go.pact.im/x/flaky v0.0.19
 	go.pact.im/x/option v0.0.19
-	go.pact.im/x/process v0.0.18
+	go.pact.im/x/process v0.0.19
 )
 
 require (
