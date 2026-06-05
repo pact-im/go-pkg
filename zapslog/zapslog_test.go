@@ -93,6 +93,46 @@ func TestNew(t *testing.T) {
 			t.Fatalf("unexpected record: level=%v message=%q", handler.records[0].Level, handler.records[0].Message)
 		}
 	})
+
+	t.Run("with namespace", func(t *testing.T) {
+		handler := &handler{
+			level: slog.LevelDebug,
+		}
+
+		loggerZap := zap.New(New(context.Background(), handler)).WithOptions(zap.WithCaller(false))
+
+		newCore := loggerZap.With(zap.Namespace("foo"))
+		newCore = newCore.With(zap.String("key", "hello"))
+		newCore.Info("msg", zap.Int("int", 232))
+
+		if err := newCore.Sync(); err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		if len(handler.records) != 1 {
+			t.Fatalf("expected 1 record, got %d", len(handler.records))
+		}
+
+		record := handler.records[0]
+		if record.Level != slog.LevelInfo || record.Message != "msg" {
+			t.Fatalf("unexpected record: level=%v message=%q", record.Level, record.Message)
+		}
+
+		var attrs []slog.Attr
+		record.Attrs(func(attr slog.Attr) bool {
+			attrs = append(attrs, attr)
+			return true
+		})
+
+		if len(attrs) != 1 {
+			t.Fatalf("expected 1 slog.Attr, got %d", len(attrs))
+		}
+
+		want := slog.GroupAttrs("foo", slog.String("key", "hello"), slog.Int("int", 232))
+		if got := attrs[0]; !equalAttr(got, want) {
+			t.Fatalf("expected %v, got %v", want, got)
+		}
+	})
 }
 
 func TestEncodeFields(t *testing.T) {
@@ -318,10 +358,14 @@ func TestEncodeFields(t *testing.T) {
 			}
 			got := enc.Attrs()
 
+			if len(got) != len(tt.wantContains) {
+				t.Fatalf("expected %d slog.Attrs, got %d", len(tt.wantContains), len(got))
+			}
+
 			for _, want := range tt.wantContains {
 				found := false
 				for _, attr := range got {
-					if reflect.DeepEqual(attr, want) {
+					if equalAttr(attr, want) {
 						found = true
 						break
 					}
@@ -333,7 +377,7 @@ func TestEncodeFields(t *testing.T) {
 
 			for _, notWant := range tt.notContains {
 				for _, attr := range got {
-					if reflect.DeepEqual(attr, notWant) {
+					if equalAttr(attr, notWant) {
 						t.Fatalf("expected %v not to contain %v", got, notWant)
 					}
 				}
@@ -480,4 +524,30 @@ func (a objectsArrayNested) MarshalLogArray(enc zapcore.ArrayEncoder) error {
 	}
 
 	return nil
+}
+
+func equalAttr(a, b slog.Attr) bool {
+	if a.Key != b.Key {
+		return false
+	}
+	if a.Value.Kind() != b.Value.Kind() {
+		return false
+	}
+	if a.Value.Kind() == slog.KindGroup {
+		ga := a.Value.Group()
+		gb := b.Value.Group()
+		if len(ga) != len(gb) {
+			return false
+		}
+		for i := range ga {
+			if !equalAttr(ga[i], gb[i]) {
+				return false
+			}
+		}
+		return true
+	}
+	if a.Value.Kind() == slog.KindAny || a.Value.Kind() == slog.KindLogValuer {
+		return reflect.DeepEqual(a.Value.Any(), b.Value.Any())
+	}
+	return a.Equal(b)
 }

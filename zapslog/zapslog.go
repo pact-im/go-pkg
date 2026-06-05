@@ -23,6 +23,7 @@ func New(ctx context.Context, handler slog.Handler) *Core {
 type Core struct {
 	ctx     context.Context
 	handler slog.Handler
+	fields  []zapcore.Field
 }
 
 // Enabled reports whether the underlying slog handler accepts the given level.
@@ -42,11 +43,17 @@ func encodeFields(fields []zapcore.Field) []slog.Attr {
 
 // With implements the [zapcore.Core] interface.
 func (c *Core) With(fields []zapcore.Field) zapcore.Core {
-	handler := c.handler.WithAttrs(encodeFields(fields))
+	allFields := fields
+	if len(c.fields) != 0 {
+		allFields = make([]zapcore.Field, 0, len(c.fields)+len(fields))
+		allFields = append(allFields, c.fields...)
+		allFields = append(allFields, fields...)
+	}
 
 	return &Core{
 		ctx:     c.ctx,
-		handler: handler,
+		handler: c.handler,
+		fields:  allFields,
 	}
 }
 
@@ -67,7 +74,14 @@ func (c *Core) Write(entry zapcore.Entry, fields []zapcore.Field) error {
 		record.AddAttrs(slog.String("logger_name", entry.LoggerName))
 	}
 
-	record.AddAttrs(encodeFields(fields)...)
+	allFields := fields
+	if len(c.fields) != 0 {
+		allFields = make([]zapcore.Field, 0, len(c.fields)+len(fields))
+		allFields = append(allFields, c.fields...)
+		allFields = append(allFields, fields...)
+	}
+
+	record.AddAttrs(encodeFields(allFields)...)
 
 	if entry.Stack != "" {
 		record.AddAttrs(slog.String("stack", entry.Stack))
