@@ -1,10 +1,10 @@
 package zapslog
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"log/slog"
-	"reflect"
 	"testing"
 	"time"
 
@@ -129,7 +129,7 @@ func TestNew(t *testing.T) {
 		}
 
 		want := slog.GroupAttrs("foo", slog.String("key", "hello"), slog.Int("int", 232))
-		if got := attrs[0]; !equalAttr(got, want) {
+		if got := attrs[0]; !slogAttrEqual(got, want) {
 			t.Fatalf("expected %v, got %v", want, got)
 		}
 	})
@@ -255,8 +255,8 @@ func TestEncodeFields(t *testing.T) {
 		},
 		{
 			name:         "reflect",
-			fields:       []zap.Field{zap.Reflect("reflect", map[string]any{"answer": 42})},
-			wantContains: []slog.Attr{slog.Any("reflect", map[string]any{"answer": 42})},
+			fields:       []zap.Field{zap.Reflect("reflect", []byte("hello"))},
+			wantContains: []slog.Attr{slog.Any("reflect", []byte("hello"))},
 		},
 		{
 			name:   "array",
@@ -363,7 +363,7 @@ func TestEncodeFields(t *testing.T) {
 			for _, want := range tt.wantContains {
 				found := false
 				for _, attr := range got {
-					if equalAttr(attr, want) {
+					if slogAttrEqual(attr, want) {
 						found = true
 						break
 					}
@@ -516,28 +516,15 @@ func (a objectsArrayNested) MarshalLogArray(enc zapcore.ArrayEncoder) error {
 	return nil
 }
 
-func equalAttr(a, b slog.Attr) bool {
-	if a.Key != b.Key {
-		return false
-	}
-	if a.Value.Kind() != b.Value.Kind() {
-		return false
-	}
-	if a.Value.Kind() == slog.KindGroup {
-		ga := a.Value.Group()
-		gb := b.Value.Group()
-		if len(ga) != len(gb) {
-			return false
-		}
-		for i := range ga {
-			if !equalAttr(ga[i], gb[i]) {
-				return false
-			}
-		}
-		return true
-	}
-	if a.Value.Kind() == slog.KindAny || a.Value.Kind() == slog.KindLogValuer {
-		return reflect.DeepEqual(a.Value.Any(), b.Value.Any())
+func slogAttrEqual(a, b slog.Attr) bool {
+	return a.Key == b.Key && slogValueEqual(a.Value, b.Value)
+}
+
+func slogValueEqual(a, b slog.Value) bool {
+	aSlice, aOK := a.Any().([]byte)
+	bSlice, bOK := b.Any().([]byte)
+	if aOK || bOK {
+		return aOK && bOK && bytes.Equal(aSlice, bSlice)
 	}
 	return a.Equal(b)
 }
