@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"log/slog"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -83,128 +84,133 @@ func TestEncodeFields(t *testing.T) {
 	tests := []struct {
 		name         string
 		fields       []zap.Field
-		wantContains []string
-		notContains  []string
+		wantContains []slog.Attr
+		notContains  []slog.Attr
 	}{
 		{
 			name:         "string",
 			fields:       []zap.Field{zap.String("key", "value")},
-			wantContains: []string{`"key":"value"`},
+			wantContains: []slog.Attr{slog.String("key", "value")},
 		},
 		{
 			name:         "int",
 			fields:       []zap.Field{zap.Int("count", 42)},
-			wantContains: []string{`"count":42`},
+			wantContains: []slog.Attr{slog.Int("count", 42)},
 		},
 		{
 			name:         "float64",
 			fields:       []zap.Field{zap.Float64("float64", 123.456789)},
-			wantContains: []string{`"float64":123.456789`},
+			wantContains: []slog.Attr{slog.Float64("float64", 123.456789)},
 		},
 		{
 			name:         "float32",
 			fields:       []zap.Field{zap.Float32("float32", 12.5)},
-			wantContains: []string{`"float32":12.5`},
+			wantContains: []slog.Attr{slog.Float64("float32", 12.5)},
 		},
 		{
 			name:         "bool",
 			fields:       []zap.Field{zap.Bool("flag", true)},
-			wantContains: []string{`"flag":true`},
+			wantContains: []slog.Attr{slog.Bool("flag", true)},
 		},
 		{
 			name:         "duration",
 			fields:       []zap.Field{zap.Duration("timeout", 2*time.Second)},
-			wantContains: []string{`"timeout":2000000000`},
+			wantContains: []slog.Attr{slog.Duration("timeout", 2*time.Second)},
 		},
 		{
 			name:         "time",
 			fields:       []zap.Field{zap.Time("created_at", testTime)},
-			wantContains: []string{`"created_at":"2026-05-27T12:34:56Z"`},
+			wantContains: []slog.Attr{slog.Time("created_at", testTime)},
 		},
 		{
 			name:         "int32",
 			fields:       []zap.Field{zap.Int32("int32", 32)},
-			wantContains: []string{`"int32":32`},
+			wantContains: []slog.Attr{slog.Int64("int32", 32)},
 		},
 		{
 			name:         "int16",
 			fields:       []zap.Field{zap.Int16("int16", 16)},
-			wantContains: []string{`"int16":16`},
+			wantContains: []slog.Attr{slog.Int64("int16", 16)},
 		},
 		{
 			name:         "int8",
 			fields:       []zap.Field{zap.Int8("int8", 8)},
-			wantContains: []string{`"int8":8`},
+			wantContains: []slog.Attr{slog.Int64("int8", 8)},
 		},
 		{
 			name:         "uint64",
 			fields:       []zap.Field{zap.Uint64("uint64", 64)},
-			wantContains: []string{`"uint64":64`},
+			wantContains: []slog.Attr{slog.Uint64("uint64", 64)},
 		},
 		{
 			name:         "uint32",
 			fields:       []zap.Field{zap.Uint32("uint32", 32)},
-			wantContains: []string{`"uint32":32`},
+			wantContains: []slog.Attr{slog.Uint64("uint32", 32)},
 		},
 		{
 			name:         "uint16",
 			fields:       []zap.Field{zap.Uint16("uint16", 16)},
-			wantContains: []string{`"uint16":16`},
+			wantContains: []slog.Attr{slog.Uint64("uint16", 16)},
 		},
 		{
 			name:         "uint8",
 			fields:       []zap.Field{zap.Uint8("uint8", 8)},
-			wantContains: []string{`"uint8":8`},
+			wantContains: []slog.Attr{slog.Uint64("uint8", 8)},
 		},
 		{
 			name:         "uintptr",
 			fields:       []zap.Field{zap.Uintptr("pointer", uintptr(123))},
-			wantContains: []string{`"pointer":123`},
+			wantContains: []slog.Attr{slog.Uint64("pointer", 123)},
 		},
 		{
 			name:         "time full",
 			fields:       []zap.Field{{Key: "full_time", Type: zapcore.TimeFullType, Interface: fullTime}},
-			wantContains: []string{`"full_time":"2026-05-27T12:34:56.000000123Z"`},
+			wantContains: []slog.Attr{slog.Time("full_time", fullTime)},
 		},
 		{
 			name:         "stringer",
 			fields:       []zap.Field{zap.Stringer("stringer", testStringer("stringer-value"))},
-			wantContains: []string{`"stringer":"stringer-value"`},
+			wantContains: []slog.Attr{slog.String("stringer", "stringer-value")},
 		},
 		{
 			name:         "error",
 			fields:       []zap.Field{zap.Error(errors.New("boom"))},
-			wantContains: []string{`"error":"boom"`},
+			wantContains: []slog.Attr{slog.String("error", "boom")},
 		},
 		{
 			name:         "binary",
 			fields:       []zap.Field{zap.Binary("binary", []byte("abc"))},
-			wantContains: []string{`"binary":"YWJj"`},
+			wantContains: []slog.Attr{slog.Any("binary", []byte("abc"))},
 		},
 		{
 			name:         "byte string",
 			fields:       []zap.Field{zap.ByteString("byte_string", []byte("hello"))},
-			wantContains: []string{`"byte_string":"hello"`},
+			wantContains: []slog.Attr{slog.String("byte_string", "hello")},
 		},
 		{
 			name:         "complex64",
 			fields:       []zap.Field{zap.Complex64("complex64", complex64(1+2i))},
-			wantContains: []string{`"complex64":"!ERROR:json: unsupported type: complex64"`},
+			wantContains: []slog.Attr{slog.Any("complex64", complex64(1+2i))},
 		},
 		{
 			name:         "complex128",
 			fields:       []zap.Field{zap.Complex128("complex128", complex128(3+4i))},
-			wantContains: []string{`"complex128":"!ERROR:json: unsupported type: complex128"`},
+			wantContains: []slog.Attr{slog.Any("complex128", complex128(3+4i))},
 		},
 		{
 			name:         "reflect",
 			fields:       []zap.Field{zap.Reflect("reflect", map[string]any{"answer": 42})},
-			wantContains: []string{`"reflect":{"answer":42}`},
+			wantContains: []slog.Attr{slog.Any("reflect", map[string]any{"answer": 42})},
 		},
 		{
-			name:         "array",
-			fields:       []zap.Field{zap.Array("array", testArray{1, "two"})},
-			wantContains: []string{`"array":{"0":1,"1":"two"}`},
+			name:   "array",
+			fields: []zap.Field{zap.Array("array", testArray{1, "two"})},
+			wantContains: []slog.Attr{
+				slog.GroupAttrs("array",
+					slog.Int64("0", 1),
+					slog.String("1", "two"),
+				),
+			},
 		},
 		{
 			name: "array objects",
@@ -212,7 +218,18 @@ func TestEncodeFields(t *testing.T) {
 				{id: 1, name: "value1"},
 				{id: 2, name: "value2"},
 			})},
-			wantContains: []string{`"array_objects":{"0":{"id":1,"name":"value1"},"1":{"id":2,"name":"value2"}}`},
+			wantContains: []slog.Attr{
+				slog.GroupAttrs("array_objects",
+					slog.GroupAttrs("0",
+						slog.Int("id", 1),
+						slog.String("name", "value1"),
+					),
+					slog.GroupAttrs("1",
+						slog.Int("id", 2),
+						slog.String("name", "value2"),
+					),
+				),
+			},
 		},
 		{
 			name: "array nested objects",
@@ -220,17 +237,36 @@ func TestEncodeFields(t *testing.T) {
 				{name: "value1", nested: "nested1"},
 				{name: "value2", nested: "nested2"},
 			})},
-			wantContains: []string{`"array_nested_objects":{"0":{"name":"value1","ns":{"nested":"nested1"}},"1":{"name":"value2","ns":{"nested":"nested2"}}}`},
+			wantContains: []slog.Attr{
+				slog.GroupAttrs("array_nested_objects",
+					slog.GroupAttrs("0",
+						slog.String("name", "value1"),
+						slog.GroupAttrs("ns", slog.String("nested", "nested1")),
+					),
+					slog.GroupAttrs("1",
+						slog.String("name", "value2"),
+						slog.GroupAttrs("ns", slog.String("nested", "nested2")),
+					),
+				),
+			},
 		},
 		{
-			name:         "object",
-			fields:       []zap.Field{zap.Object("object", testObject{id: 1, name: "obj"})},
-			wantContains: []string{`"object":{"id":1,"name":"obj"}`},
+			name:   "object",
+			fields: []zap.Field{zap.Object("object", testObject{id: 1, name: "obj"})},
+			wantContains: []slog.Attr{
+				slog.GroupAttrs("object",
+					slog.Int("id", 1),
+					slog.String("name", "obj"),
+				),
+			},
 		},
 		{
-			name:         "inline",
-			fields:       []zap.Field{zap.Inline(testObject{id: 7, name: "inline"})},
-			wantContains: []string{`"id":7`, `"name":"inline"`},
+			name:   "inline",
+			fields: []zap.Field{zap.Inline(testObject{id: 7, name: "inline"})},
+			wantContains: []slog.Attr{
+				slog.Int("id", 7),
+				slog.String("name", "inline"),
+			},
 		},
 		{
 			name: "namespace",
@@ -239,42 +275,50 @@ func TestEncodeFields(t *testing.T) {
 				zap.String("nested", "value"),
 				zap.Object("deep", testObject{id: 2, name: "nested-obj"}),
 			},
-			wantContains: []string{`"ns":{"nested":"value","deep":{"id":2,"name":"nested-obj"}}`},
+			wantContains: []slog.Attr{
+				slog.GroupAttrs("ns",
+					slog.String("nested", "value"),
+					slog.GroupAttrs("deep",
+						slog.Int("id", 2),
+						slog.String("name", "nested-obj"),
+					),
+				),
+			},
 		},
 		{
 			name:         "skip",
 			fields:       []zap.Field{zap.Skip()},
-			wantContains: []string{`"msg":"fields"`},
-			notContains:  []string{`"skip"`},
+			wantContains: nil,
+			notContains:  []slog.Attr{slog.String("skip", "")},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var b bytes.Buffer
-			handler := slog.NewJSONHandler(&b,
-				&slog.HandlerOptions{
-					Level: slog.LevelDebug,
-				},
-			)
-			loggerZap := zap.New(New(context.Background(), handler)).WithOptions(zap.WithCaller(false))
-
-			loggerZap.Info("fields", tt.fields...)
-
-			if err := loggerZap.Sync(); err != nil {
-				t.Fatalf("unexpected error: %v", err)
+			enc := newObjectEncoder(len(tt.fields))
+			for _, field := range tt.fields {
+				field.AddTo(enc)
 			}
+			got := enc.Attrs()
 
-			got := b.String()
 			for _, want := range tt.wantContains {
-				if !strings.Contains(got, want) {
-					t.Fatalf("expected %q to contain %q", got, want)
+				found := false
+				for _, attr := range got {
+					if reflect.DeepEqual(attr, want) {
+						found = true
+						break
+					}
+				}
+				if !found {
+					t.Fatalf("expected %v to contain %v", got, want)
 				}
 			}
 
 			for _, notWant := range tt.notContains {
-				if strings.Contains(got, notWant) {
-					t.Fatalf("expected %q not to contain %q", got, notWant)
+				for _, attr := range got {
+					if reflect.DeepEqual(attr, notWant) {
+						t.Fatalf("expected %v not to contain %v", got, notWant)
+					}
 				}
 			}
 		})
