@@ -1,6 +1,6 @@
 module go.pact.im/x/goupdate
 
-go 1.25.0
+go 1.26.0
 
 require (
 	github.com/kr/text v0.2.0

@@ -1,6 +1,6 @@
 module go.pact.im/x/httprange
 
-go 1.25.0
+go 1.26.0
 
 require (
 	github.com/rogpeppe/ioseq v0.0.0-20250408075941-a06b97ca7a06
