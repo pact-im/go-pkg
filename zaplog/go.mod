@@ -1,3 +1,4 @@
+// Deprecated: do not use.
 module go.pact.im/x/zaplog
 
 go 1.26.0
