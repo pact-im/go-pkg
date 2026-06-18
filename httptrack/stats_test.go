@@ -5,8 +5,7 @@ import (
 	"net/http"
 	"sync"
 	"testing"
-
-	"go.uber.org/goleak"
+	"testing/synctest"
 )
 
 type testStats struct {
@@ -34,154 +33,154 @@ func statsEqual(a Stats, b testStats) bool {
 }
 
 func TestStatsTrackerAccepted(t *testing.T) {
-	defer goleak.VerifyNone(t)
+	synctest.Test(t, func(t *testing.T) {
+		var connTracker ConnTracker
+		var statsTracker StatsTracker
 
-	var connTracker ConnTracker
-	var statsTracker StatsTracker
+		listener := newTestListener()
 
-	listener := newTestListener()
+		server := &http.Server{
+			ConnState: Compose(
+				&statsTracker,
+				&connTracker,
+			),
+		}
 
-	server := &http.Server{
-		ConnState: Compose(
-			&statsTracker,
-			&connTracker,
-		),
-	}
+		var wg sync.WaitGroup
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			err := server.Serve(listener)
+			if err != nil && !errors.Is(err, http.ErrServerClosed) {
+				panic(err)
+			}
+		}()
+		defer func() {
+			if err := server.Close(); err != nil {
+				panic(err)
+			}
+			wg.Wait()
+			connTracker.Wait()
+		}()
 
-	var wg sync.WaitGroup
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		err := server.Serve(listener)
-		if err != nil && !errors.Is(err, http.ErrServerClosed) {
+		stats := statsTracker.Stats()
+		if !statsEqual(stats, testStats{}) {
+			t.Errorf("expected empty stats, but got %+v", stats)
+		}
+
+		conn := listener.Pipe()
+		// StateNew is set from the Accept loop,
+		// so wait for the next Accept call.
+		listener.Wait()
+
+		stats = statsTracker.Stats()
+		if !statsEqual(stats, testStats{
+			Accepted:      1,
+			AcceptedTotal: 1,
+		}) {
+			t.Errorf("expected http.StateNew connection, but got stats %+v", stats)
+		}
+
+		// Close the connection and wait for http.StateClosed transition.
+		if err := conn.Close(); err != nil {
 			panic(err)
 		}
-	}()
-	defer func() {
-		if err := server.Close(); err != nil {
-			panic(err)
-		}
-		wg.Wait()
 		connTracker.Wait()
-	}()
 
-	stats := statsTracker.Stats()
-	if !statsEqual(stats, testStats{}) {
-		t.Errorf("expected empty stats, but got %+v", stats)
-	}
-
-	conn := listener.Pipe()
-	// StateNew is set from the Accept loop,
-	// so wait for the next Accept call.
-	listener.Wait()
-
-	stats = statsTracker.Stats()
-	if !statsEqual(stats, testStats{
-		Accepted:      1,
-		AcceptedTotal: 1,
-	}) {
-		t.Errorf("expected http.StateNew connection, but got stats %+v", stats)
-	}
-
-	// Close the connection and wait for http.StateClosed transition.
-	if err := conn.Close(); err != nil {
-		panic(err)
-	}
-	connTracker.Wait()
-
-	stats = statsTracker.Stats()
-	if !statsEqual(stats, testStats{
-		AcceptedTotal: 1,
-		ClosedTotal:   1,
-	}) {
-		t.Errorf("expected http.StateClosed connection, but got %+v", stats)
-	}
+		stats = statsTracker.Stats()
+		if !statsEqual(stats, testStats{
+			AcceptedTotal: 1,
+			ClosedTotal:   1,
+		}) {
+			t.Errorf("expected http.StateClosed connection, but got %+v", stats)
+		}
+	})
 }
 
 func TestStatsTrackerActive(t *testing.T) {
-	defer goleak.VerifyNone(t)
+	synctest.Test(t, func(t *testing.T) {
+		var connTracker ConnTracker
+		var statsTracker StatsTracker
 
-	var connTracker ConnTracker
-	var statsTracker StatsTracker
+		ch := make(chan struct{})
 
-	ch := make(chan struct{})
+		listener := newTestListener()
 
-	listener := newTestListener()
+		server := &http.Server{
+			ConnState: Compose(
+				&statsTracker,
+				&connTracker,
+			),
+			Handler: http.HandlerFunc(
+				func(http.ResponseWriter, *http.Request) {
+					ch <- struct{}{}
+					ch <- struct{}{}
+				},
+			),
+		}
 
-	server := &http.Server{
-		ConnState: Compose(
-			&statsTracker,
-			&connTracker,
-		),
-		Handler: http.HandlerFunc(
-			func(http.ResponseWriter, *http.Request) {
-				ch <- struct{}{}
-				ch <- struct{}{}
+		client := &http.Client{
+			Transport: &http.Transport{
+				DialContext: listener.Dial,
 			},
-		),
-	}
-
-	client := &http.Client{
-		Transport: &http.Transport{
-			DialContext: listener.Dial,
-		},
-	}
-
-	var wg sync.WaitGroup
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		err := server.Serve(listener)
-		if err != nil && !errors.Is(err, http.ErrServerClosed) {
-			panic(err)
 		}
-	}()
-	defer func() {
-		if err := server.Close(); err != nil {
-			panic(err)
+
+		var wg sync.WaitGroup
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			err := server.Serve(listener)
+			if err != nil && !errors.Is(err, http.ErrServerClosed) {
+				panic(err)
+			}
+		}()
+		defer func() {
+			if err := server.Close(); err != nil {
+				panic(err)
+			}
+			wg.Wait()
+			connTracker.Wait()
+		}()
+
+		go func() {
+			_, err := client.Get("http://example.com")
+			if err != nil {
+				panic(err)
+			}
+			ch <- struct{}{}
+		}()
+
+		// Wait for the handler and check that connection is in Active state.
+		<-ch
+
+		stats := statsTracker.Stats()
+		if !statsEqual(stats, testStats{
+			AcceptedTotal: 1,
+			ActiveTotal:   1,
+			Active:        1,
+		}) {
+			t.Errorf("expected http.StateActive connection, but got stats %+v", stats)
 		}
-		wg.Wait()
+
+		// Wait for handler to return.
+		<-ch
+
+		// Wait for client to receive response.
+		<-ch
+
+		// Disable keep-alives and wait for the connection to close.
+		server.SetKeepAlivesEnabled(false)
 		connTracker.Wait()
-	}()
+		server.SetKeepAlivesEnabled(true)
 
-	go func() {
-		_, err := client.Get("http://example.com")
-		if err != nil {
-			panic(err)
+		stats = statsTracker.Stats()
+		if !statsEqual(stats, testStats{
+			AcceptedTotal: 1,
+			ActiveTotal:   1,
+			IdleTotal:     1,
+			ClosedTotal:   1,
+		}) {
+			t.Errorf("expected http.StateClosed connection, but got %+v", stats)
 		}
-		ch <- struct{}{}
-	}()
-
-	// Wait for the handler and check that connection is in Active state.
-	<-ch
-
-	stats := statsTracker.Stats()
-	if !statsEqual(stats, testStats{
-		AcceptedTotal: 1,
-		ActiveTotal:   1,
-		Active:        1,
-	}) {
-		t.Errorf("expected http.StateActive connection, but got stats %+v", stats)
-	}
-
-	// Wait for handler to return.
-	<-ch
-
-	// Wait for client to receive response.
-	<-ch
-
-	// Disable keep-alives and wait for the connection to close.
-	server.SetKeepAlivesEnabled(false)
-	connTracker.Wait()
-	server.SetKeepAlivesEnabled(true)
-
-	stats = statsTracker.Stats()
-	if !statsEqual(stats, testStats{
-		AcceptedTotal: 1,
-		ActiveTotal:   1,
-		IdleTotal:     1,
-		ClosedTotal:   1,
-	}) {
-		t.Errorf("expected http.StateClosed connection, but got %+v", stats)
-	}
+	})
 }

@@ -5,12 +5,10 @@ go 1.26.0
 require (
 	go.pact.im/x/netchan v0.0.20
 	go.pact.im/x/process v0.0.20
-	go.uber.org/goleak v1.3.0
 	google.golang.org/grpc v1.75.1
 )
 
 require (
-	github.com/stretchr/testify v1.11.1 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/otel v1.38.0 // indirect
 	go.opentelemetry.io/otel/sdk/metric v1.38.0 // indirect
