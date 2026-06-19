@@ -8,4 +8,4 @@ require (
 	go.pact.im/x/process v0.0.20
 )
 
-require go.pact.im/x/task v0.0.20 // indirect
+require go.pact.im/x/task v0.0.21 // indirect
