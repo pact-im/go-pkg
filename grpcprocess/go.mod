@@ -4,7 +4,7 @@ go 1.26.0
 
 require (
 	go.pact.im/x/netchan v0.0.21
-	go.pact.im/x/process v0.0.20
+	go.pact.im/x/process v0.0.21
 	google.golang.org/grpc v1.75.1
 )
 
