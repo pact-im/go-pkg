@@ -1,5 +1,4 @@
 //go:build linux
-// +build linux
 
 package tests
 
@@ -85,7 +84,7 @@ func TestCore(t *testing.T) {
 
 	t.Run("Send", func(t *testing.T) {
 		allBytes := make([]byte, 256)
-		for i := 0; i < len(allBytes); i++ {
+		for i := range allBytes {
 			allBytes[i] = byte(i)
 		}
 

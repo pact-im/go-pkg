@@ -58,12 +58,12 @@ func runTests(f *flags, w *workspace) (*testReport, error) {
 	c.Dir = w.Root()
 	c.Stdout = &stdout
 	c.Stderr = &stderr
-	var exit *exec.ExitError
-	switch err := c.Run(); {
-	case errors.As(err, &exit):
-		r.Failed = true
-	case err != nil:
-		return nil, err
+	if err := c.Run(); err != nil {
+		if _, ok := errors.AsType[*exec.ExitError](err); ok {
+			r.Failed = true
+		} else {
+			return nil, err
+		}
 	}
 
 	r.Stderr = stderr.Bytes()

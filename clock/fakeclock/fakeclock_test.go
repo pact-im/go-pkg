@@ -221,7 +221,7 @@ func TestTicker(t *testing.T) {
 	c := ticker.C()
 	expectNoC(t, c)
 
-	for i := 0; i < count; i++ {
+	for range count {
 		expectNext(t, sim, c, interval)
 	}
 	if now := sim.Now(); !now.Equal(end) {

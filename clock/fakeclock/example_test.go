@@ -10,17 +10,14 @@ func ExampleClock_Next() {
 	var c Clock
 
 	var wg sync.WaitGroup
-	for i := 0; i < 3; i++ {
-		i := i
+	for i := range 3 {
 		timer := c.Timer(time.Duration(i+1) * time.Second)
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			defer timer.Stop()
 
 			now := <-timer.C()
 			fmt.Printf("timer %d fired at %v\n", i, now)
-		}()
+		})
 	}
 	for {
 		if _, ok := c.Next(); !ok {

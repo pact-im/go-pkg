@@ -47,7 +47,7 @@ func (r *RetryExecutor) Execute(ctx context.Context, f Op) error {
 
 	var err error
 	var timer clock.Timer
-	for n := uint(0); n < math.MaxUint; n++ {
+	for n := range uint(math.MaxUint) {
 		err = f(ctx)
 		if err == nil {
 			return nil

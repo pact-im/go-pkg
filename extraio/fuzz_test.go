@@ -1,6 +1,3 @@
-//go:build go1.18 || gofuzzbeta
-// +build go1.18 gofuzzbeta
-
 package extraio
 
 import (

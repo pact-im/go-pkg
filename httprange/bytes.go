@@ -97,8 +97,7 @@ func (r *BytesReader) ReadAt(p []byte, off int64) (int, error) {
 		return 0, errors.New("rangeio: empty sequence")
 	}
 	if err != nil {
-		var e *UnsatisfiedRangeError
-		if errors.As(err, &e) {
+		if e, ok := errors.AsType[*UnsatisfiedRangeError](err); ok {
 			// Assume EOF if complete length is unknown.
 			if e.Resp == "" {
 				return 0, io.EOF

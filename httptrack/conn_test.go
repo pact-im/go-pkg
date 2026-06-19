@@ -34,21 +34,18 @@ func TestConnTracker(t *testing.T) {
 		}
 
 		var wg sync.WaitGroup
-		wg.Add(2)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			err := server.Serve(listener)
 			if err != nil && !errors.Is(err, http.ErrServerClosed) {
 				panic(err)
 			}
-		}()
-		go func() {
-			defer wg.Done()
+		})
+		wg.Go(func() {
 			_, err := client.Get("http://example.com")
 			if err != nil && !errors.Is(err, io.EOF) {
 				panic(err)
 			}
-		}()
+		})
 
 		// Wait for handler to receive a request.
 		<-ch

@@ -38,7 +38,7 @@ func TestServer(t *testing.T) {
 		}
 
 		healthClient := healthpb.NewHealthClient(cc)
-		if _, err := healthClient.Check(t.Context(), &healthpb.HealthCheckRequest{}); err != nil {
+		if _, err := healthClient.Check(ctx, &healthpb.HealthCheckRequest{}); err != nil {
 			t.Fatalf("healthcheck: %v", err)
 		}
 

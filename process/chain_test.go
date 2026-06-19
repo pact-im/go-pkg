@@ -6,7 +6,7 @@ import (
 )
 
 func TestChain(t *testing.T) {
-	for i := 0; i < 5; i++ {
+	for i := range 5 {
 		testChain(t, i)
 	}
 }
@@ -21,7 +21,6 @@ func testChain(t *testing.T, count int) {
 
 	deps := make([]Runner, count)
 	for i := range deps {
-		i := i
 		deps[i] = RunnerFunc(func(ctx context.Context, callback Callback) error {
 			values = append(values, i)
 			return callback(ctx)

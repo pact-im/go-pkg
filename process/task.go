@@ -77,14 +77,12 @@ func (r *leafRunner) Run(ctx context.Context, callback Callback) error {
 	defer cancel()
 
 	var wg sync.WaitGroup
-	wg.Add(1)
 
 	var runError error
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		runError = r.runInForeground(bgctx)
 		cancel() // cancel callback
-	}()
+	})
 
 	callbackError := callback(bgctx)
 

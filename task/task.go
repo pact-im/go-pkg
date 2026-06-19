@@ -69,11 +69,8 @@ func Parallel(cond CancelCondition, tasks ...Task) Task {
 		defer cancel()
 
 		var wg sync.WaitGroup
-		wg.Add(len(tasks))
 		for i, task := range tasks {
-			i, task := i, task
-			go func() {
-				defer wg.Done()
+			wg.Go(func() {
 				err := task.Run(ctx)
 				if err != nil {
 					once.Do(func() { errs = make([]error, len(tasks)) })
@@ -82,7 +79,7 @@ func Parallel(cond CancelCondition, tasks ...Task) Task {
 				if cond(err) {
 					cancel()
 				}
-			}()
+			})
 		}
 		wg.Wait()
 

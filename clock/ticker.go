@@ -99,11 +99,9 @@ func (t *eventTicker) Reset(d time.Duration) {
 }
 
 func (t *eventTicker) start(d time.Duration) {
-	t.wg.Add(1)
-	go func() {
-		defer t.wg.Done()
+	t.wg.Go(func() {
 		t.run(d)
-	}()
+	})
 }
 
 func (t *eventTicker) run(d time.Duration) {

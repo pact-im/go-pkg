@@ -12,16 +12,14 @@ func Contextify(task func() error, shutdown func()) Task {
 		done := make(chan struct{})
 
 		var wg sync.WaitGroup
-		wg.Add(1)
 
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			select {
 			case <-done:
 			case <-ctx.Done():
 				shutdown()
 			}
-		}()
+		})
 
 		err := task()
 

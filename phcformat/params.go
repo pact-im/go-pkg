@@ -55,25 +55,25 @@ func (it ParamsIterator) Next() ParamsIterator {
 
 // nextParam returns the next parameter in s and the remaining string.
 func nextParam(s string) (name, value, after string, ok bool) {
-	i := strings.IndexByte(s, '=')
-	if i < 0 {
+	beforeSep, afterSep, ok := strings.Cut(s, "=")
+	if !ok {
 		return "", "", s, false
 	}
-	name, s = s[:i], s[i+1:]
+	name, s = beforeSep, afterSep
 
-	j := strings.IndexByte(s, ',')
-	if j < 0 {
+	beforePairSep, afterPairSep, ok := strings.Cut(s, ",")
+	if !ok {
 		return name, s, "", true
 	}
 
 	// Consume parameter but make the next iteration invalid if we have a
 	// trailing comma.
-	off := 1
-	if j+1 == len(s) {
-		off = 0
+	if afterPairSep == "" {
+		// Always "," but sliced from the original string.
+		afterPairSep = s[len(beforePairSep):]
 	}
 
-	value, s = s[:j], s[j+off:]
+	value, s = beforePairSep, afterPairSep
 
 	return name, value, s, true
 }

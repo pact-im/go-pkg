@@ -32,9 +32,7 @@ func IsPermanentError(err error) bool {
 
 // AsPermanentError attempts to extract PermanentError from err’s error chain.
 func AsPermanentError(err error) (*PermanentError, bool) {
-	var e *PermanentError
-	ok := errors.As(err, &e)
-	return e, ok
+	return errors.AsType[*PermanentError](err)
 }
 
 // Error implements the error interface.

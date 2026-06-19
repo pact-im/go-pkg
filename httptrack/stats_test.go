@@ -47,14 +47,12 @@ func TestStatsTrackerAccepted(t *testing.T) {
 		}
 
 		var wg sync.WaitGroup
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			err := server.Serve(listener)
 			if err != nil && !errors.Is(err, http.ErrServerClosed) {
 				panic(err)
 			}
-		}()
+		})
 		defer func() {
 			if err := server.Close(); err != nil {
 				panic(err)
@@ -126,14 +124,12 @@ func TestStatsTrackerActive(t *testing.T) {
 		}
 
 		var wg sync.WaitGroup
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			err := server.Serve(listener)
 			if err != nil && !errors.Is(err, http.ErrServerClosed) {
 				panic(err)
 			}
-		}()
+		})
 		defer func() {
 			if err := server.Close(); err != nil {
 				panic(err)

@@ -53,8 +53,7 @@ func TestScheduleExecutorRetry(t *testing.T) {
 	observeClock := observeclock.New(fakeClock)
 	observer := observeClock.Observe()
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := context.Background()
 
 	go func() {
 		<-observer

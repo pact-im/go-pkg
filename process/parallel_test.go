@@ -6,7 +6,7 @@ import (
 )
 
 func TestParallel(t *testing.T) {
-	for i := 0; i < 5; i++ {
+	for i := range 5 {
 		testParallel(t, i)
 	}
 }
@@ -21,7 +21,6 @@ func testParallel(t *testing.T, count int) {
 
 	deps := make([]Runner, count)
 	for i := range deps {
-		i := i
 		deps[i] = RunnerFunc(func(ctx context.Context, callback Callback) error {
 			values[i] = i
 			return callback(ctx)

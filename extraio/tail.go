@@ -111,7 +111,7 @@ func (r *TailReader) linearize() {
 // swapped elements, that is, min(len(dst), len(src)).
 func swap(dst, src []byte) int {
 	n := min(len(dst), len(src))
-	for i := 0; i < n; i++ {
+	for i := range n {
 		dst[i], src[i] = src[i], dst[i]
 	}
 	return n
