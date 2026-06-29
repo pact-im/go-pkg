@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: gen_stack.go in package github.com/jackc/puddle/v2/internal/genstack</title>
+<link href="../../../../../../../css/auto-v0.8.4.css" rel="stylesheet">
+<script src="../../../../../../../jvs/golds-v0.8.4.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	gen_stack.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../../../pkg/github.com/jackc/puddle/v2/internal/genstack.html">github.com/jackc/puddle/v2/internal/genstack</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18]
+{background: #226; color: #ff8;}
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="keyword">package</span> genstack</code></span>
+<span class="codeline" id="line-2"><code></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// GenStack implements a generational stack.</span></code></span>
+<span class="codeline" id="line-4"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-5"><code><span class="comment">// GenStack works as common stack except for the fact that all elements in the</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment">// older generation are guaranteed to be popped before any element in the newer</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment">// generation. New elements are always pushed to the current (newest)</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment">// generation.</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment">// We could also say that GenStack behaves as a stack in case of a single</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment">// generation, but it behaves as a queue of individual generation stacks.</span></code></span>
+<span class="codeline" id="line-12"><code><span class="keyword">type</span> <a href="../../../../../../../pkg/github.com/jackc/puddle/v2/internal/genstack.html#name-GenStack" class="ident">GenStack</a>[<label for="r0" class="ident">T</label> <a href="../../../../../../../pkg/builtin.html#name-any" class="ident">any</a>] <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-13"><code>	<span class="comment">// We can represent arbitrary number of generations using 2 stacks. The</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">	// new stack stores all new pushes and the old stack serves all reads.</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">	// Old stack can represent multiple generations. If old == new, then all</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">	// elements pushed in previous (not current) generations have already</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">	// been popped.</span></code></span>
+<span class="codeline" id="line-18"><code></code></span>
+<span class="codeline" id="line-19"><code>	<a href="../../../../../../../use/github.com/jackc/puddle/v2/internal/genstack..GenStack.old^cba06.html" class="ident">old</a> *<a href="stack.go.html#line-8" class="ident">stack</a>[<label for="r0" class="ident">T</label>]</code></span>
+<span class="codeline" id="line-20"><code>	<a href="../../../../../../../use/github.com/jackc/puddle/v2/internal/genstack..GenStack.new^11507.html" class="ident">new</a> *<a href="stack.go.html#line-8" class="ident">stack</a>[<label for="r0" class="ident">T</label>]</code></span>
+<span class="codeline" id="line-21"><code>}</code></span>
+<span class="codeline" id="line-22"><code></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">// NewGenStack creates a new empty GenStack.</span></code></span>
+<span class="codeline" id="line-24"><code><span class="keyword">func</span> <label for="r1" class="ident"><a href="../../../../../../../pkg/github.com/jackc/puddle/v2/internal/genstack.html#name-NewGenStack" class="ident">NewGenStack</a></label>[<label for="r2" class="ident">T</label> <a href="../../../../../../../pkg/builtin.html#name-any" class="ident">any</a>]() *<a href="#line-12" class="ident">GenStack</a>[<label for="r2" class="ident">T</label>] {</code></span>
+<span class="codeline" id="line-25"><code>	<label for="r3" class="ident">s</label> := &amp;<a href="stack.go.html#line-8" class="ident">stack</a>[<label for="r2" class="ident">T</label>]{}</code></span>
+<span class="codeline" id="line-26"><code>	<span class="keyword">return</span> &amp;<a href="#line-12" class="ident">GenStack</a>[<label for="r2" class="ident">T</label>]{</code></span>
+<span class="codeline" id="line-27"><code>		<a href="#line-19" class="ident">old</a>: <label for="r3" class="ident">s</label>,</code></span>
+<span class="codeline" id="line-28"><code>		<a href="#line-20" class="ident">new</a>: <label for="r3" class="ident">s</label>,</code></span>
+<span class="codeline" id="line-29"><code>	}</code></span>
+<span class="codeline" id="line-30"><code>}</code></span>
+<span class="codeline" id="line-31"><code></code></span>
+<span class="codeline" id="line-32"><code><span class="keyword">func</span> (<label for="r4" class="ident">s</label> *<a href="#line-12" class="ident">GenStack</a>[<label for="r5" class="ident">T</label>]) <label for="r6" class="ident"><a href="../../../../../../../use/github.com/jackc/puddle/v2/internal/genstack..GenStack.Pop.html" class="ident">Pop</a></label>() (<label for="r5" class="ident">T</label>, <a href="../../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a>) {</code></span>
+<span class="codeline" id="line-33"><code>	<span class="comment">// Pushes always append to the new stack, so if the old once becomes</span></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">	// empty, it will remail empty forever.</span></code></span>
+<span class="codeline" id="line-35"><code>	<span class="keyword">if</span> <label for="r4" class="ident">s</label>.<a href="#line-19" class="ident">old</a>.<a href="stack.go.html#line-39" class="ident">len</a>() == <span class="lit-number">0</span> &amp;&amp; <label for="r4" class="ident">s</label>.<a href="#line-19" class="ident">old</a> != <label for="r4" class="ident">s</label>.<a href="#line-20" class="ident">new</a> {</code></span>
+<span class="codeline" id="line-36"><code>		<label for="r4" class="ident">s</label>.<a href="#line-19" class="ident">old</a> = <label for="r4" class="ident">s</label>.<a href="#line-20" class="ident">new</a></code></span>
+<span class="codeline" id="line-37"><code>	}</code></span>
+<span class="codeline" id="line-38"><code></code></span>
+<span class="codeline" id="line-39"><code>	<span class="keyword">if</span> <label for="r4" class="ident">s</label>.<a href="#line-19" class="ident">old</a>.<a href="stack.go.html#line-39" class="ident">len</a>() == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-40"><code>		<span class="keyword">var</span> <label for="r7" class="ident">zero</label> <label for="r5" class="ident">T</label></code></span>
+<span class="codeline" id="line-41"><code>		<span class="keyword">return</span> <label for="r7" class="ident">zero</label>, <a href="../../../../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-42"><code>	}</code></span>
+<span class="codeline" id="line-43"><code></code></span>
+<span class="codeline" id="line-44"><code>	<span class="keyword">return</span> <label for="r4" class="ident">s</label>.<a href="#line-19" class="ident">old</a>.<a href="stack.go.html#line-18" class="ident">pop</a>(), <a href="../../../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-45"><code>}</code></span>
+<span class="codeline" id="line-46"><code></code></span>
+<span class="codeline" id="line-47"><code><span class="comment">// Push pushes a new element at the top of the stack.</span></code></span>
+<span class="codeline" id="line-48"><code><span class="keyword">func</span> (<label for="r8" class="ident">s</label> *<a href="#line-12" class="ident">GenStack</a>[<label for="r9" class="ident">T</label>]) <label for="r10" class="ident"><a href="../../../../../../../use/github.com/jackc/puddle/v2/internal/genstack..GenStack.Push.html" class="ident">Push</a></label>(<label for="r11" class="ident">v</label> <label for="r9" class="ident">T</label>) { <label for="r8" class="ident">s</label>.<a href="#line-20" class="ident">new</a>.<a href="stack.go.html#line-13" class="ident">push</a>(<label for="r11" class="ident">v</label>) }</code></span>
+<span class="codeline" id="line-49"><code></code></span>
+<span class="codeline" id="line-50"><code><span class="comment">// NextGen starts a new stack generation.</span></code></span>
+<span class="codeline" id="line-51"><code><span class="keyword">func</span> (<label for="r12" class="ident">s</label> *<a href="#line-12" class="ident">GenStack</a>[<label for="r13" class="ident">T</label>]) <label for="r14" class="ident"><a href="../../../../../../../use/github.com/jackc/puddle/v2/internal/genstack..GenStack.NextGen.html" class="ident">NextGen</a></label>() {</code></span>
+<span class="codeline" id="line-52"><code>	<span class="keyword">if</span> <label for="r12" class="ident">s</label>.<a href="#line-19" class="ident">old</a> == <label for="r12" class="ident">s</label>.<a href="#line-20" class="ident">new</a> {</code></span>
+<span class="codeline" id="line-53"><code>		<label for="r12" class="ident">s</label>.<a href="#line-20" class="ident">new</a> = &amp;<a href="stack.go.html#line-8" class="ident">stack</a>[<label for="r13" class="ident">T</label>]{}</code></span>
+<span class="codeline" id="line-54"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-55"><code>	}</code></span>
+<span class="codeline" id="line-56"><code></code></span>
+<span class="codeline" id="line-57"><code>	<span class="comment">// We need to pop from the old stack to the top of the new stack. Let's</span></code></span>
+<span class="codeline" id="line-58"><code><span class="comment">	// have an example:</span></code></span>
+<span class="codeline" id="line-59"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-60"><code><span class="comment">	//   Old: &lt;bottom&gt; 4 3 2 1</span></code></span>
+<span class="codeline" id="line-61"><code><span class="comment">	//   New: &lt;bottom&gt; 8 7 6 5</span></code></span>
+<span class="codeline" id="line-62"><code><span class="comment">	//   PopOrder: 1 2 3 4 5 6 7 8</span></code></span>
+<span class="codeline" id="line-63"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-64"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-65"><code><span class="comment">	// To preserve pop order, we have to take all elements from the old</span></code></span>
+<span class="codeline" id="line-66"><code><span class="comment">	// stack and push them to the top of new stack:</span></code></span>
+<span class="codeline" id="line-67"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-68"><code><span class="comment">	//   New: 8 7 6 5 4 3 2 1</span></code></span>
+<span class="codeline" id="line-69"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-70"><code>	<label for="r12" class="ident">s</label>.<a href="#line-20" class="ident">new</a>.<a href="stack.go.html#line-13" class="ident">push</a>(<label for="r12" class="ident">s</label>.<a href="#line-19" class="ident">old</a>.<a href="stack.go.html#line-32" class="ident">takeAll</a>()...)</code></span>
+<span class="codeline" id="line-71"><code></code></span>
+<span class="codeline" id="line-72"><code>	<span class="comment">// We have the old stack allocated and empty, so why not to reuse it as</span></code></span>
+<span class="codeline" id="line-73"><code><span class="comment">	// new new stack.</span></code></span>
+<span class="codeline" id="line-74"><code>	<label for="r12" class="ident">s</label>.<a href="#line-19" class="ident">old</a>, <label for="r12" class="ident">s</label>.<a href="#line-20" class="ident">new</a> = <label for="r12" class="ident">s</label>.<a href="#line-20" class="ident">new</a>, <label for="r12" class="ident">s</label>.<a href="#line-19" class="ident">old</a></code></span>
+<span class="codeline" id="line-75"><code>}</code></span>
+<span class="codeline" id="line-76"><code></code></span>
+<span class="codeline" id="line-77"><code><span class="comment">// Len returns number of elements in the stack.</span></code></span>
+<span class="codeline" id="line-78"><code><span class="keyword">func</span> (<label for="r15" class="ident">s</label> *<a href="#line-12" class="ident">GenStack</a>[<label for="r16" class="ident">T</label>]) <label for="r17" class="ident"><a href="../../../../../../../use/github.com/jackc/puddle/v2/internal/genstack..GenStack.Len.html" class="ident">Len</a></label>() <a href="../../../../../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-79"><code>	<label for="r18" class="ident">l</label> := <label for="r15" class="ident">s</label>.<a href="#line-19" class="ident">old</a>.<a href="stack.go.html#line-39" class="ident">len</a>()</code></span>
+<span class="codeline" id="line-80"><code>	<span class="keyword">if</span> <label for="r15" class="ident">s</label>.<a href="#line-19" class="ident">old</a> != <label for="r15" class="ident">s</label>.<a href="#line-20" class="ident">new</a> {</code></span>
+<span class="codeline" id="line-81"><code>		<label for="r18" class="ident">l</label> += <label for="r15" class="ident">s</label>.<a href="#line-20" class="ident">new</a>.<a href="stack.go.html#line-39" class="ident">len</a>()</code></span>
+<span class="codeline" id="line-82"><code>	}</code></span>
+<span class="codeline" id="line-83"><code></code></span>
+<span class="codeline" id="line-84"><code>	<span class="keyword">return</span> <label for="r18" class="ident">l</label></code></span>
+<span class="codeline" id="line-85"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.8.4</i>. (GOOS=linux GOARCH=amd64)</pre>

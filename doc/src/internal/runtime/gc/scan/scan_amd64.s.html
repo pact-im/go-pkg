@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: scan_amd64.s in package internal/runtime/gc/scan</title>
+<link href="../../../../../css/auto-v0.8.4.css" rel="stylesheet">
+<script src="../../../../../jvs/golds-v0.8.4.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	scan_amd64.s
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../pkg/internal/runtime/gc/scan.html">internal/runtime/gc/scan</a>
+</code></pre>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code>// Copyright 2025 The Go Authors. All rights reserved.</code></span>
+<span class="codeline" id="line-2"><code>// Use of this source code is governed by a BSD-style</code></span>
+<span class="codeline" id="line-3"><code>// license that can be found in the LICENSE file.</code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code>#include "go_asm.h"</code></span>
+<span class="codeline" id="line-6"><code>#include "textflag.h"</code></span>
+<span class="codeline" id="line-7"><code></code></span>
+<span class="codeline" id="line-8"><code>// Test-only.</code></span>
+<span class="codeline" id="line-9"><code>TEXT ·ExpandAVX512(SB), NOSPLIT, $0-24</code></span>
+<span class="codeline" id="line-10"><code>	MOVQ sizeClass+0(FP), CX</code></span>
+<span class="codeline" id="line-11"><code>	MOVQ packed+8(FP), AX</code></span>
+<span class="codeline" id="line-12"><code></code></span>
+<span class="codeline" id="line-13"><code>	// Call the expander for this size class</code></span>
+<span class="codeline" id="line-14"><code>	LEAQ ·gcExpandersAVX512(SB), BX</code></span>
+<span class="codeline" id="line-15"><code>	CALL (BX)(CX*8)</code></span>
+<span class="codeline" id="line-16"><code></code></span>
+<span class="codeline" id="line-17"><code>	MOVQ unpacked+16(FP), DI // Expanded output bitmap pointer</code></span>
+<span class="codeline" id="line-18"><code>	VMOVDQU64 Z1, 0(DI)</code></span>
+<span class="codeline" id="line-19"><code>	VMOVDQU64 Z2, 64(DI)</code></span>
+<span class="codeline" id="line-20"><code>	VZEROUPPER</code></span>
+<span class="codeline" id="line-21"><code>	RET</code></span>
+<span class="codeline" id="line-22"><code></code></span>
+<span class="codeline" id="line-23"><code>TEXT ·scanSpanPackedAVX512(SB), NOSPLIT, $256-44</code></span>
+<span class="codeline" id="line-24"><code>	// Z1+Z2 = Expand the grey object mask into a grey word mask</code></span>
+<span class="codeline" id="line-25"><code>	MOVQ objMarks+16(FP), AX</code></span>
+<span class="codeline" id="line-26"><code>	MOVQ sizeClass+24(FP), CX</code></span>
+<span class="codeline" id="line-27"><code>	LEAQ ·gcExpandersAVX512(SB), BX</code></span>
+<span class="codeline" id="line-28"><code>	CALL (BX)(CX*8)</code></span>
+<span class="codeline" id="line-29"><code></code></span>
+<span class="codeline" id="line-30"><code>	// Z3+Z4 = Load the pointer mask</code></span>
+<span class="codeline" id="line-31"><code>	MOVQ ptrMask+32(FP), AX</code></span>
+<span class="codeline" id="line-32"><code>	VMOVDQU64 0(AX), Z3</code></span>
+<span class="codeline" id="line-33"><code>	VMOVDQU64 64(AX), Z4</code></span>
+<span class="codeline" id="line-34"><code></code></span>
+<span class="codeline" id="line-35"><code>	// Z1+Z2 = Combine the grey word mask with the pointer mask to get the scan mask</code></span>
+<span class="codeline" id="line-36"><code>	VPANDQ Z1, Z3, Z1</code></span>
+<span class="codeline" id="line-37"><code>	VPANDQ Z2, Z4, Z2</code></span>
+<span class="codeline" id="line-38"><code></code></span>
+<span class="codeline" id="line-39"><code>	// Now each bit of Z1+Z2 represents one word of the span.</code></span>
+<span class="codeline" id="line-40"><code>	// Thus, each byte covers 64 bytes of memory, which is also how</code></span>
+<span class="codeline" id="line-41"><code>	// much we can fix in a Z register.</code></span>
+<span class="codeline" id="line-42"><code>	//</code></span>
+<span class="codeline" id="line-43"><code>	// We do a load/compress for each 64 byte frame.</code></span>
+<span class="codeline" id="line-44"><code>	//</code></span>
+<span class="codeline" id="line-45"><code>	// Z3+Z4 [128]uint8 = Number of memory words to scan in each 64 byte frame</code></span>
+<span class="codeline" id="line-46"><code>	VPOPCNTB Z1, Z3 // Requires BITALG</code></span>
+<span class="codeline" id="line-47"><code>	VPOPCNTB Z2, Z4</code></span>
+<span class="codeline" id="line-48"><code></code></span>
+<span class="codeline" id="line-49"><code>	// Store the scan mask and word counts at 0(SP) and 128(SP).</code></span>
+<span class="codeline" id="line-50"><code>	//</code></span>
+<span class="codeline" id="line-51"><code>	// TODO: Is it better to read directly from the registers?</code></span>
+<span class="codeline" id="line-52"><code>	VMOVDQU64 Z1, 0(SP)</code></span>
+<span class="codeline" id="line-53"><code>	VMOVDQU64 Z2, 64(SP)</code></span>
+<span class="codeline" id="line-54"><code>	VMOVDQU64 Z3, 128(SP)</code></span>
+<span class="codeline" id="line-55"><code>	VMOVDQU64 Z4, 192(SP)</code></span>
+<span class="codeline" id="line-56"><code></code></span>
+<span class="codeline" id="line-57"><code>	// SI = Current address in span</code></span>
+<span class="codeline" id="line-58"><code>	MOVQ mem+0(FP), SI</code></span>
+<span class="codeline" id="line-59"><code>	// DI = Scan buffer base</code></span>
+<span class="codeline" id="line-60"><code>	MOVQ bufp+8(FP), DI</code></span>
+<span class="codeline" id="line-61"><code>	// DX = Index in scan buffer, (DI)(DX*8) = Current position in scan buffer</code></span>
+<span class="codeline" id="line-62"><code>	MOVQ $0, DX</code></span>
+<span class="codeline" id="line-63"><code></code></span>
+<span class="codeline" id="line-64"><code>	// AX = address in scan mask, 128(AX) = address in popcount</code></span>
+<span class="codeline" id="line-65"><code>	LEAQ 0(SP), AX</code></span>
+<span class="codeline" id="line-66"><code></code></span>
+<span class="codeline" id="line-67"><code>	// Loop over the 64 byte frames in this span.</code></span>
+<span class="codeline" id="line-68"><code>	// BX = 1 past the end of the scan mask</code></span>
+<span class="codeline" id="line-69"><code>	LEAQ 128(SP), BX</code></span>
+<span class="codeline" id="line-70"><code></code></span>
+<span class="codeline" id="line-71"><code>	// Align loop to a cache line so that performance is less sensitive</code></span>
+<span class="codeline" id="line-72"><code>	// to how this function ends up laid out in memory. This is a hot</code></span>
+<span class="codeline" id="line-73"><code>	// function in the GC, and this is a tight loop. We don't want</code></span>
+<span class="codeline" id="line-74"><code>	// performance to waver wildly due to unrelated changes.</code></span>
+<span class="codeline" id="line-75"><code>	PCALIGN $64</code></span>
+<span class="codeline" id="line-76"><code>loop:</code></span>
+<span class="codeline" id="line-77"><code>	// CX = Fetch the mask of words to load from this frame.</code></span>
+<span class="codeline" id="line-78"><code>	MOVBQZX 0(AX), CX</code></span>
+<span class="codeline" id="line-79"><code>	// Skip empty frames.</code></span>
+<span class="codeline" id="line-80"><code>	TESTQ CX, CX</code></span>
+<span class="codeline" id="line-81"><code>	JZ skip</code></span>
+<span class="codeline" id="line-82"><code></code></span>
+<span class="codeline" id="line-83"><code>	// Load the 64 byte frame.</code></span>
+<span class="codeline" id="line-84"><code>	KMOVB CX, K1</code></span>
+<span class="codeline" id="line-85"><code>	VMOVDQA64 0(SI), Z1</code></span>
+<span class="codeline" id="line-86"><code></code></span>
+<span class="codeline" id="line-87"><code>	// Collect just the pointers from the greyed objects into the scan buffer,</code></span>
+<span class="codeline" id="line-88"><code>	// i.e., copy the word indices in the mask from Z1 into contiguous memory.</code></span>
+<span class="codeline" id="line-89"><code>	//</code></span>
+<span class="codeline" id="line-90"><code>	// N.B. VPCOMPRESSQ supports a memory destination. Unfortunately, on</code></span>
+<span class="codeline" id="line-91"><code>	// AMD Genoa / Zen 4, using VPCOMPRESSQ with a memory destination</code></span>
+<span class="codeline" id="line-92"><code>	// imposes a severe performance penalty of around an order of magnitude</code></span>
+<span class="codeline" id="line-93"><code>	// compared to a register destination.</code></span>
+<span class="codeline" id="line-94"><code>	//</code></span>
+<span class="codeline" id="line-95"><code>	// This workaround is unfortunate on other microarchitectures, where a</code></span>
+<span class="codeline" id="line-96"><code>	// memory destination is slightly faster than adding an additional move</code></span>
+<span class="codeline" id="line-97"><code>	// instruction, but no where near an order of magnitude. It would be</code></span>
+<span class="codeline" id="line-98"><code>	// nice to have a Genoa-only variant here.</code></span>
+<span class="codeline" id="line-99"><code>	//</code></span>
+<span class="codeline" id="line-100"><code>	// AMD Turin / Zen 5 fixes this issue.</code></span>
+<span class="codeline" id="line-101"><code>	//</code></span>
+<span class="codeline" id="line-102"><code>	// See</code></span>
+<span class="codeline" id="line-103"><code>	// https://lemire.me/blog/2025/02/14/avx-512-gotcha-avoid-compressing-words-to-memory-with-amd-zen-4-processors/.</code></span>
+<span class="codeline" id="line-104"><code>	VPCOMPRESSQ Z1, K1, Z2</code></span>
+<span class="codeline" id="line-105"><code>	VMOVDQU64 Z2, (DI)(DX*8)</code></span>
+<span class="codeline" id="line-106"><code></code></span>
+<span class="codeline" id="line-107"><code>	// Advance the scan buffer position by the number of pointers.</code></span>
+<span class="codeline" id="line-108"><code>	MOVBQZX 128(AX), CX</code></span>
+<span class="codeline" id="line-109"><code>	ADDQ CX, DX</code></span>
+<span class="codeline" id="line-110"><code></code></span>
+<span class="codeline" id="line-111"><code>skip:</code></span>
+<span class="codeline" id="line-112"><code>	ADDQ $64, SI</code></span>
+<span class="codeline" id="line-113"><code>	ADDQ $1, AX</code></span>
+<span class="codeline" id="line-114"><code>	CMPQ AX, BX</code></span>
+<span class="codeline" id="line-115"><code>	JB loop</code></span>
+<span class="codeline" id="line-116"><code></code></span>
+<span class="codeline" id="line-117"><code>end:</code></span>
+<span class="codeline" id="line-118"><code>	MOVL DX, count+40(FP)</code></span>
+<span class="codeline" id="line-119"><code>	VZEROUPPER</code></span>
+<span class="codeline" id="line-120"><code>	RET</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.8.4</i>. (GOOS=linux GOARCH=amd64)</pre>

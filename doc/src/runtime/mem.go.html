@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: mem.go in package runtime</title>
+<link href="../../css/auto-v0.8.4.css" rel="stylesheet">
+<script src="../../jvs/golds-v0.8.4.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	mem.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../pkg/runtime.html">runtime</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30],
+input[id=r31]:checked ~pre label[for=r31],
+input[id=r32]:checked ~pre label[for=r32],
+input[id=r33]:checked ~pre label[for=r33],
+input[id=r34]:checked ~pre label[for=r34],
+input[id=r35]:checked ~pre label[for=r35],
+input[id=r36]:checked ~pre label[for=r36],
+input[id=r37]:checked ~pre label[for=r37],
+input[id=r38]:checked ~pre label[for=r38],
+input[id=r39]:checked ~pre label[for=r39],
+input[id=r40]:checked ~pre label[for=r40],
+input[id=r41]:checked ~pre label[for=r41],
+input[id=r42]:checked ~pre label[for=r42],
+input[id=r43]:checked ~pre label[for=r43],
+input[id=r44]:checked ~pre label[for=r44],
+input[id=r45]:checked ~pre label[for=r45],
+input[id=r46]:checked ~pre label[for=r46],
+input[id=r47]:checked ~pre label[for=r47],
+input[id=r48]:checked ~pre label[for=r48],
+input[id=r49]:checked ~pre label[for=r49],
+input[id=r50]:checked ~pre label[for=r50],
+input[id=r51]:checked ~pre label[for=r51],
+input[id=r52]:checked ~pre label[for=r52],
+input[id=r53]:checked ~pre label[for=r53]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="r31" type="radio" name="g"/>
+<input id="r32" type="radio" name="g"/>
+<input id="r33" type="radio" name="g"/>
+<input id="r34" type="radio" name="g"/>
+<input id="r35" type="radio" name="g"/>
+<input id="r36" type="radio" name="g"/>
+<input id="r37" type="radio" name="g"/>
+<input id="r38" type="radio" name="g"/>
+<input id="r39" type="radio" name="g"/>
+<input id="r40" type="radio" name="g"/>
+<input id="r41" type="radio" name="g"/>
+<input id="r42" type="radio" name="g"/>
+<input id="r43" type="radio" name="g"/>
+<input id="r44" type="radio" name="g"/>
+<input id="r45" type="radio" name="g"/>
+<input id="r46" type="radio" name="g"/>
+<input id="r47" type="radio" name="g"/>
+<input id="r48" type="radio" name="g"/>
+<input id="r49" type="radio" name="g"/>
+<input id="r50" type="radio" name="g"/>
+<input id="r51" type="radio" name="g"/>
+<input id="r52" type="radio" name="g"/>
+<input id="r53" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2022 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> runtime</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">import</span> <label for="i0"><span class="lit-string i0">"unsafe"</span></label></code></span>
+<span class="codeline" id="line-8"><code></code></span>
+<span class="codeline" id="line-9"><code><span class="comment">// OS memory management abstraction layer</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment">// Regions of the address space managed by the runtime may be in one of four</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment">// states at any given time:</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">// 1) None - Unreserved and unmapped, the default state of any region.</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">// 2) Reserved - Owned by the runtime, but accessing it would cause a fault.</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">//               Does not count against the process' memory footprint.</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">// 3) Prepared - Reserved, intended not to be backed by physical memory (though</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">//               an OS may implement this lazily). Can transition efficiently to</span></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">//               Ready. Accessing memory in such a region is undefined (may</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">//               fault, may give back unexpected zeroes, etc.).</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">// 4) Ready - may be accessed safely.</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">// This set of states is more than strictly necessary to support all the</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">// currently supported platforms. One could get by with just None, Reserved, and</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">// Ready. However, the Prepared state gives us flexibility for performance</span></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">// purposes. For example, on POSIX-y operating systems, Reserved is usually a</span></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">// private anonymous mmap'd region with PROT_NONE set, and to transition</span></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">// to Ready would require setting PROT_READ|PROT_WRITE. However the</span></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">// underspecification of Prepared lets us use just MADV_FREE to transition from</span></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">// Ready to Prepared. Thus with the Prepared state we can set the permission</span></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">// bits just once early on, we can efficiently tell the OS that it's free to</span></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">// take pages away from us when we don't strictly need them.</span></code></span>
+<span class="codeline" id="line-32"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-33"><code><span class="comment">// This file defines a cross-OS interface for a common set of helpers</span></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">// that transition memory regions between these states. The helpers call into</span></code></span>
+<span class="codeline" id="line-35"><code><span class="comment">// OS-specific implementations that handle errors, while the interface boundary</span></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">// implements cross-OS functionality, like updating runtime accounting.</span></code></span>
+<span class="codeline" id="line-37"><code></code></span>
+<span class="codeline" id="line-38"><code><span class="comment">// sysAlloc transitions an OS-chosen region of memory from None to Ready.</span></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">// More specifically, it obtains a large chunk of zeroed memory from the</span></code></span>
+<span class="codeline" id="line-40"><code><span class="comment">// operating system, typically on the order of a hundred kilobytes</span></code></span>
+<span class="codeline" id="line-41"><code><span class="comment">// or a megabyte. This memory is always immediately available for use.</span></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">// sysStat must be non-nil.</span></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-45"><code><span class="comment">// Don't split the stack as this function may be invoked without a valid G,</span></code></span>
+<span class="codeline" id="line-46"><code><span class="comment">// which prevents us from allocating more stack.</span></code></span>
+<span class="codeline" id="line-47"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-48"><code><span class="comment">//go:nosplit</span></code></span>
+<span class="codeline" id="line-49"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../pkg/runtime.html#name-sysAlloc" class="ident">sysAlloc</a></label>(<label for="r1" class="ident">n</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>, <label for="r2" class="ident">sysStat</label> *<a href="mstats.go.html#line-643" class="ident">sysMemStat</a>, <label for="r3" class="ident">vmaName</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../pkg/unsafe.html" class="ident i0">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a> {</code></span>
+<span class="codeline" id="line-50"><code>	<label for="r2" class="ident">sysStat</label>.<a href="mstats.go.html#line-659" class="ident">add</a>(<a href="../../pkg/builtin.html#name-int64" class="ident">int64</a>(<label for="r1" class="ident">n</label>))</code></span>
+<span class="codeline" id="line-51"><code>	<a href="mgcpacer.go.html#line-90" class="ident">gcController</a>.<a href="mgcpacer.go.html#line-363" class="ident">mappedReady</a>.<a href="../internal/runtime/atomic/types.go.html#line-343" class="ident">Add</a>(<a href="../../pkg/builtin.html#name-int64" class="ident">int64</a>(<label for="r1" class="ident">n</label>))</code></span>
+<span class="codeline" id="line-52"><code>	<label for="r4" class="ident">p</label> := <a href="mem_linux.go.html#line-21" class="ident">sysAllocOS</a>(<label for="r1" class="ident">n</label>, <label for="r3" class="ident">vmaName</label>)</code></span>
+<span class="codeline" id="line-53"><code></code></span>
+<span class="codeline" id="line-54"><code>	<span class="comment">// When using ASAN leak detection, we must tell ASAN about</span></code></span>
+<span class="codeline" id="line-55"><code><span class="comment">	// cases where we store pointers in mmapped memory.</span></code></span>
+<span class="codeline" id="line-56"><code>	<span class="keyword">if</span> <a href="asan0.go.html#line-15" class="ident">asanenabled</a> {</code></span>
+<span class="codeline" id="line-57"><code>		<a href="asan0.go.html#line-25" class="ident">lsanregisterrootregion</a>(<label for="r4" class="ident">p</label>, <label for="r1" class="ident">n</label>)</code></span>
+<span class="codeline" id="line-58"><code>	}</code></span>
+<span class="codeline" id="line-59"><code></code></span>
+<span class="codeline" id="line-60"><code>	<span class="keyword">return</span> <label for="r4" class="ident">p</label></code></span>
+<span class="codeline" id="line-61"><code>}</code></span>
+<span class="codeline" id="line-62"><code></code></span>
+<span class="codeline" id="line-63"><code><span class="comment">// sysUnused transitions a memory region from Ready to Prepared. It notifies the</span></code></span>
+<span class="codeline" id="line-64"><code><span class="comment">// operating system that the physical pages backing this memory region are no</span></code></span>
+<span class="codeline" id="line-65"><code><span class="comment">// longer needed and can be reused for other purposes. The contents of a</span></code></span>
+<span class="codeline" id="line-66"><code><span class="comment">// sysUnused memory region are considered forfeit and the region must not be</span></code></span>
+<span class="codeline" id="line-67"><code><span class="comment">// accessed again until sysUsed is called.</span></code></span>
+<span class="codeline" id="line-68"><code><span class="keyword">func</span> <label for="r5" class="ident"><a href="../../pkg/runtime.html#name-sysUnused" class="ident">sysUnused</a></label>(<label for="r6" class="ident">v</label> <a href="../../pkg/unsafe.html" class="ident i0">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>, <label for="r7" class="ident">n</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>) {</code></span>
+<span class="codeline" id="line-69"><code>	<a href="mgcpacer.go.html#line-90" class="ident">gcController</a>.<a href="mgcpacer.go.html#line-363" class="ident">mappedReady</a>.<a href="../internal/runtime/atomic/types.go.html#line-343" class="ident">Add</a>(-<a href="../../pkg/builtin.html#name-int64" class="ident">int64</a>(<label for="r7" class="ident">n</label>))</code></span>
+<span class="codeline" id="line-70"><code>	<a href="mem_linux.go.html#line-42" class="ident">sysUnusedOS</a>(<label for="r6" class="ident">v</label>, <label for="r7" class="ident">n</label>)</code></span>
+<span class="codeline" id="line-71"><code>}</code></span>
+<span class="codeline" id="line-72"><code></code></span>
+<span class="codeline" id="line-73"><code><span class="comment">// needZeroAfterSysUnused reports whether memory returned by sysUnused must be</span></code></span>
+<span class="codeline" id="line-74"><code><span class="comment">// zeroed for use.</span></code></span>
+<span class="codeline" id="line-75"><code><span class="keyword">func</span> <label for="r8" class="ident"><a href="../../pkg/runtime.html#name-needZeroAfterSysUnused" class="ident">needZeroAfterSysUnused</a></label>() <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-76"><code>	<span class="keyword">return</span> <a href="mem_linux.go.html#line-192" class="ident">needZeroAfterSysUnusedOS</a>()</code></span>
+<span class="codeline" id="line-77"><code>}</code></span>
+<span class="codeline" id="line-78"><code></code></span>
+<span class="codeline" id="line-79"><code><span class="comment">// sysUsed transitions a memory region from Prepared to Ready. It notifies the</span></code></span>
+<span class="codeline" id="line-80"><code><span class="comment">// operating system that the memory region is needed and ensures that the region</span></code></span>
+<span class="codeline" id="line-81"><code><span class="comment">// may be safely accessed. This is typically a no-op on systems that don't have</span></code></span>
+<span class="codeline" id="line-82"><code><span class="comment">// an explicit commit step and hard over-commit limits, but is critical on</span></code></span>
+<span class="codeline" id="line-83"><code><span class="comment">// Windows, for example.</span></code></span>
+<span class="codeline" id="line-84"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-85"><code><span class="comment">// This operation is idempotent for memory already in the Prepared state, so</span></code></span>
+<span class="codeline" id="line-86"><code><span class="comment">// it is safe to refer, with v and n, to a range of memory that includes both</span></code></span>
+<span class="codeline" id="line-87"><code><span class="comment">// Prepared and Ready memory. However, the caller must provide the exact amount</span></code></span>
+<span class="codeline" id="line-88"><code><span class="comment">// of Prepared memory for accounting purposes.</span></code></span>
+<span class="codeline" id="line-89"><code><span class="keyword">func</span> <label for="r9" class="ident"><a href="../../pkg/runtime.html#name-sysUsed" class="ident">sysUsed</a></label>(<label for="r10" class="ident">v</label> <a href="../../pkg/unsafe.html" class="ident i0">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>, <label for="r11" class="ident">n</label>, <label for="r12" class="ident">prepared</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>) {</code></span>
+<span class="codeline" id="line-90"><code>	<a href="mgcpacer.go.html#line-90" class="ident">gcController</a>.<a href="mgcpacer.go.html#line-363" class="ident">mappedReady</a>.<a href="../internal/runtime/atomic/types.go.html#line-343" class="ident">Add</a>(<a href="../../pkg/builtin.html#name-int64" class="ident">int64</a>(<label for="r12" class="ident">prepared</label>))</code></span>
+<span class="codeline" id="line-91"><code>	<a href="mem_linux.go.html#line-89" class="ident">sysUsedOS</a>(<label for="r10" class="ident">v</label>, <label for="r11" class="ident">n</label>)</code></span>
+<span class="codeline" id="line-92"><code>}</code></span>
+<span class="codeline" id="line-93"><code></code></span>
+<span class="codeline" id="line-94"><code><span class="comment">// sysHugePage does not transition memory regions, but instead provides a</span></code></span>
+<span class="codeline" id="line-95"><code><span class="comment">// hint to the OS that it would be more efficient to back this memory region</span></code></span>
+<span class="codeline" id="line-96"><code><span class="comment">// with pages of a larger size transparently.</span></code></span>
+<span class="codeline" id="line-97"><code><span class="keyword">func</span> <label for="r13" class="ident"><a href="../../pkg/runtime.html#name-sysHugePage" class="ident">sysHugePage</a></label>(<label for="r14" class="ident">v</label> <a href="../../pkg/unsafe.html" class="ident i0">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>, <label for="r15" class="ident">n</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>) {</code></span>
+<span class="codeline" id="line-98"><code>	<a href="mem_linux.go.html#line-103" class="ident">sysHugePageOS</a>(<label for="r14" class="ident">v</label>, <label for="r15" class="ident">n</label>)</code></span>
+<span class="codeline" id="line-99"><code>}</code></span>
+<span class="codeline" id="line-100"><code></code></span>
+<span class="codeline" id="line-101"><code><span class="comment">// sysNoHugePage does not transition memory regions, but instead provides a</span></code></span>
+<span class="codeline" id="line-102"><code><span class="comment">// hint to the OS that it would be less efficient to back this memory region</span></code></span>
+<span class="codeline" id="line-103"><code><span class="comment">// with pages of a larger size transparently.</span></code></span>
+<span class="codeline" id="line-104"><code><span class="keyword">func</span> <label for="r16" class="ident"><a href="../../pkg/runtime.html#name-sysNoHugePage" class="ident">sysNoHugePage</a></label>(<label for="r17" class="ident">v</label> <a href="../../pkg/unsafe.html" class="ident i0">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>, <label for="r18" class="ident">n</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>) {</code></span>
+<span class="codeline" id="line-105"><code>	<a href="mem_linux.go.html#line-116" class="ident">sysNoHugePageOS</a>(<label for="r17" class="ident">v</label>, <label for="r18" class="ident">n</label>)</code></span>
+<span class="codeline" id="line-106"><code>}</code></span>
+<span class="codeline" id="line-107"><code></code></span>
+<span class="codeline" id="line-108"><code><span class="comment">// sysHugePageCollapse attempts to immediately back the provided memory region</span></code></span>
+<span class="codeline" id="line-109"><code><span class="comment">// with huge pages. It is best-effort and may fail silently.</span></code></span>
+<span class="codeline" id="line-110"><code><span class="keyword">func</span> <label for="r19" class="ident"><a href="../../pkg/runtime.html#name-sysHugePageCollapse" class="ident">sysHugePageCollapse</a></label>(<label for="r20" class="ident">v</label> <a href="../../pkg/unsafe.html" class="ident i0">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>, <label for="r21" class="ident">n</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>) {</code></span>
+<span class="codeline" id="line-111"><code>	<a href="mem_linux.go.html#line-125" class="ident">sysHugePageCollapseOS</a>(<label for="r20" class="ident">v</label>, <label for="r21" class="ident">n</label>)</code></span>
+<span class="codeline" id="line-112"><code>}</code></span>
+<span class="codeline" id="line-113"><code></code></span>
+<span class="codeline" id="line-114"><code><span class="comment">// sysFree transitions a memory region from any state to None. Therefore, it</span></code></span>
+<span class="codeline" id="line-115"><code><span class="comment">// returns memory unconditionally. It is used if an out-of-memory error has been</span></code></span>
+<span class="codeline" id="line-116"><code><span class="comment">// detected midway through an allocation or to carve out an aligned section of</span></code></span>
+<span class="codeline" id="line-117"><code><span class="comment">// the address space. It is okay if sysFree is a no-op only if sysReserve always</span></code></span>
+<span class="codeline" id="line-118"><code><span class="comment">// returns a memory region aligned to the heap allocator's alignment</span></code></span>
+<span class="codeline" id="line-119"><code><span class="comment">// restrictions.</span></code></span>
+<span class="codeline" id="line-120"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-121"><code><span class="comment">// sysStat must be non-nil.</span></code></span>
+<span class="codeline" id="line-122"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-123"><code><span class="comment">// The size and start address must exactly match the size and returned address</span></code></span>
+<span class="codeline" id="line-124"><code><span class="comment">// from the original sysAlloc/sysReserve/sysReserveAligned call. That is,</span></code></span>
+<span class="codeline" id="line-125"><code><span class="comment">// sysFree cannot be used to free a subset of a memory region.</span></code></span>
+<span class="codeline" id="line-126"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-127"><code><span class="comment">// Don't split the stack as this function may be invoked without a valid G,</span></code></span>
+<span class="codeline" id="line-128"><code><span class="comment">// which prevents us from allocating more stack.</span></code></span>
+<span class="codeline" id="line-129"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-130"><code><span class="comment">//go:nosplit</span></code></span>
+<span class="codeline" id="line-131"><code><span class="keyword">func</span> <label for="r22" class="ident"><a href="../../pkg/runtime.html#name-sysFree" class="ident">sysFree</a></label>(<label for="r23" class="ident">v</label> <a href="../../pkg/unsafe.html" class="ident i0">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>, <label for="r24" class="ident">n</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>, <label for="r25" class="ident">sysStat</label> *<a href="mstats.go.html#line-643" class="ident">sysMemStat</a>) {</code></span>
+<span class="codeline" id="line-132"><code>	<span class="comment">// When using ASAN leak detection, the memory being freed is known by</span></code></span>
+<span class="codeline" id="line-133"><code><span class="comment">	// the sanitizer. We need to unregister it so it's not accessed by it.</span></code></span>
+<span class="codeline" id="line-134"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-135"><code><span class="comment">	// lsanunregisterrootregion matches regions by start address and size,</span></code></span>
+<span class="codeline" id="line-136"><code><span class="comment">	// so it is not possible to unregister a subset of the region. This is</span></code></span>
+<span class="codeline" id="line-137"><code><span class="comment">	// why sysFree requires the full region from the initial allocation.</span></code></span>
+<span class="codeline" id="line-138"><code>	<span class="keyword">if</span> <a href="asan0.go.html#line-15" class="ident">asanenabled</a> {</code></span>
+<span class="codeline" id="line-139"><code>		<a href="asan0.go.html#line-26" class="ident">lsanunregisterrootregion</a>(<label for="r23" class="ident">v</label>, <label for="r24" class="ident">n</label>)</code></span>
+<span class="codeline" id="line-140"><code>	}</code></span>
+<span class="codeline" id="line-141"><code></code></span>
+<span class="codeline" id="line-142"><code>	<label for="r25" class="ident">sysStat</label>.<a href="mstats.go.html#line-659" class="ident">add</a>(-<a href="../../pkg/builtin.html#name-int64" class="ident">int64</a>(<label for="r24" class="ident">n</label>))</code></span>
+<span class="codeline" id="line-143"><code>	<a href="mgcpacer.go.html#line-90" class="ident">gcController</a>.<a href="mgcpacer.go.html#line-363" class="ident">mappedReady</a>.<a href="../internal/runtime/atomic/types.go.html#line-343" class="ident">Add</a>(-<a href="../../pkg/builtin.html#name-int64" class="ident">int64</a>(<label for="r24" class="ident">n</label>))</code></span>
+<span class="codeline" id="line-144"><code>	<a href="mem_linux.go.html#line-154" class="ident">sysFreeOS</a>(<label for="r23" class="ident">v</label>, <label for="r24" class="ident">n</label>)</code></span>
+<span class="codeline" id="line-145"><code>}</code></span>
+<span class="codeline" id="line-146"><code></code></span>
+<span class="codeline" id="line-147"><code><span class="comment">// sysFault transitions a memory region from Ready to Reserved. It</span></code></span>
+<span class="codeline" id="line-148"><code><span class="comment">// marks a region such that it will always fault if accessed. Used only for</span></code></span>
+<span class="codeline" id="line-149"><code><span class="comment">// debugging the runtime.</span></code></span>
+<span class="codeline" id="line-150"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-151"><code><span class="comment">// TODO(mknyszek): Currently it's true that all uses of sysFault transition</span></code></span>
+<span class="codeline" id="line-152"><code><span class="comment">// memory from Ready to Reserved, but this may not be true in the future</span></code></span>
+<span class="codeline" id="line-153"><code><span class="comment">// since on every platform the operation is much more general than that.</span></code></span>
+<span class="codeline" id="line-154"><code><span class="comment">// If a transition from Prepared is ever introduced, create a new function</span></code></span>
+<span class="codeline" id="line-155"><code><span class="comment">// that elides the Ready state accounting.</span></code></span>
+<span class="codeline" id="line-156"><code><span class="keyword">func</span> <label for="r26" class="ident"><a href="../../pkg/runtime.html#name-sysFault" class="ident">sysFault</a></label>(<label for="r27" class="ident">v</label> <a href="../../pkg/unsafe.html" class="ident i0">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>, <label for="r28" class="ident">n</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>) {</code></span>
+<span class="codeline" id="line-157"><code>	<a href="mgcpacer.go.html#line-90" class="ident">gcController</a>.<a href="mgcpacer.go.html#line-363" class="ident">mappedReady</a>.<a href="../internal/runtime/atomic/types.go.html#line-343" class="ident">Add</a>(-<a href="../../pkg/builtin.html#name-int64" class="ident">int64</a>(<label for="r28" class="ident">n</label>))</code></span>
+<span class="codeline" id="line-158"><code>	<a href="mem_linux.go.html#line-158" class="ident">sysFaultOS</a>(<label for="r27" class="ident">v</label>, <label for="r28" class="ident">n</label>)</code></span>
+<span class="codeline" id="line-159"><code>}</code></span>
+<span class="codeline" id="line-160"><code></code></span>
+<span class="codeline" id="line-161"><code><span class="comment">// sysReserve transitions a memory region from None to Reserved. It reserves</span></code></span>
+<span class="codeline" id="line-162"><code><span class="comment">// address space in such a way that it would cause a fatal fault upon access</span></code></span>
+<span class="codeline" id="line-163"><code><span class="comment">// (either via permissions or not committing the memory). Such a reservation is</span></code></span>
+<span class="codeline" id="line-164"><code><span class="comment">// thus never backed by physical memory.</span></code></span>
+<span class="codeline" id="line-165"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-166"><code><span class="comment">// If the pointer passed to it is non-nil, the caller wants the reservation</span></code></span>
+<span class="codeline" id="line-167"><code><span class="comment">// there, but sysReserve can still choose another location if that one is</span></code></span>
+<span class="codeline" id="line-168"><code><span class="comment">// unavailable.</span></code></span>
+<span class="codeline" id="line-169"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-170"><code><span class="comment">// sysReserve returns OS-aligned memory. If a larger alignment is required, use</span></code></span>
+<span class="codeline" id="line-171"><code><span class="comment">// sysReservedAligned.</span></code></span>
+<span class="codeline" id="line-172"><code><span class="keyword">func</span> <label for="r29" class="ident"><a href="../../pkg/runtime.html#name-sysReserve" class="ident">sysReserve</a></label>(<label for="r30" class="ident">v</label> <a href="../../pkg/unsafe.html" class="ident i0">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>, <label for="r31" class="ident">n</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>, <label for="r32" class="ident">vmaName</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../pkg/unsafe.html" class="ident i0">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a> {</code></span>
+<span class="codeline" id="line-173"><code>	<label for="r33" class="ident">p</label> := <a href="mem_linux.go.html#line-163" class="ident">sysReserveOS</a>(<label for="r30" class="ident">v</label>, <label for="r31" class="ident">n</label>, <label for="r32" class="ident">vmaName</label>)</code></span>
+<span class="codeline" id="line-174"><code></code></span>
+<span class="codeline" id="line-175"><code>	<span class="comment">// When using ASAN leak detection, we must tell ASAN about</span></code></span>
+<span class="codeline" id="line-176"><code><span class="comment">	// cases where we store pointers in mmapped memory.</span></code></span>
+<span class="codeline" id="line-177"><code>	<span class="keyword">if</span> <a href="asan0.go.html#line-15" class="ident">asanenabled</a> {</code></span>
+<span class="codeline" id="line-178"><code>		<a href="asan0.go.html#line-25" class="ident">lsanregisterrootregion</a>(<label for="r33" class="ident">p</label>, <label for="r31" class="ident">n</label>)</code></span>
+<span class="codeline" id="line-179"><code>	}</code></span>
+<span class="codeline" id="line-180"><code></code></span>
+<span class="codeline" id="line-181"><code>	<span class="keyword">return</span> <label for="r33" class="ident">p</label></code></span>
+<span class="codeline" id="line-182"><code>}</code></span>
+<span class="codeline" id="line-183"><code></code></span>
+<span class="codeline" id="line-184"><code><span class="comment">// sysReserveAligned transitions a memory region from None to Reserved.</span></code></span>
+<span class="codeline" id="line-185"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-186"><code><span class="comment">// Semantics are equivlent to sysReserve, but the returned pointer is aligned</span></code></span>
+<span class="codeline" id="line-187"><code><span class="comment">// to align bytes. It may reserve either n or n+align bytes, so it returns the</span></code></span>
+<span class="codeline" id="line-188"><code><span class="comment">// size that was reserved.</span></code></span>
+<span class="codeline" id="line-189"><code><span class="keyword">func</span> <label for="r34" class="ident"><a href="../../pkg/runtime.html#name-sysReserveAligned" class="ident">sysReserveAligned</a></label>(<label for="r35" class="ident">v</label> <a href="../../pkg/unsafe.html" class="ident i0">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>, <label for="r36" class="ident">size</label>, <label for="r37" class="ident">align</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>, <label for="r38" class="ident">vmaName</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>) (<a href="../../pkg/unsafe.html" class="ident i0">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>, <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>) {</code></span>
+<span class="codeline" id="line-190"><code>	<span class="keyword">if</span> <a href="mem_nonsbrk.go.html#line-11" class="ident">isSbrkPlatform</a> {</code></span>
+<span class="codeline" id="line-191"><code>		<span class="keyword">if</span> <label for="r35" class="ident">v</label> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-192"><code>			<a href="panic.go.html#line-1220" class="ident">throw</a>(<span class="lit-string">"unexpected heap arena hint on sbrk platform"</span>)</code></span>
+<span class="codeline" id="line-193"><code>		}</code></span>
+<span class="codeline" id="line-194"><code>		<span class="keyword">return</span> <a href="mem_nonsbrk.go.html#line-13" class="ident">sysReserveAlignedSbrk</a>(<label for="r36" class="ident">size</label>, <label for="r37" class="ident">align</label>)</code></span>
+<span class="codeline" id="line-195"><code>	}</code></span>
+<span class="codeline" id="line-196"><code>	<span class="comment">// Since the alignment is rather large in uses of this</span></code></span>
+<span class="codeline" id="line-197"><code><span class="comment">	// function, we're not likely to get it by chance, so we ask</span></code></span>
+<span class="codeline" id="line-198"><code><span class="comment">	// for a larger region and remove the parts we don't need.</span></code></span>
+<span class="codeline" id="line-199"><code>	<label for="r39" class="ident">retries</label> := <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-200"><code><label for="r40" class="ident">retry</label>:</code></span>
+<span class="codeline" id="line-201"><code>	<label for="r41" class="ident">p</label> := <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>(<a href="#line-172" class="ident">sysReserve</a>(<label for="r35" class="ident">v</label>, <label for="r36" class="ident">size</label>+<label for="r37" class="ident">align</label>, <label for="r38" class="ident">vmaName</label>))</code></span>
+<span class="codeline" id="line-202"><code>	<span class="keyword">switch</span> {</code></span>
+<span class="codeline" id="line-203"><code>	<span class="keyword">case</span> <label for="r41" class="ident">p</label> == <span class="lit-number">0</span>:</code></span>
+<span class="codeline" id="line-204"><code>		<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-205"><code>	<span class="keyword">case</span> <label for="r41" class="ident">p</label>&amp;(<label for="r37" class="ident">align</label>-<span class="lit-number">1</span>) == <span class="lit-number">0</span>:</code></span>
+<span class="codeline" id="line-206"><code>		<span class="keyword">return</span> <a href="../../pkg/unsafe.html" class="ident i0">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r41" class="ident">p</label>), <label for="r36" class="ident">size</label> + <label for="r37" class="ident">align</label></code></span>
+<span class="codeline" id="line-207"><code>	<span class="keyword">case</span> <a href="extern.go.html#line-380" class="ident">GOOS</a> == <span class="lit-string">"windows"</span>:</code></span>
+<span class="codeline" id="line-208"><code>		<span class="comment">// On Windows we can't release pieces of a</span></code></span>
+<span class="codeline" id="line-209"><code><span class="comment">		// reservation, so we release the whole thing and</span></code></span>
+<span class="codeline" id="line-210"><code><span class="comment">		// re-reserve the aligned sub-region. This may race,</span></code></span>
+<span class="codeline" id="line-211"><code><span class="comment">		// so we may have to try again.</span></code></span>
+<span class="codeline" id="line-212"><code>		<a href="#line-259" class="ident">sysUnreserve</a>(<a href="../../pkg/unsafe.html" class="ident i0">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r41" class="ident">p</label>), <label for="r36" class="ident">size</label>+<label for="r37" class="ident">align</label>)</code></span>
+<span class="codeline" id="line-213"><code>		<label for="r41" class="ident">p</label> = <a href="stubs.go.html#line-374" class="ident">alignUp</a>(<label for="r41" class="ident">p</label>, <label for="r37" class="ident">align</label>)</code></span>
+<span class="codeline" id="line-214"><code>		<label for="r42" class="ident">p2</label> := <a href="#line-172" class="ident">sysReserve</a>(<a href="../../pkg/unsafe.html" class="ident i0">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r41" class="ident">p</label>), <label for="r36" class="ident">size</label>, <label for="r38" class="ident">vmaName</label>)</code></span>
+<span class="codeline" id="line-215"><code>		<span class="keyword">if</span> <label for="r41" class="ident">p</label> != <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>(<label for="r42" class="ident">p2</label>) {</code></span>
+<span class="codeline" id="line-216"><code>			<span class="comment">// Must have raced. Try again.</span></code></span>
+<span class="codeline" id="line-217"><code>			<a href="#line-259" class="ident">sysUnreserve</a>(<label for="r42" class="ident">p2</label>, <label for="r36" class="ident">size</label>)</code></span>
+<span class="codeline" id="line-218"><code>			<span class="keyword">if</span> <label for="r39" class="ident">retries</label>++; <label for="r39" class="ident">retries</label> == <span class="lit-number">100</span> {</code></span>
+<span class="codeline" id="line-219"><code>				<a href="panic.go.html#line-1220" class="ident">throw</a>(<span class="lit-string">"failed to allocate aligned heap memory; too many retries"</span>)</code></span>
+<span class="codeline" id="line-220"><code>			}</code></span>
+<span class="codeline" id="line-221"><code>			<span class="keyword">goto</span> <label for="r40" class="ident">retry</label></code></span>
+<span class="codeline" id="line-222"><code>		}</code></span>
+<span class="codeline" id="line-223"><code>		<span class="comment">// Success.</span></code></span>
+<span class="codeline" id="line-224"><code>		<span class="keyword">return</span> <label for="r42" class="ident">p2</label>, <label for="r36" class="ident">size</label></code></span>
+<span class="codeline" id="line-225"><code>	<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-226"><code>		<span class="comment">// Trim off the unaligned parts.</span></code></span>
+<span class="codeline" id="line-227"><code>		<label for="r43" class="ident">pAligned</label> := <a href="stubs.go.html#line-374" class="ident">alignUp</a>(<label for="r41" class="ident">p</label>, <label for="r37" class="ident">align</label>)</code></span>
+<span class="codeline" id="line-228"><code>		<label for="r44" class="ident">end</label> := <label for="r43" class="ident">pAligned</label> + <label for="r36" class="ident">size</label></code></span>
+<span class="codeline" id="line-229"><code>		<label for="r45" class="ident">endLen</label> := (<label for="r41" class="ident">p</label> + <label for="r36" class="ident">size</label> + <label for="r37" class="ident">align</label>) - <label for="r44" class="ident">end</label></code></span>
+<span class="codeline" id="line-230"><code></code></span>
+<span class="codeline" id="line-231"><code>		<span class="comment">// sysUnreserve does not allow unreserving a subset of the</span></code></span>
+<span class="codeline" id="line-232"><code><span class="comment">		// region because LSAN does not allow unregistering a subset.</span></code></span>
+<span class="codeline" id="line-233"><code><span class="comment">		// So we can't call sysUnreserve. Instead we simply unregister</span></code></span>
+<span class="codeline" id="line-234"><code><span class="comment">		// the entire region from LSAN and re-register with the smaller</span></code></span>
+<span class="codeline" id="line-235"><code><span class="comment">		// region before freeing the unecessary portions, which does</span></code></span>
+<span class="codeline" id="line-236"><code><span class="comment">		// allow subsets of the region.</span></code></span>
+<span class="codeline" id="line-237"><code>		<span class="keyword">if</span> <a href="asan0.go.html#line-15" class="ident">asanenabled</a> {</code></span>
+<span class="codeline" id="line-238"><code>			<a href="asan0.go.html#line-26" class="ident">lsanunregisterrootregion</a>(<a href="../../pkg/unsafe.html" class="ident i0">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r41" class="ident">p</label>), <label for="r36" class="ident">size</label>+<label for="r37" class="ident">align</label>)</code></span>
+<span class="codeline" id="line-239"><code>			<a href="asan0.go.html#line-25" class="ident">lsanregisterrootregion</a>(<a href="../../pkg/unsafe.html" class="ident i0">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r43" class="ident">pAligned</label>), <label for="r36" class="ident">size</label>)</code></span>
+<span class="codeline" id="line-240"><code>		}</code></span>
+<span class="codeline" id="line-241"><code>		<a href="mem_linux.go.html#line-154" class="ident">sysFreeOS</a>(<a href="../../pkg/unsafe.html" class="ident i0">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r41" class="ident">p</label>), <label for="r43" class="ident">pAligned</label>-<label for="r41" class="ident">p</label>)</code></span>
+<span class="codeline" id="line-242"><code>		<span class="keyword">if</span> <label for="r45" class="ident">endLen</label> &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-243"><code>			<a href="mem_linux.go.html#line-154" class="ident">sysFreeOS</a>(<a href="../../pkg/unsafe.html" class="ident i0">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r44" class="ident">end</label>), <label for="r45" class="ident">endLen</label>)</code></span>
+<span class="codeline" id="line-244"><code>		}</code></span>
+<span class="codeline" id="line-245"><code>		<span class="keyword">return</span> <a href="../../pkg/unsafe.html" class="ident i0">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r43" class="ident">pAligned</label>), <label for="r36" class="ident">size</label></code></span>
+<span class="codeline" id="line-246"><code>	}</code></span>
+<span class="codeline" id="line-247"><code>}</code></span>
+<span class="codeline" id="line-248"><code></code></span>
+<span class="codeline" id="line-249"><code><span class="comment">// sysUnreserve transitions a memory region from Reserved to None.</span></code></span>
+<span class="codeline" id="line-250"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-251"><code><span class="comment">// The size and start address must exactly match the size and returned address</span></code></span>
+<span class="codeline" id="line-252"><code><span class="comment">// from sysReserve/sysReserveAligned. That is, sysUnreserve cannot be used to</span></code></span>
+<span class="codeline" id="line-253"><code><span class="comment">// unreserve a subset of a memory region.</span></code></span>
+<span class="codeline" id="line-254"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-255"><code><span class="comment">// Don't split the stack as this function may be invoked without a valid G,</span></code></span>
+<span class="codeline" id="line-256"><code><span class="comment">// which prevents us from allocating more stack.</span></code></span>
+<span class="codeline" id="line-257"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-258"><code><span class="comment">//go:nosplit</span></code></span>
+<span class="codeline" id="line-259"><code><span class="keyword">func</span> <label for="r46" class="ident"><a href="../../pkg/runtime.html#name-sysUnreserve" class="ident">sysUnreserve</a></label>(<label for="r47" class="ident">v</label> <a href="../../pkg/unsafe.html" class="ident i0">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>, <label for="r48" class="ident">n</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>) {</code></span>
+<span class="codeline" id="line-260"><code>	<span class="comment">// When using ASAN leak detection, the memory being freed is known by</span></code></span>
+<span class="codeline" id="line-261"><code><span class="comment">	// the sanitizer. We need to unregister it so it's not accessed by it.</span></code></span>
+<span class="codeline" id="line-262"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-263"><code><span class="comment">	// lsanunregisterrootregion matches regions by start address and size,</span></code></span>
+<span class="codeline" id="line-264"><code><span class="comment">	// so it is not possible to unregister a subset of the region. This is</span></code></span>
+<span class="codeline" id="line-265"><code><span class="comment">	// why sysUnreserve requires the full region from sysReserve.</span></code></span>
+<span class="codeline" id="line-266"><code>	<span class="keyword">if</span> <a href="asan0.go.html#line-15" class="ident">asanenabled</a> {</code></span>
+<span class="codeline" id="line-267"><code>		<a href="asan0.go.html#line-26" class="ident">lsanunregisterrootregion</a>(<label for="r47" class="ident">v</label>, <label for="r48" class="ident">n</label>)</code></span>
+<span class="codeline" id="line-268"><code>	}</code></span>
+<span class="codeline" id="line-269"><code></code></span>
+<span class="codeline" id="line-270"><code>	<a href="mem_linux.go.html#line-154" class="ident">sysFreeOS</a>(<label for="r47" class="ident">v</label>, <label for="r48" class="ident">n</label>)</code></span>
+<span class="codeline" id="line-271"><code>}</code></span>
+<span class="codeline" id="line-272"><code></code></span>
+<span class="codeline" id="line-273"><code><span class="comment">// sysMap transitions a memory region from Reserved to Prepared. It ensures the</span></code></span>
+<span class="codeline" id="line-274"><code><span class="comment">// memory region can be efficiently transitioned to Ready.</span></code></span>
+<span class="codeline" id="line-275"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-276"><code><span class="comment">// sysStat must be non-nil.</span></code></span>
+<span class="codeline" id="line-277"><code><span class="keyword">func</span> <label for="r49" class="ident"><a href="../../pkg/runtime.html#name-sysMap" class="ident">sysMap</a></label>(<label for="r50" class="ident">v</label> <a href="../../pkg/unsafe.html" class="ident i0">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>, <label for="r51" class="ident">n</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>, <label for="r52" class="ident">sysStat</label> *<a href="mstats.go.html#line-643" class="ident">sysMemStat</a>, <label for="r53" class="ident">vmaName</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>) {</code></span>
+<span class="codeline" id="line-278"><code>	<label for="r52" class="ident">sysStat</label>.<a href="mstats.go.html#line-659" class="ident">add</a>(<a href="../../pkg/builtin.html#name-int64" class="ident">int64</a>(<label for="r51" class="ident">n</label>))</code></span>
+<span class="codeline" id="line-279"><code>	<a href="mem_linux.go.html#line-172" class="ident">sysMapOS</a>(<label for="r50" class="ident">v</label>, <label for="r51" class="ident">n</label>, <label for="r53" class="ident">vmaName</label>)</code></span>
+<span class="codeline" id="line-280"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.8.4</i>. (GOOS=linux GOARCH=amd64)</pre>

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: entropy_fips140.go in package crypto/internal/fips140/drbg</title>
+<link href="../../../../../css/auto-v0.8.4.css" rel="stylesheet">
+<script src="../../../../../jvs/golds-v0.8.4.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	entropy_fips140.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../pkg/crypto/internal/fips140/drbg.html">crypto/internal/fips140/drbg</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2026 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="comment">// Entropy generation in FIPS 140-3 mode uses a scratch buffer in the BSS</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment">// section (see below), which usually doesn't cost much, except on Wasm, due to</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment">// the way the linear memory works. FIPS 140-3 mode is not supported on Wasm, so</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment">// we just use a build tag to exclude it. (Could also exclude other platforms</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment">// that does not support FIPS 140-3 mode, but as the BSS variable doesn't cost</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment">// much, don't bother.)</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment">//go:build !wasm</span></code></span>
+<span class="codeline" id="line-13"><code></code></span>
+<span class="codeline" id="line-14"><code><span class="keyword">package</span> drbg</code></span>
+<span class="codeline" id="line-15"><code></code></span>
+<span class="codeline" id="line-16"><code><span class="keyword">import</span> <a href="../../../../../pkg/crypto/internal/entropy/v1.0.0.html" class="ident i0">entropy</a> <label for="i0"><span class="lit-string i0">"crypto/internal/entropy/v1.0.0"</span></label></code></span>
+<span class="codeline" id="line-17"><code></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">// memory is a scratch buffer that is accessed between samples by the entropy</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">// source to expose it to memory access timings.</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">// We reuse it and share it between Seed calls to avoid the significant (~500µs)</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">// cost of zeroing a new allocation every time. The entropy source accesses it</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">// using atomics (and doesn't care about its contents).</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">// It should end up in the .noptrbss section, and become backed by physical pages</span></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">// at first use. This ensures that programs that do not use the FIPS 140-3 module</span></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">// do not incur any memory use or initialization penalties.</span></code></span>
+<span class="codeline" id="line-28"><code><span class="keyword">var</span> <a href="../../../../../pkg/crypto/internal/fips140/drbg.html#name-memory" class="ident">memory</a> <a href="../../../../../pkg/crypto/internal/entropy/v1.0.0.html" class="ident i0">entropy</a>.<a href="../../entropy/v1.0.0/entropy.go.html#line-25" class="ident">ScratchBuffer</a></code></span>
+<span class="codeline" id="line-29"><code></code></span>
+<span class="codeline" id="line-30"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../../pkg/crypto/internal/fips140/drbg.html#name-getEntropy" class="ident">getEntropy</a></label>() *[<a href="ctrdrbg.go.html#line-41" class="ident">SeedSize</a>]<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a> {</code></span>
+<span class="codeline" id="line-31"><code>	<span class="keyword">var</span> <label for="r1" class="ident">retries</label> <a href="../../../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-32"><code>	<label for="r2" class="ident">seed</label>, <label for="r3" class="ident">err</label> := <a href="../../../../../pkg/crypto/internal/entropy/v1.0.0.html" class="ident i0">entropy</a>.<a href="../../entropy/v1.0.0/entropy.go.html#line-34" class="ident">Seed</a>(&amp;<a href="#line-28" class="ident">memory</a>)</code></span>
+<span class="codeline" id="line-33"><code>	<span class="keyword">for</span> <label for="r3" class="ident">err</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-34"><code>		<span class="comment">// The CPU jitter-based SP 800-90B entropy source has a non-negligible</span></code></span>
+<span class="codeline" id="line-35"><code><span class="comment">		// chance of failing the startup health tests.</span></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">		//</span></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">		// Each time it does, it enters a permanent failure state, and we</span></code></span>
+<span class="codeline" id="line-38"><code><span class="comment">		// restart it anew. This is not expected to happen more than a few times</span></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">		// in a row.</span></code></span>
+<span class="codeline" id="line-40"><code>		<span class="keyword">if</span> <label for="r1" class="ident">retries</label>++; <label for="r1" class="ident">retries</label> &gt; <span class="lit-number">100</span> {</code></span>
+<span class="codeline" id="line-41"><code>			<a href="../../../../../pkg/builtin.html#name-panic" class="ident">panic</a>(<span class="lit-string">"fips140/drbg: failed to obtain initial entropy"</span>)</code></span>
+<span class="codeline" id="line-42"><code>		}</code></span>
+<span class="codeline" id="line-43"><code>		<label for="r2" class="ident">seed</label>, <label for="r3" class="ident">err</label> = <a href="../../../../../pkg/crypto/internal/entropy/v1.0.0.html" class="ident i0">entropy</a>.<a href="../../entropy/v1.0.0/entropy.go.html#line-34" class="ident">Seed</a>(&amp;<a href="#line-28" class="ident">memory</a>)</code></span>
+<span class="codeline" id="line-44"><code>	}</code></span>
+<span class="codeline" id="line-45"><code>	<span class="keyword">return</span> &amp;<label for="r2" class="ident">seed</label></code></span>
+<span class="codeline" id="line-46"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.8.4</i>. (GOOS=linux GOARCH=amd64)</pre>

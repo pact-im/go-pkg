@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: ftoafixed.go in package internal/strconv</title>
+<link href="../../../css/auto-v0.8.4.css" rel="stylesheet">
+<script src="../../../jvs/golds-v0.8.4.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	ftoafixed.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../pkg/internal/strconv.html">internal/strconv</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2025 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> strconv</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">import</span> <label for="i0"><span class="lit-string i0">"math/bits"</span></label></code></span>
+<span class="codeline" id="line-8"><code></code></span>
+<span class="codeline" id="line-9"><code><span class="keyword">var</span> <a href="../../../pkg/internal/strconv.html#name-uint64pow10" class="ident">uint64pow10</a> = [...]<a href="../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>{</code></span>
+<span class="codeline" id="line-10"><code>	<span class="lit-number">1</span>, <span class="lit-number">1e1</span>, <span class="lit-number">1e2</span>, <span class="lit-number">1e3</span>, <span class="lit-number">1e4</span>, <span class="lit-number">1e5</span>, <span class="lit-number">1e6</span>, <span class="lit-number">1e7</span>, <span class="lit-number">1e8</span>, <span class="lit-number">1e9</span>,</code></span>
+<span class="codeline" id="line-11"><code>	<span class="lit-number">1e10</span>, <span class="lit-number">1e11</span>, <span class="lit-number">1e12</span>, <span class="lit-number">1e13</span>, <span class="lit-number">1e14</span>, <span class="lit-number">1e15</span>, <span class="lit-number">1e16</span>, <span class="lit-number">1e17</span>, <span class="lit-number">1e18</span>, <span class="lit-number">1e19</span>,</code></span>
+<span class="codeline" id="line-12"><code>}</code></span>
+<span class="codeline" id="line-13"><code></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">// fixedFtoa formats a number of decimal digits of mant*(2^exp) into d,</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">// where mant &gt; 0 and 1 ≤ digits ≤ 18.</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">// If fmt == 'f', digits is a conservative overestimate, and the final</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">// number of digits is prec past the decimal point.</span></code></span>
+<span class="codeline" id="line-18"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../pkg/internal/strconv.html#name-fixedFtoa" class="ident">fixedFtoa</a></label>(<label for="r1" class="ident">d</label> *<a href="ftoa.go.html#line-399" class="ident">decimalSlice</a>, <label for="r2" class="ident">mant</label> <a href="../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>, <label for="r3" class="ident">exp</label>, <label for="r4" class="ident">digits</label>, <label for="r5" class="ident">prec</label> <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r6" class="ident">fmt</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) {</code></span>
+<span class="codeline" id="line-19"><code>	<span class="comment">// The strategy here is to multiply (mant * 2^exp) by a power of 10</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">	// to make the resulting integer be the number of digits we want.</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">	// Adams proved in the Ryu paper that 128-bit precision in the</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">	// power-of-10 constant is sufficient to produce correctly</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">	// rounded output for all float64s, up to 18 digits.</span></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">	// https://dl.acm.org/doi/10.1145/3192366.3192369</span></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">	// TODO(rsc): The paper is not focused on, nor terribly clear about,</span></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">	// this fact in this context, and the proof seems too complicated.</span></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">	// Post a shorter, more direct proof and link to it here.</span></code></span>
+<span class="codeline" id="line-30"><code></code></span>
+<span class="codeline" id="line-31"><code>	<span class="keyword">if</span> <label for="r4" class="ident">digits</label> &gt; <span class="lit-number">18</span> {</code></span>
+<span class="codeline" id="line-32"><code>		<a href="../../../pkg/builtin.html#name-panic" class="ident">panic</a>(<span class="lit-string">"fixedFtoa called with digits &gt; 18"</span>)</code></span>
+<span class="codeline" id="line-33"><code>	}</code></span>
+<span class="codeline" id="line-34"><code></code></span>
+<span class="codeline" id="line-35"><code>	<span class="comment">// Shift mantissa to have 64 bits,</span></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">	// so that the 192-bit product below will</span></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">	// have at least 63 bits in its top word.</span></code></span>
+<span class="codeline" id="line-38"><code>	<label for="r7" class="ident">b</label> := <span class="lit-number">64</span> - <a href="../../../pkg/math/bits.html" class="ident i0">bits</a>.<a href="../../math/bits/bits.go.html#line-337" class="ident">Len64</a>(<label for="r2" class="ident">mant</label>)</code></span>
+<span class="codeline" id="line-39"><code>	<label for="r2" class="ident">mant</label> &lt;&lt;= <label for="r7" class="ident">b</label></code></span>
+<span class="codeline" id="line-40"><code>	<label for="r3" class="ident">exp</label> -= <label for="r7" class="ident">b</label></code></span>
+<span class="codeline" id="line-41"><code></code></span>
+<span class="codeline" id="line-42"><code>	<span class="comment">// We have f = mant * 2^exp ≥ 2^(63+exp)</span></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">	// and we want to multiply it by some 10^p</span></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">	// to make it have the number of digits plus one rounding bit:</span></code></span>
+<span class="codeline" id="line-45"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-46"><code><span class="comment">	//	2 * 10^(digits-1) ≤ f * 10^p &lt; ~2 * 10^digits</span></code></span>
+<span class="codeline" id="line-47"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-48"><code><span class="comment">	// The lower bound is required, but the upper bound is approximate:</span></code></span>
+<span class="codeline" id="line-49"><code><span class="comment">	// we must not have too few digits, but we can round away extra ones.</span></code></span>
+<span class="codeline" id="line-50"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-51"><code><span class="comment">	//	f * 10^p ≥ 2 * 10^(digits-1)</span></code></span>
+<span class="codeline" id="line-52"><code><span class="comment">	//	10^p ≥ 2 * 10^(digits-1) / f                         [dividing by f]</span></code></span>
+<span class="codeline" id="line-53"><code><span class="comment">	//	p ≥ (log₁₀ 2) + (digits-1) - log₁₀ f                 [taking log₁₀]</span></code></span>
+<span class="codeline" id="line-54"><code><span class="comment">	//	p ≥ (log₁₀ 2) + (digits-1) - log₁₀ (mant * 2^exp)    [expanding f]</span></code></span>
+<span class="codeline" id="line-55"><code><span class="comment">	//	p ≥ (log₁₀ 2) + (digits-1) - (log₁₀ 2) * (64 + exp)  [mant &lt; 2⁶⁴]</span></code></span>
+<span class="codeline" id="line-56"><code><span class="comment">	//	p ≥ (digits - 1) - (log₁₀ 2) * (63 + exp)            [refactoring]</span></code></span>
+<span class="codeline" id="line-57"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-58"><code><span class="comment">	// Once we have p, we can compute the scaled value:</span></code></span>
+<span class="codeline" id="line-59"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-60"><code><span class="comment">	//	dm * 2^de = mant * 2^exp * 10^p</span></code></span>
+<span class="codeline" id="line-61"><code><span class="comment">	//	          = mant * 2^exp * pow/2^128 * 2^exp2.</span></code></span>
+<span class="codeline" id="line-62"><code><span class="comment">	//	          = (mant * pow/2^128) * 2^(exp+exp2).</span></code></span>
+<span class="codeline" id="line-63"><code>	<label for="r8" class="ident">p</label> := (<label for="r4" class="ident">digits</label> - <span class="lit-number">1</span>) - <a href="math.go.html#line-45" class="ident">mulLog10_2</a>(<span class="lit-number">63</span>+<label for="r3" class="ident">exp</label>)</code></span>
+<span class="codeline" id="line-64"><code>	<label for="r9" class="ident">pow</label>, <label for="r10" class="ident">exp2</label>, <label for="r11" class="ident">ok</label> := <a href="math.go.html#line-33" class="ident">pow10</a>(<label for="r8" class="ident">p</label>)</code></span>
+<span class="codeline" id="line-65"><code>	<span class="keyword">if</span> !<label for="r11" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-66"><code>		<span class="comment">// This never happens due to the range of float32/float64 exponent</span></code></span>
+<span class="codeline" id="line-67"><code>		<a href="../../../pkg/builtin.html#name-panic" class="ident">panic</a>(<span class="lit-string">"fixedFtoa: pow10 out of range"</span>)</code></span>
+<span class="codeline" id="line-68"><code>	}</code></span>
+<span class="codeline" id="line-69"><code>	<span class="keyword">if</span> -<span class="lit-number">22</span> &lt;= <label for="r8" class="ident">p</label> &amp;&amp; <label for="r8" class="ident">p</label> &lt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-70"><code>		<span class="comment">// Special case: Let q=-p. q is in [1,22]. We are dividing by 10^q</span></code></span>
+<span class="codeline" id="line-71"><code><span class="comment">		// and the mantissa may be a multiple of 5^q (5^22 &lt; 2^53),</span></code></span>
+<span class="codeline" id="line-72"><code><span class="comment">		// in which case the division must be computed exactly and</span></code></span>
+<span class="codeline" id="line-73"><code><span class="comment">		// recorded as exact for correct rounding. Our normal computation is:</span></code></span>
+<span class="codeline" id="line-74"><code><span class="comment">		//</span></code></span>
+<span class="codeline" id="line-75"><code><span class="comment">		//	dm = floor(mant * floor(10^p * 2^s))</span></code></span>
+<span class="codeline" id="line-76"><code><span class="comment">		//</span></code></span>
+<span class="codeline" id="line-77"><code><span class="comment">		// for some scaling shift s. To make this an exact division,</span></code></span>
+<span class="codeline" id="line-78"><code><span class="comment">		// it suffices to change the inner floor to a ceil:</span></code></span>
+<span class="codeline" id="line-79"><code><span class="comment">		//</span></code></span>
+<span class="codeline" id="line-80"><code><span class="comment">		//	dm = floor(mant * ceil(10^p * 2^s))</span></code></span>
+<span class="codeline" id="line-81"><code><span class="comment">		//</span></code></span>
+<span class="codeline" id="line-82"><code><span class="comment">		// In the range of values we are using, the floor and ceil</span></code></span>
+<span class="codeline" id="line-83"><code><span class="comment">		// cancel each other out and the high 64 bits of the product</span></code></span>
+<span class="codeline" id="line-84"><code><span class="comment">		// come out exactly right.</span></code></span>
+<span class="codeline" id="line-85"><code><span class="comment">		// (This is the same trick compilers use for division by constants.</span></code></span>
+<span class="codeline" id="line-86"><code><span class="comment">		// See Hacker's Delight, 2nd ed., Chapter 10.)</span></code></span>
+<span class="codeline" id="line-87"><code>		<label for="r9" class="ident">pow</label>.<a href="math.go.html#line-13" class="ident">Lo</a>++</code></span>
+<span class="codeline" id="line-88"><code>	}</code></span>
+<span class="codeline" id="line-89"><code>	<label for="r12" class="ident">dm</label>, <label for="r13" class="ident">lo1</label>, <label for="r14" class="ident">lo0</label> := <a href="math.go.html#line-23" class="ident">umul192</a>(<label for="r2" class="ident">mant</label>, <label for="r9" class="ident">pow</label>)</code></span>
+<span class="codeline" id="line-90"><code>	<label for="r15" class="ident">de</label> := <label for="r3" class="ident">exp</label> + <label for="r10" class="ident">exp2</label></code></span>
+<span class="codeline" id="line-91"><code></code></span>
+<span class="codeline" id="line-92"><code>	<span class="comment">// Check whether any bits have been truncated from dm.</span></code></span>
+<span class="codeline" id="line-93"><code><span class="comment">	// If so, set dt != 0. If not, leave dt == 0 (meaning dm is exact).</span></code></span>
+<span class="codeline" id="line-94"><code>	<span class="keyword">var</span> <label for="r16" class="ident">dt</label> <a href="../../../pkg/builtin.html#name-uint" class="ident">uint</a></code></span>
+<span class="codeline" id="line-95"><code>	<span class="keyword">switch</span> {</code></span>
+<span class="codeline" id="line-96"><code>	<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-97"><code>		<span class="comment">// Most powers of 10 use a truncated constant,</span></code></span>
+<span class="codeline" id="line-98"><code><span class="comment">		// meaning the result is also truncated.</span></code></span>
+<span class="codeline" id="line-99"><code>		<label for="r16" class="ident">dt</label> = <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-100"><code>	<span class="keyword">case</span> <span class="lit-number">0</span> &lt;= <label for="r8" class="ident">p</label> &amp;&amp; <label for="r8" class="ident">p</label> &lt;= <span class="lit-number">55</span>:</code></span>
+<span class="codeline" id="line-101"><code>		<span class="comment">// Small positive powers of 10 (up to 10⁵⁵) can be represented</span></code></span>
+<span class="codeline" id="line-102"><code><span class="comment">		// precisely in a 128-bit mantissa (5⁵⁵ ≤ 2¹²⁸), so the only truncation</span></code></span>
+<span class="codeline" id="line-103"><code><span class="comment">		// comes from discarding the low bits of the 192-bit product.</span></code></span>
+<span class="codeline" id="line-104"><code><span class="comment">		//</span></code></span>
+<span class="codeline" id="line-105"><code><span class="comment">		// TODO(rsc): The new proof mentioned above should also</span></code></span>
+<span class="codeline" id="line-106"><code><span class="comment">		// prove that we can't have lo1 == 0 and lo0 != 0.</span></code></span>
+<span class="codeline" id="line-107"><code><span class="comment">		// After proving that, drop computation and use of lo0 here.</span></code></span>
+<span class="codeline" id="line-108"><code>		<label for="r16" class="ident">dt</label> = <a href="math.go.html#line-60" class="ident">bool2uint</a>(<label for="r13" class="ident">lo1</label>|<label for="r14" class="ident">lo0</label> != <span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-109"><code>	<span class="keyword">case</span> -<span class="lit-number">22</span> &lt;= <label for="r8" class="ident">p</label> &amp;&amp; <label for="r8" class="ident">p</label> &lt; <span class="lit-number">0</span> &amp;&amp; <a href="math.go.html#line-96" class="ident">divisiblePow5</a>(<label for="r2" class="ident">mant</label>, -<label for="r8" class="ident">p</label>):</code></span>
+<span class="codeline" id="line-110"><code>		<span class="comment">// If the original mantissa was a multiple of 5^p,</span></code></span>
+<span class="codeline" id="line-111"><code><span class="comment">		// the result is exact. (See comment above for pow.Lo++.)</span></code></span>
+<span class="codeline" id="line-112"><code>		<label for="r16" class="ident">dt</label> = <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-113"><code>	}</code></span>
+<span class="codeline" id="line-114"><code></code></span>
+<span class="codeline" id="line-115"><code>	<span class="comment">// The value we want to format is dm * 2^de, where de &lt; 0.</span></code></span>
+<span class="codeline" id="line-116"><code><span class="comment">	// Multply by 2^de by shifting, but leave one extra bit for rounding.</span></code></span>
+<span class="codeline" id="line-117"><code><span class="comment">	// After the shift, the "integer part" of dm is dm&gt;&gt;1,</span></code></span>
+<span class="codeline" id="line-118"><code><span class="comment">	// the "rounding bit" (the first fractional bit) is dm&amp;1,</span></code></span>
+<span class="codeline" id="line-119"><code><span class="comment">	// and the "truncated bit" (have any bits been discarded?) is dt.</span></code></span>
+<span class="codeline" id="line-120"><code>	<label for="r17" class="ident">shift</label> := -<label for="r15" class="ident">de</label> - <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-121"><code>	<label for="r16" class="ident">dt</label> |= <a href="math.go.html#line-60" class="ident">bool2uint</a>(<label for="r12" class="ident">dm</label>&amp;(<span class="lit-number">1</span>&lt;&lt;<label for="r17" class="ident">shift</label>-<span class="lit-number">1</span>) != <span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-122"><code>	<label for="r12" class="ident">dm</label> &gt;&gt;= <label for="r17" class="ident">shift</label></code></span>
+<span class="codeline" id="line-123"><code></code></span>
+<span class="codeline" id="line-124"><code>	<span class="comment">// Set decimal point in eventual formatted digits,</span></code></span>
+<span class="codeline" id="line-125"><code><span class="comment">	// so we can update it as we adjust the digits.</span></code></span>
+<span class="codeline" id="line-126"><code>	<label for="r1" class="ident">d</label>.<a href="ftoa.go.html#line-401" class="ident">dp</a> = <label for="r4" class="ident">digits</label> - <label for="r8" class="ident">p</label></code></span>
+<span class="codeline" id="line-127"><code></code></span>
+<span class="codeline" id="line-128"><code>	<span class="comment">// Trim excess digit if any, updating truncation and decimal point.</span></code></span>
+<span class="codeline" id="line-129"><code><span class="comment">	// The &lt;&lt; 1 is leaving room for the rounding bit.</span></code></span>
+<span class="codeline" id="line-130"><code>	<label for="r18" class="ident">max</label> := <a href="#line-9" class="ident">uint64pow10</a>[<label for="r4" class="ident">digits</label>] &lt;&lt; <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-131"><code>	<span class="keyword">if</span> <label for="r12" class="ident">dm</label> &gt;= <label for="r18" class="ident">max</label> {</code></span>
+<span class="codeline" id="line-132"><code>		<span class="keyword">var</span> <label for="r19" class="ident">r</label> <a href="../../../pkg/builtin.html#name-uint" class="ident">uint</a></code></span>
+<span class="codeline" id="line-133"><code>		<label for="r12" class="ident">dm</label>, <label for="r19" class="ident">r</label> = <label for="r12" class="ident">dm</label>/<span class="lit-number">10</span>, <a href="../../../pkg/builtin.html#name-uint" class="ident">uint</a>(<label for="r12" class="ident">dm</label>%<span class="lit-number">10</span>)</code></span>
+<span class="codeline" id="line-134"><code>		<label for="r16" class="ident">dt</label> |= <a href="math.go.html#line-60" class="ident">bool2uint</a>(<label for="r19" class="ident">r</label> != <span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-135"><code>		<label for="r1" class="ident">d</label>.<a href="ftoa.go.html#line-401" class="ident">dp</a>++</code></span>
+<span class="codeline" id="line-136"><code>	}</code></span>
+<span class="codeline" id="line-137"><code></code></span>
+<span class="codeline" id="line-138"><code>	<span class="comment">// If this is %.*f we may have overestimated the digits needed.</span></code></span>
+<span class="codeline" id="line-139"><code><span class="comment">	// Now that we know where the decimal point is,</span></code></span>
+<span class="codeline" id="line-140"><code><span class="comment">	// trim to the actual number of digits, which is d.dp+prec.</span></code></span>
+<span class="codeline" id="line-141"><code>	<span class="keyword">if</span> <label for="r6" class="ident">fmt</label> == <span class="lit-number">'f'</span> &amp;&amp; <label for="r4" class="ident">digits</label> != <label for="r1" class="ident">d</label>.<a href="ftoa.go.html#line-401" class="ident">dp</a>+<label for="r5" class="ident">prec</label> {</code></span>
+<span class="codeline" id="line-142"><code>		<span class="keyword">for</span> <label for="r4" class="ident">digits</label> &gt; <label for="r1" class="ident">d</label>.<a href="ftoa.go.html#line-401" class="ident">dp</a>+<label for="r5" class="ident">prec</label> {</code></span>
+<span class="codeline" id="line-143"><code>			<span class="keyword">var</span> <label for="r20" class="ident">r</label> <a href="../../../pkg/builtin.html#name-uint" class="ident">uint</a></code></span>
+<span class="codeline" id="line-144"><code>			<label for="r12" class="ident">dm</label>, <label for="r20" class="ident">r</label> = <label for="r12" class="ident">dm</label>/<span class="lit-number">10</span>, <a href="../../../pkg/builtin.html#name-uint" class="ident">uint</a>(<label for="r12" class="ident">dm</label>%<span class="lit-number">10</span>)</code></span>
+<span class="codeline" id="line-145"><code>			<label for="r16" class="ident">dt</label> |= <a href="math.go.html#line-60" class="ident">bool2uint</a>(<label for="r20" class="ident">r</label> != <span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-146"><code>			<label for="r4" class="ident">digits</label>--</code></span>
+<span class="codeline" id="line-147"><code>		}</code></span>
+<span class="codeline" id="line-148"><code></code></span>
+<span class="codeline" id="line-149"><code>		<span class="comment">// Dropping those digits can create a new leftmost</span></code></span>
+<span class="codeline" id="line-150"><code><span class="comment">		// non-zero digit, like if we are formatting %.1f and</span></code></span>
+<span class="codeline" id="line-151"><code><span class="comment">		// convert 0.09 -&gt; 0.1. Detect and adjust for that.</span></code></span>
+<span class="codeline" id="line-152"><code>		<span class="keyword">if</span> <label for="r4" class="ident">digits</label> &lt;= <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-153"><code>			<label for="r4" class="ident">digits</label> = <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-154"><code>			<label for="r1" class="ident">d</label>.<a href="ftoa.go.html#line-401" class="ident">dp</a>++</code></span>
+<span class="codeline" id="line-155"><code>		}</code></span>
+<span class="codeline" id="line-156"><code></code></span>
+<span class="codeline" id="line-157"><code>		<label for="r18" class="ident">max</label> = <a href="#line-9" class="ident">uint64pow10</a>[<label for="r4" class="ident">digits</label>] &lt;&lt; <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-158"><code>	}</code></span>
+<span class="codeline" id="line-159"><code></code></span>
+<span class="codeline" id="line-160"><code>	<span class="comment">// Round and shift away rounding bit.</span></code></span>
+<span class="codeline" id="line-161"><code><span class="comment">	// We want to round up when</span></code></span>
+<span class="codeline" id="line-162"><code><span class="comment">	// (a) the fractional part is &gt; 0.5 (dm&amp;1 != 0 and dt == 1)</span></code></span>
+<span class="codeline" id="line-163"><code><span class="comment">	// (b) or the fractional part is ≥ 0.5 and the integer part is odd</span></code></span>
+<span class="codeline" id="line-164"><code><span class="comment">	//     (dm&amp;1 != 0 and dm&amp;2 != 0).</span></code></span>
+<span class="codeline" id="line-165"><code><span class="comment">	// The bitwise expression encodes that logic.</span></code></span>
+<span class="codeline" id="line-166"><code>	<label for="r12" class="ident">dm</label> += <a href="../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<a href="../../../pkg/builtin.html#name-uint" class="ident">uint</a>(<label for="r12" class="ident">dm</label>) &amp; (<label for="r16" class="ident">dt</label> | <a href="../../../pkg/builtin.html#name-uint" class="ident">uint</a>(<label for="r12" class="ident">dm</label>)&gt;&gt;<span class="lit-number">1</span>) &amp; <span class="lit-number">1</span>)</code></span>
+<span class="codeline" id="line-167"><code>	<label for="r12" class="ident">dm</label> &gt;&gt;= <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-168"><code>	<span class="keyword">if</span> <label for="r12" class="ident">dm</label> == <label for="r18" class="ident">max</label>&gt;&gt;<span class="lit-number">1</span> {</code></span>
+<span class="codeline" id="line-169"><code>		<span class="comment">// 999... rolled over to 1000...</span></code></span>
+<span class="codeline" id="line-170"><code>		<label for="r12" class="ident">dm</label> = <a href="#line-9" class="ident">uint64pow10</a>[<label for="r4" class="ident">digits</label>-<span class="lit-number">1</span>]</code></span>
+<span class="codeline" id="line-171"><code>		<label for="r1" class="ident">d</label>.<a href="ftoa.go.html#line-401" class="ident">dp</a>++</code></span>
+<span class="codeline" id="line-172"><code>	}</code></span>
+<span class="codeline" id="line-173"><code></code></span>
+<span class="codeline" id="line-174"><code>	<span class="comment">// Format digits into d.</span></code></span>
+<span class="codeline" id="line-175"><code>	<span class="keyword">if</span> <label for="r12" class="ident">dm</label> != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-176"><code>		<span class="keyword">if</span> <a href="itoa.go.html#line-191" class="ident">formatBase10</a>(<label for="r1" class="ident">d</label>.<a href="ftoa.go.html#line-400" class="ident">d</a>[:<label for="r4" class="ident">digits</label>], <label for="r12" class="ident">dm</label>) != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-177"><code>			<a href="../../../pkg/builtin.html#name-panic" class="ident">panic</a>(<span class="lit-string">"formatBase10"</span>)</code></span>
+<span class="codeline" id="line-178"><code>		}</code></span>
+<span class="codeline" id="line-179"><code>		<label for="r1" class="ident">d</label>.<a href="ftoa.go.html#line-401" class="ident">nd</a> = <label for="r4" class="ident">digits</label></code></span>
+<span class="codeline" id="line-180"><code>		<span class="keyword">for</span> <label for="r1" class="ident">d</label>.<a href="ftoa.go.html#line-400" class="ident">d</a>[<label for="r1" class="ident">d</label>.<a href="ftoa.go.html#line-401" class="ident">nd</a>-<span class="lit-number">1</span>] == <span class="lit-number">'0'</span> {</code></span>
+<span class="codeline" id="line-181"><code>			<label for="r1" class="ident">d</label>.<a href="ftoa.go.html#line-401" class="ident">nd</a>--</code></span>
+<span class="codeline" id="line-182"><code>		}</code></span>
+<span class="codeline" id="line-183"><code>	}</code></span>
+<span class="codeline" id="line-184"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.8.4</i>. (GOOS=linux GOARCH=amd64)</pre>

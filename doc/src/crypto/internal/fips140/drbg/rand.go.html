@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: rand.go in package crypto/internal/fips140/drbg</title>
+<link href="../../../../../css/auto-v0.8.4.css" rel="stylesheet">
+<script src="../../../../../jvs/golds-v0.8.4.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	rand.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../pkg/crypto/internal/fips140/drbg.html">crypto/internal/fips140/drbg</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3,
+input[id=i4]:checked ~pre .i4
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+<input id="i4" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2024 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<div class="anchor" id="doc"><span class="codeline" id="line-5"><code><span class="comment">// Package drbg provides cryptographically secure random bytes</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment">// usable by FIPS code. In FIPS mode it uses an SP 800-90A Rev. 1</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment">// Deterministic Random Bit Generator (DRBG). Otherwise,</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment">// it uses the operating system's random number generator.</span></code></span></div><span class="codeline" id="line-9"><code><span class="keyword">package</span> drbg</code></span>
+<span class="codeline" id="line-10"><code></code></span>
+<span class="codeline" id="line-11"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-12"><code>	<label for="i0"><span class="lit-string i0">"crypto/internal/fips140"</span></label></code></span>
+<span class="codeline" id="line-13"><code>	<label for="i1"><span class="lit-string i1">"crypto/internal/sysrand"</span></label></code></span>
+<span class="codeline" id="line-14"><code>	<label for="i2"><span class="lit-string i2">"io"</span></label></code></span>
+<span class="codeline" id="line-15"><code>	<label for="i3"><span class="lit-string i3">"sync"</span></label></code></span>
+<span class="codeline" id="line-16"><code>	<label for="i4"><span class="lit-string i4">"sync/atomic"</span></label></code></span>
+<span class="codeline" id="line-17"><code>)</code></span>
+<span class="codeline" id="line-18"><code></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">// getEntropy is very slow (~500µs), so we don't want it on the hot path.</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">// We keep both a persistent DRBG instance and a pool of additional instances.</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">// Occasional uses will use drbgInstance, even if the pool was emptied since the</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">// last use. Frequent concurrent uses will fill the pool and use it.</span></code></span>
+<span class="codeline" id="line-23"><code><span class="keyword">var</span> <a href="../../../../../pkg/crypto/internal/fips140/drbg.html#name-drbgInstance" class="ident">drbgInstance</a> <a href="../../../../../pkg/sync/atomic.html" class="ident i4">atomic</a>.<a href="../../../../sync/atomic/type.go.html#line-47" class="ident">Pointer</a>[<a href="ctrdrbg.go.html#line-32" class="ident">Counter</a>]</code></span>
+<span class="codeline" id="line-24"><code><span class="keyword">var</span> <a href="../../../../../pkg/crypto/internal/fips140/drbg.html#name-drbgPool" class="ident">drbgPool</a> = <a href="../../../../../pkg/sync.html" class="ident i3">sync</a>.<a href="../../../../sync/pool.go.html#line-51" class="ident">Pool</a>{</code></span>
+<span class="codeline" id="line-25"><code>	<a href="../../../../sync/pool.go.html#line-63" class="ident">New</a>: <span class="keyword">func</span>() <a href="../../../../../pkg/builtin.html#name-any" class="ident">any</a> {</code></span>
+<span class="codeline" id="line-26"><code>		<span class="keyword">return</span> <a href="ctrdrbg.go.html#line-46" class="ident">NewCounter</a>(<a href="entropy_fips140.go.html#line-30" class="ident">getEntropy</a>())</code></span>
+<span class="codeline" id="line-27"><code>	},</code></span>
+<span class="codeline" id="line-28"><code>}</code></span>
+<span class="codeline" id="line-29"><code></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">// Read fills b with cryptographically secure random bytes. In FIPS mode, it</span></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">// uses an SP 800-90A Rev. 1 Deterministic Random Bit Generator (DRBG).</span></code></span>
+<span class="codeline" id="line-32"><code><span class="comment">// Otherwise, it uses the operating system's random number generator.</span></code></span>
+<span class="codeline" id="line-33"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../../pkg/crypto/internal/fips140/drbg.html#name-Read" class="ident">Read</a></label>(<label for="r1" class="ident">b</label> []<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) {</code></span>
+<span class="codeline" id="line-34"><code>	<span class="keyword">if</span> <a href="#line-81" class="ident">testingReader</a> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-35"><code>		<a href="../../../../../pkg/crypto/internal/fips140.html" class="ident i0">fips140</a>.<a href="../indicator.go.html#line-60" class="ident">RecordNonApproved</a>()</code></span>
+<span class="codeline" id="line-36"><code>		<span class="comment">// Avoid letting b escape in the non-testing case.</span></code></span>
+<span class="codeline" id="line-37"><code>		<label for="r2" class="ident">bb</label> := <a href="../../../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r1" class="ident">b</label>))</code></span>
+<span class="codeline" id="line-38"><code>		<a href="#line-81" class="ident">testingReader</a>.<a href="../../../../io/io.go.html#line-87" class="ident">Read</a>(<label for="r2" class="ident">bb</label>)</code></span>
+<span class="codeline" id="line-39"><code>		<a href="../../../../../pkg/builtin.html#name-copy" class="ident">copy</a>(<label for="r1" class="ident">b</label>, <label for="r2" class="ident">bb</label>)</code></span>
+<span class="codeline" id="line-40"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-41"><code>	}</code></span>
+<span class="codeline" id="line-42"><code></code></span>
+<span class="codeline" id="line-43"><code>	<span class="keyword">if</span> !<a href="../../../../../pkg/crypto/internal/fips140.html" class="ident i0">fips140</a>.<a href="../fips140.go.html#line-13" class="ident">Enabled</a> {</code></span>
+<span class="codeline" id="line-44"><code>		<a href="../../../../../pkg/crypto/internal/sysrand.html" class="ident i1">sysrand</a>.<a href="../../sysrand/rand.go.html#line-37" class="ident">Read</a>(<label for="r1" class="ident">b</label>)</code></span>
+<span class="codeline" id="line-45"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-46"><code>	}</code></span>
+<span class="codeline" id="line-47"><code></code></span>
+<span class="codeline" id="line-48"><code>	<span class="comment">// At every read, 128 random bits from the operating system are mixed as</span></code></span>
+<span class="codeline" id="line-49"><code><span class="comment">	// additional input, to make the output as strong as non-FIPS randomness.</span></code></span>
+<span class="codeline" id="line-50"><code><span class="comment">	// This is not credited as entropy for FIPS purposes, as allowed by Section</span></code></span>
+<span class="codeline" id="line-51"><code><span class="comment">	// 8.7.2: "Note that a DRBG does not rely on additional input to provide</span></code></span>
+<span class="codeline" id="line-52"><code><span class="comment">	// entropy, even though entropy could be provided in the additional input".</span></code></span>
+<span class="codeline" id="line-53"><code>	<label for="r3" class="ident">additionalInput</label> := <a href="../../../../../pkg/builtin.html#name-new" class="ident">new</a>([<a href="ctrdrbg.go.html#line-41" class="ident">SeedSize</a>]<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>)</code></span>
+<span class="codeline" id="line-54"><code>	<a href="../../../../../pkg/crypto/internal/sysrand.html" class="ident i1">sysrand</a>.<a href="../../sysrand/rand.go.html#line-37" class="ident">Read</a>(<label for="r3" class="ident">additionalInput</label>[:<span class="lit-number">16</span>])</code></span>
+<span class="codeline" id="line-55"><code></code></span>
+<span class="codeline" id="line-56"><code>	<label for="r4" class="ident">drbg</label> := <a href="#line-23" class="ident">drbgInstance</a>.<a href="../../../../sync/atomic/type.go.html#line-64" class="ident">Swap</a>(<a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>)</code></span>
+<span class="codeline" id="line-57"><code>	<span class="keyword">if</span> <label for="r4" class="ident">drbg</label> == <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-58"><code>		<label for="r4" class="ident">drbg</label> = <a href="#line-24" class="ident">drbgPool</a>.<a href="../../../../sync/pool.go.html#line-131" class="ident">Get</a>().(*<a href="ctrdrbg.go.html#line-32" class="ident">Counter</a>)</code></span>
+<span class="codeline" id="line-59"><code>	}</code></span>
+<span class="codeline" id="line-60"><code>	<span class="keyword">defer</span> <span class="keyword">func</span>() {</code></span>
+<span class="codeline" id="line-61"><code>		<span class="keyword">if</span> !<a href="#line-23" class="ident">drbgInstance</a>.<a href="../../../../sync/atomic/type.go.html#line-67" class="ident">CompareAndSwap</a>(<a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r4" class="ident">drbg</label>) {</code></span>
+<span class="codeline" id="line-62"><code>			<a href="#line-24" class="ident">drbgPool</a>.<a href="../../../../sync/pool.go.html#line-99" class="ident">Put</a>(<label for="r4" class="ident">drbg</label>)</code></span>
+<span class="codeline" id="line-63"><code>		}</code></span>
+<span class="codeline" id="line-64"><code>	}()</code></span>
+<span class="codeline" id="line-65"><code></code></span>
+<span class="codeline" id="line-66"><code>	<span class="keyword">for</span> <a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r1" class="ident">b</label>) &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-67"><code>		<label for="r5" class="ident">size</label> := <a href="../../../../../pkg/builtin.html#name-min" class="ident">min</a>(<a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r1" class="ident">b</label>), <a href="ctrdrbg.go.html#line-43" class="ident">maxRequestSize</a>)</code></span>
+<span class="codeline" id="line-68"><code>		<span class="keyword">if</span> <label for="r6" class="ident">reseedRequired</label> := <label for="r4" class="ident">drbg</label>.<a href="ctrdrbg.go.html#line-107" class="ident">Generate</a>(<label for="r1" class="ident">b</label>[:<label for="r5" class="ident">size</label>], <label for="r3" class="ident">additionalInput</label>); <label for="r6" class="ident">reseedRequired</label> {</code></span>
+<span class="codeline" id="line-69"><code>			<span class="comment">// See SP 800-90A Rev. 1, Section 9.3.1, Steps 6-8, as explained in</span></code></span>
+<span class="codeline" id="line-70"><code><span class="comment">			// Section 9.3.2: if Generate reports a reseed is required, the</span></code></span>
+<span class="codeline" id="line-71"><code><span class="comment">			// additional input is passed to Reseed along with the entropy and</span></code></span>
+<span class="codeline" id="line-72"><code><span class="comment">			// then nulled before the next Generate call.</span></code></span>
+<span class="codeline" id="line-73"><code>			<label for="r4" class="ident">drbg</label>.<a href="ctrdrbg.go.html#line-96" class="ident">Reseed</a>(<a href="entropy_fips140.go.html#line-30" class="ident">getEntropy</a>(), <label for="r3" class="ident">additionalInput</label>)</code></span>
+<span class="codeline" id="line-74"><code>			<label for="r3" class="ident">additionalInput</label> = <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-75"><code>			<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-76"><code>		}</code></span>
+<span class="codeline" id="line-77"><code>		<label for="r1" class="ident">b</label> = <label for="r1" class="ident">b</label>[<label for="r5" class="ident">size</label>:]</code></span>
+<span class="codeline" id="line-78"><code>	}</code></span>
+<span class="codeline" id="line-79"><code>}</code></span>
+<span class="codeline" id="line-80"><code></code></span>
+<span class="codeline" id="line-81"><code><span class="keyword">var</span> <a href="../../../../../pkg/crypto/internal/fips140/drbg.html#name-testingReader" class="ident">testingReader</a> <a href="../../../../../pkg/io.html" class="ident i2">io</a>.<a href="../../../../io/io.go.html#line-86" class="ident">Reader</a></code></span>
+<span class="codeline" id="line-82"><code></code></span>
+<span class="codeline" id="line-83"><code><span class="comment">// SetTestingReader sets a global, deterministic cryptographic randomness source</span></code></span>
+<span class="codeline" id="line-84"><code><span class="comment">// for testing purposes. Its Read method must never return an error, it must</span></code></span>
+<span class="codeline" id="line-85"><code><span class="comment">// never return short, and it must be safe for concurrent use.</span></code></span>
+<span class="codeline" id="line-86"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-87"><code><span class="comment">// This is only intended to be used by the testing/cryptotest package.</span></code></span>
+<span class="codeline" id="line-88"><code><span class="keyword">func</span> <label for="r7" class="ident"><a href="../../../../../pkg/crypto/internal/fips140/drbg.html#name-SetTestingReader" class="ident">SetTestingReader</a></label>(<label for="r8" class="ident">r</label> <a href="../../../../../pkg/io.html" class="ident i2">io</a>.<a href="../../../../io/io.go.html#line-86" class="ident">Reader</a>) {</code></span>
+<span class="codeline" id="line-89"><code>	<a href="#line-81" class="ident">testingReader</a> = <label for="r8" class="ident">r</label></code></span>
+<span class="codeline" id="line-90"><code>}</code></span>
+<span class="codeline" id="line-91"><code></code></span>
+<span class="codeline" id="line-92"><code><span class="comment">// DefaultReader is a sentinel type, embedded in the default</span></code></span>
+<span class="codeline" id="line-93"><code><span class="comment">// [crypto/rand.Reader], used to recognize it when passed to</span></code></span>
+<span class="codeline" id="line-94"><code><span class="comment">// APIs that accept a rand io.Reader.</span></code></span>
+<span class="codeline" id="line-95"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-96"><code><span class="comment">// Any Reader that implements this interface is assumed to</span></code></span>
+<span class="codeline" id="line-97"><code><span class="comment">// call [Read] as its Read method.</span></code></span>
+<span class="codeline" id="line-98"><code><span class="keyword">type</span> <a href="../../../../../pkg/crypto/internal/fips140/drbg.html#name-DefaultReader" class="ident">DefaultReader</a> <span class="keyword">interface</span>{ <a href="../../../../../imp/crypto/internal/fips140/drbg.DefaultReader.html#name-crypto/internal/fips140/drbg.defaultReader" class="ident">defaultReader</a>() }</code></span>
+<span class="codeline" id="line-99"><code></code></span>
+<span class="codeline" id="line-100"><code><span class="comment">// ReadWithReader uses Reader to fill b with cryptographically secure random</span></code></span>
+<span class="codeline" id="line-101"><code><span class="comment">// bytes. It is intended for use in APIs that expose a rand io.Reader.</span></code></span>
+<span class="codeline" id="line-102"><code><span class="keyword">func</span> <label for="r9" class="ident"><a href="../../../../../pkg/crypto/internal/fips140/drbg.html#name-ReadWithReader" class="ident">ReadWithReader</a></label>(<label for="r10" class="ident">r</label> <a href="../../../../../pkg/io.html" class="ident i2">io</a>.<a href="../../../../io/io.go.html#line-86" class="ident">Reader</a>, <label for="r11" class="ident">b</label> []<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-103"><code>	<span class="keyword">if</span> <label for="r12" class="ident">_</label>, <label for="r13" class="ident">ok</label> := <label for="r10" class="ident">r</label>.(<a href="#line-98" class="ident">DefaultReader</a>); <label for="r13" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-104"><code>		<a href="#line-33" class="ident">Read</a>(<label for="r11" class="ident">b</label>)</code></span>
+<span class="codeline" id="line-105"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-106"><code>	}</code></span>
+<span class="codeline" id="line-107"><code></code></span>
+<span class="codeline" id="line-108"><code>	<a href="../../../../../pkg/crypto/internal/fips140.html" class="ident i0">fips140</a>.<a href="../indicator.go.html#line-60" class="ident">RecordNonApproved</a>()</code></span>
+<span class="codeline" id="line-109"><code>	<label for="r14" class="ident">_</label>, <label for="r15" class="ident">err</label> := <a href="../../../../../pkg/io.html" class="ident i2">io</a>.<a href="../../../../io/io.go.html#line-353" class="ident">ReadFull</a>(<label for="r10" class="ident">r</label>, <label for="r11" class="ident">b</label>)</code></span>
+<span class="codeline" id="line-110"><code>	<span class="keyword">return</span> <label for="r15" class="ident">err</label></code></span>
+<span class="codeline" id="line-111"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.8.4</i>. (GOOS=linux GOARCH=amd64)</pre>

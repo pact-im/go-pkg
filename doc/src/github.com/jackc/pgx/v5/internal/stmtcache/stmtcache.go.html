@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: stmtcache.go in package github.com/jackc/pgx/v5/internal/stmtcache</title>
+<link href="../../../../../../../css/auto-v0.8.4.css" rel="stylesheet">
+<script src="../../../../../../../jvs/golds-v0.8.4.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	stmtcache.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../../../pkg/github.com/jackc/pgx/v5/internal/stmtcache.html">github.com/jackc/pgx/v5/internal/stmtcache</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<div class="anchor" id="doc"><span class="codeline" id="line-1"><code><span class="comment">// Package stmtcache is a cache for statement descriptions.</span></code></span></div><span class="codeline" id="line-2"><code><span class="keyword">package</span> stmtcache</code></span>
+<span class="codeline" id="line-3"><code></code></span>
+<span class="codeline" id="line-4"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-5"><code>	<label for="i0"><span class="lit-string i0">"crypto/sha256"</span></label></code></span>
+<span class="codeline" id="line-6"><code>	<label for="i1"><span class="lit-string i1">"encoding/hex"</span></label></code></span>
+<span class="codeline" id="line-7"><code></code></span>
+<span class="codeline" id="line-8"><code>	<label for="i2"><span class="lit-string i2">"github.com/jackc/pgx/v5/pgconn"</span></label></code></span>
+<span class="codeline" id="line-9"><code>)</code></span>
+<span class="codeline" id="line-10"><code></code></span>
+<span class="codeline" id="line-11"><code><span class="comment">// StatementName returns a statement name that will be stable for sql across multiple connections and program</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment">// executions.</span></code></span>
+<span class="codeline" id="line-13"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../../../../pkg/github.com/jackc/pgx/v5/internal/stmtcache.html#name-StatementName" class="ident">StatementName</a></label>(<label for="r1" class="ident">sql</label> <a href="../../../../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-14"><code>	<label for="r2" class="ident">digest</label> := <a href="../../../../../../../pkg/crypto/sha256.html" class="ident i0">sha256</a>.<a href="../../../../../../crypto/sha256/sha256.go.html#line-53" class="ident">Sum256</a>([]<a href="../../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>(<label for="r1" class="ident">sql</label>))</code></span>
+<span class="codeline" id="line-15"><code>	<span class="keyword">return</span> <span class="lit-string">"stmtcache_"</span> + <a href="../../../../../../../pkg/encoding/hex.html" class="ident i1">hex</a>.<a href="../../../../../../encoding/hex/hex.go.html#line-126" class="ident">EncodeToString</a>(<label for="r2" class="ident">digest</label>[<span class="lit-number">0</span>:<span class="lit-number">24</span>])</code></span>
+<span class="codeline" id="line-16"><code>}</code></span>
+<span class="codeline" id="line-17"><code></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">// Cache caches statement descriptions.</span></code></span>
+<span class="codeline" id="line-19"><code><span class="keyword">type</span> <a href="../../../../../../../pkg/github.com/jackc/pgx/v5/internal/stmtcache.html#name-Cache" class="ident">Cache</a> <span class="keyword">interface</span> {</code></span>
+<span class="codeline" id="line-20"><code>	<span class="comment">// Get returns the statement description for sql. Returns nil if not found.</span></code></span>
+<span class="codeline" id="line-21"><code>	<a href="../../../../../../../imp/github.com/jackc/pgx/v5/internal/stmtcache.Cache.html#name-Get" class="ident">Get</a>(sql <a href="../../../../../../../pkg/builtin.html#name-string" class="ident">string</a>) *<a href="../../../../../../../pkg/github.com/jackc/pgx/v5/pgconn.html" class="ident i2">pgconn</a>.<a href="../../pgconn/pgconn.go.html#line-884" class="ident">StatementDescription</a></code></span>
+<span class="codeline" id="line-22"><code></code></span>
+<span class="codeline" id="line-23"><code>	<span class="comment">// Put stores sd in the cache. Put panics if sd.SQL is "". Put does nothing if sd.SQL already exists in the cache.</span></code></span>
+<span class="codeline" id="line-24"><code>	<a href="../../../../../../../imp/github.com/jackc/pgx/v5/internal/stmtcache.Cache.html#name-Put" class="ident">Put</a>(sd *<a href="../../../../../../../pkg/github.com/jackc/pgx/v5/pgconn.html" class="ident i2">pgconn</a>.<a href="../../pgconn/pgconn.go.html#line-884" class="ident">StatementDescription</a>)</code></span>
+<span class="codeline" id="line-25"><code></code></span>
+<span class="codeline" id="line-26"><code>	<span class="comment">// Invalidate invalidates statement description identified by sql. Does nothing if not found.</span></code></span>
+<span class="codeline" id="line-27"><code>	<a href="../../../../../../../imp/github.com/jackc/pgx/v5/internal/stmtcache.Cache.html#name-Invalidate" class="ident">Invalidate</a>(sql <a href="../../../../../../../pkg/builtin.html#name-string" class="ident">string</a>)</code></span>
+<span class="codeline" id="line-28"><code></code></span>
+<span class="codeline" id="line-29"><code>	<span class="comment">// InvalidateAll invalidates all statement descriptions.</span></code></span>
+<span class="codeline" id="line-30"><code>	<a href="../../../../../../../imp/github.com/jackc/pgx/v5/internal/stmtcache.Cache.html#name-InvalidateAll" class="ident">InvalidateAll</a>()</code></span>
+<span class="codeline" id="line-31"><code></code></span>
+<span class="codeline" id="line-32"><code>	<span class="comment">// GetInvalidated returns a slice of all statement descriptions invalidated since the last call to RemoveInvalidated.</span></code></span>
+<span class="codeline" id="line-33"><code>	<a href="../../../../../../../imp/github.com/jackc/pgx/v5/internal/stmtcache.Cache.html#name-GetInvalidated" class="ident">GetInvalidated</a>() []*<a href="../../../../../../../pkg/github.com/jackc/pgx/v5/pgconn.html" class="ident i2">pgconn</a>.<a href="../../pgconn/pgconn.go.html#line-884" class="ident">StatementDescription</a></code></span>
+<span class="codeline" id="line-34"><code></code></span>
+<span class="codeline" id="line-35"><code>	<span class="comment">// RemoveInvalidated removes all invalidated statement descriptions. No other calls to Cache must be made between a</span></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">	// call to GetInvalidated and RemoveInvalidated or RemoveInvalidated may remove statement descriptions that were</span></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">	// never seen by the call to GetInvalidated.</span></code></span>
+<span class="codeline" id="line-38"><code>	<a href="../../../../../../../imp/github.com/jackc/pgx/v5/internal/stmtcache.Cache.html#name-RemoveInvalidated" class="ident">RemoveInvalidated</a>()</code></span>
+<span class="codeline" id="line-39"><code></code></span>
+<span class="codeline" id="line-40"><code>	<span class="comment">// Len returns the number of cached prepared statement descriptions.</span></code></span>
+<span class="codeline" id="line-41"><code>	<a href="../../../../../../../imp/github.com/jackc/pgx/v5/internal/stmtcache.Cache.html#name-Len" class="ident">Len</a>() <a href="../../../../../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-42"><code></code></span>
+<span class="codeline" id="line-43"><code>	<span class="comment">// Cap returns the maximum number of cached prepared statement descriptions.</span></code></span>
+<span class="codeline" id="line-44"><code>	<a href="../../../../../../../imp/github.com/jackc/pgx/v5/internal/stmtcache.Cache.html#name-Cap" class="ident">Cap</a>() <a href="../../../../../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-45"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.8.4</i>. (GOOS=linux GOARCH=amd64)</pre>

@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: preempt_xreg.go in package runtime</title>
+<link href="../../css/auto-v0.8.4.css" rel="stylesheet">
+<script src="../../jvs/golds-v0.8.4.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	preempt_xreg.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../pkg/runtime.html">runtime</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2025 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="comment">//go:build amd64 || arm64 || loong64</span></code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="comment">// This provides common support for architectures that use extended register</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment">// state in asynchronous preemption.</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment">// While asynchronous preemption stores general-purpose (GP) registers on the</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment">// preempted goroutine's own stack, extended register state can be used to save</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment">// non-GP state off the stack. In particular, this is meant for large vector</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">// register files. Currently, we assume this contains only scalar data, though</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">// we could change this constraint by conservatively scanning this memory.</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">// For an architecture to support extended register state, it must provide a Go</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">// definition of an xRegState type for storing the state, and its asyncPreempt</span></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">// implementation must write this register state to p.xRegs.scratch.</span></code></span>
+<span class="codeline" id="line-19"><code></code></span>
+<span class="codeline" id="line-20"><code><span class="keyword">package</span> runtime</code></span>
+<span class="codeline" id="line-21"><code></code></span>
+<span class="codeline" id="line-22"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-23"><code>	<label for="i0"><span class="lit-string i0">"internal/runtime/sys"</span></label></code></span>
+<span class="codeline" id="line-24"><code>	<label for="i1"><span class="lit-string i1">"unsafe"</span></label></code></span>
+<span class="codeline" id="line-25"><code>)</code></span>
+<span class="codeline" id="line-26"><code></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">// xRegState is long-lived extended register state. It is allocated off-heap and</span></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">// manually managed.</span></code></span>
+<span class="codeline" id="line-29"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-xRegState" class="ident">xRegState</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-30"><code>	_    <a href="../../pkg/internal/runtime/sys.html" class="ident i0">sys</a>.<a href="../internal/runtime/sys/nih.go.html#line-41" class="ident">NotInHeap</a> <span class="comment">// Allocated from xRegAlloc</span></code></span>
+<span class="codeline" id="line-31"><code>	<a href="../../use/runtime..xRegState^ec20f.regs^7a7c7.html" class="ident">regs</a> <a href="preempt_amd64.go.html#line-5" class="ident">xRegs</a></code></span>
+<span class="codeline" id="line-32"><code>}</code></span>
+<span class="codeline" id="line-33"><code></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">// xRegPerG stores extended register state while a goroutine is asynchronously</span></code></span>
+<span class="codeline" id="line-35"><code><span class="comment">// preempted. This is nil otherwise, so we can reuse a (likely small) pool of</span></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">// xRegState objects.</span></code></span>
+<span class="codeline" id="line-37"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-xRegPerG" class="ident">xRegPerG</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-38"><code>	<a href="../../use/runtime..xRegPerG^12550.state^4ba69.html" class="ident">state</a> *<a href="#line-29" class="ident">xRegState</a></code></span>
+<span class="codeline" id="line-39"><code>}</code></span>
+<span class="codeline" id="line-40"><code></code></span>
+<span class="codeline" id="line-41"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-xRegPerP" class="ident">xRegPerP</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-42"><code>	<span class="comment">// scratch temporary per-P space where [asyncPreempt] saves the register</span></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">	// state before entering Go. It's quickly copied to per-G state.</span></code></span>
+<span class="codeline" id="line-44"><code>	<a href="../../use/runtime..xRegPerP^75089.scratch^5a9cb.html" class="ident">scratch</a> <a href="preempt_amd64.go.html#line-5" class="ident">xRegs</a></code></span>
+<span class="codeline" id="line-45"><code></code></span>
+<span class="codeline" id="line-46"><code>	<span class="comment">// cache is a 1-element allocation cache of extended register state used by</span></code></span>
+<span class="codeline" id="line-47"><code><span class="comment">	// asynchronous preemption. On entry to preemption, this is used as a simple</span></code></span>
+<span class="codeline" id="line-48"><code><span class="comment">	// allocation cache. On exit from preemption, the G's xRegState is always</span></code></span>
+<span class="codeline" id="line-49"><code><span class="comment">	// stored here where it can be restored, and later either freed or reused</span></code></span>
+<span class="codeline" id="line-50"><code><span class="comment">	// for another preemption. On exit, this serves the dual purpose of</span></code></span>
+<span class="codeline" id="line-51"><code><span class="comment">	// delay-freeing the allocated xRegState until after we've definitely</span></code></span>
+<span class="codeline" id="line-52"><code><span class="comment">	// restored it.</span></code></span>
+<span class="codeline" id="line-53"><code>	<a href="../../use/runtime..xRegPerP^75089.cache^5e1ec.html" class="ident">cache</a> *<a href="#line-29" class="ident">xRegState</a></code></span>
+<span class="codeline" id="line-54"><code>}</code></span>
+<span class="codeline" id="line-55"><code></code></span>
+<span class="codeline" id="line-56"><code><span class="comment">// xRegAlloc allocates xRegState objects.</span></code></span>
+<span class="codeline" id="line-57"><code><span class="keyword">var</span> <a href="../../pkg/runtime.html#name-xRegAlloc" class="ident">xRegAlloc</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-58"><code>	lock  <a href="runtime2.go.html#line-170" class="ident">mutex</a></code></span>
+<span class="codeline" id="line-59"><code>	alloc <a href="mfixalloc.go.html#line-31" class="ident">fixalloc</a></code></span>
+<span class="codeline" id="line-60"><code>}</code></span>
+<span class="codeline" id="line-61"><code></code></span>
+<span class="codeline" id="line-62"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../pkg/runtime.html#name-xRegInitAlloc" class="ident">xRegInitAlloc</a></label>() {</code></span>
+<span class="codeline" id="line-63"><code>	<a href="lockrank_off.go.html#line-16" class="ident">lockInit</a>(&amp;<a href="#line-57" class="ident">xRegAlloc</a>.<a href="#line-58" class="ident">lock</a>, <a href="lockrank.go.html#line-73" class="ident">lockRankXRegAlloc</a>)</code></span>
+<span class="codeline" id="line-64"><code>	<a href="#line-57" class="ident">xRegAlloc</a>.<a href="#line-59" class="ident">alloc</a>.<a href="mfixalloc.go.html#line-56" class="ident">init</a>(<a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Sizeof" class="ident">Sizeof</a>(<a href="#line-29" class="ident">xRegState</a>{}), <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, &amp;<a href="mstats.go.html#line-52" class="ident">memstats</a>.<a href="mstats.go.html#line-31" class="ident">other_sys</a>)</code></span>
+<span class="codeline" id="line-65"><code>}</code></span>
+<span class="codeline" id="line-66"><code></code></span>
+<span class="codeline" id="line-67"><code><span class="comment">// xRegSave saves the extended register state on this P to gp.</span></code></span>
+<span class="codeline" id="line-68"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-69"><code><span class="comment">// This must run on the system stack because it assumes the P won't change.</span></code></span>
+<span class="codeline" id="line-70"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-71"><code><span class="comment">//go:systemstack</span></code></span>
+<span class="codeline" id="line-72"><code><span class="keyword">func</span> <label for="r1" class="ident"><a href="../../pkg/runtime.html#name-xRegSave" class="ident">xRegSave</a></label>(<label for="r2" class="ident">gp</label> *<a href="runtime2.go.html#line-473" class="ident">g</a>) {</code></span>
+<span class="codeline" id="line-73"><code>	<span class="keyword">if</span> <label for="r2" class="ident">gp</label>.<a href="runtime2.go.html#line-579" class="ident">xRegs</a>.<a href="#line-38" class="ident">state</a> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-74"><code>		<span class="comment">// Double preempt?</span></code></span>
+<span class="codeline" id="line-75"><code>		<a href="panic.go.html#line-1220" class="ident">throw</a>(<span class="lit-string">"gp.xRegState.p != nil on async preempt"</span>)</code></span>
+<span class="codeline" id="line-76"><code>	}</code></span>
+<span class="codeline" id="line-77"><code></code></span>
+<span class="codeline" id="line-78"><code>	<span class="comment">// Get the place to save the register state.</span></code></span>
+<span class="codeline" id="line-79"><code>	<span class="keyword">var</span> <label for="r3" class="ident">dest</label> *<a href="#line-29" class="ident">xRegState</a></code></span>
+<span class="codeline" id="line-80"><code>	<label for="r4" class="ident">pp</label> := <label for="r2" class="ident">gp</label>.<a href="runtime2.go.html#line-487" class="ident">m</a>.<a href="runtime2.go.html#line-641" class="ident">p</a>.<a href="runtime2.go.html#line-272" class="ident">ptr</a>()</code></span>
+<span class="codeline" id="line-81"><code>	<span class="keyword">if</span> <label for="r4" class="ident">pp</label>.<a href="runtime2.go.html#line-924" class="ident">xRegs</a>.<a href="#line-53" class="ident">cache</a> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-82"><code>		<span class="comment">// Use the cached allocation.</span></code></span>
+<span class="codeline" id="line-83"><code>		<label for="r3" class="ident">dest</label> = <label for="r4" class="ident">pp</label>.<a href="runtime2.go.html#line-924" class="ident">xRegs</a>.<a href="#line-53" class="ident">cache</a></code></span>
+<span class="codeline" id="line-84"><code>		<label for="r4" class="ident">pp</label>.<a href="runtime2.go.html#line-924" class="ident">xRegs</a>.<a href="#line-53" class="ident">cache</a> = <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-85"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-86"><code>		<span class="comment">// Allocate a new save block.</span></code></span>
+<span class="codeline" id="line-87"><code>		<a href="lock_spinbit.go.html#line-151" class="ident">lock</a>(&amp;<a href="#line-57" class="ident">xRegAlloc</a>.<a href="#line-58" class="ident">lock</a>)</code></span>
+<span class="codeline" id="line-88"><code>		<label for="r3" class="ident">dest</label> = (*<a href="#line-29" class="ident">xRegState</a>)(<a href="#line-57" class="ident">xRegAlloc</a>.<a href="#line-59" class="ident">alloc</a>.<a href="mfixalloc.go.html#line-74" class="ident">alloc</a>())</code></span>
+<span class="codeline" id="line-89"><code>		<a href="lock_spinbit.go.html#line-260" class="ident">unlock</a>(&amp;<a href="#line-57" class="ident">xRegAlloc</a>.<a href="#line-58" class="ident">lock</a>)</code></span>
+<span class="codeline" id="line-90"><code>	}</code></span>
+<span class="codeline" id="line-91"><code></code></span>
+<span class="codeline" id="line-92"><code>	<span class="comment">// Copy state saved in the scratchpad to dest.</span></code></span>
+<span class="codeline" id="line-93"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-94"><code><span class="comment">	// If we ever need to save less state (e.g., avoid saving vector registers</span></code></span>
+<span class="codeline" id="line-95"><code><span class="comment">	// that aren't in use), we could have multiple allocation pools for</span></code></span>
+<span class="codeline" id="line-96"><code><span class="comment">	// different size states and copy only the registers we need.</span></code></span>
+<span class="codeline" id="line-97"><code>	<label for="r3" class="ident">dest</label>.<a href="#line-31" class="ident">regs</a> = <label for="r4" class="ident">pp</label>.<a href="runtime2.go.html#line-924" class="ident">xRegs</a>.<a href="#line-44" class="ident">scratch</a></code></span>
+<span class="codeline" id="line-98"><code></code></span>
+<span class="codeline" id="line-99"><code>	<span class="comment">// Save on the G.</span></code></span>
+<span class="codeline" id="line-100"><code>	<label for="r2" class="ident">gp</label>.<a href="runtime2.go.html#line-579" class="ident">xRegs</a>.<a href="#line-38" class="ident">state</a> = <label for="r3" class="ident">dest</label></code></span>
+<span class="codeline" id="line-101"><code>}</code></span>
+<span class="codeline" id="line-102"><code></code></span>
+<span class="codeline" id="line-103"><code><span class="comment">// xRegRestore prepares the extended register state on gp to be restored.</span></code></span>
+<span class="codeline" id="line-104"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-105"><code><span class="comment">// It moves the state to gp.m.p.xRegs.cache where [asyncPreempt] expects to find</span></code></span>
+<span class="codeline" id="line-106"><code><span class="comment">// it. This means nothing else may use the cache between this call and the</span></code></span>
+<span class="codeline" id="line-107"><code><span class="comment">// return to asyncPreempt. This is not quite symmetric with [xRegSave], which</span></code></span>
+<span class="codeline" id="line-108"><code><span class="comment">// uses gp.m.p.xRegs.scratch. By using cache instead, we save a block copy.</span></code></span>
+<span class="codeline" id="line-109"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-110"><code><span class="comment">// This is called with asyncPreempt on the stack and thus must not grow the</span></code></span>
+<span class="codeline" id="line-111"><code><span class="comment">// stack.</span></code></span>
+<span class="codeline" id="line-112"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-113"><code><span class="comment">//go:nosplit</span></code></span>
+<span class="codeline" id="line-114"><code><span class="keyword">func</span> <label for="r5" class="ident"><a href="../../pkg/runtime.html#name-xRegRestore" class="ident">xRegRestore</a></label>(<label for="r6" class="ident">gp</label> *<a href="runtime2.go.html#line-473" class="ident">g</a>) {</code></span>
+<span class="codeline" id="line-115"><code>	<span class="keyword">if</span> <label for="r6" class="ident">gp</label>.<a href="runtime2.go.html#line-579" class="ident">xRegs</a>.<a href="#line-38" class="ident">state</a> == <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-116"><code>		<a href="panic.go.html#line-1220" class="ident">throw</a>(<span class="lit-string">"gp.xRegState.p == nil on return from async preempt"</span>)</code></span>
+<span class="codeline" id="line-117"><code>	}</code></span>
+<span class="codeline" id="line-118"><code>	<span class="comment">// If the P has a block cached on it, free that so we can replace it.</span></code></span>
+<span class="codeline" id="line-119"><code>	<label for="r7" class="ident">pp</label> := <label for="r6" class="ident">gp</label>.<a href="runtime2.go.html#line-487" class="ident">m</a>.<a href="runtime2.go.html#line-641" class="ident">p</a>.<a href="runtime2.go.html#line-272" class="ident">ptr</a>()</code></span>
+<span class="codeline" id="line-120"><code>	<span class="keyword">if</span> <label for="r7" class="ident">pp</label>.<a href="runtime2.go.html#line-924" class="ident">xRegs</a>.<a href="#line-53" class="ident">cache</a> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-121"><code>		<span class="comment">// Don't grow the G stack.</span></code></span>
+<span class="codeline" id="line-122"><code>		<a href="stubs.go.html#line-67" class="ident">systemstack</a>(<span class="keyword">func</span>() {</code></span>
+<span class="codeline" id="line-123"><code>			<label for="r7" class="ident">pp</label>.<a href="runtime2.go.html#line-924" class="ident">xRegs</a>.<a href="#line-130" class="ident">free</a>()</code></span>
+<span class="codeline" id="line-124"><code>		})</code></span>
+<span class="codeline" id="line-125"><code>	}</code></span>
+<span class="codeline" id="line-126"><code>	<label for="r7" class="ident">pp</label>.<a href="runtime2.go.html#line-924" class="ident">xRegs</a>.<a href="#line-53" class="ident">cache</a> = <label for="r6" class="ident">gp</label>.<a href="runtime2.go.html#line-579" class="ident">xRegs</a>.<a href="#line-38" class="ident">state</a></code></span>
+<span class="codeline" id="line-127"><code>	<label for="r6" class="ident">gp</label>.<a href="runtime2.go.html#line-579" class="ident">xRegs</a>.<a href="#line-38" class="ident">state</a> = <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-128"><code>}</code></span>
+<span class="codeline" id="line-129"><code></code></span>
+<span class="codeline" id="line-130"><code><span class="keyword">func</span> (<label for="r8" class="ident">xRegs</label> *<a href="#line-41" class="ident">xRegPerP</a>) <label for="r9" class="ident"><a href="../../use/runtime..xRegPerP^75089.free^ad95d.html" class="ident">free</a></label>() {</code></span>
+<span class="codeline" id="line-131"><code>	<span class="keyword">if</span> <label for="r8" class="ident">xRegs</label>.<a href="#line-53" class="ident">cache</a> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-132"><code>		<a href="lock_spinbit.go.html#line-151" class="ident">lock</a>(&amp;<a href="#line-57" class="ident">xRegAlloc</a>.<a href="#line-58" class="ident">lock</a>)</code></span>
+<span class="codeline" id="line-133"><code>		<a href="#line-57" class="ident">xRegAlloc</a>.<a href="#line-59" class="ident">alloc</a>.<a href="mfixalloc.go.html#line-104" class="ident">free</a>(<a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r8" class="ident">xRegs</label>.<a href="#line-53" class="ident">cache</a>))</code></span>
+<span class="codeline" id="line-134"><code>		<label for="r8" class="ident">xRegs</label>.<a href="#line-53" class="ident">cache</a> = <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-135"><code>		<a href="lock_spinbit.go.html#line-260" class="ident">unlock</a>(&amp;<a href="#line-57" class="ident">xRegAlloc</a>.<a href="#line-58" class="ident">lock</a>)</code></span>
+<span class="codeline" id="line-136"><code>	}</code></span>
+<span class="codeline" id="line-137"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.8.4</i>. (GOOS=linux GOARCH=amd64)</pre>

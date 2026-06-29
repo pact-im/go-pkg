@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: math.go in package internal/strconv</title>
+<link href="../../../css/auto-v0.8.4.css" rel="stylesheet">
+<script src="../../../jvs/golds-v0.8.4.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	math.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../pkg/internal/strconv.html">internal/strconv</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30],
+input[id=r31]:checked ~pre label[for=r31],
+input[id=r32]:checked ~pre label[for=r32],
+input[id=r33]:checked ~pre label[for=r33],
+input[id=r34]:checked ~pre label[for=r34],
+input[id=r35]:checked ~pre label[for=r35],
+input[id=r36]:checked ~pre label[for=r36],
+input[id=r37]:checked ~pre label[for=r37],
+input[id=r38]:checked ~pre label[for=r38],
+input[id=r39]:checked ~pre label[for=r39],
+input[id=r40]:checked ~pre label[for=r40],
+input[id=r41]:checked ~pre label[for=r41],
+input[id=r42]:checked ~pre label[for=r42],
+input[id=r43]:checked ~pre label[for=r43]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="r31" type="radio" name="g"/>
+<input id="r32" type="radio" name="g"/>
+<input id="r33" type="radio" name="g"/>
+<input id="r34" type="radio" name="g"/>
+<input id="r35" type="radio" name="g"/>
+<input id="r36" type="radio" name="g"/>
+<input id="r37" type="radio" name="g"/>
+<input id="r38" type="radio" name="g"/>
+<input id="r39" type="radio" name="g"/>
+<input id="r40" type="radio" name="g"/>
+<input id="r41" type="radio" name="g"/>
+<input id="r42" type="radio" name="g"/>
+<input id="r43" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2025 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> strconv</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">import</span> <label for="i0"><span class="lit-string i0">"math/bits"</span></label></code></span>
+<span class="codeline" id="line-8"><code></code></span>
+<span class="codeline" id="line-9"><code><span class="comment">// A uint128 is a 128-bit uint.</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment">// The fields are exported to make them visible to package strconv_test.</span></code></span>
+<span class="codeline" id="line-11"><code><span class="keyword">type</span> <a href="../../../pkg/internal/strconv.html#name-uint128" class="ident">uint128</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-12"><code>	<a href="../../../use/internal/strconv..uint128^d085c.Hi.html" class="ident">Hi</a> <a href="../../../pkg/builtin.html#name-uint64" class="ident">uint64</a></code></span>
+<span class="codeline" id="line-13"><code>	<a href="../../../use/internal/strconv..uint128^d085c.Lo.html" class="ident">Lo</a> <a href="../../../pkg/builtin.html#name-uint64" class="ident">uint64</a></code></span>
+<span class="codeline" id="line-14"><code>}</code></span>
+<span class="codeline" id="line-15"><code></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">// umul128 returns the 128-bit product x*y.</span></code></span>
+<span class="codeline" id="line-17"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../pkg/internal/strconv.html#name-umul128" class="ident">umul128</a></label>(<label for="r1" class="ident">x</label>, <label for="r2" class="ident">y</label> <a href="../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>) <a href="#line-11" class="ident">uint128</a> {</code></span>
+<span class="codeline" id="line-18"><code>	<label for="r3" class="ident">hi</label>, <label for="r4" class="ident">lo</label> := <a href="../../../pkg/math/bits.html" class="ident i0">bits</a>.<a href="../../math/bits/bits.go.html#line-470" class="ident">Mul64</a>(<label for="r1" class="ident">x</label>, <label for="r2" class="ident">y</label>)</code></span>
+<span class="codeline" id="line-19"><code>	<span class="keyword">return</span> <a href="#line-11" class="ident">uint128</a>{<label for="r3" class="ident">hi</label>, <label for="r4" class="ident">lo</label>}</code></span>
+<span class="codeline" id="line-20"><code>}</code></span>
+<span class="codeline" id="line-21"><code></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">// umul192 returns the 192-bit product x*y in three uint64s.</span></code></span>
+<span class="codeline" id="line-23"><code><span class="keyword">func</span> <label for="r5" class="ident"><a href="../../../pkg/internal/strconv.html#name-umul192" class="ident">umul192</a></label>(<label for="r6" class="ident">x</label> <a href="../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>, <label for="r7" class="ident">y</label> <a href="#line-11" class="ident">uint128</a>) (<label for="r8" class="ident">hi</label>, <label for="r9" class="ident">mid</label>, <label for="r10" class="ident">lo</label> <a href="../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>) {</code></span>
+<span class="codeline" id="line-24"><code>	<label for="r11" class="ident">mid1</label>, <label for="r10" class="ident">lo</label> := <a href="../../../pkg/math/bits.html" class="ident i0">bits</a>.<a href="../../math/bits/bits.go.html#line-470" class="ident">Mul64</a>(<label for="r6" class="ident">x</label>, <label for="r7" class="ident">y</label>.<a href="#line-13" class="ident">Lo</a>)</code></span>
+<span class="codeline" id="line-25"><code>	<label for="r8" class="ident">hi</label>, <label for="r12" class="ident">mid2</label> := <a href="../../../pkg/math/bits.html" class="ident i0">bits</a>.<a href="../../math/bits/bits.go.html#line-470" class="ident">Mul64</a>(<label for="r6" class="ident">x</label>, <label for="r7" class="ident">y</label>.<a href="#line-12" class="ident">Hi</a>)</code></span>
+<span class="codeline" id="line-26"><code>	<label for="r9" class="ident">mid</label>, <label for="r13" class="ident">carry</label> := <a href="../../../pkg/math/bits.html" class="ident i0">bits</a>.<a href="../../math/bits/bits.go.html#line-386" class="ident">Add64</a>(<label for="r11" class="ident">mid1</label>, <label for="r12" class="ident">mid2</label>, <span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-27"><code>	<span class="keyword">return</span> <label for="r8" class="ident">hi</label> + <label for="r13" class="ident">carry</label>, <label for="r9" class="ident">mid</label>, <label for="r10" class="ident">lo</label></code></span>
+<span class="codeline" id="line-28"><code>}</code></span>
+<span class="codeline" id="line-29"><code></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">// pow10 returns the 128-bit mantissa and binary exponent of 10**e.</span></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">// That is, 10^e = mant/2^128 * 2**exp.</span></code></span>
+<span class="codeline" id="line-32"><code><span class="comment">// If e is out of range, pow10 returns ok=false.</span></code></span>
+<span class="codeline" id="line-33"><code><span class="keyword">func</span> <label for="r14" class="ident"><a href="../../../pkg/internal/strconv.html#name-pow10" class="ident">pow10</a></label>(<label for="r15" class="ident">e</label> <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>) (<label for="r16" class="ident">mant</label> <a href="#line-11" class="ident">uint128</a>, <label for="r17" class="ident">exp</label> <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r18" class="ident">ok</label> <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a>) {</code></span>
+<span class="codeline" id="line-34"><code>	<span class="keyword">if</span> <label for="r15" class="ident">e</label> &lt; <a href="pow10tab.go.html#line-12" class="ident">pow10Min</a> || <label for="r15" class="ident">e</label> &gt; <a href="pow10tab.go.html#line-13" class="ident">pow10Max</a> {</code></span>
+<span class="codeline" id="line-35"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-36"><code>	}</code></span>
+<span class="codeline" id="line-37"><code>	<span class="keyword">return</span> <a href="pow10tab.go.html#line-18" class="ident">pow10Tab</a>[<label for="r15" class="ident">e</label>-<a href="pow10tab.go.html#line-12" class="ident">pow10Min</a>], <span class="lit-number">1</span> + <a href="#line-55" class="ident">mulLog2_10</a>(<label for="r15" class="ident">e</label>), <a href="../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-38"><code>}</code></span>
+<span class="codeline" id="line-39"><code></code></span>
+<span class="codeline" id="line-40"><code><span class="comment">// mulLog10_2 returns math.Floor(x * log(2)/log(10)) for an integer x in</span></code></span>
+<span class="codeline" id="line-41"><code><span class="comment">// the range -1600 &lt;= x &amp;&amp; x &lt;= +1600.</span></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">// The range restriction lets us work in faster integer arithmetic instead of</span></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">// slower floating point arithmetic. Correctness is verified by unit tests.</span></code></span>
+<span class="codeline" id="line-45"><code><span class="keyword">func</span> <label for="r19" class="ident"><a href="../../../pkg/internal/strconv.html#name-mulLog10_2" class="ident">mulLog10_2</a></label>(<label for="r20" class="ident">x</label> <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-46"><code>	<span class="comment">// log(2)/log(10) ≈ 0.30102999566 ≈ 78913 / 2^18</span></code></span>
+<span class="codeline" id="line-47"><code>	<span class="keyword">return</span> (<label for="r20" class="ident">x</label> * <span class="lit-number">78913</span>) &gt;&gt; <span class="lit-number">18</span></code></span>
+<span class="codeline" id="line-48"><code>}</code></span>
+<span class="codeline" id="line-49"><code></code></span>
+<span class="codeline" id="line-50"><code><span class="comment">// mulLog2_10 returns math.Floor(x * log(10)/log(2)) for an integer x in</span></code></span>
+<span class="codeline" id="line-51"><code><span class="comment">// the range -500 &lt;= x &amp;&amp; x &lt;= +500.</span></code></span>
+<span class="codeline" id="line-52"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-53"><code><span class="comment">// The range restriction lets us work in faster integer arithmetic instead of</span></code></span>
+<span class="codeline" id="line-54"><code><span class="comment">// slower floating point arithmetic. Correctness is verified by unit tests.</span></code></span>
+<span class="codeline" id="line-55"><code><span class="keyword">func</span> <label for="r21" class="ident"><a href="../../../pkg/internal/strconv.html#name-mulLog2_10" class="ident">mulLog2_10</a></label>(<label for="r22" class="ident">x</label> <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-56"><code>	<span class="comment">// log(10)/log(2) ≈ 3.32192809489 ≈ 108853 / 2^15</span></code></span>
+<span class="codeline" id="line-57"><code>	<span class="keyword">return</span> (<label for="r22" class="ident">x</label> * <span class="lit-number">108853</span>) &gt;&gt; <span class="lit-number">15</span></code></span>
+<span class="codeline" id="line-58"><code>}</code></span>
+<span class="codeline" id="line-59"><code></code></span>
+<span class="codeline" id="line-60"><code><span class="keyword">func</span> <label for="r23" class="ident"><a href="../../../pkg/internal/strconv.html#name-bool2uint" class="ident">bool2uint</a></label>(<label for="r24" class="ident">b</label> <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a>) <a href="../../../pkg/builtin.html#name-uint" class="ident">uint</a> {</code></span>
+<span class="codeline" id="line-61"><code>	<span class="keyword">if</span> <label for="r24" class="ident">b</label> {</code></span>
+<span class="codeline" id="line-62"><code>		<span class="keyword">return</span> <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-63"><code>	}</code></span>
+<span class="codeline" id="line-64"><code>	<span class="keyword">return</span> <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-65"><code>}</code></span>
+<span class="codeline" id="line-66"><code></code></span>
+<span class="codeline" id="line-67"><code><span class="comment">// Exact Division and Remainder Checking</span></code></span>
+<span class="codeline" id="line-68"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-69"><code><span class="comment">// An exact division x/c (exact means x%c == 0)</span></code></span>
+<span class="codeline" id="line-70"><code><span class="comment">// can be implemented by x*m where m is the multiplicative inverse of c (m*c == 1).</span></code></span>
+<span class="codeline" id="line-71"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-72"><code><span class="comment">// Since c is also the multiplicative inverse of m, x*m is lossless,</span></code></span>
+<span class="codeline" id="line-73"><code><span class="comment">// and all the exact multiples of c map to all of [0, maxUint64/c].</span></code></span>
+<span class="codeline" id="line-74"><code><span class="comment">// The non-multiples are forced to map to larger values.</span></code></span>
+<span class="codeline" id="line-75"><code><span class="comment">// This also gives a quick test for whether x is an exact multiple of c:</span></code></span>
+<span class="codeline" id="line-76"><code><span class="comment">// compute the exact division and check whether it's at most maxUint64/c:</span></code></span>
+<span class="codeline" id="line-77"><code><span class="comment">//	x%c == 0 =&gt; x*m &lt;= maxUint64/c.</span></code></span>
+<span class="codeline" id="line-78"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-79"><code><span class="comment">// Only odd c have multiplicative inverses mod powers of two.</span></code></span>
+<span class="codeline" id="line-80"><code><span class="comment">// To do an exact divide x / (c&lt;&lt;s) we can use (x/c)&gt;&gt;s instead.</span></code></span>
+<span class="codeline" id="line-81"><code><span class="comment">// And to check for remainder, we need to check that those low s</span></code></span>
+<span class="codeline" id="line-82"><code><span class="comment">// bits are all zero before we shift them away. We can merge that</span></code></span>
+<span class="codeline" id="line-83"><code><span class="comment">// with the &lt;= for the exact odd remainder check by rotating the</span></code></span>
+<span class="codeline" id="line-84"><code><span class="comment">// shifted bits into the high part instead:</span></code></span>
+<span class="codeline" id="line-85"><code><span class="comment">// 	x%(c&lt;&lt;s) == 0 =&gt; bits.RotateLeft64(x*m, -s) &lt;= maxUint64/c.</span></code></span>
+<span class="codeline" id="line-86"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-87"><code><span class="comment">// The compiler does this transformation automatically in general,</span></code></span>
+<span class="codeline" id="line-88"><code><span class="comment">// but we apply it here by hand in a few ways that the compiler can't help with.</span></code></span>
+<span class="codeline" id="line-89"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-90"><code><span class="comment">// For a more detailed explanation, see</span></code></span>
+<span class="codeline" id="line-91"><code><span class="comment">// Henry S. Warren, Jr., Hacker's Delight, 2nd ed., sections 10-16 and 10-17.</span></code></span>
+<span class="codeline" id="line-92"><code></code></span>
+<span class="codeline" id="line-93"><code><span class="comment">// divisiblePow5 reports whether x is divisible by 5^p.</span></code></span>
+<span class="codeline" id="line-94"><code><span class="comment">// It returns false for p not in [1, 22],</span></code></span>
+<span class="codeline" id="line-95"><code><span class="comment">// because we only care about float64 mantissas, and 5^23 &gt; 2^53.</span></code></span>
+<span class="codeline" id="line-96"><code><span class="keyword">func</span> <label for="r25" class="ident"><a href="../../../pkg/internal/strconv.html#name-divisiblePow5" class="ident">divisiblePow5</a></label>(<label for="r26" class="ident">x</label> <a href="../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>, <label for="r27" class="ident">p</label> <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>) <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-97"><code>	<span class="keyword">return</span> <span class="lit-number">1</span> &lt;= <label for="r27" class="ident">p</label> &amp;&amp; <label for="r27" class="ident">p</label> &lt;= <span class="lit-number">22</span> &amp;&amp; <label for="r26" class="ident">x</label>*<a href="#line-103" class="ident">div5Tab</a>[<label for="r27" class="ident">p</label>-<span class="lit-number">1</span>][<span class="lit-number">0</span>] &lt;= <a href="#line-103" class="ident">div5Tab</a>[<label for="r27" class="ident">p</label>-<span class="lit-number">1</span>][<span class="lit-number">1</span>]</code></span>
+<span class="codeline" id="line-98"><code>}</code></span>
+<span class="codeline" id="line-99"><code></code></span>
+<span class="codeline" id="line-100"><code><span class="keyword">const</span> <a href="../../../pkg/internal/strconv.html#name-maxUint64" class="ident">maxUint64</a> = <span class="lit-number">1</span>&lt;&lt;<span class="lit-number">64</span> - <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-101"><code></code></span>
+<span class="codeline" id="line-102"><code><span class="comment">// div5Tab[p-1] is the multiplicative inverse of 5^p and maxUint64/5^p.</span></code></span>
+<span class="codeline" id="line-103"><code><span class="keyword">var</span> <a href="../../../pkg/internal/strconv.html#name-div5Tab" class="ident">div5Tab</a> = [<span class="lit-number">22</span>][<span class="lit-number">2</span>]<a href="../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>{</code></span>
+<span class="codeline" id="line-104"><code>	{<span class="lit-number">0xcccccccccccccccd</span>, <a href="#line-100" class="ident">maxUint64</a> / <span class="lit-number">5</span>},</code></span>
+<span class="codeline" id="line-105"><code>	{<span class="lit-number">0x8f5c28f5c28f5c29</span>, <a href="#line-100" class="ident">maxUint64</a> / <span class="lit-number">5</span> / <span class="lit-number">5</span>},</code></span>
+<span class="codeline" id="line-106"><code>	{<span class="lit-number">0x1cac083126e978d5</span>, <a href="#line-100" class="ident">maxUint64</a> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span>},</code></span>
+<span class="codeline" id="line-107"><code>	{<span class="lit-number">0xd288ce703afb7e91</span>, <a href="#line-100" class="ident">maxUint64</a> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span>},</code></span>
+<span class="codeline" id="line-108"><code>	{<span class="lit-number">0x5d4e8fb00bcbe61d</span>, <a href="#line-100" class="ident">maxUint64</a> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span>},</code></span>
+<span class="codeline" id="line-109"><code>	{<span class="lit-number">0x790fb65668c26139</span>, <a href="#line-100" class="ident">maxUint64</a> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span>},</code></span>
+<span class="codeline" id="line-110"><code>	{<span class="lit-number">0xe5032477ae8d46a5</span>, <a href="#line-100" class="ident">maxUint64</a> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span>},</code></span>
+<span class="codeline" id="line-111"><code>	{<span class="lit-number">0xc767074b22e90e21</span>, <a href="#line-100" class="ident">maxUint64</a> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span>},</code></span>
+<span class="codeline" id="line-112"><code>	{<span class="lit-number">0x8e47ce423a2e9c6d</span>, <a href="#line-100" class="ident">maxUint64</a> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span>},</code></span>
+<span class="codeline" id="line-113"><code>	{<span class="lit-number">0x4fa7f60d3ed61f49</span>, <a href="#line-100" class="ident">maxUint64</a> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span>},</code></span>
+<span class="codeline" id="line-114"><code>	{<span class="lit-number">0x0fee64690c913975</span>, <a href="#line-100" class="ident">maxUint64</a> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span>},</code></span>
+<span class="codeline" id="line-115"><code>	{<span class="lit-number">0x3662e0e1cf503eb1</span>, <a href="#line-100" class="ident">maxUint64</a> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span>},</code></span>
+<span class="codeline" id="line-116"><code>	{<span class="lit-number">0xa47a2cf9f6433fbd</span>, <a href="#line-100" class="ident">maxUint64</a> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span>},</code></span>
+<span class="codeline" id="line-117"><code>	{<span class="lit-number">0x54186f653140a659</span>, <a href="#line-100" class="ident">maxUint64</a> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span>},</code></span>
+<span class="codeline" id="line-118"><code>	{<span class="lit-number">0x7738164770402145</span>, <a href="#line-100" class="ident">maxUint64</a> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span>},</code></span>
+<span class="codeline" id="line-119"><code>	{<span class="lit-number">0xe4a4d1417cd9a041</span>, <a href="#line-100" class="ident">maxUint64</a> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span>},</code></span>
+<span class="codeline" id="line-120"><code>	{<span class="lit-number">0xc75429d9e5c5200d</span>, <a href="#line-100" class="ident">maxUint64</a> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span>},</code></span>
+<span class="codeline" id="line-121"><code>	{<span class="lit-number">0xc1773b91fac10669</span>, <a href="#line-100" class="ident">maxUint64</a> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span>},</code></span>
+<span class="codeline" id="line-122"><code>	{<span class="lit-number">0x26b172506559ce15</span>, <a href="#line-100" class="ident">maxUint64</a> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span>},</code></span>
+<span class="codeline" id="line-123"><code>	{<span class="lit-number">0xd489e3a9addec2d1</span>, <a href="#line-100" class="ident">maxUint64</a> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span>},</code></span>
+<span class="codeline" id="line-124"><code>	{<span class="lit-number">0x90e860bb892c8d5d</span>, <a href="#line-100" class="ident">maxUint64</a> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span>},</code></span>
+<span class="codeline" id="line-125"><code>	{<span class="lit-number">0x502e79bf1b6f4f79</span>, <a href="#line-100" class="ident">maxUint64</a> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span> / <span class="lit-number">5</span>},</code></span>
+<span class="codeline" id="line-126"><code>}</code></span>
+<span class="codeline" id="line-127"><code></code></span>
+<span class="codeline" id="line-128"><code><span class="comment">// trimZeros trims trailing zeros from x.</span></code></span>
+<span class="codeline" id="line-129"><code><span class="comment">// It finds the largest p such that x % 10^p == 0</span></code></span>
+<span class="codeline" id="line-130"><code><span class="comment">// and then returns x / 10^p, p.</span></code></span>
+<span class="codeline" id="line-131"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-132"><code><span class="comment">// This is here for reference and tested, because it is an optimization</span></code></span>
+<span class="codeline" id="line-133"><code><span class="comment">// used by other ftoa algorithms, but in our implementations it has</span></code></span>
+<span class="codeline" id="line-134"><code><span class="comment">// never been benchmarked to be faster than trimming zeros after</span></code></span>
+<span class="codeline" id="line-135"><code><span class="comment">// formatting into decimal bytes.</span></code></span>
+<span class="codeline" id="line-136"><code><span class="keyword">func</span> <label for="r28" class="ident"><a href="../../../pkg/internal/strconv.html#name-trimZeros" class="ident">trimZeros</a></label>(<label for="r29" class="ident">x</label> <a href="../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>) (<a href="../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>, <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>) {</code></span>
+<span class="codeline" id="line-137"><code>	<span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-138"><code>		<label for="r30" class="ident">div1e8m</label>  = <span class="lit-number">0xc767074b22e90e21</span></code></span>
+<span class="codeline" id="line-139"><code>		<label for="r31" class="ident">div1e8le</label> = <a href="#line-100" class="ident">maxUint64</a> / <span class="lit-number">100000000</span></code></span>
+<span class="codeline" id="line-140"><code></code></span>
+<span class="codeline" id="line-141"><code>		<label for="r32" class="ident">div1e4m</label>  = <span class="lit-number">0xd288ce703afb7e91</span></code></span>
+<span class="codeline" id="line-142"><code>		<label for="r33" class="ident">div1e4le</label> = <a href="#line-100" class="ident">maxUint64</a> / <span class="lit-number">10000</span></code></span>
+<span class="codeline" id="line-143"><code></code></span>
+<span class="codeline" id="line-144"><code>		<label for="r34" class="ident">div1e2m</label>  = <span class="lit-number">0x8f5c28f5c28f5c29</span></code></span>
+<span class="codeline" id="line-145"><code>		<label for="r35" class="ident">div1e2le</label> = <a href="#line-100" class="ident">maxUint64</a> / <span class="lit-number">100</span></code></span>
+<span class="codeline" id="line-146"><code></code></span>
+<span class="codeline" id="line-147"><code>		<label for="r36" class="ident">div1e1m</label>  = <span class="lit-number">0xcccccccccccccccd</span></code></span>
+<span class="codeline" id="line-148"><code>		<label for="r37" class="ident">div1e1le</label> = <a href="#line-100" class="ident">maxUint64</a> / <span class="lit-number">10</span></code></span>
+<span class="codeline" id="line-149"><code>	)</code></span>
+<span class="codeline" id="line-150"><code></code></span>
+<span class="codeline" id="line-151"><code>	<span class="comment">// _ = assert[x - y] asserts at compile time that x == y.</span></code></span>
+<span class="codeline" id="line-152"><code><span class="comment">	// Assert that the multiplicative inverses are correct</span></code></span>
+<span class="codeline" id="line-153"><code><span class="comment">	// by checking that (div1eNm * 5^N) % 1&lt;&lt;64 == 1.</span></code></span>
+<span class="codeline" id="line-154"><code>	<span class="keyword">var</span> <label for="r38" class="ident">assert</label> [<span class="lit-number">1</span>]<span class="keyword">struct</span>{}</code></span>
+<span class="codeline" id="line-155"><code>	_ = <label for="r38" class="ident">assert</label>[(<label for="r30" class="ident">div1e8m</label>*<span class="lit-number">5</span>*<span class="lit-number">5</span>*<span class="lit-number">5</span>*<span class="lit-number">5</span>*<span class="lit-number">5</span>*<span class="lit-number">5</span>*<span class="lit-number">5</span>*<span class="lit-number">5</span>)%(<span class="lit-number">1</span>&lt;&lt;<span class="lit-number">64</span>)-<span class="lit-number">1</span>]</code></span>
+<span class="codeline" id="line-156"><code>	_ = <label for="r38" class="ident">assert</label>[(<label for="r32" class="ident">div1e4m</label>*<span class="lit-number">5</span>*<span class="lit-number">5</span>*<span class="lit-number">5</span>*<span class="lit-number">5</span>)%(<span class="lit-number">1</span>&lt;&lt;<span class="lit-number">64</span>)-<span class="lit-number">1</span>]</code></span>
+<span class="codeline" id="line-157"><code>	_ = <label for="r38" class="ident">assert</label>[(<label for="r34" class="ident">div1e2m</label>*<span class="lit-number">5</span>*<span class="lit-number">5</span>)%(<span class="lit-number">1</span>&lt;&lt;<span class="lit-number">64</span>)-<span class="lit-number">1</span>]</code></span>
+<span class="codeline" id="line-158"><code>	_ = <label for="r38" class="ident">assert</label>[(<label for="r36" class="ident">div1e1m</label>*<span class="lit-number">5</span>)%(<span class="lit-number">1</span>&lt;&lt;<span class="lit-number">64</span>)-<span class="lit-number">1</span>]</code></span>
+<span class="codeline" id="line-159"><code></code></span>
+<span class="codeline" id="line-160"><code>	<span class="comment">// Cut 8 zeros, then 4, then 2, then 1.</span></code></span>
+<span class="codeline" id="line-161"><code>	<label for="r39" class="ident">p</label> := <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-162"><code>	<span class="keyword">for</span> <label for="r40" class="ident">d</label> := <a href="../../../pkg/math/bits.html" class="ident i0">bits</a>.<a href="../../math/bits/bits.go.html#line-217" class="ident">RotateLeft64</a>(<label for="r29" class="ident">x</label>*<label for="r30" class="ident">div1e8m</label>, -<span class="lit-number">8</span>); <label for="r40" class="ident">d</label> &lt;= <label for="r31" class="ident">div1e8le</label>; <label for="r40" class="ident">d</label> = <a href="../../../pkg/math/bits.html" class="ident i0">bits</a>.<a href="../../math/bits/bits.go.html#line-217" class="ident">RotateLeft64</a>(<label for="r29" class="ident">x</label>*<label for="r30" class="ident">div1e8m</label>, -<span class="lit-number">8</span>) {</code></span>
+<span class="codeline" id="line-163"><code>		<label for="r29" class="ident">x</label> = <label for="r40" class="ident">d</label></code></span>
+<span class="codeline" id="line-164"><code>		<label for="r39" class="ident">p</label> += <span class="lit-number">8</span></code></span>
+<span class="codeline" id="line-165"><code>	}</code></span>
+<span class="codeline" id="line-166"><code>	<span class="keyword">if</span> <label for="r41" class="ident">d</label> := <a href="../../../pkg/math/bits.html" class="ident i0">bits</a>.<a href="../../math/bits/bits.go.html#line-217" class="ident">RotateLeft64</a>(<label for="r29" class="ident">x</label>*<label for="r32" class="ident">div1e4m</label>, -<span class="lit-number">4</span>); <label for="r41" class="ident">d</label> &lt;= <label for="r33" class="ident">div1e4le</label> {</code></span>
+<span class="codeline" id="line-167"><code>		<label for="r29" class="ident">x</label> = <label for="r41" class="ident">d</label></code></span>
+<span class="codeline" id="line-168"><code>		<label for="r39" class="ident">p</label> += <span class="lit-number">4</span></code></span>
+<span class="codeline" id="line-169"><code>	}</code></span>
+<span class="codeline" id="line-170"><code>	<span class="keyword">if</span> <label for="r42" class="ident">d</label> := <a href="../../../pkg/math/bits.html" class="ident i0">bits</a>.<a href="../../math/bits/bits.go.html#line-217" class="ident">RotateLeft64</a>(<label for="r29" class="ident">x</label>*<label for="r34" class="ident">div1e2m</label>, -<span class="lit-number">2</span>); <label for="r42" class="ident">d</label> &lt;= <label for="r35" class="ident">div1e2le</label> {</code></span>
+<span class="codeline" id="line-171"><code>		<label for="r29" class="ident">x</label> = <label for="r42" class="ident">d</label></code></span>
+<span class="codeline" id="line-172"><code>		<label for="r39" class="ident">p</label> += <span class="lit-number">2</span></code></span>
+<span class="codeline" id="line-173"><code>	}</code></span>
+<span class="codeline" id="line-174"><code>	<span class="keyword">if</span> <label for="r43" class="ident">d</label> := <a href="../../../pkg/math/bits.html" class="ident i0">bits</a>.<a href="../../math/bits/bits.go.html#line-217" class="ident">RotateLeft64</a>(<label for="r29" class="ident">x</label>*<label for="r36" class="ident">div1e1m</label>, -<span class="lit-number">1</span>); <label for="r43" class="ident">d</label> &lt;= <label for="r37" class="ident">div1e1le</label> {</code></span>
+<span class="codeline" id="line-175"><code>		<label for="r29" class="ident">x</label> = <label for="r43" class="ident">d</label></code></span>
+<span class="codeline" id="line-176"><code>		<label for="r39" class="ident">p</label> += <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-177"><code>	}</code></span>
+<span class="codeline" id="line-178"><code>	<span class="keyword">return</span> <label for="r29" class="ident">x</label>, <label for="r39" class="ident">p</label></code></span>
+<span class="codeline" id="line-179"><code>}</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.8.4</i>. (GOOS=linux GOARCH=amd64)</pre>

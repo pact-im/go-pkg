@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: filter_amd64.s in package internal/runtime/gc/scan</title>
+<link href="../../../../../css/auto-v0.8.4.css" rel="stylesheet">
+<script src="../../../../../jvs/golds-v0.8.4.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	filter_amd64.s
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../pkg/internal/runtime/gc/scan.html">internal/runtime/gc/scan</a>
+</code></pre>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code>// Copyright 2025 The Go Authors. All rights reserved.</code></span>
+<span class="codeline" id="line-2"><code>// Use of this source code is governed by a BSD-style</code></span>
+<span class="codeline" id="line-3"><code>// license that can be found in the LICENSE file.</code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code>#include "go_asm.h"</code></span>
+<span class="codeline" id="line-6"><code>#include "textflag.h"</code></span>
+<span class="codeline" id="line-7"><code></code></span>
+<span class="codeline" id="line-8"><code>TEXT ·FilterNilAVX512(SB), NOSPLIT, $0-20</code></span>
+<span class="codeline" id="line-9"><code>	// Load arguments</code></span>
+<span class="codeline" id="line-10"><code>	MOVQ bufp+0(FP), R8	// R8 = bufp (start of the uint64 array)</code></span>
+<span class="codeline" id="line-11"><code>	MOVL n+8(FP), R9	// R9 = n (total length)</code></span>
+<span class="codeline" id="line-12"><code>	XORL R10, R10		// R10 = 0 (scanned = 0)</code></span>
+<span class="codeline" id="line-13"><code>	XORL R11, R11		// R11 = 0 (cnt = 0)</code></span>
+<span class="codeline" id="line-14"><code></code></span>
+<span class="codeline" id="line-15"><code>	MOVL R9, R12	// R12 = n</code></span>
+<span class="codeline" id="line-16"><code>	SUBL R10, R12	// R12 = n - scanned</code></span>
+<span class="codeline" id="line-17"><code>	CMPL R12, $8	// Compare (n - scanned) with 8</code></span>
+<span class="codeline" id="line-18"><code>	JLT scalar_loop	// If (n - scanned) &lt; 8, jump to the scalar cleanup</code></span>
+<span class="codeline" id="line-19"><code>	VPXOR X15, X15, X15	// Zero the high bits of Z15</code></span>
+<span class="codeline" id="line-20"><code></code></span>
+<span class="codeline" id="line-21"><code>vector_loop:</code></span>
+<span class="codeline" id="line-22"><code>	LEAQ (R8)(R10*8), R13	// R13 = buf[scanned:] address</code></span>
+<span class="codeline" id="line-23"><code>	VMOVDQU64 (R13), Z1		// Z1 = v (Load 8 uint64s)</code></span>
+<span class="codeline" id="line-24"><code>	VPCMPUQ $4, Z1, Z15, K1	// Z15 is always 0, compare Z1 with 0, results in K1.</code></span>
+<span class="codeline" id="line-25"><code></code></span>
+<span class="codeline" id="line-26"><code>	LEAQ (R8)(R11*8), R14	// R14 = buf[cnt:] address</code></span>
+<span class="codeline" id="line-27"><code>	VPCOMPRESSQ Z1, K1, Z1	// compress v</code></span>
+<span class="codeline" id="line-28"><code>	VMOVDQU64 Z1, (R14)		// store v to buf[cnt:]</code></span>
+<span class="codeline" id="line-29"><code></code></span>
+<span class="codeline" id="line-30"><code>	KMOVW K1, R15</code></span>
+<span class="codeline" id="line-31"><code>	POPCNTL R15, R15	// R15 = popcount(K1)</code></span>
+<span class="codeline" id="line-32"><code></code></span>
+<span class="codeline" id="line-33"><code>	ADDL R15, R11	// cnt += popcount(K1)</code></span>
+<span class="codeline" id="line-34"><code>	ADDL $8, R10	// scanned += 8</code></span>
+<span class="codeline" id="line-35"><code></code></span>
+<span class="codeline" id="line-36"><code>	MOVL R9, R12	// R12 = n</code></span>
+<span class="codeline" id="line-37"><code>	SUBL R10, R12	// R12 = n - scanned</code></span>
+<span class="codeline" id="line-38"><code>	CMPL R12, $8	// Compare (n - scanned) with 8</code></span>
+<span class="codeline" id="line-39"><code>	JGE vector_loop	// If (n - scanned) &gt;= 8, continue loop</code></span>
+<span class="codeline" id="line-40"><code></code></span>
+<span class="codeline" id="line-41"><code>scalar_loop:</code></span>
+<span class="codeline" id="line-42"><code>	CMPL R10, R9	// Compare scanned with n</code></span>
+<span class="codeline" id="line-43"><code>	JGE end			// If scanned &gt;= n, loop is done</code></span>
+<span class="codeline" id="line-44"><code></code></span>
+<span class="codeline" id="line-45"><code>scalar_next_i:</code></span>
+<span class="codeline" id="line-46"><code>	LEAQ (R8)(R10*8), R13	// R13 = &amp;buf[scanned]</code></span>
+<span class="codeline" id="line-47"><code>	MOVQ (R13), R14			// R14 = buf[scanned]</code></span>
+<span class="codeline" id="line-48"><code></code></span>
+<span class="codeline" id="line-49"><code>	CMPQ R14, $0</code></span>
+<span class="codeline" id="line-50"><code>	JE scalar_increment_i	// If buf[i] == 0, skip to increment i</code></span>
+<span class="codeline" id="line-51"><code></code></span>
+<span class="codeline" id="line-52"><code>	LEAQ (R8)(R11*8), R15	// R15 = &amp;buf[cnt]</code></span>
+<span class="codeline" id="line-53"><code>	MOVQ R14, (R15)			// buf[cnt] = buf[scanned]</code></span>
+<span class="codeline" id="line-54"><code></code></span>
+<span class="codeline" id="line-55"><code>	ADDL $1, R11	// cnt++</code></span>
+<span class="codeline" id="line-56"><code></code></span>
+<span class="codeline" id="line-57"><code>scalar_increment_i:</code></span>
+<span class="codeline" id="line-58"><code>	ADDL $1, R10	// scanned++</code></span>
+<span class="codeline" id="line-59"><code></code></span>
+<span class="codeline" id="line-60"><code>	CMPL R10, R9</code></span>
+<span class="codeline" id="line-61"><code>	JL scalar_next_i	// if scanned &lt; n, continue</code></span>
+<span class="codeline" id="line-62"><code></code></span>
+<span class="codeline" id="line-63"><code>end:</code></span>
+<span class="codeline" id="line-64"><code>	MOVL R11, ret+16(FP)</code></span>
+<span class="codeline" id="line-65"><code>	VZEROUPPER</code></span>
+<span class="codeline" id="line-66"><code>	RET</code></span>
+</pre><pre id="footer">
+The pages are generated with <a href="https://go101.org/apps-and-libs/golds.html"><b>Golds</b></a> <i>v0.8.4</i>. (GOOS=linux GOARCH=amd64)</pre>
