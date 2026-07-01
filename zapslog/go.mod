@@ -2,7 +2,7 @@ module go.pact.im/x/zapslog
 
 go 1.26.0
 
-require go.uber.org/zap v1.27.0
+require go.uber.org/zap v1.28.0
 
 require (
 	github.com/stretchr/testify v1.11.1 // indirect
