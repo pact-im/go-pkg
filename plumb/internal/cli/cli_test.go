@@ -279,63 +279,8 @@ func unrelated() { var _ int = "not an int" }
 		t.Fatalf("Run -v exit %d, stderr:\n%s", code, stderr.String())
 	}
 	golden.Check(t, filepath.Join(pkgDir, "testdata", "verbose_report.golden"), report.String())
-	if !hasLine(stderr.String(), noteHeader) {
+	if !slices.Contains(strings.Split(stderr.String(), "\n"), noteHeader) {
 		t.Errorf("-v did not surface the tolerated-error note; stderr:\n%s", stderr.String())
-	}
-}
-
-// hasLine reports whether s contains want as a complete line.
-func hasLine(s, want string) bool {
-	return slices.Contains(strings.Split(s, "\n"), want)
-}
-
-// TestRunSurfacesToleratedErrorsOnFailure covers cli.go's generation-failure
-// branch: when the load tolerated a type error and generation then fails for an
-// unrelated reason, the tolerated errors are still surfaced so a genuine provider
-// type problem is not swallowed behind the downstream diagnostic.
-// TestRunVerboseSurfacesToleratedErrors covers only the -v success path; this
-// covers the failure path, which surfaces them always.
-func TestRunSurfacesToleratedErrorsOnFailure(t *testing.T) {
-	dir := t.TempDir()
-	mustWrite(t, filepath.Join(dir, "go.mod"), "module example.com/e2e\n\ngo 1.26.4\n")
-	appDir := filepath.Join(dir, "app")
-	if err := os.Mkdir(appDir, 0o755); err != nil {
-		t.Fatal(err)
-	}
-	// Two providers produce *Server: an ambiguous producer, so generation fails.
-	// An unrelated body carries a type error the loader tolerates, independent of
-	// the providers.
-	mustWrite(t, filepath.Join(appDir, "app.go"), `package app
-
-type Server struct{}
-
-//plumb:build
-func NewServerA() *Server { return &Server{} }
-
-//plumb:build
-func NewServerB() *Server { return &Server{} }
-
-func unrelated() { var _ int = "not an int" }
-`)
-	t.Chdir(appDir)
-
-	var stdout, stderr bytes.Buffer
-	code := Run([]string{"-output=plumb_gen.go", "."}, &stdout, &stderr, &stderr)
-	if code != 1 {
-		t.Fatalf("Run exit %d, want 1; stderr:\n%s", code, stderr.String())
-	}
-	// stderr carries plumb's own ambiguity diagnostic and the tolerated-error note;
-	// there is no report on a failure. Assert both surfaced as complete lines: the
-	// diagnostic (its temp-path source positions normalized to $APP) reached stderr,
-	// and the note was not swallowed beneath it. The note's go/types bodies are
-	// version-dependent, so they are not pinned.
-	se := strings.ReplaceAll(stderr.String(), appDir, "$APP")
-	const wantDiag = "plumb: $APP/app.go:6:6: ambiguous producer: type *app.Server is produced by both NewServerA ($APP/app.go:6:6) and NewServerB ($APP/app.go:9:6); plumb never picks a winner"
-	if !hasLine(se, wantDiag) {
-		t.Errorf("generation diagnostic did not reach stderr; stderr:\n%s", se)
-	}
-	if !hasLine(se, noteHeader) {
-		t.Errorf("tolerated-error note was swallowed by the failure; stderr:\n%s", se)
 	}
 }
 

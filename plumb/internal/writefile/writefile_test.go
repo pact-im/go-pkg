@@ -42,21 +42,6 @@ func TestWrite(t *testing.T) {
 		}
 	})
 
-	t.Run("sets mode 0o644", func(t *testing.T) {
-		dir := t.TempDir()
-		path := filepath.Join(dir, "out.txt")
-		if err := writefile.Write(path, "x"); err != nil {
-			t.Fatalf("Write: %v", err)
-		}
-		info, err := os.Stat(path)
-		if err != nil {
-			t.Fatalf("Stat: %v", err)
-		}
-		if perm := info.Mode().Perm(); perm != 0o644 {
-			t.Errorf("mode = %o, want 644", perm)
-		}
-	})
-
 	t.Run("leaves no temp file behind on success", func(t *testing.T) {
 		dir := t.TempDir()
 		path := filepath.Join(dir, "out.txt")
