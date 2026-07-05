@@ -1,0 +1,27 @@
+An interface conversion whose source is itself an interface: interface-to-interface
+widening (J → I) is a valid Go conversion, so it wires J into I and the
+injector takes no inputs.
+-- config --
+import-path: example.com/app
+package-name: app
+-- example.com/app/a.go --
+package app
+
+type I interface{ M() }
+type J interface {
+	M()
+	N()
+}
+type impl struct{}
+
+func (impl) M() {}
+func (impl) N() {}
+
+//plumb:build
+func NewJ() J { return impl{} }
+
+//plumb:build
+var _ I = (J)(nil)
+
+//plumb:build
+func Use(i I) int { return 0 }

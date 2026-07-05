@@ -1,0 +1,20 @@
+Every name in a multi-name var spec carrying a directive is its own provider, so
+both X (*A) and Y (*B) are wired and neither becomes an injector input.
+-- config --
+import-path: example.com/app
+package-name: app
+-- example.com/app/a.go --
+package app
+
+type A struct{}
+type B struct{}
+type Server struct{}
+
+func newA() *A { return &A{} }
+func newB() *B { return &B{} }
+
+//plumb:build
+var X, Y = newA(), newB()
+
+//plumb:build
+func NewServer(a *A, b *B) *Server { return &Server{} }

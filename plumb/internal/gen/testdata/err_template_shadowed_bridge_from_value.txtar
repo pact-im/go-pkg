@@ -1,0 +1,22 @@
+A result-generic template producing Node[T] is unused because the *Node[int]
+demand it could serve is already met by the value/pointer bridge over Leaf's
+Node[int]. The template serves the demand through its dual (Node[T] unifies with
+Node[int]); the message must name Leaf as the bridge producer rather than fall
+through to the generic "no consumer pins its result type".
+-- config --
+import-path: example.com/app
+package-name: app
+error-is: ErrUnusedTemplate
+-- example.com/app/a.go --
+package app
+
+type Node[T any] struct{}
+
+//plumb:build
+func Leaf() Node[int] { return Node[int]{} }
+
+//plumb:build
+func Tmpl[T any]() Node[T] { return Node[T]{} }
+
+//plumb:build
+func Use(p *Node[int]) string { return "" }

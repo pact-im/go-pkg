@@ -1,0 +1,23 @@
+Two failable cleanups (func() error) in one set, with no fallible provider. On
+the success path the aggregated cleanup runs them newest-first, captures each
+error in a local, and joins the two with errors.Join, the only place the errors
+import is pulled in.
+-- config --
+import-path: example.com/app
+package-name: app
+output: plumb_gen.go
+-- example.com/app/app.go --
+package app
+
+type A struct{}
+type B struct{}
+type C struct{}
+
+//plumb:build
+func OpenA() (*A, func() error) { return &A{}, func() error { return nil } }
+
+//plumb:build
+func OpenB(a *A) (*B, func() error) { return &B{}, func() error { return nil } }
+
+//plumb:build
+func Use(b *B) *C { return &C{} }

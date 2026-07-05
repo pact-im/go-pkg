@@ -1,0 +1,20 @@
+A directive on the losing declaration of a redeclared struct field: go/types keeps the
+first field's Defs entry but not the second's, so a directive on the second would vanish
+without a check. Like the sibling scanners, the field scan fails loudly rather than
+silently dropping a recognized directive. The source itself does not type-check (the
+loader tolerates it); plumb still reports the directive it cannot wire.
+-- config --
+import-path: example.com/app
+package-name: app
+error-is: ErrInvalidType
+-- example.com/app/a.go --
+package app
+
+type S struct {
+	A int
+	//plumb:build
+	A int
+}
+
+//plumb:build
+func Use(s S) int { return 0 }

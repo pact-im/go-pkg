@@ -1,0 +1,17 @@
+The unexported spelling is the alias this time: inner aliases the exported Visible, and
+the rendered type mentions Visible first. Rendering names the alias, so lib.inner is
+unreachable from the destination even though its target is exported, and the exported
+target being walked first must not mark the alias as already seen.
+-- config --
+import-path: example.com/app
+package-name: app
+error-is: ErrUnreachableType
+-- example.com/lib/lib.go --
+package lib
+
+type Visible struct{ X int }
+type inner = Visible
+type Thing struct{}
+
+//plumb:build
+func New(m map[Visible]inner) *Thing { return &Thing{} }

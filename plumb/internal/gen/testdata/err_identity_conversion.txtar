@@ -1,0 +1,18 @@
+An identity conversion (var _ T = an expression already of type T) consumes and
+produces the same type. Rather than surfacing later as a self-referential
+dependency cycle, it is rejected as an invalid (no-op) conversion at discovery,
+naming the real cause.
+-- config --
+import-path: example.com/app
+package-name: app
+error-is: ErrInvalidConversion
+-- example.com/app/a.go --
+package app
+
+type MyInt int
+
+//plumb:build
+var _ MyInt = 5
+
+//plumb:build
+func Use(m MyInt) string { return "" }

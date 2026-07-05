@@ -1,0 +1,22 @@
+An unused result-generic template whose result the value/pointer bridge already
+supplies names that bridge, instead of the misleading "no consumer pins its
+result type": Use does pin *Node[int], but the bridge over Leaf's Node[int]
+satisfies it first, leaving Wrap genuinely unused. Erroring is correct; the
+message points at the real cause.
+-- config --
+import-path: example.com/app
+package-name: app
+error-is: ErrUnusedTemplate
+-- example.com/app/a.go --
+package app
+
+type Node[T any] struct{}
+
+//plumb:build
+func Leaf() Node[int] { return Node[int]{} }
+
+//plumb:build
+func Wrap[T any](n Node[T]) *Node[T] { return &n }
+
+//plumb:build
+func Use(p *Node[int]) string { return "" }

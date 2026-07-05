@@ -1,0 +1,17 @@
+A generic type alias is identical to its target, so New returning Alias[T] is
+result-generic (it mentions T) and is pinned on demand to Alias[int]. The type
+walks must see through the alias to its parameter, not stop at the alias node.
+-- config --
+import-path: example.com/app
+package-name: app
+-- example.com/app/a.go --
+package app
+
+type Inner[T any] struct{}
+type Alias[T any] = Inner[T]
+
+//plumb:build
+func New[T any]() Alias[T] { return Alias[T]{} }
+
+//plumb:build
+func Use(x Alias[int]) int { return 0 }

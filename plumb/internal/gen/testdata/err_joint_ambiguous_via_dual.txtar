@@ -1,0 +1,25 @@
+Cross-template ambiguity is checked through the bridge too: *Key[int] matches no result
+of either template exactly, so its dual Key[int] is tried, and both MakeA and MakeB
+produce it cleanly, so neither may win. The rejection names the produced dual form.
+Without the dual in the check, each template would lift its Key[T] into a separate
+phantom output and *Key[int] would silently fall to the caller.
+-- config --
+import-path: example.com/app
+package-name: app
+error-is: ErrAmbiguousTemplates
+-- example.com/app/a.go --
+package app
+
+type Key[T any] struct{}
+type Val[U any] struct{}
+type Other[W any] struct{}
+type Sink struct{}
+
+//plumb:build
+func MakeA[T, U any]() (Key[T], Val[U]) { return Key[T]{}, Val[U]{} }
+
+//plumb:build
+func MakeB[T, W any]() (Key[T], Other[W]) { return Key[T]{}, Other[W]{} }
+
+//plumb:build
+func NewSink(k *Key[int], v Val[string], o Other[bool]) *Sink { return nil }

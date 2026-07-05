@@ -1,0 +1,21 @@
+A lifted free type parameter whose origin name ("server") equals another set's
+name exercises the lifted-parameter namer (ReservedNames / freshLiftedName)
+rather than the local allocator. Use is an anchor (its type parameter appears only
+in its input), so "server" is lifted onto set build's header and x becomes an
+input; the "server" set emits a func named "server". On regeneration the
+re-scanned output file must not reserve "server" for the lifted-parameter namer,
+so re-running plumb over its own output reproduces it byte-for-byte.
+-- config --
+import-path: example.com/app
+package-name: app
+output: plumb_gen.go
+-- example.com/app/app.go --
+package app
+
+type Thing struct{}
+
+//plumb:build
+func Use[server any](x server) *Thing { return &Thing{} }
+
+//plumb:server
+func NewServer() *int { return nil }

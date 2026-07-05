@@ -1,0 +1,24 @@
+A generic method instantiated at an unexported type that flows only through an
+internal local is valid and generated, not rejected: the call renders against the
+already-typed receiver value (cache.Get()) and writes no type argument, so the
+unexported type x.secret is never named across the package boundary.
+-- config --
+import-path: example.com/app
+package-name: app
+output: plumb_gen.go
+-- example.com/x/x.go --
+package x
+
+type secret struct{}
+type Cache[T any] struct{}
+type Box[T any] struct{}
+type Out struct{}
+
+//plumb:build
+func MakeCache() *Cache[secret] { return &Cache[secret]{} }
+
+//plumb:build
+func (c *Cache[T]) Get() Box[T] { return Box[T]{} }
+
+//plumb:build
+func Consume(b Box[secret]) *Out { return &Out{} }

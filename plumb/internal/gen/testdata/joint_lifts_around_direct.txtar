@@ -1,0 +1,24 @@
+A joint template and a direct producer of one of its outputs are not ambiguous:
+the direct producer supplies that concrete type, so the template is instantiated
+only for its still-needed output, lifting the parameter the direct-supplied
+result would otherwise have pinned. AlsoKeyInt supplies Key[int], so NewKVPair is
+taken at a lifted T (to produce Value[string]) rather than pinned to int, leaving
+Key[int] to the single direct producer instead of producing it twice.
+-- config --
+import-path: example.com/app
+package-name: app
+-- example.com/app/a.go --
+package app
+
+type Key[T any] struct{}
+type Value[U any] struct{}
+type Sink struct{}
+
+//plumb:build
+func NewKVPair[T, U any]() (Key[T], Value[U]) { return Key[T]{}, Value[U]{} }
+
+//plumb:build
+func AlsoKeyInt() Key[int] { return Key[int]{} }
+
+//plumb:build
+func NewSink(k Key[int], v Value[string]) *Sink { return nil }

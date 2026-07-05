@@ -1,0 +1,19 @@
+In a multi-provider set the invalid-type diagnostic anchors to the provider that
+references the invalid type (Use, below), not the source-earliest provider of the
+set (First). Missing is undefined; the loader tolerates the type error, and the
+invalid type is buried in Use's interface-typed input.
+-- config --
+import-path: example.com/app
+package-name: app
+error-is: ErrInvalidType
+-- example.com/app/a.go --
+package app
+
+type Thing struct{}
+type Other struct{}
+
+//plumb:build
+func First() *Other { return &Other{} }
+
+//plumb:build
+func Use(r interface{ Read() Missing }) *Thing { return &Thing{} }

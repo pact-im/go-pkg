@@ -1,0 +1,23 @@
+A result-generic template instantiated at two distinct pinned types within one
+injector; *Cache[User] and *Cache[Session] never collide.
+-- config --
+import-path: example.com/app
+package-name: app
+output: plumb_gen.go
+-- example.com/app/app.go --
+package app
+
+type User struct{}
+type Session struct{}
+type Cache[T any] struct{}
+type UserService struct{}
+type SessionService struct{}
+
+//plumb:build
+func NewCache[T any]() *Cache[T] { return &Cache[T]{} }
+
+//plumb:build
+func NewUserService(c *Cache[User]) *UserService { return &UserService{} }
+
+//plumb:build
+func NewSessionService(c *Cache[Session]) *SessionService { return &SessionService{} }

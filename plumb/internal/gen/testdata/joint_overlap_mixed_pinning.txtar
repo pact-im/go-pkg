@@ -1,0 +1,26 @@
+When one consumer pins a template's all-covering result and another matches only
+its partial result, the template is instantiated twice (once fully pinned, once
+with the unmatched parameter lifted) rather than demoting the partial demand to
+a caller-supplied input. UsePair pins F[int, string]; UseKey(Key[bool]) is served
+by a second instantiation F[bool, U] with U lifted, not by demoting Key[bool] to
+an injector input. (Without demand-aware dispatch, Key[bool] would be silently
+turned into a caller input even though F[bool, U] could build it.)
+-- config --
+import-path: example.com/app
+package-name: app
+-- example.com/app/a.go --
+package app
+
+type Key[T any] struct{}
+type Pair[T, U any] struct{}
+type A struct{}
+type B struct{}
+
+//plumb:build
+func F[T, U any]() (Key[T], Pair[T, U]) { return Key[T]{}, Pair[T, U]{} }
+
+//plumb:build
+func UsePair(p Pair[int, string]) *A { return &A{} }
+
+//plumb:build
+func UseKey(k Key[bool]) *B { return &B{} }

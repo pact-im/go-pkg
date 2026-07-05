@@ -1,0 +1,31 @@
+A template offers a demand its first covering result whose binding is viable, not just
+its first covering result: Pair[int, Name] near-misses Make through Pair[T, U] (int fails
+Stringer) but pins cleanly through Pair[U, T], so Make serves it on the single-demand
+step. That full pin preempts joint production. Rival, which could build Pair[int, Name]
+only jointly, is not ambiguous with Make; it lifts V around the supplied demand while
+serving Other[bool]. Stopping at the first covering result would leave the demand pending
+and reject Make and Rival as ambiguous instead.
+-- config --
+import-path: example.com/app
+package-name: app
+output: plumb_gen.go
+-- example.com/app/a.go --
+package app
+
+type Stringer interface{ String() string }
+type Name string
+
+func (n Name) String() string { return string(n) }
+
+type Pair[A, B any] struct{}
+type Other[W any] struct{}
+type Sink struct{}
+
+//plumb:build
+func Make[T Stringer, U any]() (Pair[T, U], Pair[U, T]) { return Pair[T, U]{}, Pair[U, T]{} }
+
+//plumb:build
+func Rival[V, W any]() (Pair[int, V], Other[W]) { return Pair[int, V]{}, Other[W]{} }
+
+//plumb:build
+func NewSink(p Pair[int, Name], o Other[bool]) *Sink { return nil }

@@ -1,0 +1,27 @@
+Two result-generic templates over disjoint constraints (~int and ~string) produce the
+same shape Box[T]. Each demand (Box[int], Box[string]) is buildable by exactly one of
+them, since a constraint rejects the other's pin. Template ambiguity is decided after a
+constraint check, so a template that cannot build a demand does not block the one that can.
+-- config --
+import-path: example.com/app
+package-name: app
+-- example.com/app/a.go --
+package app
+
+type Ints interface{ ~int }
+type Strs interface{ ~string }
+type Box[T any] struct{ V T }
+type IntResult struct{}
+type StrResult struct{}
+
+//plumb:build
+func MakeInt[T Ints]() Box[T] { return Box[T]{} }
+
+//plumb:build
+func MakeStr[T Strs]() Box[T] { return Box[T]{} }
+
+//plumb:build
+func UseInt(b Box[int]) *IntResult { return &IntResult{} }
+
+//plumb:build
+func UseStr(b Box[string]) *StrResult { return &StrResult{} }

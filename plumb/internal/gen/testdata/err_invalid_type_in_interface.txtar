@@ -1,0 +1,18 @@
+A provider's injector input is an interface whose method returns a type that does
+not type-check (Missing is undefined). The invalid type is buried inside the
+interface method signature, not at the top level; the loader tolerates the type
+error, but plumb must still reject rather than emit an interface containing the
+unprintable "invalid type". (The invalid-type walk descends into interface method
+signatures; a walk that stopped at the interface would let this reach the emitter,
+where formatting panics.)
+-- config --
+import-path: example.com/app
+package-name: app
+error-is: ErrInvalidType
+-- example.com/app/a.go --
+package app
+
+type Thing struct{}
+
+//plumb:build
+func Use(r interface{ Read() Missing }) *Thing { return &Thing{} }

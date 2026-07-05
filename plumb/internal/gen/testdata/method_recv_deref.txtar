@@ -1,0 +1,21 @@
+A value-receiver method supplied only a pointer is bridged with a dereference.
+Used as a selector receiver the dereference must be parenthesized: (*db).Store(),
+not *db.Store() (which would parse as *(db.Store())).
+-- config --
+import-path: example.com/app
+package-name: app
+output: plumb_gen.go
+-- example.com/app/a.go --
+package app
+
+type DB struct{}
+type Store struct{}
+
+//plumb:build
+func NewDB() *DB { return &DB{} }
+
+//plumb:build
+func (d DB) Store() *Store { return &Store{} }
+
+//plumb:build
+func Use(s *Store) int { return 0 }

@@ -1,0 +1,18 @@
+A type alias is identical to its target, so wiring crosses the alias boundary: a
+consumer of the alias is satisfied by a producer of the target.
+-- config --
+import-path: example.com/app
+package-name: app
+output: plumb_gen.go
+-- example.com/app/app.go --
+package app
+
+type Real struct{ V int }
+type Alias = Real
+type Server struct{}
+
+//plumb:build
+func NewReal() Real { return Real{} }
+
+//plumb:build
+func NewServer(a Alias) *Server { return &Server{} }

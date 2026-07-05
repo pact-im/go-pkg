@@ -1,0 +1,22 @@
+A struct-type provider on an exported alias to an unexported struct, generated
+into a different package: the composite literal names the exported alias
+(core.Config), so the unexported underlying type never appears and the output
+stays reachable across the package boundary.
+-- config --
+import-path: example.com/app
+package-name: app
+output: plumb_gen.go
+-- example.com/core/core.go --
+package core
+
+type Host string
+
+type config struct{ Host Host }
+
+type Server struct{}
+
+//plumb:build
+type Config = config
+
+//plumb:build
+func NewServer(c Config) *Server { return &Server{} }

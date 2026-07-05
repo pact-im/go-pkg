@@ -1,0 +1,23 @@
+A lifted parameter whose constraint is a cross-package empty interface renders as
+any, so the constraint's package is not left imported-and-unused. An unused
+import would fail to compile, which the corpus compile-check guards.
+-- config --
+import-path: example.com/app
+package-name: app
+output: plumb_gen.go
+-- example.com/cons/cons.go --
+package cons
+
+type Empty interface{}
+-- example.com/app/a.go --
+package app
+
+import "example.com/cons"
+
+type Pool[T cons.Empty] struct{}
+
+//plumb:build
+func NewPool[T cons.Empty]() *Pool[T] { return &Pool[T]{} }
+
+//plumb:build
+func PoolSize[T cons.Empty](p *Pool[T]) int { return 0 }

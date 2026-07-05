@@ -1,0 +1,18 @@
+A lifted free parameter whose constraint is an unexported, empty interface from
+the provider's package renders as the bare "any" in the header, so the unexported
+type x.c is never named across the boundary; plumb generates it rather than
+rejecting it. Mirror of constraint_empty_crosspkg, but with an unexported
+constraint that solve accepts because emit collapses it to any.
+-- config --
+import-path: example.com/app
+package-name: app
+output: plumb_gen.go
+-- example.com/x/x.go --
+package x
+
+type c interface{}
+type Box[T any] struct{}
+type Out struct{}
+
+//plumb:build
+func F[T c](b Box[T]) *Out { return &Out{} }

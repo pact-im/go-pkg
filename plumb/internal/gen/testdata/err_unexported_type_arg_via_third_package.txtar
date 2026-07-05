@@ -1,0 +1,21 @@
+A same-package generic provider pinned at a third package's unexported type renders an unnameable type argument.
+-- config --
+import-path: example.com/d
+package-name: d
+error-is: ErrUnreachableType
+-- example.com/b/b.go --
+package b
+
+import "example.com/d"
+
+type secret struct{}
+
+//plumb:build
+func Use(c *d.Cache[secret]) int { return 0 }
+-- example.com/d/d.go --
+package d
+
+type Cache[T any] struct{}
+
+//plumb:build
+func NewCache[T any]() *Cache[T] { return &Cache[T]{} }

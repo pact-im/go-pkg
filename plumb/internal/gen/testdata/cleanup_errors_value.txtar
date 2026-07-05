@@ -1,0 +1,19 @@
+A value whose base name lowercases to "errors" (a type named Errors) must not
+collide with the errors.Join import a failable cleanup pulls in: the errors
+qualifier is reserved before locals are named, so the *Errors result takes a
+different name and errors.Join still resolves to the package.
+-- config --
+import-path: example.com/app
+package-name: app
+-- example.com/app/app.go --
+package app
+
+type Errors struct{}
+
+//plumb:build
+func NewErrors() *Errors { return &Errors{} }
+
+type Resource struct{}
+
+//plumb:build
+func Open() (*Resource, func() error) { return &Resource{}, func() error { return nil } }

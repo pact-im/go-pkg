@@ -1,0 +1,15 @@
+A set named after a predeclared identifier (int) is rejected outright: a top-level
+func int would shadow the builtin for the whole destination package. The rejection
+is by the set name alone, independent of the signature (here int also appears in a
+func-typed parameter, but that is irrelevant to the diagnostic).
+-- config --
+import-path: example.com/app
+package-name: app
+error-is: ErrShadowsPredeclared
+-- example.com/app/a.go --
+package app
+
+type Thing struct{}
+
+//plumb:int
+func Use(f func(int) int) *Thing { return &Thing{} }

@@ -1,0 +1,30 @@
+A demand for a valid type the only matching template cannot produce becomes an
+injector input, not an error. Box has no constraint, so Box[int] is a valid type,
+but the sole producer Make requires T: Stringer, so Make cannot build Box[int].
+Per “unprovided means input”, Box[int] becomes a parameter (the user wires it in),
+while Make still serves the valid consumer at Box[Name]. This is the deliberate
+permissive behavior (never reject valid Go) and the point where plumb declines
+to treat a constraint near-miss as a misuse.
+-- config --
+import-path: example.com/app
+package-name: app
+output: plumb_gen.go
+-- example.com/app/a.go --
+package app
+
+type Stringer interface{ String() string }
+
+type Name string
+
+func (n Name) String() string { return string(n) }
+
+type Box[T any] struct{ V T }
+
+//plumb:build
+func Make[T Stringer]() Box[T] { return Box[T]{} }
+
+//plumb:build
+func UseGood(b Box[Name]) int { return 0 }
+
+//plumb:build
+func UseInput(b Box[int]) string { return "" }

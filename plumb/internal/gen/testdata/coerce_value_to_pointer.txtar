@@ -1,0 +1,18 @@
+A variable provides a value; a consumer needs the pointer. plumb bridges by
+taking the address of the value local (&config) at the call site, so all *T
+consumers share the one instance.
+-- config --
+import-path: example.com/app
+package-name: app
+output: plumb_gen.go
+-- example.com/app/app.go --
+package app
+
+type Config struct{ Port int }
+type Server struct{}
+
+//plumb:build
+var Default = Config{Port: 8080}
+
+//plumb:build
+func NewServer(c *Config) *Server { return &Server{} }

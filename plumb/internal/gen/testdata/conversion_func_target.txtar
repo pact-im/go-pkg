@@ -1,0 +1,24 @@
+Conversion targets that are function types. A result-less func() must be
+parenthesized so it does not read as a function literal: (func())(x). A func type
+with results is emitted without parentheses (func() int(x)), which is parseable;
+gofmt then adds the clarifying parens, yielding (func() int)(x).
+-- config --
+import-path: example.com/app
+package-name: app
+-- example.com/app/a.go --
+package app
+
+type F func()
+type G func() int
+
+//plumb:build
+func NewF() F { return nil }
+
+//plumb:build
+func NewG() G { return nil }
+
+//plumb:build
+var _ func() = (F)(nil)
+
+//plumb:build
+var _ func() int = (G)(nil)

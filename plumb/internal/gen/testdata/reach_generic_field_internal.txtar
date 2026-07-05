@@ -1,0 +1,25 @@
+A struct-field provider on a generic struct pinned to an unexported type, used
+only through an internal local, is valid and generated: the field access renders
+against the already-typed receiver value (foo.Val) and writes no type argument,
+so the unexported type x.secret is never named across the package boundary.
+-- config --
+import-path: example.com/app
+package-name: app
+output: plumb_gen.go
+-- example.com/x/x.go --
+package x
+
+type secret struct{}
+type Box[T any] struct{}
+type Out struct{}
+
+type Foo[T any] struct {
+	//plumb:build
+	Val Box[T]
+}
+
+//plumb:build
+func MakeFoo() Foo[secret] { return Foo[secret]{} }
+
+//plumb:build
+func Consume(b Box[secret]) *Out { return &Out{} }

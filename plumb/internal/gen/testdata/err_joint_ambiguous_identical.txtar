@@ -1,0 +1,24 @@
+Two identical joint templates both produce Key[int] and Val[string], so each demand has
+two producers and no principled way to pick one. plumb reports this as a template
+ambiguity. Silently keeping one and discarding the other would misdescribe the conflict:
+the discarded template would look merely unused, masking that two templates compete for
+the same demand.
+-- config --
+import-path: example.com/app
+package-name: app
+error-is: ErrAmbiguousTemplates
+-- example.com/app/a.go --
+package app
+
+type Key[T any] struct{}
+type Val[U any] struct{}
+type Sink struct{}
+
+//plumb:build
+func MakeA[T, U any]() (Key[T], Val[U]) { return Key[T]{}, Val[U]{} }
+
+//plumb:build
+func MakeB[T, U any]() (Key[T], Val[U]) { return Key[T]{}, Val[U]{} }
+
+//plumb:build
+func NewSink(k Key[int], v Val[string]) *Sink { return nil }

@@ -1,0 +1,22 @@
+A covering match whose constraint rejects the pin is recorded as a near-miss even when a
+viable rival wins the demand: MakeAny serves Box[string], and the unused MakeInt reports
+its own constraint failure (the actionable reason, since removing MakeAny would not make
+MakeInt buildable) rather than "already produced by MakeAny".
+-- config --
+import-path: example.com/app
+package-name: app
+error-is: ErrUnusedTemplate
+-- example.com/app/a.go --
+package app
+
+type Ints interface{ ~int }
+type Box[T any] struct{}
+
+//plumb:build
+func MakeAny[T any]() Box[T] { return Box[T]{} }
+
+//plumb:build
+func MakeInt[T Ints]() Box[T] { return Box[T]{} }
+
+//plumb:build
+func Use(b Box[string]) int { return 0 }

@@ -1,0 +1,29 @@
+The real loader end to end: cross-package stdlib types and an interface conversion,
+which together require NeedTypes (resolve io.Writer and *strings.Builder) and
+NeedTypesInfo (the conversion's expression types). The generated injector is the
+golden.
+-- config --
+import-path: example.com/app
+package-name: app
+-- go.mod --
+module example.com/app
+
+go 1.23
+-- app.go --
+package app
+
+import (
+	"io"
+	"strings"
+)
+
+type Server struct{}
+
+//plumb:build
+func NewBuilder() *strings.Builder { return &strings.Builder{} }
+
+//plumb:build
+var _ io.Writer = (*strings.Builder)(nil)
+
+//plumb:build
+func NewServer(w io.Writer, b *strings.Builder) *Server { return &Server{} }

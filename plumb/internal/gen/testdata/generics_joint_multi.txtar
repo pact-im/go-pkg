@@ -1,0 +1,25 @@
+Joint pinning with multiple instantiations: a split template whose results span
+different type parameters is instantiated once per distinct pinning, so two
+consumers that pin it differently each get their own NewKVPair call. The pins
+NewA needs (int, string) and the pins NewB needs (bool, byte) never collide, so
+no winner has to be chosen.
+-- config --
+import-path: example.com/app
+package-name: app
+output: plumb_gen.go
+-- example.com/app/app.go --
+package app
+
+type Key[T any] struct{}
+type Value[U any] struct{}
+type A struct{}
+type B struct{}
+
+//plumb:build
+func NewKVPair[T, U any]() (Key[T], Value[U]) { return Key[T]{}, Value[U]{} }
+
+//plumb:build
+func NewA(k Key[int], v Value[string]) *A { return &A{} }
+
+//plumb:build
+func NewB(k Key[bool], v Value[byte]) *B { return &B{} }

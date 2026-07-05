@@ -1,0 +1,19 @@
+A joint multi-result template whose results share an outer generic type,
+(A[T], A[U]), with a single consumer A[int]. The demand A[int] unifies with both
+result slots, but it pins only one: plumb instantiates Make[int, U] (lifting U),
+producing A[int] for the consumer and A[U] as a lifted output. It must not pin both
+parameters from the one demand (Make[int, int]), which would produce A[int] twice
+and be wrongly rejected as an ambiguous producer.
+-- config --
+import-path: example.com/app
+package-name: app
+-- example.com/app/a.go --
+package app
+
+type A[T any] struct{ V T }
+
+//plumb:build
+func Make[T, U any]() (A[T], A[U]) { return A[T]{}, A[U]{} }
+
+//plumb:build
+func UseInt(a A[int]) int { return 0 }

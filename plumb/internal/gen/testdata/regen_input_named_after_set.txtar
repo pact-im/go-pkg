@@ -1,0 +1,21 @@
+An injector input whose source-param name ("server") equals another set's name
+exercises the input namer (the local allocator). Use consumes an unprovided *Cfg,
+so build's injector takes an input named after Use's parameter ("server"); the
+"server" set emits a func named "server". On regeneration the re-scanned output
+file must not reserve "server", so re-running plumb over its own output reproduces
+it byte-for-byte.
+-- config --
+import-path: example.com/app
+package-name: app
+output: plumb_gen.go
+-- example.com/app/app.go --
+package app
+
+type Cfg struct{}
+type Thing struct{}
+
+//plumb:build
+func Use(server *Cfg) *Thing { return &Thing{} }
+
+//plumb:server
+func NewServer() *int { return nil }

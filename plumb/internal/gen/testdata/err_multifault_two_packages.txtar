@@ -1,0 +1,19 @@
+Two independent faults in two packages: discover returns the diagnostic from the
+package earliest by import path (example.com/app before example.com/dep),
+deterministically, no matter what order the loader presents the packages. Guards
+the cross-package traversal ordering in Analyze. Without it, both the position
+and the error kind flip with load order.
+-- config --
+import-path: example.com/app
+package-name: app
+error-is: ErrInvalidSetName
+-- example.com/app/a.go --
+package app
+
+//plumb:build extra
+func A() int { return 0 }
+-- example.com/dep/b.go --
+package dep
+
+//plumb:build
+const B = 1

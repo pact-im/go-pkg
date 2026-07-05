@@ -1,0 +1,18 @@
+A generic provider whose results do not all share its type parameter: pinning
+the generic result also yields the concrete result, which a sibling consumes.
+-- config --
+import-path: example.com/app
+package-name: app
+-- example.com/app/app.go --
+package app
+
+type Cache[T any] struct{}
+type Metrics struct{}
+type User struct{}
+type Svc struct{}
+
+//plumb:build
+func NewCache[T any]() (*Cache[T], *Metrics) { return &Cache[T]{}, &Metrics{} }
+
+//plumb:build
+func NewSvc(c *Cache[User], m *Metrics) *Svc { return &Svc{} }

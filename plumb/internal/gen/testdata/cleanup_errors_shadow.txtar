@@ -1,0 +1,22 @@
+A provider named errors is called unqualified in same-package mode. Two failable
+cleanups make the aggregated cleanup join their errors with errors.Join, so the
+standard-library errors package must be imported under an alias: a bare
+errors.Join would resolve to the provider, not the package.
+-- config --
+import-path: example.com/app
+package-name: app
+-- example.com/app/app.go --
+package app
+
+type Resource struct{}
+type Pool struct{}
+
+//plumb:build
+func errors() (*Resource, func() error) {
+	return &Resource{}, func() error { return nil }
+}
+
+//plumb:build
+func OpenPool(r *Resource) (*Pool, func() error) {
+	return &Pool{}, func() error { return nil }
+}

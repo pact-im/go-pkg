@@ -1,0 +1,23 @@
+A method provider on a generic alias to an anonymous interface instantiates by
+demand: the *Box[int] consumer pins T=int, and the method binds to a value of the
+instantiated alias (source.Fetch()). The owner is carried as a *types.Alias
+throughout, not a defined type.
+-- config --
+import-path: example.com/app
+package-name: app
+output: plumb_gen.go
+-- example.com/app/app.go --
+package app
+
+type Box[T any] struct{ V T }
+
+type Source[T any] = interface {
+	//plumb:build
+	Fetch() *Box[T]
+}
+
+//plumb:build
+func mkSource() Source[int] { return nil }
+
+//plumb:build
+func use(p *Box[int]) string { return "" }

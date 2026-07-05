@@ -1,0 +1,32 @@
+A constraint near-miss on a template that ALSO has a free, input-only type
+parameter. Conv pins T from its Box[T] result and lifts U (the type of its u
+parameter) into the injector. Box[int] is a near-miss (int is not a Stringer),
+so it becomes an input; Conv still serves Box[Name]. The lift must happen exactly
+once: the doomed Box[int] attempt speculatively lifts a parameter, but that lift
+is rolled back and the binding is memoized, so no phantom type parameter leaks
+into the signature. The retained lifted parameter is named U, not U2: the
+rolled-back attempt releases the name it reserved (liftedNames is rolled back
+alongside liftedMeta), so the surviving lift reuses U.
+-- config --
+import-path: example.com/app
+package-name: app
+output: plumb_gen.go
+-- example.com/app/a.go --
+package app
+
+type Stringer interface{ String() string }
+
+type Name string
+
+func (n Name) String() string { return string(n) }
+
+type Box[T any] struct{ V T }
+
+//plumb:build
+func Conv[T Stringer, U any](u U) Box[T] { return Box[T]{} }
+
+//plumb:build
+func UseName(b Box[Name]) int { return 0 }
+
+//plumb:build
+func UseInt(b Box[int]) string { return "" }

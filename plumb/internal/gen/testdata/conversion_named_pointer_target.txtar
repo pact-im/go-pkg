@@ -1,0 +1,20 @@
+A conversion whose target is a pointer type. The target *Dst must be
+parenthesized as (*Dst)(x): written bare, *Dst(x) parses as a dereference
+*(Dst(x)), a conversion of the source to the value type Dst, then a deref,
+which does not type-check. A named pointer type P (= *Dst) is the convertible
+source, so whatever produces a P satisfies a *Dst demand through the conversion.
+-- config --
+import-path: example.com/app
+package-name: app
+-- example.com/app/a.go --
+package app
+
+type Dst struct{ x int }
+
+type P *Dst
+
+//plumb:build
+var _ *Dst = (P)(nil)
+
+//plumb:build
+func Use(d *Dst) int { return d.x }

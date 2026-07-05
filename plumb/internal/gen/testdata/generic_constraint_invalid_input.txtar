@@ -1,0 +1,31 @@
+Best-effort on invalid input. Box[T Stringer] makes Box[int] an illegal type, so
+this source does not type-check (compile: false). plumb does not crash on it: the
+constraint-violating demand Box[int] cannot be produced by Make and becomes an
+injector input, while Make still serves the valid consumer at Box[Name]. The
+generated signature faithfully reproduces the user's own type error (Box[int]);
+plumb neither rejects valid Go nor invents a fix. It passes the mistake through.
+Contrast generic_constraint_input.txtar, the valid-type analog that compiles.
+-- config --
+import-path: example.com/app
+package-name: app
+output: plumb_gen.go
+compile: false
+-- example.com/app/a.go --
+package app
+
+type Stringer interface{ String() string }
+
+type Name string
+
+func (n Name) String() string { return string(n) }
+
+type Box[T Stringer] struct{ V T }
+
+//plumb:build
+func Make[T Stringer]() Box[T] { return Box[T]{} }
+
+//plumb:build
+func UseGood(b Box[Name]) int { return 0 }
+
+//plumb:build
+func UseBad(b Box[int]) string { return "" }

@@ -1,0 +1,23 @@
+A consumer needs *T but only T is supplied, so the value/pointer bridge emits
+new(...). The supplier lives in a package literally named "new", which must be
+aliased so the qualifier does not shadow the new builtin the bridge relies on.
+-- config --
+import-path: example.com/app
+package-name: app
+output: plumb_gen.go
+-- example.com/app/new/n.go --
+package new
+
+type T struct{}
+
+//plumb:build
+var Default = T{}
+-- example.com/app/app.go --
+package app
+
+import nw "example.com/app/new"
+
+type Out struct{}
+
+//plumb:build
+func Use(t *nw.T) *Out { return &Out{} }

@@ -1,0 +1,15 @@
+A conversion provider whose source is not convertible to its target would emit
+uncompilable Go. On this tolerated-invalid input (a Config value is not convertible to
+*Config) plumb reports a located diagnostic instead of silently emitting (*Config)(x).
+On valid input the blank-var assignment type-checks, so the source is always convertible.
+-- config --
+import-path: example.com/app
+package-name: app
+error-is: ErrInvalidConversion
+-- example.com/app/a.go --
+package app
+
+type Config struct{}
+
+//plumb:build
+var _ *Config = Config{}

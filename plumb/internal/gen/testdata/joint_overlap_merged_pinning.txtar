@@ -1,0 +1,25 @@
+Two demands that pin the same parameter of an overlapping-result template
+consistently merge into one instantiation. Key[int] (from the partial Key[T]
+result) and Pair[int, string] (from the all-covering Pair[T, U] result) both fix
+T=int, so a single F[int, string] serves both (producing Key[int] and
+Pair[int, string]) rather than a lifted instance plus a pinned one that would
+each produce Key[int] and collide.
+-- config --
+import-path: example.com/app
+package-name: app
+-- example.com/app/a.go --
+package app
+
+type Key[T any] struct{}
+type Pair[T, U any] struct{}
+type A struct{}
+type B struct{}
+
+//plumb:build
+func F[T, U any]() (Key[T], Pair[T, U]) { return Key[T]{}, Pair[T, U]{} }
+
+//plumb:build
+func UseKey(k Key[int]) *A { return &A{} }
+
+//plumb:build
+func UsePair(p Pair[int, string]) *B { return &B{} }

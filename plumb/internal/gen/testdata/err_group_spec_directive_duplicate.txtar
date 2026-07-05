@@ -1,0 +1,19 @@
+A set named by both an enclosing group directive and a spec directive inside it is
+a duplicate: the group already joins X to build, so restating //plumb:build on the
+spec is rejected. This is the same duplicate-directive rule as repeating a directive on
+one declaration, now applied across the group/spec boundary. (A spec directive
+naming a *different* set is still unioned in; see group_and_spec_directive_union.)
+-- config --
+import-path: example.com/app
+package-name: app
+error-is: ErrDuplicateDirective
+-- example.com/app/app.go --
+package app
+
+type A struct{}
+
+//plumb:build
+var (
+	//plumb:build
+	X = A{}
+)

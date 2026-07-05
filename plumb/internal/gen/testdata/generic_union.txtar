@@ -1,0 +1,17 @@
+A free type parameter whose constraint is a union type set referencing a sibling
+parameter: the set is specialized (~[]U | ~map[int]U → ~[]string | ~map[int]string)
+when the sibling is pinned, and travels with the lifted parameter.
+-- config --
+import-path: example.com/app
+package-name: app
+-- example.com/app/app.go --
+package app
+
+type Box[T any] struct{}
+type Thing struct{}
+
+//plumb:build
+func FromSeq[T interface{ ~[]U | ~map[int]U }, U any](t T) *Box[U] { return &Box[U]{} }
+
+//plumb:build
+func Use(b *Box[string]) *Thing { return &Thing{} }

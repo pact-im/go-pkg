@@ -1,0 +1,34 @@
+A set name (dep) equal to an import qualifier that appears in BOTH the file being
+overwritten (a_gen.go, which sorts lexically first) AND a hand-written sibling
+(server.go). plumb records the sibling's base rather than the output file's (the
+output file's imports are plumb's to rewrite, but the sibling's are not), so the
+collision is reported instead of silently emitted (Go forbids one identifier being
+both a file-block import name and the package-block func).
+-- config --
+import-path: example.com/app
+package-name: app
+output: a_gen.go
+error-is: ErrSetNameCollision
+-- example.com/dep/dep.go --
+package dep
+
+var Marker = 0
+-- example.com/app/a_gen.go --
+package app
+
+import "example.com/dep"
+
+var _ = dep.Marker
+-- example.com/app/server.go --
+package app
+
+import "example.com/dep"
+
+var Client = dep.Marker
+-- example.com/app/providers.go --
+package app
+
+type Thing struct{}
+
+//plumb:dep
+func MakeThing() *Thing { return &Thing{} }

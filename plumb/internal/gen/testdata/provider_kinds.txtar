@@ -1,0 +1,40 @@
+A mix of provider kinds in one set: typed const, variable, interface conversion,
+method on a concrete receiver, function, and a struct field.
+-- config --
+import-path: example.com/app
+package-name: app
+output: plumb_gen.go
+-- example.com/app/app.go --
+package app
+
+import (
+	"io"
+	"os"
+)
+
+type Port int
+type Store struct{}
+type DB struct{}
+
+//plumb:build
+const DefaultPort Port = 8080
+
+//plumb:build
+var Stdin = os.Stdin
+
+//plumb:build
+var _ io.Reader = (*os.File)(nil)
+
+//plumb:build
+func (db *DB) Store() *Store { return &Store{} }
+
+//plumb:build
+func NewDB() *DB { return &DB{} }
+
+type Conf struct {
+	//plumb:build
+	Name string
+}
+
+//plumb:build
+func NewConf() *Conf { return &Conf{} }

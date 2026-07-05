@@ -1,0 +1,22 @@
+A generated function name colliding with an import qualifier in another file is a set-name collision.
+-- config --
+import-path: example.com/app
+package-name: app
+output: plumb_gen.go
+error-is: ErrSetNameCollision
+-- example.com/app/a.go --
+package app
+
+import "example.com/sql"
+
+type Server struct{}
+
+//plumb:sql
+func NewServer(db *sql.DB) *Server { return &Server{} }
+-- example.com/sql/sql.go --
+package sql
+
+type DB struct{}
+
+//plumb:sql
+func Open() *DB { return &DB{} }

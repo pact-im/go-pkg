@@ -1,0 +1,18 @@
+A lifted free type parameter whose natural name (A) collides with a
+same-package declaration is renamed (A2) so the body's unqualified references
+still resolve.
+-- config --
+import-path: example.com/app
+package-name: app
+output: plumb_gen.go
+-- example.com/app/app.go --
+package app
+
+type A struct{}
+type Pool[T any] struct{}
+
+//plumb:build
+func NewPool[T any]() *Pool[T] { return &Pool[T]{} }
+
+//plumb:build
+func PoolSize[A any](p *Pool[A]) int { return 0 }

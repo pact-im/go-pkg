@@ -1,0 +1,17 @@
+A free (lifted) type parameter whose constraint references a pinned parameter
+carries the substituted constraint: with T pinned to int by UseKey, the co-lifted
+U interface{ ~[]T } must travel as ~[]int, not the verbatim (now-undefined) T.
+-- config --
+import-path: example.com/app
+package-name: app
+-- example.com/app/a.go --
+package app
+
+type Key[T any] struct{}
+type Value[U any] struct{}
+
+//plumb:build
+func NewKV[T any, U interface{ ~[]T }]() (Key[T], Value[U]) { return Key[T]{}, Value[U]{} }
+
+//plumb:build
+func UseKey(k Key[int]) int { return 0 }

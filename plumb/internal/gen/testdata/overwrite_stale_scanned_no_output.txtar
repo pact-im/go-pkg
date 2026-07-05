@@ -1,0 +1,21 @@
+Control for overwrite_stale_ignored.txtar: the same files, but with no output
+base identified (stdout mode), so there is no prior-output file to skip. The stray
+ghost provider in plumb_gen.go is therefore scanned like any other source, giving
+two producers of *Config, an ambiguity. This confirms the skip in the companion
+fixture is what suppresses the collision, and that it is keyed to the output base.
+-- config --
+import-path: example.com/app
+package-name: app
+error-is: ErrAmbiguousProducer
+-- example.com/app/app.go --
+package app
+type Config struct{}
+type Server struct{}
+//plumb:build
+func NewConfig() *Config { return &Config{} }
+//plumb:build
+func NewServer(c *Config) *Server { return &Server{} }
+-- example.com/app/plumb_gen.go --
+package app
+//plumb:build
+func ghost() *Config { return nil }

@@ -1,0 +1,27 @@
+A multi-result template Make[T Stringer, U any]() (P[T], Q[U]) with a demand that
+pins T=int (a constraint near-miss: int is not a Stringer) and a disjoint demand
+that pins U=string (valid). The near-miss pin must not poison the valid one: T
+lifts around the near-miss, Make[T, string]() produces Q[string] internally, and
+P[int] becomes an injector input. (Before validate-before-merge this whole set was
+rejected as an unused template.)
+-- config --
+import-path: example.com/app
+package-name: app
+output: plumb_gen.go
+-- example.com/app/a.go --
+package app
+
+type Stringer interface{ String() string }
+type P[T any] struct{}
+type Q[U any] struct{}
+type S1 struct{}
+type S2 struct{}
+
+//plumb:build
+func Make[T Stringer, U any]() (P[T], Q[U]) { return P[T]{}, Q[U]{} }
+
+//plumb:build
+func A(p P[int]) *S1 { return nil }
+
+//plumb:build
+func B(q Q[string]) *S2 { return nil }

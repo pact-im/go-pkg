@@ -1,0 +1,29 @@
+The same providers as joint_late_pin_merges with the declaration groups swapped, so both
+pins coexist by Make's first joint pass and merge without any revision. Both orders must
+yield the same wiring (one Make[int, string]), pinning that the public API does not
+depend on declaration order.
+-- config --
+import-path: example.com/app
+package-name: app
+output: plumb_gen.go
+-- example.com/app/a.go --
+package app
+
+type Key[T any] struct{}
+type Val[U any] struct{}
+type Box[W any] struct{}
+type Cog[X any] struct{}
+type SA struct{}
+type SB struct{}
+
+//plumb:build
+func Q2[W, X any](v Val[W]) (Box[W], Cog[X]) { return Box[W]{}, Cog[X]{} }
+
+//plumb:build
+func UsePair(b Box[string]) *SB { return &SB{} }
+
+//plumb:build
+func Make[T, U any]() (Key[T], Val[U]) { return Key[T]{}, Val[U]{} }
+
+//plumb:build
+func UseKey(k Key[int]) *SA { return &SA{} }

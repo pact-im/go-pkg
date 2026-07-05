@@ -1,0 +1,30 @@
+A long chain interleaving the two cleanup roles (bare func() and func() error)
+across fallible and infallible providers, so both the reverse-order aggregate and
+the mid-build error joins capture failable cleanups into temps (for errors.Join)
+while running bare ones as plain calls, preserving teardown order across them.
+-- config --
+import-path: example.com/app
+package-name: app
+-- example.com/app/app.go --
+package app
+
+type A struct{}
+type B struct{}
+type C struct{}
+type D struct{}
+type E struct{}
+
+//plumb:build
+func OpenA() (*A, func() error, error) { return &A{}, func() error { return nil }, nil }
+
+//plumb:build
+func OpenB(a *A) (*B, func()) { return &B{}, func() {} }
+
+//plumb:build
+func OpenC(b *B) (*C, func() error) { return &C{}, func() error { return nil } }
+
+//plumb:build
+func OpenD(c *C) (*D, error) { return &D{}, nil }
+
+//plumb:build
+func OpenE(d *D) (*E, func(), error) { return &E{}, func() {}, nil }

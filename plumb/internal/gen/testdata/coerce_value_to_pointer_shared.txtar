@@ -1,0 +1,22 @@
+One value provider consumed as *T by several providers: each call site takes the
+address of the same value local (&config), so all consumers share one instance
+without an inline copy.
+-- config --
+import-path: example.com/app
+package-name: app
+output: plumb_gen.go
+-- example.com/app/app.go --
+package app
+
+type Config struct{ Port int }
+type A struct{}
+type B struct{}
+
+//plumb:build
+var Default = Config{Port: 8080}
+
+//plumb:build
+func NewA(c *Config) *A { return &A{} }
+
+//plumb:build
+func NewB(c *Config) *B { return &B{} }

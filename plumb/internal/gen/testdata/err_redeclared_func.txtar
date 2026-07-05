@@ -1,0 +1,21 @@
+A directive on the losing declaration of a redeclared name: go/types gives the second
+declaration no object, so without a check the directive would silently vanish while the
+rest of the set generates: exit 0, provider gone, its type quietly an injector input.
+The loader reports the redeclaration itself as a tolerated type error; the directive
+still fails loudly.
+-- config --
+import-path: example.com/app
+package-name: app
+error-is: ErrInvalidType
+-- example.com/app/a.go --
+package app
+
+type Config struct{}
+
+//plumb:build
+func NewConfig() *Config { return &Config{} }
+
+func F() {}
+
+//plumb:build
+func F() *Config { return nil }

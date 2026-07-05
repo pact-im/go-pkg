@@ -1,0 +1,18 @@
+A directive on func init is rejected: Go forbids referring to init from anywhere, so an
+emitted init() call can never compile, and a package may declare several, each its own
+object, so nothing else would catch the duplicate either. Distinct from a set named
+init, which is supported, and from a method named init, which is an ordinary selector.
+-- config --
+import-path: example.com/app
+package-name: app
+error-is: ErrInitProvider
+-- example.com/app/a.go --
+package app
+
+type Config struct{}
+
+//plumb:build
+func init() {}
+
+//plumb:build
+func NewConfig() *Config { return &Config{} }

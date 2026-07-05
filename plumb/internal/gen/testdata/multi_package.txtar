@@ -1,0 +1,26 @@
+A set whose providers live in several packages; generating into one of them
+leaves that package's providers unqualified and imports only the other.
+-- config --
+import-path: example.com/web
+package-name: web
+output: plumb_gen.go
+-- example.com/store/store.go --
+package store
+
+type Config struct{}
+type DB struct{}
+
+//plumb:build
+func NewConfig() *Config { return &Config{} }
+
+//plumb:build
+func NewDB(c *Config) (*DB, error) { return &DB{}, nil }
+-- example.com/web/web.go --
+package web
+
+import "example.com/store"
+
+type Server struct{}
+
+//plumb:build
+func NewServer(db *store.DB) *Server { return &Server{} }

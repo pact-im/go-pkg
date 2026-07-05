@@ -1,0 +1,22 @@
+A template result whose type does not depend on the type parameter (int) is
+produced identically by every instantiation, so instantiating the template at two
+types (T=int and T=string, via the two consumers) produces int twice. plumb
+rejects it as ambiguous, naming the real cause (the type-parameter-independent
+result) rather than reporting the provider as colliding with itself.
+-- config --
+import-path: example.com/app
+package-name: app
+error-is: ErrAmbiguousProducer
+-- example.com/app/a.go --
+package app
+
+type Box[T any] struct{ V T }
+
+//plumb:build
+func Make[T any]() (Box[T], int) { var b Box[T]; return b, 0 }
+
+//plumb:build
+func UseInt(b Box[int]) string { return "" }
+
+//plumb:build
+func UseString(b Box[string]) bool { return false }

@@ -1,0 +1,22 @@
+A result-generic template producing Node[T] is unused because the *Node[int]
+demand it could serve (by producing Node[int] and bridging) is already produced
+directly by Direct. shadowedDemand must recognize the template serves the demand
+through its dual and name the direct producer, not fall through to the generic
+"no consumer pins its result type".
+-- config --
+import-path: example.com/app
+package-name: app
+error-is: ErrUnusedTemplate
+-- example.com/app/a.go --
+package app
+
+type Node[T any] struct{}
+
+//plumb:build
+func Direct() *Node[int] { return nil }
+
+//plumb:build
+func Tmpl[T any]() Node[T] { return Node[T]{} }
+
+//plumb:build
+func Use(p *Node[int]) string { return "" }

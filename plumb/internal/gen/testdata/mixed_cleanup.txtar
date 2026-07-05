@@ -1,0 +1,25 @@
+Mixed cleanups: one failable (func() error) and one non-failable (func()) in the
+same set. The aggregated cleanup is func() error: each failable cleanup captures
+its error in a local, non-failable cleanups are called bare, and the lone error
+is returned directly (errors.Join only when two or more errors are joined).
+-- config --
+import-path: example.com/app
+package-name: app
+output: plumb_gen.go
+-- example.com/app/app.go --
+package app
+
+type Conn struct{}
+type Pool struct{}
+type Server struct{}
+
+//plumb:build
+func OpenConn() (*Conn, func(), error) { return &Conn{}, func() {}, nil }
+
+//plumb:build
+func OpenPool(c *Conn) (*Pool, func() error, error) {
+	return &Pool{}, func() error { return nil }, nil
+}
+
+//plumb:build
+func OpenServer(p *Pool) *Server { return &Server{} }

@@ -1,0 +1,16 @@
+The rejection applies in separate-package mode too. Generating the //plumb:int
+provider into a fresh package would emit func int() *app.Server, which happens to
+compile in isolation, but naming a set after a predeclared identifier is rejected
+uniformly so it can never become a latent shadowing trap once the package gains a
+sibling that uses the builtin.
+-- config --
+import-path: example.com/gen
+package-name: gen
+error-is: ErrShadowsPredeclared
+-- example.com/app/a.go --
+package app
+
+type Server struct{}
+
+//plumb:int
+func NewServer() *Server { return &Server{} }

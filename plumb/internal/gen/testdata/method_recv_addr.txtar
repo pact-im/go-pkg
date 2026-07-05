@@ -1,0 +1,21 @@
+A pointer-receiver method supplied only a value is bridged with an address-of.
+As a selector receiver it must be parenthesized: (&config).Make(), not
+&config.Make() (which would parse as &(config.Make())).
+-- config --
+import-path: example.com/app
+package-name: app
+output: plumb_gen.go
+-- example.com/app/app.go --
+package app
+
+type Config struct{ Port int }
+type Thing struct{}
+
+//plumb:build
+var Default = Config{Port: 8080}
+
+//plumb:build
+func (c *Config) Make() *Thing { return &Thing{} }
+
+//plumb:build
+func Use(t *Thing) int { return 0 }

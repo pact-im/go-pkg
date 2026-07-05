@@ -1,0 +1,20 @@
+A //plumb: directive inside a function body is in a position plumb never scans
+for providers, so it is reported rather than silently ignored, even when the
+file also holds a valid provider.
+-- config --
+import-path: example.com/app
+package-name: app
+error-is: ErrMisplacedDirective
+-- example.com/app/a.go --
+package app
+
+type T struct{}
+
+//plumb:build
+func New() *T { return &T{} }
+
+func helper() {
+	//plumb:build
+	x := 1
+	_ = x
+}

@@ -1,0 +1,34 @@
+The half-pinned instance had already grown a dependency at its lifted parameter: the
+aborted run's Make[int, _] demanded Seed[_] and instantiated GrowSeed at the placeholder.
+The restart discards that scaffolding wholesale. The replay makes one Make[int, string]
+demanding Seed[string], and exactly one GrowSeed[string] serves it. No duplicated
+upstream chain, no placeholder-typed instance surviving into the plan.
+-- config --
+import-path: example.com/app
+package-name: app
+output: plumb_gen.go
+-- example.com/app/a.go --
+package app
+
+type Seed[V any] struct{}
+type Key[T any] struct{}
+type Val[U any] struct{}
+type Box[W any] struct{}
+type Cog[X any] struct{}
+type SA struct{}
+type SB struct{}
+
+//plumb:build
+func Make[T, U any](s Seed[U]) (Key[T], Val[U]) { return Key[T]{}, Val[U]{} }
+
+//plumb:build
+func GrowSeed[V any]() Seed[V] { return Seed[V]{} }
+
+//plumb:build
+func UseKey(k Key[int]) *SA { return &SA{} }
+
+//plumb:build
+func Q2[W, X any](v Val[W]) (Box[W], Cog[X]) { return Box[W]{}, Cog[X]{} }
+
+//plumb:build
+func UsePair(b Box[string]) *SB { return &SB{} }

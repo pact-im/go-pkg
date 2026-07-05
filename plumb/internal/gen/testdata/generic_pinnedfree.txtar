@@ -1,0 +1,19 @@
+One generic provider instantiated both at a concrete type (pinned by a consumer)
+and at an injector type parameter (free/lifted) within the same build.
+-- config --
+import-path: example.com/app
+package-name: app
+-- example.com/app/app.go --
+package app
+
+type Thing struct{}
+type Cache[T any] struct{}
+
+//plumb:build
+func NewCache[T any]() *Cache[T] { return &Cache[T]{} }
+
+//plumb:build
+func UseInt(c *Cache[int]) *Thing { return &Thing{} }
+
+//plumb:build
+func Count[T any](c *Cache[T]) int { return 0 }

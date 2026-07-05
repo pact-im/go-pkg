@@ -1,0 +1,21 @@
+A pointer demand pins a joint template through the value/pointer bridge: *Key[int]
+matches no result of MakeKV exactly, so its dual Key[int] is tried, pinning T = int; the
+Val[string] demand pins U in the same cluster. One instantiation MakeKV[int, string]
+supplies both, and *Key[int] rides the bridge into NewSink. Without the dual in the joint
+step, T would lift into a phantom Key[T] output and *Key[int] would fall to the caller.
+-- config --
+import-path: example.com/app
+package-name: app
+output: plumb_gen.go
+-- example.com/app/a.go --
+package app
+
+type Key[T any] struct{}
+type Val[U any] struct{}
+type Sink struct{}
+
+//plumb:build
+func MakeKV[T, U any]() (Key[T], Val[U]) { return Key[T]{}, Val[U]{} }
+
+//plumb:build
+func NewSink(k *Key[int], v Val[string]) *Sink { return nil }

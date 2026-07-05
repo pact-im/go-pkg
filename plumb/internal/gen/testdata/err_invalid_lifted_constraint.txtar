@@ -1,0 +1,19 @@
+A lifted (free) type parameter whose constraint did not type-check would render as
+"invalid type" in the injector header and fail to format. On this tolerated-invalid
+input (U's constraint Undefined is undefined) plumb must report a located
+diagnostic, not panic: the same treatment inputs and outputs already get.
+-- config --
+import-path: example.com/app
+package-name: app
+error-is: ErrInvalidType
+-- example.com/app/a.go --
+package app
+
+type Key[T any] struct{}
+type Value[U any] struct{}
+
+//plumb:build
+func NewKV[T any, U Undefined]() (Key[T], Value[U]) { return Key[T]{}, Value[U]{} }
+
+//plumb:build
+func UseKey(k Key[int]) int { return 0 }

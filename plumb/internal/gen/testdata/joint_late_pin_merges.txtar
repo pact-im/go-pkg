@@ -1,0 +1,30 @@
+The joint template's two pins surface in different fixpoint rounds: UseKey pins T = int
+immediately, but Val[string] is demanded only after Q2 is instantiated a pass later.
+Pinning revision merges the late pin into the existing instance (the union [int, string]
+is committed and resolution replays), so one Make[int, string] call serves both consumers
+and no phantom parameter or output leaks into the injector.
+-- config --
+import-path: example.com/app
+package-name: app
+output: plumb_gen.go
+-- example.com/app/a.go --
+package app
+
+type Key[T any] struct{}
+type Val[U any] struct{}
+type Box[W any] struct{}
+type Cog[X any] struct{}
+type SA struct{}
+type SB struct{}
+
+//plumb:build
+func Make[T, U any]() (Key[T], Val[U]) { return Key[T]{}, Val[U]{} }
+
+//plumb:build
+func UseKey(k Key[int]) *SA { return &SA{} }
+
+//plumb:build
+func Q2[W, X any](v Val[W]) (Box[W], Cog[X]) { return Box[W]{}, Cog[X]{} }
+
+//plumb:build
+func UsePair(b Box[string]) *SB { return &SB{} }

@@ -1,0 +1,58 @@
+Providers spread across several files and two packages, with some tying on byte
+offset across files, plus generics: a result-generic template pinned at two
+types, a free type parameter lifted onto the injector, and a joint-pinning split
+template instantiated at two distinct pinnings by two consumers. A determinism
+stress fixture: the corpus reloads every fixture under shuffled package and file
+order, so anything here that leaked read order or map-iteration order would
+produce a non-byte-identical re-run.
+-- config --
+import-path: example.com/web
+package-name: web
+output: plumb_gen.go
+-- example.com/store/a.go --
+package store
+type Config struct{}
+//plumb:build
+func NewConfig() *Config { return &Config{} }
+-- example.com/store/b.go --
+package store
+type DB struct{}
+//plumb:build
+func NewDB(c *Config) (*DB, error) { return &DB{}, nil }
+-- example.com/store/c.go --
+package store
+type Cache struct{}
+//plumb:build
+func NewCache(c *Config) *Cache { return &Cache{} }
+-- example.com/store/g.go --
+package store
+type User struct{}
+type Admin struct{}
+type Box[T any] struct{}
+type Pool[T any] struct{}
+//plumb:build
+func NewBox[T any]() *Box[T] { return &Box[T]{} }
+//plumb:build
+func NewPool[T any]() *Pool[T] { return &Pool[T]{} }
+//plumb:build
+func PoolUser[T any](p *Pool[T]) string { return "" }
+-- example.com/store/h.go --
+package store
+type Key[T any] struct{}
+type Val[U any] struct{}
+type Pair1 struct{}
+type Pair2 struct{}
+//plumb:build
+func NewKV[T, U any]() (Key[T], Val[U]) { return Key[T]{}, Val[U]{} }
+//plumb:build
+func UsePair1(k Key[User], v Val[Admin]) *Pair1 { return &Pair1{} }
+//plumb:build
+func UsePair2(k Key[Admin], v Val[User]) *Pair2 { return &Pair2{} }
+-- example.com/web/web.go --
+package web
+import "example.com/store"
+type Server struct{}
+//plumb:build
+func NewServer(db *store.DB, ca *store.Cache, bu *store.Box[store.User], ba *store.Box[store.Admin], p1 *store.Pair1, p2 *store.Pair2) (*Server, func(), error) {
+	return &Server{}, func() {}, nil
+}

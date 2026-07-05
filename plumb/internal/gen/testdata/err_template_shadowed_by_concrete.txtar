@@ -1,0 +1,22 @@
+An unused result-generic template whose result a concrete provider already
+produces names that shadowing producer, instead of the misleading "no consumer
+pins its result type": a consumer does pin Box[int], it is just satisfied by
+ConcreteBox first, leaving MakeBox genuinely unused. Erroring is correct; the
+message points at the real cause.
+-- config --
+import-path: example.com/app
+package-name: app
+error-is: ErrUnusedTemplate
+-- example.com/app/a.go --
+package app
+
+type Box[T any] struct{}
+
+//plumb:build
+func ConcreteBox() Box[int] { return Box[int]{} }
+
+//plumb:build
+func MakeBox[T any]() Box[T] { return Box[T]{} }
+
+//plumb:build
+func Use(b Box[int]) int { return 0 }

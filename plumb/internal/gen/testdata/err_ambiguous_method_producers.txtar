@@ -1,0 +1,25 @@
+Two same-named methods on different receivers produce one type. The diagnostic names
+concrete-receiver methods as Owner.Method (the same form interface methods get), so the
+two producers stay distinguishable by name, not only by position.
+-- config --
+import-path: example.com/app
+package-name: app
+error-is: ErrAmbiguousProducer
+-- example.com/app/a.go --
+package app
+
+type FileStore struct{}
+type MemStore struct{}
+type Snapshot struct{}
+
+//plumb:build
+func NewFile() *FileStore { return &FileStore{} }
+
+//plumb:build
+func NewMem() *MemStore { return &MemStore{} }
+
+//plumb:build
+func (f *FileStore) Snap() Snapshot { return Snapshot{} }
+
+//plumb:build
+func (m *MemStore) Snap() Snapshot { return Snapshot{} }

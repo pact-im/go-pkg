@@ -1,0 +1,20 @@
+A joint multi-result template whose results share an outer generic type,
+(A[T], A[U]), with two consumers pinning different types, A[int] and A[bool]. The
+two demands pin different slots of one instance, so plumb instantiates a single
+Make[int, bool] producing both A[int] and A[bool], not two colliding instances.
+-- config --
+import-path: example.com/app
+package-name: app
+-- example.com/app/a.go --
+package app
+
+type A[T any] struct{ V T }
+
+//plumb:build
+func Make[T, U any]() (A[T], A[U]) { return A[T]{}, A[U]{} }
+
+//plumb:build
+func UseInt(a A[int]) int { return 0 }
+
+//plumb:build
+func UseBool(a A[bool]) string { return "" }

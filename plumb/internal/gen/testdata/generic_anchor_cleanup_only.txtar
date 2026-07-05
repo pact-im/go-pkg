@@ -1,0 +1,19 @@
+A generic anchor whose only result is a cleanup: Setup's type parameter appears
+solely in its input's type argument (Box[T]) and nothing pins it, so T is lifted
+onto the injector header while the anchor is instantiated unconditionally. The
+demanded Box[T] is served by NewBox at the lifted T, and Setup's func() folds
+into the aggregated cleanup.
+-- config --
+import-path: example.com/app
+package-name: app
+output: plumb_gen.go
+-- example.com/app/app.go --
+package app
+
+type Box[T any] struct{}
+
+//plumb:build
+func NewBox[T any]() Box[T] { return Box[T]{} }
+
+//plumb:build
+func Setup[T any](b Box[T]) func() { return func() {} }

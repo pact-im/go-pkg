@@ -1,0 +1,16 @@
+Result shapes are validated in source-position order across provider classes, so the
+concrete provider's multiple-error rejection at the earlier position fires, not the later
+template's bare-type-parameter rejection. Validating templates first would report Worse
+here even though Bad comes first in the file.
+-- config --
+import-path: example.com/app
+package-name: app
+error-is: ErrMultipleErrors
+-- example.com/app/a.go --
+package app
+
+//plumb:build
+func Bad() (int, error, error) { return 0, nil, nil }
+
+//plumb:build
+func Worse[T any]() T { var z T; return z }

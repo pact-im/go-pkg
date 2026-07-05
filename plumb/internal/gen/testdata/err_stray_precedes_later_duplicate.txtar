@@ -1,0 +1,22 @@
+Two faults in one file: a stray directive in a function body (early) and a
+duplicate directive on a later declaration. The declaration scan produces its
+fault before the stray sweep runs, but discover reports the source-earliest of
+the two (the stray), not whichever phase ran first.
+-- config --
+import-path: example.com/app
+package-name: app
+error-is: ErrMisplacedDirective
+-- example.com/app/app.go --
+package app
+
+type T struct{}
+
+func f() {
+	//plumb:build
+	x := 0
+	_ = x
+}
+
+//plumb:build
+//plumb:build
+func NewT() *T { return &T{} }

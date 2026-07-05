@@ -1,0 +1,22 @@
+Cleanup aggregation: three fallible providers each returning a bare func()
+cleanup. Mid-build errors unwind newest-first; the aggregated cleanup runs
+newest-first.
+-- config --
+import-path: example.com/app
+package-name: app
+output: plumb_gen.go
+-- example.com/app/app.go --
+package app
+
+type Conn struct{}
+type Pool struct{}
+type Server struct{}
+
+//plumb:build
+func OpenConn() (*Conn, func(), error) { return &Conn{}, func() {}, nil }
+
+//plumb:build
+func OpenPool(c *Conn) (*Pool, func(), error) { return &Pool{}, func() {}, nil }
+
+//plumb:build
+func OpenServer(p *Pool) (*Server, func(), error) { return &Server{}, func() {}, nil }

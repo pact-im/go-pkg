@@ -1,0 +1,18 @@
+Separate-package regeneration where the set name equals the base package it imports.
+The destination (wire) is not scanned on the first run, so the injector for set "app"
+imports example.com/app and (because the set name reserves "app") aliases that
+qualifier to app2. Regenerating with the emitted file now present in the destination
+re-scans a package that declares func app; the collision check must drop that
+self-introduced declaration rather than fault the set against it, so plumb reproduces
+its own output byte-for-byte (asserted by the corpus regeneration pass).
+-- config --
+import-path: example.com/wire
+package-name: wire
+output: plumb_gen.go
+-- example.com/app/app.go --
+package app
+
+type Server struct{}
+
+//plumb:app
+func NewServer() *Server { return &Server{} }

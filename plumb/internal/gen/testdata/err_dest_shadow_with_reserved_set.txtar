@@ -1,0 +1,20 @@
+Two faults are in play at once: the destination package declares error, shadowing
+a predeclared identifier, and set init would generate a func init with a non-empty
+signature (a reserved-name fault). The destination shadow is a whole-package
+property, checked once before any set is solved, so it is reported first, ahead of
+the set-scoped reserved-name fault that only surfaces while solving init. This pins
+that precedence.
+-- config --
+import-path: example.com/app
+package-name: app
+output: plumb_gen.go
+error-is: ErrDestShadowsPredeclared
+-- example.com/app/a.go --
+package app
+
+type error int
+
+type Server struct{}
+
+//plumb:init
+func NewServer() *Server { return &Server{} }

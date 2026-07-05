@@ -1,0 +1,30 @@
+The late pin's union violates the template's constraint: merging [int, string] into Make
+would need string to satisfy Ints, so the union is refused once and the split stands.
+The fallback is the pre-revision behavior, never a rejection. Val[string], which the
+template cannot build, becomes an injector input per the near-miss rule.
+-- config --
+import-path: example.com/app
+package-name: app
+output: plumb_gen.go
+-- example.com/app/a.go --
+package app
+
+type Ints interface{ ~int }
+type Key[T any] struct{}
+type Val[U any] struct{}
+type Box[W any] struct{}
+type Cog[X any] struct{}
+type SA struct{}
+type SB struct{}
+
+//plumb:build
+func Make[T any, U Ints]() (Key[T], Val[U]) { return Key[T]{}, Val[U]{} }
+
+//plumb:build
+func UseKey(k Key[int]) *SA { return &SA{} }
+
+//plumb:build
+func Q2[W, X any](v Val[W]) (Box[W], Cog[X]) { return Box[W]{}, Cog[X]{} }
+
+//plumb:build
+func UsePair(b Box[string]) *SB { return &SB{} }

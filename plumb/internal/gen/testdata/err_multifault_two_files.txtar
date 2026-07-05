@@ -1,0 +1,18 @@
+Two independent faults in two files of one package: discover returns the
+source-earliest diagnostic (a.go before b.go), deterministically, no matter what
+order the loader presents the files. Guards the traversal ordering in Analyze.
+Without it, which fault surfaces flips with load order.
+-- config --
+import-path: example.com/app
+package-name: app
+error-is: ErrInvalidSetName
+-- example.com/app/a.go --
+package app
+
+//plumb:build extra
+func A() int { return 0 }
+-- example.com/app/b.go --
+package app
+
+//plumb:build
+const B = 1

@@ -1,0 +1,20 @@
+A failable cleanup is acquired, then a later provider can fail. If it does, the
+mid-build unwind runs the acquired cleanup, captures its error, and joins it with
+the build error via errors.Join. The success path has a lone failable cleanup, so
+it returns that error directly: errors.Join (and the errors import) come only
+from the unwind.
+-- config --
+import-path: example.com/app
+package-name: app
+output: plumb_gen.go
+-- example.com/app/app.go --
+package app
+
+type A struct{}
+type B struct{}
+
+//plumb:build
+func OpenA() (*A, func() error) { return &A{}, func() error { return nil } }
+
+//plumb:build
+func OpenB(a *A) (*B, error) { return &B{}, nil }

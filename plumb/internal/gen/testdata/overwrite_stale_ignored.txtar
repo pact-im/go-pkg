@@ -1,0 +1,22 @@
+The file plumb is about to overwrite (the prior generated output, identified by
+the -output base name) must not contribute providers, so a stray directive left
+in it is never fed back as input. Here plumb_gen.go is the output base and holds a
+ghost provider of *Config; it is skipped, so generation succeeds and never names
+ghost. (Its control is overwrite_stale_scanned_no_output.txtar: the same files
+with no identified output base, where ghost IS scanned and collides.)
+-- config --
+import-path: example.com/app
+package-name: app
+output: plumb_gen.go
+-- example.com/app/app.go --
+package app
+type Config struct{}
+type Server struct{}
+//plumb:build
+func NewConfig() *Config { return &Config{} }
+//plumb:build
+func NewServer(c *Config) *Server { return &Server{} }
+-- example.com/app/plumb_gen.go --
+package app
+//plumb:build
+func ghost() *Config { return nil }

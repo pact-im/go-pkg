@@ -1,0 +1,61 @@
+A conversion target whose rendered form ends in a result-less func() must be
+parenthesized, or T(x) reparses as a func type whose result list swallows the
+argument (func()(x) → func() (x)). This reaches through slice, array, channel,
+map-value, and func-result tails, and through nesting ([]chan func()). gofmt does
+not fix these, so the emitter must. A target that does not end in a bare func,
+here map[string]func() int, is left unparenthesized (gofmt keeps it parseable).
+-- config --
+import-path: example.com/app
+package-name: app
+-- example.com/app/a.go --
+package app
+
+type SSlice []func()
+type SArray [2]func()
+type SChan chan func()
+type SMap map[int]func()
+type SFunc func() func()
+type SNest []chan func()
+type SSafe map[string]func() int
+
+//plumb:build
+func NewSlice() SSlice { return nil }
+
+//plumb:build
+func NewArray() SArray { return SArray{} }
+
+//plumb:build
+func NewChan() SChan { return nil }
+
+//plumb:build
+func NewMap() SMap { return nil }
+
+//plumb:build
+func NewFunc() SFunc { return nil }
+
+//plumb:build
+func NewNest() SNest { return nil }
+
+//plumb:build
+func NewSafe() SSafe { return nil }
+
+//plumb:build
+var _ []func() = (SSlice)(nil)
+
+//plumb:build
+var _ [2]func() = SArray{}
+
+//plumb:build
+var _ chan func() = (SChan)(nil)
+
+//plumb:build
+var _ map[int]func() = (SMap)(nil)
+
+//plumb:build
+var _ func() func() = (SFunc)(nil)
+
+//plumb:build
+var _ []chan func() = (SNest)(nil)
+
+//plumb:build
+var _ map[string]func() int = (SSafe)(nil)

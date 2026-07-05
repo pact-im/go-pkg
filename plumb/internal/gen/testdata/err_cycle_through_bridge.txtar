@@ -1,0 +1,20 @@
+A two-provider dependency cycle whose edges are satisfied through the value/pointer
+bridge: MakeA consumes *B and MakeB consumes *A, each produced (as B / A) by the
+other and bridged. The cycle diagnostic names each consumer's declared type (*B,
+*A), matching the source, and marks the bridged edge, rather than naming the
+produced dual.
+-- config --
+import-path: example.com/app
+package-name: app
+error-is: ErrDependencyCycle
+-- example.com/app/app.go --
+package app
+
+type A struct{}
+type B struct{}
+
+//plumb:build
+func MakeA(b *B) A { return A{} }
+
+//plumb:build
+func MakeB(a *A) B { return B{} }

@@ -1,0 +1,22 @@
+A field on a generic struct is a template, equivalent to func(Foo[T]) Baz[T],
+taking the struct by value or pointer like any field provider.
+-- config --
+import-path: example.com/app
+package-name: app
+output: plumb_gen.go
+-- example.com/app/app.go --
+package app
+
+type Baz[T any] struct{}
+type Sink struct{}
+
+type Foo[T any] struct {
+	//plumb:build
+	Bar Baz[T]
+}
+
+//plumb:build
+func NewFoo() Foo[int] { return Foo[int]{} }
+
+//plumb:build
+func NewSink(b Baz[int]) *Sink { return &Sink{} }

@@ -1,0 +1,35 @@
+A near-miss pin (P[int], int is not a Stringer) coexists with a valid pin on the
+same parameter (P[Name]) and a disjoint valid pin (Q[string]). The disjoint
+Q[string] pin must merge into the valid Name cluster, not the poisoned int one, so
+Make[Name, string]() serves both C and B internally and P[int] becomes an input.
+The near-miss type int sorts before Name, so before validate-before-merge Q[string]
+was greedily absorbed into the int cluster and silently demoted to a caller input;
+now the wiring is invariant under the near-miss type's sort order.
+-- config --
+import-path: example.com/app
+package-name: app
+output: plumb_gen.go
+-- example.com/app/a.go --
+package app
+
+type Stringer interface{ String() string }
+type P[T any] struct{}
+type Q[U any] struct{}
+type S1 struct{}
+type S2 struct{}
+type S3 struct{}
+type Name struct{}
+
+func (Name) String() string { return "" }
+
+//plumb:build
+func Make[T Stringer, U any]() (P[T], Q[U]) { return P[T]{}, Q[U]{} }
+
+//plumb:build
+func A(p P[int]) *S1 { return nil }
+
+//plumb:build
+func B(q Q[string]) *S2 { return nil }
+
+//plumb:build
+func C(p P[Name]) *S3 { return nil }

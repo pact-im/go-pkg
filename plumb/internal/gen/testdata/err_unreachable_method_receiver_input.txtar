@@ -1,0 +1,22 @@
+Coverage guard for the method/field type-argument exemption: when a generic
+method's receiver type, pinned at an unexported type, surfaces in the injector
+signature (here *Cache[secret] becomes a caller-supplied input because nothing
+produces it), it is still rejected. The per-instance type-argument check is exempt for
+methods, but the signature reachability walk catches it.
+-- config --
+import-path: example.com/app
+package-name: app
+error-is: ErrUnreachableType
+-- example.com/x/x.go --
+package x
+
+type secret struct{}
+type Cache[T any] struct{}
+type Box[T any] struct{}
+type Out struct{}
+
+//plumb:build
+func (c *Cache[T]) Get() Box[T] { return Box[T]{} }
+
+//plumb:build
+func Consume(b Box[secret]) *Out { return &Out{} }

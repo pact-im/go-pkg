@@ -1,0 +1,21 @@
+A result-generic template with one result that mentions every parameter
+(Pair[T, U]) and another that mentions only a subset (Key[T]) is dispatched by
+the demand that actually arrives, not by the all-covering result. Only Key[int]
+is consumed, which pins T but leaves U free, so the template is instantiated at
+F[int, U] with U lifted to the injector. (Without demand-aware dispatch this
+would fall through both the worklist and the joint path and be wrongly rejected
+as an unused template.)
+-- config --
+import-path: example.com/app
+package-name: app
+-- example.com/app/a.go --
+package app
+
+type Key[T any] struct{}
+type Pair[T, U any] struct{}
+
+//plumb:build
+func F[T, U any]() (Pair[T, U], Key[T]) { return Pair[T, U]{}, Key[T]{} }
+
+//plumb:build
+func Use(k Key[int]) int { return 0 }

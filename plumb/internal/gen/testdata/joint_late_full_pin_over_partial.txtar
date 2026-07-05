@@ -1,0 +1,35 @@
+The late demand fills both blanks at once over overlapping results: Pair[int, string]
+fully pins Make2 through the worklist while a half-pinned Make2[int, _] instance already
+exists from Key[int]. Making a second instance would produce Key[int] twice, which
+without pinning revision would abort the solve with a factually wrong duplicate
+diagnostic; pinning revision commits [int, string] and the replay makes exactly
+one Make2 call.
+-- config --
+import-path: example.com/app
+package-name: app
+output: plumb_gen.go
+-- example.com/app/a.go --
+package app
+
+type Key[T any] struct{}
+type Pair[T, U any] struct{}
+type Thing[W any] struct{}
+type P1[A any] struct{}
+type P2[B any] struct{}
+type SA struct{}
+type SB struct{}
+
+//plumb:build
+func Make2[T, U any]() (Key[T], Pair[T, U]) { return Key[T]{}, Pair[T, U]{} }
+
+//plumb:build
+func UseKey(k Key[int]) *SA { return &SA{} }
+
+//plumb:build
+func MkThing[W any](p Pair[int, W]) Thing[W] { return Thing[W]{} }
+
+//plumb:build
+func Duo[A, B any](t Thing[string]) (P1[A], P2[B]) { return P1[A]{}, P2[B]{} }
+
+//plumb:build
+func UseP1(p P1[int]) *SB { return &SB{} }

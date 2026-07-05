@@ -1,0 +1,22 @@
+Same-package import-qualifier collision: the destination declares an identifier
+"url", and the generated code must import net/url. The import is aliased (url2)
+so it does not redeclare the local name.
+-- config --
+import-path: example.com/app
+package-name: app
+output: plumb_gen.go
+-- example.com/ext/ext.go --
+package ext
+
+import "net/url"
+
+//plumb:build
+func GetURL() *url.URL { return nil }
+-- example.com/app/app.go --
+package app
+
+type url struct{}
+type Server struct{}
+
+//plumb:build
+func NewServer() *Server { return &Server{} }

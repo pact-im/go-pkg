@@ -1,0 +1,19 @@
+The destination package declares a top-level name that shadows a predeclared identifier.
+The generated file spells predeclared identifiers unqualified (error and nil in fallible
+wiring, basic-type names in signatures) and no qualification can restore a shadowed
+builtin, so the destination is rejected outright (regardless of whether this particular
+plan would spell the name), matching the set-name rule's trade in the other direction.
+-- config --
+import-path: example.com/app
+package-name: app
+output: plumb_gen.go
+error-is: ErrDestShadowsPredeclared
+-- example.com/app/a.go --
+package app
+
+type string int
+
+type Server struct{}
+
+//plumb:build
+func NewServer() *Server { return &Server{} }

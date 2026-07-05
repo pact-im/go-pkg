@@ -1,0 +1,23 @@
+A field provider on a generic alias to an anonymous struct instantiates by demand
+like any template: the *Box[int] consumer pins T=int, and the field binds to a
+value of the instantiated alias (s.P). The owner is carried as a *types.Alias
+throughout, not a defined type.
+-- config --
+import-path: example.com/app
+package-name: app
+output: plumb_gen.go
+-- example.com/app/app.go --
+package app
+
+type Box[T any] struct{ V T }
+
+type S[T any] = struct {
+	//plumb:build
+	P *Box[T]
+}
+
+//plumb:build
+func mkS() S[int] { return S[int]{} }
+
+//plumb:build
+func use(p *Box[int]) string { return "" }

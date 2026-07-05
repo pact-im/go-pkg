@@ -1,0 +1,19 @@
+One rendered type spells both an exported alias and its unexported target: the alias is
+reachable but the target is not, and the walk must judge each spelling on its own name.
+The visited set keys on type identity, under which an alias equals its target, so
+checking the alias before the dedup is what keeps the exported spelling from swallowing
+the unexported one. This ordering (alias first in the walk) is the one that would escape
+under an identity-keyed-only walk.
+-- config --
+import-path: example.com/app
+package-name: app
+error-is: ErrUnreachableType
+-- example.com/lib/lib.go --
+package lib
+
+type hidden struct{ X int }
+type Exported = hidden
+type Thing struct{}
+
+//plumb:build
+func New(m map[Exported]hidden) *Thing { return &Thing{} }

@@ -1,0 +1,24 @@
+A joint template (A[T], A[U]) whose two results share an outer generic type, where
+one needed output (A[int]) is supplied directly by another provider. plumb serves
+the remaining demand A[bool] from the template, lifting around the supplied A[int]
+rather than pinning it a second time: it instantiates Make for A[bool] and leaves
+A[int] to DirectInt, with no duplicate producer of A[int].
+-- config --
+import-path: example.com/app
+package-name: app
+-- example.com/app/a.go --
+package app
+
+type A[T any] struct{ V T }
+
+//plumb:build
+func Make[T, U any]() (A[T], A[U]) { return A[T]{}, A[U]{} }
+
+//plumb:build
+func DirectInt() A[int] { return A[int]{} }
+
+//plumb:build
+func UseInt(a A[int]) int { return 0 }
+
+//plumb:build
+func UseBool(a A[bool]) string { return "" }

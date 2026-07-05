@@ -1,0 +1,22 @@
+A non-interface conversion: a bidirectional channel is assignable (hence
+convertible) to a directional one. One chan struct{} producer feeds both a
+send-only and a receive-only demand. The receive-only target renders as
+(<-chan struct{})(x) because <-chan would otherwise be mis-parsed; the send-only
+chan<- struct{}(x) needs no parentheses.
+-- config --
+import-path: example.com/app
+package-name: app
+-- example.com/app/a.go --
+package app
+
+//plumb:build
+func NewSignal() chan struct{} { return make(chan struct{}) }
+
+//plumb:build
+var _ chan<- struct{} = (chan struct{})(nil)
+
+//plumb:build
+var _ <-chan struct{} = (chan struct{})(nil)
+
+//plumb:build
+func Use(send chan<- struct{}, recv <-chan struct{}) int { return 0 }

@@ -1,0 +1,43 @@
+Three pins for one template arrive in three separate rounds, forcing two revisions in
+sequence: first [int] grows to [int, string], then to [int, string, map[int]string],
+whose slot is only viable once the first two pins are in place (~map[T]U). Each revision
+must upgrade the committed pinning in place; appending would leave the replay merging
+with the smaller commitment and re-deriving the extension forever, running a convergent
+program into the restart cap.
+-- config --
+import-path: example.com/app
+package-name: app
+output: plumb_gen.go
+-- example.com/app/a.go --
+package app
+
+type R1[T any] struct{}
+type R2[U any] struct{}
+type R3[V any] struct{}
+type B1[W any] struct{}
+type C1[X any] struct{}
+type B2[W any] struct{}
+type C2[X any] struct{}
+type SA struct{}
+type SB struct{}
+type SC struct{}
+
+//plumb:build
+func NewTriple[T comparable, U any, V interface{ ~map[T]U }]() (R1[T], R2[U], R3[V]) {
+	return R1[T]{}, R2[U]{}, R3[V]{}
+}
+
+//plumb:build
+func UseR1(r R1[int]) *SA { return &SA{} }
+
+//plumb:build
+func QU[W, X any](r R2[W]) (B1[W], C1[X]) { return B1[W]{}, C1[X]{} }
+
+//plumb:build
+func UseB1(b B1[string]) *SB { return &SB{} }
+
+//plumb:build
+func QV[W, X any](r R3[W]) (B2[W], C2[X]) { return B2[W]{}, C2[X]{} }
+
+//plumb:build
+func UseB2(b B2[map[int]string]) *SC { return &SC{} }

@@ -1,0 +1,23 @@
+A set named after a predeclared identifier is rejected even when the generated
+function's own signature never mentions it. //plumb:new generates func new(), whose
+signature is () *Server and references "new" nowhere, yet a top-level func new
+shadows the builtin for the whole package, so the sibling's new(Server) below would
+stop compiling. (The guard fires whenever a top-level name shadows a predeclared
+identifier for the whole package, not only when the generated signature mentions
+the name.)
+-- config --
+import-path: example.com/app
+package-name: app
+output: plumb_gen.go
+error-is: ErrShadowsPredeclared
+-- example.com/app/sibling.go --
+package app
+
+var ptr = new(Server)
+-- example.com/app/a.go --
+package app
+
+type Server struct{}
+
+//plumb:new
+func NewServer() *Server { return &Server{} }

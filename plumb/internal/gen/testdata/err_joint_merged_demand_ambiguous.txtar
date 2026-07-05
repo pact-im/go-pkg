@@ -1,0 +1,39 @@
+After pinning revision merges Make to [int, string], its ingredient demand concretizes to
+Src[int, string], which two distinct templates can each produce cleanly. That is the
+ordinary no-silent-winner ambiguity, now visible because the demand dispatches at a type
+the user can name instead of at a half-pinned placeholder form that happened to route T1
+and T2 to different scaffolding needs.
+-- config --
+import-path: example.com/app
+package-name: app
+error-is: ErrAmbiguousTemplates
+-- example.com/app/a.go --
+package app
+
+type Src[T, U any] struct{}
+type Key[T any] struct{}
+type Val[U any] struct{}
+type Box[W any] struct{}
+type Cog[X any] struct{}
+type Yolk[Y any] struct{}
+type Extra[Z any] struct{}
+type SA struct{}
+type SB struct{}
+
+//plumb:build
+func Make[T, U any](s Src[T, U]) (Key[T], Val[U]) { return Key[T]{}, Val[U]{} }
+
+//plumb:build
+func UseKey(k Key[int]) *SA { return &SA{} }
+
+//plumb:build
+func Q2[W, X any](v Val[W]) (Box[W], Cog[X]) { return Box[W]{}, Cog[X]{} }
+
+//plumb:build
+func UsePair(b Box[string]) *SB { return &SB{} }
+
+//plumb:build
+func T1[V, Y any]() (Src[int, V], Yolk[Y]) { return Src[int, V]{}, Yolk[Y]{} }
+
+//plumb:build
+func T2[W, Z any]() (Src[W, string], Extra[Z]) { return Src[W, string]{}, Extra[Z]{} }

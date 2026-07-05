@@ -1,0 +1,18 @@
+A *T result (pointer to a bare type parameter) matches every pointer demand and, through
+the value/pointer bridge, every value demand: the same universal-producer footgun as a
+bare T result. It is rejected symmetrically, before it can silently capture unrelated
+demands like *int here.
+-- config --
+import-path: example.com/app
+package-name: app
+error-is: ErrBareTypeParamResult
+-- example.com/app/a.go --
+package app
+
+type Thing struct{}
+
+//plumb:build
+func Default[T any]() *T { return new(T) }
+
+//plumb:build
+func NewThing(p *int) *Thing { return &Thing{} }
