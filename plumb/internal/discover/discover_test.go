@@ -12,7 +12,7 @@ import (
 )
 
 // TestDirectiveNames pins the directive-recognition rule: gofmt-demoted comments
-// and other tools' directives are ignored, a recognized name must be a valid Go
+// and other tools’ directives are ignored, a recognized name must be a valid Go
 // identifier, and a directive carries no trailing arguments.
 func TestDirectiveNames(t *testing.T) {
 	fset := token.NewFileSet()
@@ -59,7 +59,7 @@ func TestDirectiveNames(t *testing.T) {
 
 // TestAppendDirectiveNames pins the group/spec union that specDirectiveNames is
 // built on: names already claimed by an enclosing group directive (prior) are
-// unioned with a spec's own directives, but a spec directive restating a claimed
+// unioned with a spec’s own directives, but a spec directive restating a claimed
 // set is a duplicate, the same rule as a repeat within one comment group, now
 // across the group/spec boundary.
 func TestAppendDirectiveNames(t *testing.T) {

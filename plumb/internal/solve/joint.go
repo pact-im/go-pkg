@@ -58,9 +58,9 @@ func (s *solver) tryJoint() (bool, *diag.Error) {
 	return false, nil
 }
 
-// jointClusters groups the still-unsatisfied demands that pin p's results into
+// jointClusters groups the still-unsatisfied demands that pin p’s results into
 // consistent bindings: one per distinct pinning. Each demand contributes the
-// binding it forces on p's result parameters; demands whose bindings agree merge
+// binding it forces on p’s result parameters; demands whose bindings agree merge
 // into one cluster, and conflicting ones form separate clusters, each a distinct
 // instantiation. Clusters are built in deterministic demand order, and a
 // parameter no demand pins is left for instantiateTemplate to lift. Seeding from
@@ -76,7 +76,7 @@ func (s *solver) jointClusters(p *discover.Provider) []map[*types.TypeParam]type
 	for _, d := range s.pendingDemands() {
 		cands, matched := clusterCands(outs, d, params)
 		if !matched {
-			// None of the results unifies with d's exact form: try the dual, so a
+			// None of the results unifies with d’s exact form: try the dual, so a
 			// pointer demand can pin a template producing the value form: the
 			// instantiation supplies the dual and d rides the bridge.
 			if dt, ok := gotypes.DualType(d); ok {

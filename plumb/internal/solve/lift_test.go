@@ -39,7 +39,7 @@ func TestCompatibleBind(t *testing.T) {
 	}
 }
 
-// TestRollbackLiftsReleasesNames pins lift.go's invariant: rolling back a
+// TestRollbackLiftsReleasesNames pins lift.go’s invariant: rolling back a
 // speculative lift truncates liftedMeta AND releases the names it reserved in
 // liftedNames, so a later lift can reuse a name a rolled-back attempt had taken.
 // The two slices must stay in sync or a near-miss would leak a phantom parameter.

@@ -27,13 +27,13 @@ func (s *solver) liftAll(p *discover.Provider) []types.Type {
 }
 
 // setLiftedConstraints rewrites the constraint of each freshly lifted parameter
-// (the indices in fresh) so that references to the template's other parameters
+// (the indices in fresh) so that references to the template’s other parameters
 // point at their resolved targets: concrete types for pinned parameters, the
 // co-lifted fresh parameters for the rest. The original template parameters are
 // not in scope in the generated header, so an inter-parameter constraint such as
 // U interface{ ~[]T } must travel as ~[]<pin or lifted T>, not the verbatim T.
 // Leaving it verbatim renders a dangling identifier (uncompilable) and makes
-// types.Instantiate's validation reject the lift.
+// types.Instantiate’s validation reject the lift.
 func (s *solver) setLiftedConstraints(p *discover.Provider, targs []types.Type, fresh []int) {
 	m := make(map[*types.TypeParam]types.Type, p.Tparams.Len())
 	for i := range p.Tparams.Len() {
@@ -48,17 +48,17 @@ func (s *solver) setLiftedConstraints(p *discover.Provider, targs []types.Type, 
 }
 
 // liftOne creates a fresh injector type parameter standing in for an unpinned
-// template parameter. Its name is chosen to avoid the destination's identifiers
+// template parameter. Its name is chosen to avoid the destination’s identifiers
 // and the predeclared names the body emits, so it never shadows anything the
 // generated body references unqualified.
 func (s *solver) liftOne(orig *types.TypeParam, p *discover.Provider) *types.TypeParam {
 	name := s.freshLiftedName(orig.Obj().Name())
-	// Globally-unique live lifted names are the whole basis of the solver's
+	// Globally-unique live lifted names are the whole basis of the solver’s
 	// determinism: they are the only source of a CmpType weak-order tie (two
 	// lifted parameters compare equal iff their names match; see gotypes.CmpType),
 	// and a stable sort over the map-ordered demand/input/output slices would
 	// otherwise be load-order-dependent. freshLiftedName guarantees uniqueness, so
-	// a duplicate here means that guarantee (or rollbackLifts' name release)
+	// a duplicate here means that guarantee (or rollbackLifts’ name release)
 	// regressed; fail loud at the source rather than emit nondeterministic code.
 	if s.liftedNames[name] {
 		panic(fmt.Sprintf("plumb: lifted name %q reused; determinism relies on unique live lifted names", name))

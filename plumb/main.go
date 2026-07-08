@@ -20,7 +20,7 @@
 //   - -package-name: the name in the generated "package <name>" clause. Defaults to
 //     the name of the package the file is generated into (the scanned package, when
 //     -import-path is inferred or names one); required when that package is not
-//     scanned, and rejected when it contradicts a scanned destination's real name.
+//     scanned, and rejected when it contradicts a scanned destination’s real name.
 //   - -import-path: the import path of the package the generated file belongs to.
 //     Its own providers are referenced unqualified; everything else is imported and
 //     qualified. Defaults to the sole scanned package, so a single-package go:generate

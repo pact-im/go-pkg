@@ -1,6 +1,6 @@
-// Package emit is plumb's final phase: it turns the resolved plans into the
+// Package emit is plumb’s final phase: it turns the resolved plans into the
 // gofmt-canonical generated file and the -v report. It chooses import aliases,
-// allocates local names, renders each injector via the plan's instances, and
+// allocates local names, renders each injector via the plan’s instances, and
 // aggregates cleanup and error handling. It produces text; it makes no wiring
 // decisions and reports no diagnostics (a malformed render is an invariant
 // violation and panics).
@@ -20,7 +20,7 @@ import (
 	"go.pact.im/x/plumb/internal/solve"
 )
 
-// Result is the outcome of a successful generation. It is emit's output, handed
+// Result is the outcome of a successful generation. It is emit’s output, handed
 // back through gen to the caller.
 type Result struct {
 	// Source is the gofmt-canonical generated Go source.
@@ -77,7 +77,7 @@ func File(importPath, packageName string, pkgs []*discover.Package, plans []*sol
 // recordPlanPackages records, into the recording qualifier q, every package the
 // generated function will reference. It does so by rendering the plan under q and
 // discarding the text: the render is the single authoritative enumeration of
-// every qualified reference (signature, lifted constraints, and each instance's
+// every qualified reference (signature, lifted constraints, and each instance’s
 // producing expression), so recording through it means the import block cannot
 // drift from the emitted body: there is no second enumeration to keep in step.
 // The errors qualifier is irrelevant while recording (whether errors is imported
@@ -158,7 +158,7 @@ func assignAliases(pkgs []*types.Package, needErrors bool, destPath string, lift
 	return aliasByPath, errorsAlias, lines
 }
 
-// renderPlan renders one set's injector function.
+// renderPlan renders one set’s injector function.
 func renderPlan(pl *solve.Plan, q *qualifier, errorsAlias string, dest *solve.DestInfo, lifted map[string]bool) string {
 	alloc := newAllocator(dest, q, lifted)
 	// localOf maps a value type (by identity) to the local/param/result name
@@ -366,7 +366,7 @@ func renderAggregate(acquired []cleanupRef, pl *solve.Plan, errorsAlias string, 
 // cleanupStmts renders each cleanup call in run order: a failable cleanup
 // captures its error in a "cleanupErr" local, a non-failable one is called bare.
 // It returns the statements and the captured error-local names, in run order.
-// The error locals live in this branch's scope alone, so they are allocated from
+// The error locals live in this branch’s scope alone, so they are allocated from
 // a fresh per-branch allocator and reset across branches.
 func cleanupStmts(rev []cleanupRef, alloc *allocator) (stmts, errLocals []string) {
 	ba := alloc.branch()
@@ -391,7 +391,7 @@ func joinErrs(errorsAlias string, errs []string) string {
 	return errorsAlias + ".Join(" + strings.Join(errs, ", ") + ")"
 }
 
-// planNeedsErrors reports whether the plan's generated code emits errors.Join,
+// planNeedsErrors reports whether the plan’s generated code emits errors.Join,
 // and so must import the errors package. It mirrors the two join sites exactly,
 // since claiming the import without an emitted Join (or vice versa) breaks the
 // generated build:
@@ -464,7 +464,7 @@ func coerceExpr(local string, c solve.Coerce) string {
 	}
 }
 
-// renderLiftedHeader renders a generic injector's type-parameter list
+// renderLiftedHeader renders a generic injector’s type-parameter list
 // [T constraint, ...] from its lifted free parameters, collapsing an
 // empty-interface constraint to the bare "any"; qual renders a non-collapsing
 // constraint. An empty list renders nothing. Both the generated header (via

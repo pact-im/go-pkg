@@ -1,4 +1,4 @@
-// Package solve is plumb's second phase: it turns the providers of one set into a
+// Package solve is plumb’s second phase: it turns the providers of one set into a
 // fully resolved Plan, instantiating generics by demand, inferring the injector
 // signature, ordering by dependency, and enforcing reachability and naming rules.
 // It is a deterministic function of its providers; it reads no files and consults
@@ -14,7 +14,7 @@
 //     their free parameters); registering an instance seeds demand from its inputs.
 //   - solveDemands: the demand fixpoint. Each pass first works the worklist (a
 //     demand a single result pins completely), then, if that made no progress, the
-//     joint step (demands clustered across a template's results, lifting the
+//     joint step (demands clustered across a template’s results, lifting the
 //     parameters no demand pins), until a whole pass adds nothing.
 //   - checkUnusedTemplates / resolveFlexReceivers / finalize: reject a template no
 //     consumer used, choose value-vs-pointer form for flexible struct receivers,
@@ -24,7 +24,7 @@
 //
 // A template whose pins arrive across different fixpoint rounds must be served by
 // one instantiation at the union of those pins, not split into half-pinned calls.
-// When a late pin would extend an existing instance's pinning, reviseOrSplit
+// When a late pin would extend an existing instance’s pinning, reviseOrSplit
 // commits the union and the solve restarts: it signals with the errRestart
 // sentinel, which rides the *diag.Error return channel up through
 // instantiateTemplate → viableSingle/tryWorklist/tryJoint → solveDemands → run,
@@ -54,14 +54,14 @@ import (
 	"go.pact.im/x/plumb/internal/gotypes"
 )
 
-// DestInfo describes the destination package as far as solve's collision checks
-// and emit's qualification decisions need it. gen builds it; solve and emit
+// DestInfo describes the destination package as far as solve’s collision checks
+// and emit’s qualification decisions need it. gen builds it; solve and emit
 // (which imports solve) consume it.
 type DestInfo struct {
 	Scanned bool              // the destination is one of the scanned packages
-	PkgName string            // the destination's package name
+	PkgName string            // the destination’s package name
 	Names   map[string]string // top-level identifier → base filename declaring it
-	// Imports maps each import qualifier used in the destination's existing files
+	// Imports maps each import qualifier used in the destination’s existing files
 	// to the base name of a file using it. A generated function name (package
 	// block) cannot coexist with an import qualifier (file block) of the same
 	// name in any one file, so this feeds the set-name collision check.
@@ -113,7 +113,7 @@ type ArgRef struct {
 }
 
 // Input is one resolved injector parameter: its type and the source-name hint
-// (the earliest consumer's parameter or field name, or "") used to name the
+// (the earliest consumer’s parameter or field name, or "") used to name the
 // generated parameter.
 type Input struct {
 	Type types.Type
@@ -123,10 +123,10 @@ type Input struct {
 // Plan is the fully resolved wiring for one set, ready for emission.
 type Plan struct {
 	Name string         // the set name; the generated injector func is named this
-	pos  token.Position // the set's source position, for diagnostics
+	pos  token.Position // the set’s source position, for diagnostics
 
 	Order   []*Instance            // instances to emit, in dependency (topological) order
-	Args    map[*Instance][]ArgRef // each instance's inputs, one ArgRef per input in order
+	Args    map[*Instance][]ArgRef // each instance’s inputs, one ArgRef per input in order
 	Inputs  []Input                // injector parameters, in signature order
 	Outputs []types.Type           // value outputs, in signature order
 
@@ -184,10 +184,10 @@ type solver struct {
 	commitments   map[*discover.Provider][]map[*types.TypeParam]types.Type
 	refusedUnions map[*discover.Provider]*gotypes.Set[*types.Tuple]
 
-	// pinnings records each template instance's pinned slots as instantiated
+	// pinnings records each template instance’s pinned slots as instantiated
 	// (after commitment merging), so the revision trigger can tell an
-	// instance's own lifted slot from a pin that merely mentions another
-	// instance's lifted parameter.
+	// instance’s own lifted slot from a pin that merely mentions another
+	// instance’s lifted parameter.
 	pinnings map[*Instance]map[*types.TypeParam]types.Type
 }
 
@@ -196,14 +196,14 @@ type solver struct {
 type liftedParam struct {
 	tp  *types.TypeParam
 	pos token.Position
-	idx int // index within its origin provider's type parameters
+	idx int // index within its origin provider’s type parameters
 }
 
 // Set resolves one set into a plan. destPath is the destination import path
 // (what is referenced unqualified) and outputBase is the base name of the file
 // being overwritten, used by the set-name collision check (empty for stdout).
 func Set(name string, provs []*discover.Provider, destPath, outputBase string, dest *DestInfo, ctxt *types.Context) (*Plan, *diag.Error) {
-	// Sort a copy: a resolve entry point must not reorder its caller's slice.
+	// Sort a copy: a resolve entry point must not reorder its caller’s slice.
 	provs = slices.SortedStableFunc(slices.Values(provs), func(a, b *discover.Provider) int {
 		return diag.CmpPos(a.Pos, b.Pos)
 	})
@@ -260,7 +260,7 @@ func (s *solver) run() (*Plan, *diag.Error) {
 }
 
 // classify splits providers into concrete / anchor / result-generic, validating
-// each provider's result shape in source-position order (so the first invalid
+// each provider’s result shape in source-position order (so the first invalid
 // provider by position is the one reported, regardless of class) and rejecting
 // bare type-parameter results.
 func (s *solver) classify() *diag.Error {
@@ -284,7 +284,7 @@ func (s *solver) classify() *diag.Error {
 		}
 		if miss != nil {
 			// Unreachable for valid input: the skeleton instantiation uses the
-			// provider's own type parameters, which always satisfy their constraints.
+			// provider’s own type parameters, which always satisfy their constraints.
 			panic(fmt.Sprintf("plumb: provider %s could not be analyzed: %v", p.Name, miss))
 		}
 		params := paramSet(p)
@@ -324,7 +324,7 @@ func (s *solver) seed() *diag.Error {
 			return err
 		}
 		if miss != nil {
-			// Unreachable for valid input: an anchor's free parameters are lifted
+			// Unreachable for valid input: an anchor’s free parameters are lifted
 			// to fresh parameters that carry the original constraints.
 			panic(fmt.Sprintf("plumb: anchor template %s could not be instantiated: %v", p.Name, miss))
 		}
@@ -403,7 +403,7 @@ func (s *solver) tryWorklist(d types.Type) (bool, *diag.Error) {
 	}
 	if len(candidates) == 0 {
 		// Try the value/pointer dual: instantiate to the dual and coerce. The
-		// retry runs whenever d's exact form yields no viable candidate: a
+		// retry runs whenever d’s exact form yields no viable candidate: a
 		// structural match whose constraint rejects the pin cannot build d, so it
 		// must not block a dual producer that can.
 		if dt, ok := gotypes.DualType(d); ok {
@@ -426,7 +426,7 @@ func (s *solver) tryWorklist(d types.Type) (bool, *diag.Error) {
 // viableSingle returns, per template, the first value result (in result order)
 // that unifies with d in a covering, viable binding, so a template contributes
 // at most one candidate and ambiguity is decided among distinct templates. A
-// covering result whose binding fails the template's constraint is recorded as a
+// covering result whose binding fails the template’s constraint is recorded as a
 // near-miss before the scan moves on: if the template ends the solve unused, the
 // actionable reason is its constraint rejecting the pin, not the rival that
 // served the demand.
@@ -478,11 +478,11 @@ func compatibleBind(a, b map[*types.TypeParam]types.Type) bool {
 
 // bindInstantiates reports whether p cleanly instantiates at the given partial
 // binding, lifting the unpinned parameters to test, then rolling those lifts back
-// so the probe leaves no trace. It is used to decide whether merging two demands'
+// so the probe leaves no trace. It is used to decide whether merging two demands’
 // pins into one cluster would poison it (a near-miss on one pin failing the whole
 // instantiation). Both a constraint near-miss and a hard instantiation error count
 // as “does not cleanly instantiate”; the real instantiation in tryJoint surfaces
-// either for the pin's own cluster.
+// either for the pin’s own cluster.
 func (s *solver) bindInstantiates(p *discover.Provider, bind map[*types.TypeParam]types.Type) bool {
 	mark := len(s.liftedMeta)
 	targs := make([]types.Type, p.Tparams.Len())
@@ -504,13 +504,13 @@ func (s *solver) bindInstantiates(p *discover.Provider, bind map[*types.TypePara
 
 // instantiateTemplate instantiates p at the given partial binding, lifting any
 // unpinned parameters, and registers the resulting instance. A binding that a
-// prior pass found to violate the template's constraint (a near-miss) is skipped:
+// prior pass found to violate the template’s constraint (a near-miss) is skipped:
 // it would lift, fail, and roll back again on every fixpoint pass, leaking a
 // phantom lifted parameter and inflating the instantiation count each time.
 //
-// Lifts mutate shared solver state (liftedMeta records the generated header's
+// Lifts mutate shared solver state (liftedMeta records the generated header’s
 // type-parameter list), so a binding that does not yield a retained instance
-// must undo the lifts it speculatively appended; otherwise the failed attempt's
+// must undo the lifts it speculatively appended; otherwise the failed attempt’s
 // parameters survive into the signature.
 func (s *solver) instantiateTemplate(p *discover.Provider, bind map[*types.TypeParam]types.Type) (bool, *diag.Error) {
 	bind = s.applyCommitment(p, bind)
@@ -544,7 +544,7 @@ func (s *solver) instantiateTemplate(p *discover.Provider, bind map[*types.TypeP
 	if miss != nil {
 		s.rollbackLifts(mark) // constraint near-miss; undo speculative lifts
 		s.markNearMissDone(p, bind)
-		// miss is the type-checker's constraint violation; keep the first one so an
+		// miss is the type-checker’s constraint violation; keep the first one so an
 		// otherwise-unused template reports the real reason rather than a misleading
 		// "no consumer pins its result type".
 		if s.nearMiss[p] == nil {
@@ -572,7 +572,7 @@ func (s *solver) instantiateTemplate(p *discover.Provider, bind map[*types.TypeP
 }
 
 // nearMissDoneAt reports whether binding (p, bind) was already found to violate
-// p's constraint. The key matches jointClusterDone's: pinned slots by type,
+// p’s constraint. The key matches jointClusterDone’s: pinned slots by type,
 // unpinned slots by the jointUnpinned sentinel, so it is stable across the
 // freshly lifted parameters an unpinned slot takes on each pass.
 func (s *solver) nearMissDoneAt(p *discover.Provider, bind map[*types.TypeParam]types.Type) bool {
@@ -607,7 +607,7 @@ func (s *solver) markInstanceDone(p *discover.Provider, targs []types.Type) {
 	m.Add(gotypes.ListKey(targs))
 }
 
-// addInstance registers an instance's outputs and queues its inputs.
+// addInstance registers an instance’s outputs and queues its inputs.
 func (s *solver) addInstance(in *Instance) *diag.Error {
 	for _, vo := range in.valueOuts() {
 		if prev, ok := s.supply.At(vo); ok {
@@ -649,7 +649,7 @@ func (s *solver) checkUnusedTemplates() *diag.Error {
 			return diag.Errorf(p.Pos, diag.ErrUnusedTemplate, "provider %s in set %q is never instantiated: %w", p.Name, s.name, reason)
 		}
 		if d, in, dual := s.shadowedDemand(p); in != nil {
-			// A direct producer supplies d itself; a bridge producer supplies d's
+			// A direct producer supplies d itself; a bridge producer supplies d’s
 			// dual and only the value/pointer bridge yields d, so name the dual, or
 			// the message would claim the producer makes a type it does not.
 			by := "produced by " + in.Prov.Name
@@ -680,7 +680,7 @@ func (s *solver) shadowedDemand(p *discover.Provider) (types.Type, *Instance, ty
 			continue
 		}
 		// The template would have served d; find the producer that already does:
-		// directly, or through the value/pointer bridge over a producer of d's dual
+		// directly, or through the value/pointer bridge over a producer of d’s dual
 		// (a *Node[int] demand covered by a Node[int] producer, or vice versa).
 		if in, ok := s.supply.At(d); ok && in.Prov != p {
 			return d, in, nil
@@ -695,7 +695,7 @@ func (s *solver) shadowedDemand(p *discover.Provider) (types.Type, *Instance, ty
 }
 
 // templateServes reports whether template p could produce demand d, directly or
-// through the value/pointer bridge by producing d's dual, mirroring tryWorklist's
+// through the value/pointer bridge by producing d’s dual, mirroring tryWorklist’s
 // dual retry. It is the same unify+coversPinnable test viableSingle uses, so a hit
 // means the template really would have been a candidate for d.
 func (s *solver) templateServes(p *discover.Provider, skel *Instance, params map[*types.TypeParam]bool, d types.Type) bool {
@@ -714,7 +714,7 @@ func (s *solver) templateServes(p *discover.Provider, skel *Instance, params map
 	return false
 }
 
-// resolveFlexReceivers fixes each struct-field provider's receiver to value or
+// resolveFlexReceivers fixes each struct-field provider’s receiver to value or
 // pointer form, preferring the pointer when the set uses it elsewhere.
 func (s *solver) resolveFlexReceivers() {
 	// Collect the exact types the set uses for non-flexible inputs and all
@@ -766,14 +766,14 @@ func ambiguousTemplates(cs []matchCand) *diag.Error {
 }
 
 // checkTemplateAmbiguity reports an error if a still-unsatisfied demand can be
-// produced (cleanly, under each one's constraint) by two or more distinct
+// produced (cleanly, under each one’s constraint) by two or more distinct
 // templates. Such a demand has no single producer, and picking one by source
-// order would be arbitrary. When no template's result matches the demand's exact
+// order would be arbitrary. When no template’s result matches the demand’s exact
 // form, the same test runs against its dual, and the rejection names the
 // produced dual form. A template that merely lifts around a demand another
 // provider already supplies is not in tension here: a supplied demand is no longer
 // pending, so it never reaches this check. This is the joint-path analog of the
-// worklist's single-result ambiguity test.
+// worklist’s single-result ambiguity test.
 func (s *solver) checkTemplateAmbiguity() *diag.Error {
 	for _, d := range s.pendingDemands() {
 		producers, matched := s.viableProducers(d)
@@ -793,7 +793,7 @@ func (s *solver) checkTemplateAmbiguity() *diag.Error {
 // viableProducers returns the distinct templates with some value result that
 // unifies with d in a viable binding, and whether any result of any template
 // unified at all, viable or not: the caller falls through to the dual only
-// when d's exact form matched nothing.
+// when d’s exact form matched nothing.
 func (s *solver) viableProducers(d types.Type) (ps []*discover.Provider, matched bool) {
 	for _, p := range s.resGen {
 		params := paramSet(p)
@@ -828,7 +828,7 @@ func ambiguousProducers(a, b *Instance, t types.Type) *diag.Error {
 		gotypes.TypeName(t), first.Prov.Name, first.pos, second.Prov.Name, second.pos)
 }
 
-// ownParams returns the provider's own type parameters as type arguments (used
+// ownParams returns the provider’s own type parameters as type arguments (used
 // to build the generic skeleton).
 func ownParams(p *discover.Provider) []types.Type {
 	if !p.Generic() {

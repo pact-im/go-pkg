@@ -19,7 +19,7 @@ import (
 )
 
 // A fixture is a txtar archive: source files at import-path-encoded paths, plus a
-// "config" file giving the generation options. A success fixture's .golden holds
+// "config" file giving the generation options. A success fixture’s .golden holds
 // the expected generated source. A fixture whose config names a sentinel with
 // "error-is" is instead an error fixture: generation must fail, and its .golden
 // holds the diagnostic string. Both are regenerated with UPDATE=1.
@@ -168,7 +168,7 @@ func TestCorpus(t *testing.T) {
 
 			// Determinism: the output is byte-identical no matter how the
 			// loader orders packages and files (shuffled per seed), and
-			// regardless of the runtime's per-run map-iteration randomness.
+			// regardless of the runtime’s per-run map-iteration randomness.
 			for seed := range determinismSeeds {
 				l2, err := packagestest.LoadShuffled(fx.files, shuffleForSeed(seed))
 				if err != nil {
@@ -189,11 +189,11 @@ func TestCorpus(t *testing.T) {
 			// Regenerating over the previous output must reproduce it byte-for-byte, so a
 			// go generate + CI-diff workflow never reports a spurious change for unchanged
 			// input. Feed the emitted file back into the destination package and require an
-			// identical result with no false set-name collision against the output file's
+			// identical result with no false set-name collision against the output file’s
 			// own re-scanned declarations. This holds in same-package mode and across the
 			// separate-package transition, where the destination is unscanned on the first
 			// run and scanned (now holding the prior output) on the second. A noCompile
-			// fixture's output may not reload cleanly, so it is skipped.
+			// fixture’s output may not reload cleanly, so it is skipped.
 			if fx.opts.OutputBase != "" && !fx.noCompile {
 				regen := map[string]string{}
 				maps.Copy(regen, fx.files)

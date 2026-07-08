@@ -1,4 +1,4 @@
-// Package gen is the orchestrator of plumb's pure core: it runs the discover →
+// Package gen is the orchestrator of plumb’s pure core: it runs the discover →
 // solve → emit pipeline over loaded, type-checked packages to produce generated
 // injector source, performing no I/O, holding no global state, and consulting no
 // clock or randomness. Its output is a deterministic function of its inputs.
@@ -26,7 +26,7 @@ import (
 // Options configures a single generation run. The cli builds it from flags; gen
 // distributes the fields each phase needs.
 type Options struct {
-	// ImportPath is the destination package's import path. It decides what is
+	// ImportPath is the destination package’s import path. It decides what is
 	// referenced unqualified (the destination) and what is imported and
 	// qualified (everything else). Required and never empty by the time the
 	// core runs.
@@ -117,7 +117,7 @@ func buildDestInfo(opts Options, pkgs []*discover.Package) (*solve.DestInfo, *di
 			// nil in fallible wiring, basic-type names in signatures) and no
 			// qualification can restore a shadowed builtin, so a destination that
 			// declares a universe name at top level is rejected, regardless of whether
-			// any one set's signature happens to spell it. scope.Names() is sorted, so
+			// any one set’s signature happens to spell it. scope.Names() is sorted, so
 			// the reported name is deterministic; anchoring at the declaration points at
 			// the offending source directly.
 			if gotypes.IsUniverseName(name) {
@@ -137,7 +137,7 @@ func buildDestInfo(opts Options, pkgs []*discover.Package) (*solve.DestInfo, *di
 // collide with a generated set name; only one a hand-written sibling still uses
 // can. This makes gen the sole owner of output-file exclusion, for import
 // qualifiers as for top-level names (see buildDestInfo). Among the eligible files
-// the first base in sorted order wins, so the result never depends on the loader's
+// the first base in sorted order wins, so the result never depends on the loader’s
 // file-iteration order.
 func collectImportQualifiers(pkg *discover.Package, outputBase string, out map[string]string) {
 	pathName := map[string]string{}

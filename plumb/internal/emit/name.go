@@ -18,7 +18,7 @@ type allocator struct {
 
 // reservedIdents returns the identifiers a generated name must not collide with,
 // common to import-alias assignment and local-name allocation: the predeclared
-// universe, the destination package's own top-level names, and the lifted
+// universe, the destination package’s own top-level names, and the lifted
 // type-parameter names. Keywords are not seeded here: go/token exposes no
 // enumerable keyword set, so they are rejected by the token.IsKeyword arm of each
 // collision predicate instead. Each caller augments the result with its own extra
@@ -96,8 +96,8 @@ func baseName(t types.Type) string {
 	return "v"
 }
 
-// cleanupBaseName derives a cleanup local's base name from the provider function
-// that returns it, e.g. OpenConn's teardown becomes openConnCleanup. A cleanup
+// cleanupBaseName derives a cleanup local’s base name from the provider function
+// that returns it, e.g. OpenConn’s teardown becomes openConnCleanup. A cleanup
 // result only ever comes from a function or method provider, so its Fn is always
 // set. Naming after the provider (not the value the provider yields) keeps the
 // cleanup unambiguous even when a provider returns several values.
@@ -106,7 +106,7 @@ func cleanupBaseName(fn *types.Func) string {
 }
 
 // commonInitialisms are acronyms treated as one unit when lowering an
-// identifier's first word. This keeps the camelCase boundary after the whole
+// identifier’s first word. This keeps the camelCase boundary after the whole
 // acronym (HTTPServer becomes httpServer) and stops a leading acronym from
 // merging with the next one (XMLHTTPRequest becomes xmlHTTPRequest).
 var commonInitialisms = map[string]bool{
@@ -132,7 +132,7 @@ func lowerCamel(s string) string {
 }
 
 // firstWordLen returns the byte length of the prefix lowerCamel lowercases,
-// which is the identifier's first word. A leading common initialism is the whole
+// which is the identifier’s first word. A leading common initialism is the whole
 // word. Otherwise the word is the leading run of capitals, dropping its final
 // capital when a lowercase letter follows, since that capital starts the next word.
 func firstWordLen(s string) int {
@@ -143,7 +143,7 @@ func firstWordLen(s string) int {
 	for i, c := range s {
 		if !unicode.IsUpper(c) {
 			if count > 1 && unicode.IsLower(c) {
-				return lastUpper // the run's final capital begins the next word
+				return lastUpper // the run’s final capital begins the next word
 			}
 			return i
 		}

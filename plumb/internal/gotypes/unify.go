@@ -2,7 +2,7 @@ package gotypes
 
 import "go/types"
 
-// Unify matches a pattern type (which may mention the template's type
+// Unify matches a pattern type (which may mention the template’s type
 // parameters) against a concrete demand type, recording the type-parameter
 // bindings it discovers. It reports whether the match succeeds. Only the type
 // parameters in params are treated as variables; every other type node must be
@@ -110,7 +110,7 @@ func unifyTuple(p, c *types.Tuple, params map[*types.TypeParam]bool, bind map[*t
 }
 
 // MentionsParams reports whether t mentions any of the given type parameters.
-// It shares typeContains's exhaustive type walk (which panics on an unhandled
+// It shares typeContains’s exhaustive type walk (which panics on an unhandled
 // go/types kind rather than silently reporting false), testing membership in
 // params at each type-parameter leaf.
 func MentionsParams(t types.Type, params map[*types.TypeParam]bool) bool {

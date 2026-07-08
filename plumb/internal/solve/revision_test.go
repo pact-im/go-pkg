@@ -20,13 +20,13 @@ func TestErrRestartFormatSafe(t *testing.T) {
 	}
 }
 
-// TestPinningRevisionCommitsUnion pins revision.go's contract directly on the
-// resolved plan: when a joint template's pins arrive across separate fixpoint
+// TestPinningRevisionCommitsUnion pins revision.go’s contract directly on the
+// resolved plan: when a joint template’s pins arrive across separate fixpoint
 // rounds, the solver commits their union and replays, so the template is
 // instantiated ONCE at the merged pinning that serves every consumer, never
 // split into half-pinned calls and never leaking a phantom lifted parameter. The
 // corpus (joint_late_pin_merges, joint_late_pin_staircase) checks the generated
-// source; this checks the mechanism's output (the committed union on the
+// source; this checks the mechanism’s output (the committed union on the
 // instance) without running emit, and covers both a single revision and the
 // commitment-upgrade staircase whose regression would run the restart cap.
 func TestPinningRevisionCommitsUnion(t *testing.T) {

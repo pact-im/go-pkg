@@ -100,9 +100,9 @@ func convNeedsParens(t types.Type) bool {
 	return endsInResultlessFunc(t)
 }
 
-// endsInResultlessFunc reports whether t's rendered form ends in a result-less
+// endsInResultlessFunc reports whether t’s rendered form ends in a result-less
 // func type, reached directly or through a slice/array/map-value/channel/pointer
-// element or a func's sole result. (A two-or-more result list renders in
+// element or a func’s sole result. (A two-or-more result list renders in
 // parentheses, which closes the type, so it does not end in a bare func.) A named
 // or alias type renders as its name, so it is opaque and stops the recursion.
 func endsInResultlessFunc(t types.Type) bool {

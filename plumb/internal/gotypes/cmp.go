@@ -23,7 +23,7 @@ import (
 // the absence of ties, not on the sort: every sorted slice holds types drawn from
 // identity-keyed sets of provider-signature types that already differ in those
 // keys, so no two elements ever compare equal, and the determinism tests guard
-// that empirically: solve's TestNoCmpTypeTiesInSortedSlices asserts no tie
+// that empirically: solve’s TestNoCmpTypeTiesInSortedSlices asserts no tie
 // reaches those sort sites. A structural string tiebreaker cannot substitute for
 // this invariant: two distinct type parameters that share a name render
 // identically, so no deterministic key separates them (their only distinguisher
@@ -31,7 +31,7 @@ import (
 // be the safeguard either: several of these slices are collected from
 // nondeterministically-ordered maps, where a stable sort would only preserve a
 // nondeterministic input order. Callers still use a stable sort, but for
-// consistency with plumb's other ordering sites rather than for determinism here.
+// consistency with plumb’s other ordering sites rather than for determinism here.
 func CmpType(a, b types.Type) int {
 	a = types.Unalias(a)
 	b = types.Unalias(b)
@@ -210,7 +210,7 @@ func cmpTuple(a, b *types.Tuple) int {
 	return 0
 }
 
-// cmpTypeName orders named types' declaring objects by package path then name:
+// cmpTypeName orders the declaring objects of named types by package path then name:
 // environment-independent, unlike pointer identity.
 func cmpTypeName(a, b *types.TypeName) int {
 	pa, pb := "", ""

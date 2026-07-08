@@ -11,7 +11,7 @@ import (
 // types such as the predeclared comparable constraint and named cross-package
 // interfaces keep their identity.
 //
-// ctxt deduplicates any generic types Subst must re-instantiate; pass the caller's
+// ctxt deduplicates any generic types Subst must re-instantiate; pass the caller’s
 // shared context so identical instantiations resolve to one instance. A nil ctxt
 // is valid (a throwaway): correctness never depends on instance identity, because
 // the result is rendered to source text and inspected structurally (go/types
@@ -96,7 +96,7 @@ func (s *subster) subst(t types.Type) types.Type {
 		// arguments (both guaranteed here: u is an instantiated Named and na has one
 		// entry per original arg), Instantiate cannot return an error. A non-nil error
 		// would mean that invariant broke; returning the un-substituted type would
-		// leak the template's own parameters into a lifted constraint, so fail loud.
+		// leak the template’s own parameters into a lifted constraint, so fail loud.
 		inst, err := types.Instantiate(s.ctxt, u.Origin(), na, false)
 		if err != nil {
 			panic(fmt.Sprintf("plumb: Subst: re-instantiating %s failed: %v", u, err))
@@ -119,7 +119,7 @@ func (s *subster) substTuple(tup *types.Tuple) *types.Tuple {
 }
 
 // mentions reports whether t references any type parameter in the substitution
-// map s.m. It shares typeContains's exhaustive type walk, testing membership in
+// map s.m. It shares typeContains’s exhaustive type walk, testing membership in
 // s.m at each type-parameter leaf rather than an explicit params set.
 func (s *subster) mentions(t types.Type) bool {
 	return typeContains(t, &Set[types.Type]{}, func(x types.Type) bool {

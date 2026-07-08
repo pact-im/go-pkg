@@ -19,7 +19,7 @@ import (
 // instances and re-checks their dependency sets. That is quadratic, but V is
 // bounded by maxInstantiations and tiny for real sets (tens of instances; a
 // deepening generic template trips maxTypeDepth long before it manufactures
-// thousands of instances), so ordering stays sub-millisecond in practice. Kahn's
+// thousands of instances), so ordering stays sub-millisecond in practice. Kahn’s
 // O(V+E) would be premature. The rescan also gives the deterministic
 // position-ordered pick and feeds the cycle report for free.
 func (s *solver) topoOrder(pl *Plan) ([]*Instance, *diag.Error) {
@@ -155,8 +155,8 @@ func (s *solver) cycleError(pl *Plan, insts []*Instance, emitted map[*Instance]b
 
 // edgeType returns the type consumer declares as the input that producer supplies
 // (the dependency that makes consumer follow producer) and whether that input is
-// satisfied through the value/pointer bridge. It reports the consumer's demanded
-// type (its InputSlot), not the producer's SrcType, so the diagnostic names the
+// satisfied through the value/pointer bridge. It reports the consumer’s demanded
+// type (its InputSlot), not the producer’s SrcType, so the diagnostic names the
 // type as written in the source; on a bridged edge the two are duals. The type is
 // nil if no such edge exists (defensive; cycle edges always have one).
 func (s *solver) edgeType(pl *Plan, consumer, producer *Instance) (types.Type, bool) {

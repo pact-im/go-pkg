@@ -14,7 +14,7 @@ import (
 // must never panic, and whenever it succeeds on type-correct input the emitted
 // code must type-check. Tolerated type-error input (which the loader keeps going
 // on) is fed in too and must not crash, but is exempt from the compile assertion
-// since its output may reproduce the user's own type error.
+// since its output may reproduce the user’s own type error.
 //
 // The three bodies form a multi-package providers graph: package a, package b
 // (which may import a), and a pre-existing package dest with its own top-level
@@ -44,7 +44,7 @@ func FuzzGenerate(f *testing.F) {
 		}
 		// The no-crash guarantee covers tolerated type-error input too: the loader
 		// keeps going on type errors, so such input still reaches Generate and must
-		// not panic. But its output may faithfully reproduce the user's own type
+		// not panic. But its output may faithfully reproduce the user’s own type
 		// error, so the compile assertion is skipped for it.
 		typeErrs := len(loaded.TypeErrors) != 0
 
@@ -238,7 +238,7 @@ type Thing struct{}
 func New(m map[Exported]hidden) *Thing { return &Thing{} }`},
 
 	// --- pinning revision: pins arriving in different fixpoint rounds -----------
-	// A joint template whose second pin surfaces only through another template's
+	// A joint template whose second pin surfaces only through another template’s
 	// instantiation, and the full-pin-over-partial shape that once aborted the
 	// solve. Seeds so the fuzzer explores the revision/restart paths.
 	{a: `type Key[T any] struct{}

@@ -48,7 +48,7 @@ func (s *solver) checkReachability(pl *Plan) *diag.Error {
 				}
 			}
 		}
-		// The conversion's target type is written in the body.
+		// The conversion’s target type is written in the body.
 		if p.Kind == discover.KindConvert {
 			if obj, bad := findUnreachable(p.ConvertTo, s.destPath); bad {
 				return diag.Errorf(p.Pos, diag.ErrUnreachableType, "conversion target type %s from package %q (%s is unexported)", gotypes.TypeName(p.ConvertTo), obj.Pkg().Path(), obj.Name())
@@ -73,14 +73,14 @@ func (s *solver) checkReachability(pl *Plan) *diag.Error {
 			return diag.Errorf(pl.pos, diag.ErrUnreachableType, "injector output type %s, from package %q (%s is unexported)", gotypes.TypeName(t), obj.Pkg().Path(), obj.Name())
 		}
 	}
-	// 3. Lifted free parameters' constraints appear in the header, except one that
+	// 3. Lifted free parameters’ constraints appear in the header, except one that
 	// emit collapses to the bare "any", which names no package (the same predicate
-	// gates emit's rendering and import collection, so the two cannot drift).
+	// gates emit’s rendering and import collection, so the two cannot drift).
 	for _, tp := range pl.Lifted {
 		if gotypes.ConstraintCollapsesToAny(tp.Constraint()) {
 			continue
 		}
-		// A constraint that did not type-check (a typo'd or undefined name in
+		// A constraint that did not type-check (a typo’d or undefined name in
 		// tolerated-invalid input) would render as "invalid type" in the header and
 		// fail to format; catch it here, as inputs and outputs are checked above.
 		if gotypes.ContainsInvalid(tp.Constraint()) {
@@ -104,7 +104,7 @@ func crossBoundarySymbol(p *discover.Provider) types.Object {
 	case discover.KindStruct:
 		return gotypes.TypeNameOf(p.Declared)
 	case discover.KindConvert:
-		// The conversion's only foreign reference is the target type, checked by
+		// The conversion’s only foreign reference is the target type, checked by
 		// the type walk; it renders no qualified symbol of its own.
 		return nil
 	}
@@ -113,7 +113,7 @@ func crossBoundarySymbol(p *discover.Provider) types.Object {
 
 // findUnreachable walks t and returns the first named type from a non-destination
 // package that is unexported (and therefore cannot be named from the destination).
-// The offending type lives in the returned TypeName's own package, so diagnostics
+// The offending type lives in the returned TypeName’s own package, so diagnostics
 // name obj.Pkg().Path(), not destPath, the one package it is guaranteed not in.
 // Its Pkg() is never nil: the match requires a non-nil package below.
 func findUnreachable(t types.Type, destPath string) (*types.TypeName, bool) {
@@ -167,10 +167,10 @@ func (s *solver) checkReservedAndCollision(pl *Plan) *diag.Error {
 		return nil
 	}
 	// Collision with an existing package-level declaration. gen already drops the
-	// overwritten file's own declarations from dest.Names, so a hit here is always a
+	// overwritten file’s own declarations from dest.Names, so a hit here is always a
 	// genuine collision; but for standard output no file is overwritten and every
 	// declaration is recorded, so the check cannot tell a real collision from the
-	// set's own future output and is skipped.
+	// set’s own future output and is skipped.
 	if s.outputBase != "" {
 		if base, ok := s.dest.Names[s.name]; ok {
 			return diag.Errorf(pl.pos, diag.ErrSetNameCollision, "set %q in package %q (%s); rename the set", s.name, s.destPath, base)
@@ -178,8 +178,8 @@ func (s *solver) checkReservedAndCollision(pl *Plan) *diag.Error {
 	}
 	// Collision with an import qualifier (file block) in a hand-written file: Go
 	// forbids one identifier in both the file and package block. gen drops the
-	// overwritten file's own qualifiers from dest.Imports (plumb rewrites them), so
-	// a hit is a hand-written sibling's qualifier, a genuine collision, checked
+	// overwritten file’s own qualifiers from dest.Imports (plumb rewrites them), so
+	// a hit is a hand-written sibling’s qualifier, a genuine collision, checked
 	// even for standard output.
 	if base, ok := s.dest.Imports[s.name]; ok {
 		return diag.Errorf(pl.pos, diag.ErrSetNameCollision, "set %q matches an import qualifier in package %q (%s); rename the set", s.name, s.destPath, base)

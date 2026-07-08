@@ -186,7 +186,7 @@ func NewServer(c *Config) (*Server, error) { return &Server{}, nil }
 
 // TestRunIgnoresTestFileDirectives locks in a documented limitation: the real
 // loader never scans _test.go files, so a //plumb: directive there produces no
-// provider and no diagnostic. The package's
+// provider and no diagnostic. The package’s
 // regular file consumes *Config and its _test.go file provides it; because the
 // provider is invisible, *Config becomes an injector input instead of being
 // wired from NewConfig. The golden would differ (a NewConfig() call) if the
@@ -284,7 +284,7 @@ func unrelated() { var _ int = "not an int" }
 	}
 }
 
-// TestRunWritesToStdout covers writeOutput's stdout branch: with no -output, the
+// TestRunWritesToStdout covers writeOutput’s stdout branch: with no -output, the
 // generated source is written to stdout and nothing to stderr.
 func TestRunWritesToStdout(t *testing.T) {
 	// Capture the package dir before t.Chdir so the golden path still resolves.
@@ -319,7 +319,7 @@ func NewServer() *Server { return &Server{} }
 	}
 }
 
-// TestRunWriteFailureReturnsError covers cli.go's writeOutput error branch: a
+// TestRunWriteFailureReturnsError covers cli.go’s writeOutput error branch: a
 // -output whose parent directory does not exist makes the atomic write fail
 // (writefile never creates intermediate directories), so Run reports the failure
 // on stderr and exits 1 without leaving any file behind.
@@ -347,7 +347,7 @@ func NewServer() *Server { return &Server{} }
 		t.Fatalf("Run exit %d, want 1; stderr:\n%s", code, stderr.String())
 	}
 	// fail() writes the diagnostic as "plumb: <err>\n"; the err body carries a
-	// random temp-file name and an OS-dependent errno string, so pin only plumb's
+	// random temp-file name and an OS-dependent errno string, so pin only plumb’s
 	// own diagnostic marker, not the variable tail. This branch writes nothing else
 	// to stderr, so the prefix is exact.
 	if !strings.HasPrefix(stderr.String(), "plumb: ") {

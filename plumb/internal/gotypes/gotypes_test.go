@@ -11,7 +11,7 @@ import (
 
 // fixture is the shared source the predicate tests look types up from. It is
 // loaded once via the in-memory loader; each test pulls the named types and
-// function signatures it needs from package p's scope.
+// function signatures it needs from package p’s scope.
 const fixture = `
 type T struct{}
 type Box[A any] struct{ V A }
@@ -185,7 +185,7 @@ func TestCmpType(t *testing.T) {
 		// parameters sharing a name and index compare equal, so a zero result does
 		// not in general imply identity. These fixtures happen to contain no such
 		// tying pair, so a zero here does mean identical, but that is a property of
-		// this sample, not a totality guarantee. The tie-freedom the solver's
+		// this sample, not a totality guarantee. The tie-freedom the solver’s
 		// determinism actually rests on is pinned by
 		// solve.TestNoCmpTypeTiesInSortedSlices.
 		for i, a := range ts {
@@ -212,7 +212,7 @@ func TestCmpType(t *testing.T) {
 
 func TestUnify(t *testing.T) {
 	pkg := load(t)
-	// genBox's signature gives the pattern Box[A] and the parameter A.
+	// genBox’s signature gives the pattern Box[A] and the parameter A.
 	genBox := sig(t, pkg, "genBox")
 	A := genBox.TypeParams().At(0)
 	patBox := genBox.Params().At(0).Type() // Box[A]
@@ -263,7 +263,7 @@ func TestUnify(t *testing.T) {
 	})
 }
 
-// pairConcValue returns the value type Pair[int, string] (concPair's parameter is
+// pairConcValue returns the value type Pair[int, string] (concPair’s parameter is
 // the pointer form, so dereference it).
 func pairConcValue(t *testing.T, pkg *types.Package) types.Type {
 	t.Helper()
@@ -273,7 +273,7 @@ func pairConcValue(t *testing.T, pkg *types.Package) types.Type {
 
 func TestWalkNamed(t *testing.T) {
 	pkg := load(t)
-	// Box[T] nests the named type T as Box's sole type argument, so T is reachable
+	// Box[T] nests the named type T as Box’s sole type argument, so T is reachable
 	// only by descending below Box, the signal that distinguishes “descended” from
 	// “pruned”.
 	boxT, err := types.Instantiate(types.NewContext(), named(t, pkg, "Box"), []types.Type{named(t, pkg, "T")}, false)
@@ -328,7 +328,7 @@ func TestMap(t *testing.T) {
 	if got, ok := m.At(k1); !ok || got != 1 {
 		t.Errorf("At(k1) = %d, %v; want 1, true", got, ok)
 	}
-	// k2 is a different pointer denoting the same type: it hits k1's entry.
+	// k2 is a different pointer denoting the same type: it hits k1’s entry.
 	if got, ok := m.At(k2); !ok || got != 1 {
 		t.Errorf("At(k2) = %d, %v; want 1, true (identity keying)", got, ok)
 	}
@@ -469,9 +469,9 @@ func TestSubst(t *testing.T) {
 
 // TestNamedAliasHelpersPanicOnOtherShapes pins the invariant enforced by
 // TypeNameOf, GenericOrigin, and TypeParamsOf: they accept only a defined type
-// or an alias (the two forms a provider's declared/receiver type can take) and
+// or an alias (the two forms a provider’s declared/receiver type can take) and
 // panic on anything else, rather than returning a fallback that would mask a
-// broken invariant: for TypeNameOf, a typed-nil that defeats a caller's
+// broken invariant: for TypeNameOf, a typed-nil that defeats a caller’s
 // obj != nil guard.
 func TestNamedAliasHelpersPanicOnOtherShapes(t *testing.T) {
 	// A bare basic type is neither a *types.Named nor a *types.Alias.
@@ -510,7 +510,7 @@ func TestMentionsParamsCoverage(t *testing.T) {
 	tInt := types.Typ[types.Int]
 
 	// method builds interface{ M(x) }, so a positive requires descending the
-	// method's signature.
+	// method’s signature.
 	method := func(x types.Type) types.Type {
 		mSig := types.NewSignatureType(nil, nil, nil, types.NewTuple(types.NewVar(0, pkg, "", x)), nil, false)
 		iface := types.NewInterfaceType([]*types.Func{types.NewFunc(0, pkg, "M", mSig)}, nil)

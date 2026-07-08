@@ -6,19 +6,19 @@ import (
 )
 
 // WalkNamed visits every named type reachable from t, invoking visit for each type
-// name. It does not descend into a type parameter's constraint; a caller that needs
+// name. It does not descend into a type parameter’s constraint; a caller that needs
 // the constraint walks it separately. When visit returns false for a name, the walk does
-// not descend into that name's type arguments (it prunes below the node); it
+// not descend into that name’s type arguments (it prunes below the node); it
 // still visits the rest of the tree, so this controls descent, not whole-walk
 // termination. A caller that wants to stop entirely self-guards inside visit.
 func WalkNamed(t types.Type, visit func(*types.TypeName) bool) {
 	walkNamed(t, &Set[types.Type]{}, visit)
 }
 
-// walkNamed is WalkNamed's recursion, threading the cycle-guard seen set that the
+// walkNamed is WalkNamed’s recursion, threading the cycle-guard seen set that the
 // exported entry point seeds fresh.
 func walkNamed(t types.Type, seen *Set[types.Type], visit func(*types.TypeName) bool) {
-	// Rendering names an alias, not its expansion, so the alias's own name is
+	// Rendering names an alias, not its expansion, so the alias’s own name is
 	// what reachability must judge, and it is judged before the seen check:
 	// the seen set keys on types.Identical, under which an alias equals its
 	// target, so whichever spelling were walked first would swallow the other

@@ -8,7 +8,7 @@ import (
 )
 
 // Write atomically writes data to name with mode 0o644. It writes to a temp file
-// in name's own directory and renames it over name: an interrupted write cannot
+// in name’s own directory and renames it over name: an interrupted write cannot
 // leave a partial file in place of the previous good one, and sharing the
 // directory keeps the rename a same-filesystem swap. The parent directory must
 // already exist (os.CreateTemp fails when it does not, so Write never creates

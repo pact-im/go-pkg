@@ -8,16 +8,16 @@ import (
 
 // Package is one loaded, type-checked Go package as the core consumes it. The
 // loaders (the real go/packages loader and the in-memory test loader) produce
-// values of this shape; the core never loads anything itself. It is discover's
+// values of this shape; the core never loads anything itself. It is discover’s
 // input contract (the first phase defines what a loaded package must carry),
 // and the later phases and the cli read the same shape.
 type Package struct {
-	// PkgPath is the package's import path (e.g. "example.com/app"). It is the
+	// PkgPath is the package’s import path (e.g. "example.com/app"). It is the
 	// identity used to decide qualification against the destination.
 	PkgPath string
 	// Name is the package clause name (e.g. "app").
 	Name string
-	// Fset is the file set the package's positions live in. All scanned
+	// Fset is the file set the package’s positions live in. All scanned
 	// packages share one Fset so positions are globally comparable.
 	Fset *token.FileSet
 	// Syntax is the parsed source of the package (with comments), used to find
@@ -78,11 +78,11 @@ type Provider struct {
 	Fn          *types.Func  // KindFunc, KindMethod
 	Sym         types.Object // KindSymbol (a var or typed const), KindField (the field)
 	Owner       types.Type   // KindMethod (receiver), KindField (struct): a *Named, or a *Alias when the member is on an alias to an anonymous composite
-	Declared    types.Type   // KindStruct: the directive's declared type (a *Named or *Alias), rendered as written
+	Declared    types.Type   // KindStruct: the directive’s declared type (a *Named or *Alias), rendered as written
 	ConvertTo   types.Type   // KindConvert: the target type produced
 	ConvertFrom types.Type   // KindConvert: the source type consumed
 
-	// Tparams are the provider's type parameters (from the function or the owner
+	// Tparams are the provider’s type parameters (from the function or the owner
 	// type). nil/empty means the provider is concrete.
 	Tparams *types.TypeParamList
 }

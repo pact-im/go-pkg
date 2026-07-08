@@ -249,8 +249,8 @@ directly to the process’s standard error, so the behavior is testable.
 ## go:generate
 
 The intended way to wire plumb into a project is a `go:generate` directive in the
-providers’ package, which infers both the package name and the import path from where it
-sits:
+package containing the providers, which infers both the package name and the import path
+from where it sits:
 
 ```go
 //go:generate plumb -output=plumb_gen.go
@@ -1259,7 +1259,7 @@ reaches.
    a covering, **viable** binding: each template offers its first such result in result
    order, and every covering result whose binding fails viability is recorded as a
    near-miss along the way. If no template offers one, the same matching runs once
-   against *d*'s dual (an instance made this way supplies the dual, satisfying *d*
+   against *d*’s dual (an instance made this way supplies the dual, satisfying *d*
    through the bridge). Then, by the number of candidates:
 
    - **two or more**: rejected as ambiguous templates, naming the first two in position
@@ -1376,13 +1376,13 @@ loop:
   for d in unsatisfied demands, canonical order:          # step 3
     V ← templates with a covering, viable binding for d
         (covering near-misses recorded along the way)
-    if V empty: V ← the same matching against d's dual
+    if V empty: V ← the same matching against d’s dual
     if |V| ≥ 2: reject ambiguous templates
     if |V| = 1: instantiate it; continue loop             # else d stays open
   for d in unsatisfied demands, canonical order:          # step 4
     if two templates produce d (or its dual) viably: reject ambiguous templates
   for p in templates, position order:                     # step 5
-    cluster unsatisfied demands over p's results          # exact form, else dual
+    cluster unsatisfied demands over p’s results          # exact form, else dual
     instantiate p once per new cluster (unpinned lifted)  # agree + stay viable
     if anything instantiated: continue loop
   break                                       # leftovers become injector inputs
@@ -1433,7 +1433,7 @@ func NewServer(db *store.DB) *Server { ... }
 ```
 
 - `-import-path=example.com/app` (a separate package) imports **both** `store` and `web`.
-- `-import-path=example.com/web` generates into `web`: `web`'s providers are unqualified,
+- `-import-path=example.com/web` generates into `web`: providers in `web` are unqualified,
   only `store` is imported, and `-package-name` is inferred as `web`.
 
 ## Output safety in same-package mode

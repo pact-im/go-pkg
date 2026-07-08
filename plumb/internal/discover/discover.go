@@ -1,4 +1,4 @@
-// Package discover is plumb's first phase: it scans loaded packages for
+// Package discover is plumb’s first phase: it scans loaded packages for
 // //plumb:<name> directives and turns each tagged declaration into a Provider,
 // the surface-independent description the solve phase wires together. It reads
 // syntax and type information but makes no wiring decisions.
@@ -31,10 +31,10 @@ func directiveNames(doc *ast.CommentGroup, fset *token.FileSet) ([]string, *diag
 }
 
 // appendDirectiveNames appends the set names from doc to prior. prior holds the
-// sets the declaration already joins (an enclosing group's directives, or an
+// sets the declaration already joins (an enclosing group’s directives, or an
 // earlier comment in the same doc), so a directive naming one of them (whether
 // the repeat is within doc or across the group/spec boundary) is a duplicate and
-// is rejected identically. The returned slice reuses prior's backing array; the
+// is rejected identically. The returned slice reuses prior’s backing array; the
 // caller must not retain prior separately.
 func appendDirectiveNames(prior []string, doc *ast.CommentGroup, fset *token.FileSet) ([]string, *diag.Error) {
 	if doc == nil {
@@ -128,7 +128,7 @@ func FileBase(pkg *Package, file *ast.File) string {
 	return filepath.Base(tf.Name())
 }
 
-// scanFile walks one file's top-level declarations (locals are never providers)
+// scanFile walks one file’s top-level declarations (locals are never providers)
 // and the type members nested in them, returning the source-earliest fault it
 // finds. A stray directive is caught only by the whole-file sweep, which must run
 // after the declaration scan, so the two can surface out of source order: a stray
@@ -173,7 +173,7 @@ func scanFile(pkg *Package, file *ast.File) ([]*Provider, *diag.Error) {
 //
 // The sweep walks file.Comments (every comment group in the file) because
 // comments inside bodies and free-floating ones live only there and are never
-// attached to a node's Doc; an AST node walk would miss exactly the positions we
+// attached to a node’s Doc; an AST node walk would miss exactly the positions we
 // want to catch. collectProviderDocs marks the groups the scan does read, and
 // anything else carrying a plumb directive is reported.
 func reportStrayDirectives(pkg *Package, file *ast.File) *diag.Error {
@@ -239,12 +239,12 @@ func collectProviderDocs(file *ast.File) map[*ast.CommentGroup]bool {
 }
 
 // specDirectiveNames returns the sets a spec joins: the union of the directives on
-// the enclosing GenDecl (which apply to every spec in the group) and the spec's
+// the enclosing GenDecl (which apply to every spec in the group) and the spec’s
 // own directives. A group directive that precedes the keyword attaches to
 // GenDecl.Doc for both a single declaration and a parenthesized group; a directive
-// inside the group attaches to the spec's own doc. Unioning them (rather than
-// letting the spec's doc shadow the group's) means a spec that joins an extra set
-// does not silently drop out of the group's set. A set named at both levels is a
+// inside the group attaches to the spec’s own doc. Unioning them (rather than
+// letting the spec’s doc shadow the group’s) means a spec that joins an extra set
+// does not silently drop out of the group’s set. A set named at both levels is a
 // duplicate (the group already joins the spec to it), so it is rejected like any
 // other repeated directive rather than silently deduped.
 func specDirectiveNames(gd *ast.GenDecl, specDoc *ast.CommentGroup, fset *token.FileSet) ([]string, *diag.Error) {
@@ -271,7 +271,7 @@ func scanFunc(pkg *Package, fd *ast.FuncDecl) ([]*Provider, *diag.Error) {
 	pos := diag.PosIn(pkg.Fset, fd.Name.Pos())
 	// go/types records an object for a blank name too, so a directive on func _()
 	// or a blank method reaches here. A blank identifier cannot be referenced (and
-	// a blank method is absent from its type's method set, so it would later panic),
+	// a blank method is absent from its type’s method set, so it would later panic),
 	// so reject it rather than emit an unusable "_" call.
 	if obj.Name() == "_" {
 		what := "function"
@@ -297,12 +297,12 @@ func scanFunc(pkg *Package, fd *ast.FuncDecl) ([]*Provider, *diag.Error) {
 			Fn:      obj,
 		}
 		if recv := sig.Recv(); recv != nil {
-			// A method. Resolve the receiver's named type and its type params. A
+			// A method. Resolve the receiver’s named type and its type params. A
 			// concrete and an interface receiver share one kind; solve resolves the
 			// receiver input type from the owner at instantiation time.
 			named := receiverNamed(recv.Type())
 			if named == nil {
-				// The receiver type did not type-check: a typo'd or undefined
+				// The receiver type did not type-check: a typo’d or undefined
 				// receiver in tolerated-invalid input. The loader already reports the
 				// real cause, so surface a located error rather than crashing.
 				return nil, diag.Errorf(pos, diag.ErrInvalidType, "method %s has an unresolvable receiver type", obj.Name())
@@ -469,7 +469,7 @@ func scanConversion(pkg *Package, s *ast.ValueSpec, ident *ast.Ident, names []st
 	// dependency cycle; reject it with the real reason instead.
 	if types.Identical(srcType, targetType) {
 		// A constant source that is not itself written as a conversion (var _
-		// MyInt = 5) already carries the target's type (go/types converts the
+		// MyInt = 5) already carries the target’s type (go/types converts the
 		// literal implicitly), so "both MyInt" would baffle someone who wrote 5.
 		// Name the real problem instead.
 		if tv := pkg.Info.Types[s.Values[0]]; tv.Value != nil && !isConversionExpr(pkg, s.Values[0]) {
@@ -558,7 +558,7 @@ func scanTypeSpec(pkg *Package, gd *ast.GenDecl, s *ast.TypeSpec) ([]*Provider, 
 		out = append(out, ps...)
 	}
 
-	// 2. Directives on the type's members: struct fields or interface methods. The
+	// 2. Directives on the type’s members: struct fields or interface methods. The
 	// owner is the declared type: a *types.Named for a defined type, or a
 	// *types.Alias when the directive is on a member of an alias to an anonymous
 	// composite (type C = struct{...} / interface{...}). This member scan only fires
@@ -586,7 +586,7 @@ func scanTypeSpec(pkg *Package, gd *ast.GenDecl, s *ast.TypeSpec) ([]*Provider, 
 		}
 		out = append(out, members...)
 	} else if c := memberDirective(s.Type); c != nil {
-		// The owner's declaration did not type-check (a redeclaration loses its
+		// The owner’s declaration did not type-check (a redeclaration loses its
 		// Defs entry), so the member scan cannot run. A member directive
 		// must still fail loudly, never silently vanish with its owner.
 		return nil, diag.Errorf(diag.PosIn(pkg.Fset, c.Pos()), diag.ErrInvalidType, "declaration of %s did not type-check; cannot wire its members", s.Name.Name)

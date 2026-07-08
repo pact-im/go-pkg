@@ -20,7 +20,7 @@ func buildReport(importPath string, pkgs []*discover.Package, plans []*solve.Pla
 	fmt.Fprintf(&b, "plumb: scanned %d package(s): %s\n", len(pkgs), strings.Join(paths, ", "))
 	fmt.Fprintf(&b, "plumb: generating into package %q\n", importPath)
 	// Qualify foreign packages by the same import alias the generated source uses,
-	// leaving the destination's own types unqualified, so the report mirrors the
+	// leaving the destination’s own types unqualified, so the report mirrors the
 	// source even when two imported packages share a name (config, config2). A
 	// path missing from the alias map falls back to the package name rather than
 	// panicking as the source qualifier does: the report is a diagnostic aid, not
@@ -64,7 +64,7 @@ func plural(n int, noun string) string {
 }
 
 // kindLabel is the provider-kind label for the report. KindSymbol recovers
-// var-vs-const from the referenced object's dynamic type, since the two share one
+// var-vs-const from the referenced object’s dynamic type, since the two share one
 // kind everywhere else.
 func kindLabel(p *discover.Provider) string {
 	if p.Kind == discover.KindSymbol {

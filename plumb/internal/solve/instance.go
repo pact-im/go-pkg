@@ -10,7 +10,7 @@ import (
 	"go.pact.im/x/plumb/internal/gotypes"
 )
 
-// ResultKind classifies one entry of a provider's result tuple.
+// ResultKind classifies one entry of a provider’s result tuple.
 type ResultKind int
 
 // The result kinds for classifying entries of a provider’s result tuple.
@@ -20,7 +20,7 @@ const (
 	ResultKindError                     // the predeclared error channel
 )
 
-// ResultSlot is one classified entry of a provider's result tuple.
+// ResultSlot is one classified entry of a provider’s result tuple.
 type ResultSlot struct {
 	Kind     ResultKind
 	Typ      types.Type // ResultKindValue: the value type; otherwise nil
@@ -66,7 +66,7 @@ func (in *Instance) valueOuts() []types.Type {
 	return out
 }
 
-// InputTypes returns the instance's input types, in call order (for the report).
+// InputTypes returns the instance’s input types, in call order (for the report).
 func (in *Instance) InputTypes() []types.Type {
 	var out []types.Type
 	for _, i := range in.Inputs {
@@ -76,10 +76,10 @@ func (in *Instance) InputTypes() []types.Type {
 }
 
 // instantiate produces the concrete instance of p for the given type arguments
-// (empty for a concrete provider): it classifies the provider's inputs and
+// (empty for a concrete provider): it classifies the provider’s inputs and
 // results, with no rendering: emit decides how each kind is written. It returns
 // a located error (*diag.Error) for user-visible problems (e.g. multiple error
-// results), and a non-nil miss error (the type-checker's own *types.ArgumentError)
+// results), and a non-nil miss error (the type-checker’s own *types.ArgumentError)
 // when the instantiation is infeasible because targs violate a type-parameter
 // constraint, which the solver treats as a near-miss non-match. Both nil means a
 // matched instance. The per-kind helpers panic on a post-instantiation structural
@@ -150,7 +150,7 @@ func instSignature(ctxt *types.Context, sig *types.Signature, targs []types.Type
 // methodSignature returns the receiver input type and the (possibly
 // instantiated) signature of a method provider, whether the receiver is a
 // concrete named type or an interface. For a concrete receiver the input is the
-// method's own (value- or pointer-) receiver type; for an interface it is the
+// method’s own (value- or pointer-) receiver type; for an interface it is the
 // interface named type itself, instantiated at targs. A non-nil error is the
 // constraint near-miss reason.
 func methodSignature(p *discover.Provider, ctxt *types.Context, targs []types.Type) (recvType types.Type, sig *types.Signature, _ error) {
@@ -178,7 +178,7 @@ func methodSignature(p *discover.Provider, ctxt *types.Context, targs []types.Ty
 	return msig.Recv().Type(), msig, nil
 }
 
-// fieldTypes returns the field's type and the (possibly instantiated) receiver
+// fieldTypes returns the field’s type and the (possibly instantiated) receiver
 // type for a field provider: a *types.Named, or a *types.Alias when the field is
 // on an alias to an anonymous struct. A non-nil error is the constraint near-miss
 // reason.
@@ -203,7 +203,7 @@ func fieldTypes(p *discover.Provider, ctxt *types.Context, targs []types.Type) (
 	panic(fmt.Sprintf("plumb: field %s of provider %s vanished after instantiation", p.Sym.Name(), p.Name))
 }
 
-// structFields returns the declared type to render (the directive's named or
+// structFields returns the declared type to render (the directive’s named or
 // alias type, instantiated at targs) and its exported struct fields. The alias is
 // kept as written so the composite literal names it (and an exported alias to an
 // unexported struct stays reachable across packages); the fields come from its
@@ -231,7 +231,7 @@ func structFields(p *discover.Provider, ctxt *types.Context, targs []types.Type)
 
 // classifyParams appends the signature parameters (starting at index start) as
 // inputs. A variadic parameter needs nothing special here: the tuple already
-// types it as its slice ([]T), and the call-site spread (x...) is emit's job.
+// types it as its slice ([]T), and the call-site spread (x...) is emit’s job.
 func classifyParams(in *Instance, sig *types.Signature, start int) {
 	params := sig.Params()
 	for i := start; i < params.Len(); i++ {

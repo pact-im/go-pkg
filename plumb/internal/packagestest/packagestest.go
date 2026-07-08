@@ -25,7 +25,7 @@ import (
 	"go.pact.im/x/plumb/internal/discover"
 )
 
-// fakeStd is the standard-library subset the corpus and plumb's generated output
+// fakeStd is the standard-library subset the corpus and plumb’s generated output
 // import, given as synthetic source. Resolving stdlib here rather than through
 // go/importer keeps loads self-contained (no GOROOT, no disk), so the tests
 // type-check under -trimpath. The declared surface is exactly what the fixtures
@@ -38,7 +38,7 @@ var fakeStd = map[string]string{
 	"io":           "package io\n\ntype Reader interface {\n\tRead(p []byte) (n int, err error)\n}\n",
 	"log":          "package log\n\ntype Logger struct{}\n",
 	"net/url":      "package url\n\ntype URL struct{}\n",
-	// os.File carries a Read method so provider_kinds' assertion that *os.File
+	// os.File carries a Read method so provider_kinds’ assertion that *os.File
 	// satisfies io.Reader type-checks as it does against the real standard library.
 	"os": "package os\n\n" +
 		"type File struct{}\n\n" +
@@ -62,7 +62,7 @@ type Loaded struct {
 }
 
 // ShuffleFunc reorders a sequence of n elements by swapping pairs. It has the
-// signature of math/rand/v2's (*Rand).Shuffle, so a *Rand's Shuffle method can
+// signature of math/rand/v2’s (*Rand).Shuffle, so a *Rand’s Shuffle method can
 // be passed directly.
 type ShuffleFunc func(n int, swap func(i, j int))
 
@@ -118,7 +118,7 @@ func LoadShuffled(files map[string]string, shuffle ShuffleFunc) (*Loaded, error)
 	// through recChecker.Import, exactly like an intra-module import, but are not
 	// part of the loaded module: they are excluded from pkgPaths, so they are
 	// neither type-checked eagerly nor returned in l.Packages. Seeded after the
-	// module files so module source positions are unaffected by this map's order.
+	// module files so module source positions are unaffected by this map’s order.
 	for ip, src := range fakeStd {
 		f, err := parser.ParseFile(fset, ip+"/std.go", src, parser.SkipObjectResolution)
 		if err != nil {

@@ -17,7 +17,7 @@ import (
 // solver in solve.go; the replay loop that consumes errRestart is in Set.
 
 // maxRestarts bounds pinning-revision restarts. Each restart commits a pinning
-// strictly larger than an existing instance's (or is preempted by a one-shot
+// strictly larger than an existing instance’s (or is preempted by a one-shot
 // refusal), so the bound is far above any real program.
 const maxRestarts = 100
 
@@ -82,7 +82,7 @@ func (s *solver) reviseOrSplit(p *discover.Provider, bind map[*types.TypeParam]t
 		// applyCommitment must find the largest form, or every replay merges
 		// with the smaller one and re-derives the extension forever, a
 		// staircase that runs a convergent program into the restart cap. The
-		// upgrade keeps a template's commitments pairwise incompatible, so the
+		// upgrade keeps a template’s commitments pairwise incompatible, so the
 		// first compatible commitment is the only one. A union the replay
 		// re-derives without extending anything is already in force: commit
 		// nothing, do not restart.

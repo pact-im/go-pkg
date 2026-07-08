@@ -164,7 +164,7 @@ func resolveDestination(pkgs []*discover.Package, importPathFlag, packageNameFla
 	if !token.IsIdentifier(packageName) || packageName == "_" {
 		return "", "", fmt.Errorf("%w: %q must be a valid Go identifier", errInvalidPackageName, packageName)
 	}
-	// Same-package mode: the destination's real name is known, and the generated
+	// Same-package mode: the destination’s real name is known, and the generated
 	// file must share it. Honoring a conflicting flag would emit an uncompilable
 	// package clause, so reject the mismatch rather than emit broken code. (Checked
 	// after validity so a malformed value is still reported as invalid.)

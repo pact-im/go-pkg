@@ -1,4 +1,4 @@
-// Package gotypes is plumb's go/types toolkit: the type-graph walks, structural
+// Package gotypes is plumb’s go/types toolkit: the type-graph walks, structural
 // matching, substitution, and predicates the core needs to reason about loaded
 // types. Everything here is a pure function of its go/types inputs (no plumb
 // concepts, no diagnostics), so it can sit below every phase and be tested on its
@@ -18,7 +18,7 @@ import (
 // distinct *types.Named values can denote the same type. Both wrap typeutil.Map,
 // giving typed keys and values so callers avoid the any-casts a bare typeutil.Map
 // forces. Once Go ships a types.Hash (go.dev/issues/69559) both can become plain
-// generic maps; see typeutil.Map's own TODO.
+// generic maps; see typeutil.Map’s own TODO.
 
 // Map is a type-keyed map with typed values. The zero value is an empty map ready
 // to use.
@@ -145,7 +145,7 @@ var comparableType = types.Universe.Lookup("comparable").Type()
 // ConstraintCollapsesToAny reports whether a type-parameter constraint renders as
 // the bare keyword "any": an interface with no methods and no embeddeds that is
 // not the predeclared comparable. emit renders such a constraint as "any" and
-// names neither it nor its package, so solve's reachability check must agree.
+// names neither it nor its package, so solve’s reachability check must agree.
 // This is the single predicate both consult, so they cannot drift (a collapsed
 // unexported constraint must not be rejected, and a rendered one must be imported).
 func ConstraintCollapsesToAny(c types.Type) bool {
@@ -179,7 +179,7 @@ func IsFailableCleanup(t types.Type) bool {
 }
 
 // IsUntyped reports whether t is an untyped basic type (e.g. an untyped
-// constant's default-less type).
+// constant’s default-less type).
 func IsUntyped(t types.Type) bool {
 	b, ok := t.(*types.Basic)
 	return ok && b.Info()&types.IsUntyped != 0
@@ -210,7 +210,7 @@ func KindOfType(t types.Type) string {
 	return "a non-struct type"
 }
 
-// GenericOrigin returns the generic origin of t. t is a provider's declared or
+// GenericOrigin returns the generic origin of t. t is a provider’s declared or
 // receiver type, which is always a *types.Named or a *types.Alias; any other
 // shape is a broken invariant and panics rather than passing t through, which
 // would mask the bug downstream.
@@ -225,7 +225,7 @@ func GenericOrigin(t types.Type) types.Type {
 }
 
 // TypeParamsOf returns the type parameters of t. As with GenericOrigin, t is a
-// provider's declared or receiver type and is always a *types.Named or a
+// provider’s declared or receiver type and is always a *types.Named or a
 // *types.Alias; any other shape panics.
 func TypeParamsOf(t types.Type) *types.TypeParamList {
 	switch u := t.(type) {
@@ -237,10 +237,10 @@ func TypeParamsOf(t types.Type) *types.TypeParamList {
 	panic(fmt.Sprintf("plumb: TypeParamsOf on %T; want a defined type or alias", t))
 }
 
-// TypeNameOf returns the declaring object of t. t is a provider's declared or
+// TypeNameOf returns the declaring object of t. t is a provider’s declared or
 // receiver type, always a *types.Named or a *types.Alias; any other shape
 // panics. Returning a nil *types.TypeName instead would wrap a nil pointer in a
-// non-nil types.Object interface (a typed-nil that slips past a caller's
+// non-nil types.Object interface (a typed-nil that slips past a caller’s
 // obj != nil guard and nil-panics on first use), so the invariant is enforced
 // here, where every caller then gets a non-nil result.
 func TypeNameOf(t types.Type) *types.TypeName {

@@ -23,7 +23,7 @@ import (
 // AND the two orders diverge in committed output).
 //
 // Every element sorted at those four sites is drawn from the input or value-output
-// types of the plan's instances (demand is the union of instance inputs; the
+// types of the plan’s instances (demand is the union of instance inputs; the
 // injector inputs and value outputs are subsets), so if the whole population of
 // instance types carries no CmpType-tie between non-Identical types, no sort site
 // can. This checks that population over lift-heavy fixtures, catching a tie by its

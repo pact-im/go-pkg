@@ -1,5 +1,5 @@
 // Package gopackages is the real package-loading boundary: it drives the Go
-// toolchain's package loader to turn patterns into the typed packages the pure
+// toolchain’s package loader to turn patterns into the typed packages the pure
 // core consumes. It is deliberately thin and kept out of the core so the core
 // stays a pure, deterministic function of already-loaded inputs.
 package gopackages
@@ -70,7 +70,7 @@ func Load(patterns []string, dir string) (*Result, error) {
 			// without NeedDeps, an unresolved-import "could not import") is tolerated
 			// and collected; a stale generated file about to be overwritten is the
 			// motivating case. An unresolved import that actually reaches the output
-			// is caught by the core's invalid-type check.
+			// is caught by the core’s invalid-type check.
 			//
 			// A per-package structural error (packages.ListError) is also tolerated
 			// here, not treated as fatal: whole-load breakage (a broken module, no
@@ -87,7 +87,7 @@ func Load(patterns []string, dir string) (*Result, error) {
 		// Expected to be populated for every root under NeedTypes|NeedTypesInfo:
 		// go/packages assigns Types and TypesInfo unconditionally, and the sole
 		// nil-TypesInfo path (sources missing) carries a ParseError the fatal branch
-		// above catches first. But this rests on an external tool's documented
+		// above catches first. But this rests on an external tool’s documented
 		// behavior, not a plumb invariant, so an unexpected nil here is a fatal load
 		// failure, not a broken internal invariant: skipping silently would hide
 		// every directive in the package, so fail on the returned-error side (the
