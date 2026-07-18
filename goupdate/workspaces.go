@@ -83,16 +83,8 @@ func syncWorkspace(w *workspace) error {
 			return err
 		}
 	}
-	return goworksync(w)
-}
-
-// goworksync removes current go.work.sum file and runs go work sync.
-func goworksync(w *workspace) error {
 	if w.Dir == "" {
 		return nil
-	}
-	if err := os.Remove(filepath.Join(w.Dir, "go.work.sum")); err != nil && !os.IsNotExist(err) {
-		return err
 	}
 	c := exec.Command("go", "work", "sync")
 	c.Stderr = os.Stderr

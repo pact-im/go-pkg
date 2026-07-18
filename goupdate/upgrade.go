@@ -63,12 +63,6 @@ func upgradeModules(w *workspace, s *state) (*state, error) {
 		if s, err = loadState(w.Root(), "all"); err != nil {
 			return nil, err
 		}
-
-		// Run go work sync again in case entries we do not actually
-		// need were added to go.work.sum.
-		if err := goworksync(w); err != nil {
-			return nil, err
-		}
 	}
 }
 
