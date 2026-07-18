@@ -14,14 +14,17 @@ runs:
         go-version-file: .go-version
     - name: Get Go cache paths
       id: go-cache
-      shell: bash
-      run: |-
-        gocache=$(go env GOCACHE)
-        gomodcache=$(go env GOMODCACHE)
-        cat >>"$GITHUB_OUTPUT" <<EOF
-        cache=$gocache
-        modcache=$gomodcache
-        EOF
+      uses: actions/github-script@v9.0.0
+      with:
+        script: |-
+          const { execFile } = require('child_process')
+          const { promisify } = require('util')
+          const { stdout } = await promisify(execFile)(
+            'go', ['env', '-json', 'GOCACHE', 'GOMODCACHE']
+          )
+          const goEnv = JSON.parse(stdout)
+          core.setOutput('cache', goEnv.GOCACHE)
+          core.setOutput('modcache', goEnv.GOMODCACHE)
     - name: Set up Go cache
       uses: actions/cache@v5.0.5
       with:
