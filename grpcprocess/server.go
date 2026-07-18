@@ -1,4 +1,3 @@
-// Package grpcprocess provides [process.Runner] wrapper for [grpc.Server].
 package grpcprocess
 
 import (
