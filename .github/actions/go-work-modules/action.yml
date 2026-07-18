@@ -1,0 +1,28 @@
+name: 'List Go workspace modules'
+description: 'List module directories from a Go workspace file'
+inputs:
+  workspace-file:
+    description: 'Path to the Go workspace file'
+    required: false
+    default: go.work.example
+outputs:
+  modules:
+    description: 'JSON array of module directories'
+    value: ${{ steps.list-modules.outputs.modules }}
+runs:
+  using: composite
+  steps:
+    - name: List modules
+      id: list-modules
+      uses: actions/github-script@v9.0.0
+      with:
+        script: |-
+          const { execFile } = require('child_process')
+          const { promisify } = require('util')
+          const workspaceFile = ${{ toJSON(inputs.workspace-file) }}
+          const { stdout } = await promisify(execFile)(
+            'go', ['work', 'edit', '-json', '--', workspaceFile]
+          )
+          const workspace = JSON.parse(stdout)
+          const modules = workspace.Use?.map(use => use.DiskPath) ?? []
+          core.setOutput('modules', modules)

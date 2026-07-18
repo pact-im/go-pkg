@@ -64,6 +64,7 @@ func parseLoaderConfig(t *testing.T, s string, cfg *loaderConfig) {
 }
 
 func TestLoadCorpus(t *testing.T) {
+	t.Setenv("GOWORK", "off")
 	paths, err := filepath.Glob(filepath.FromSlash("testdata/*.txtar"))
 	if err != nil {
 		t.Fatal(err)

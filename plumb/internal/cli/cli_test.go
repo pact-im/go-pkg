@@ -153,8 +153,7 @@ func TestRunEndToEnd(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	dir := t.TempDir()
-	mustWrite(t, filepath.Join(dir, "go.mod"), "module example.com/e2e\n\ngo 1.26.4\n")
+	dir := newTestModule(t)
 	appDir := filepath.Join(dir, "app")
 	if err := os.Mkdir(appDir, 0o755); err != nil {
 		t.Fatal(err)
@@ -197,8 +196,7 @@ func TestRunIgnoresTestFileDirectives(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	dir := t.TempDir()
-	mustWrite(t, filepath.Join(dir, "go.mod"), "module example.com/e2e\n\ngo 1.26.4\n")
+	dir := newTestModule(t)
 	appDir := filepath.Join(dir, "app")
 	if err := os.Mkdir(appDir, 0o755); err != nil {
 		t.Fatal(err)
@@ -238,8 +236,7 @@ func TestRunVerboseSurfacesToleratedErrors(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	dir := t.TempDir()
-	mustWrite(t, filepath.Join(dir, "go.mod"), "module example.com/e2e\n\ngo 1.26.4\n")
+	dir := newTestModule(t)
 	appDir := filepath.Join(dir, "app")
 	if err := os.Mkdir(appDir, 0o755); err != nil {
 		t.Fatal(err)
@@ -292,8 +289,7 @@ func TestRunWritesToStdout(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	dir := t.TempDir()
-	mustWrite(t, filepath.Join(dir, "go.mod"), "module example.com/e2e\n\ngo 1.26.4\n")
+	dir := newTestModule(t)
 	appDir := filepath.Join(dir, "app")
 	if err := os.Mkdir(appDir, 0o755); err != nil {
 		t.Fatal(err)
@@ -324,8 +320,7 @@ func NewServer() *Server { return &Server{} }
 // (writefile never creates intermediate directories), so Run reports the failure
 // on stderr and exits 1 without leaving any file behind.
 func TestRunWriteFailureReturnsError(t *testing.T) {
-	dir := t.TempDir()
-	mustWrite(t, filepath.Join(dir, "go.mod"), "module example.com/e2e\n\ngo 1.26.4\n")
+	dir := newTestModule(t)
 	appDir := filepath.Join(dir, "app")
 	if err := os.Mkdir(appDir, 0o755); err != nil {
 		t.Fatal(err)
@@ -364,4 +359,12 @@ func mustWrite(t *testing.T, path, content string) {
 	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
 		t.Fatal(err)
 	}
+}
+
+func newTestModule(t *testing.T) string {
+	t.Helper()
+	t.Setenv("GOWORK", "off")
+	dir := t.TempDir()
+	mustWrite(t, filepath.Join(dir, "go.mod"), "module example.com/e2e\n\ngo 1.26.4\n")
+	return dir
 }

@@ -13,10 +13,11 @@ import (
 	"path"
 	"path/filepath"
 	"slices"
+	"strings"
 )
 
 const usage = `Usage: go run release.go [-dry-run=false] <version>
-Example: GOPRIVATE=go.pact.im go run release.go v0.0.1`
+Example: GOWORK="$PWD/go.work.example" GOPRIVATE=go.pact.im go run release.go v0.0.1`
 
 const fakeVersion = "v0.0.0-00010101000000-000000000000"
 
@@ -144,6 +145,14 @@ outer:
 			return nil, fmt.Errorf("failed to parse go.mod in %q: %w", modDir, err)
 		}
 
+		modName := modInfo.Module.Path
+
+		// Modules in the _tools namespace contain repository tooling
+		// and are not published.
+		if slices.Contains(strings.Split(modName, "/"), "_tools") {
+			continue
+		}
+
 		var deps []string
 		for _, req := range modInfo.Require {
 			// We use packages with fake versions for integration
@@ -154,7 +163,6 @@ outer:
 			deps = append(deps, req.Path)
 		}
 
-		modName := modInfo.Module.Path
 		result[modName] = &Module{
 			Name: modName,
 			Path: modDir,

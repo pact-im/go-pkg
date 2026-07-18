@@ -12,13 +12,24 @@ jobs:
         uses: actions/checkout@v6.0.3
       - name: Set up Go
         uses: ./.github/actions/setup-go-with-cache
-      - name: Install mockgen
-        run: go install go.uber.org/mock/mockgen@v0.6.0
+      - name: Detect modules
+        id: detect-modules
+        uses: ./.github/actions/go-work-modules
+      - name: Check workspace modules
+        run: GOWORK="$PWD/go.work.example" go work use -r .
       - name: Run go mod tidy
-        run: eval "$(go list -m -f '(cd {{printf "%q" .Dir}} && go mod tidy)')"
+        uses: actions/github-script@v9.0.0
+        with:
+          script: |-
+            const modules = JSON.parse(${{ toJSON(steps.detect-modules.outputs.modules) }})
+            for (const module of modules) {
+              await exec.exec('go', ['-C', module, 'mod', 'tidy', '-diff'], {
+                env: { ...process.env, GOWORK: 'off' },
+              })
+            }
       - name: Run go work sync
-        run: go work sync
+        run: GOWORK="$PWD/go.work.example" go work sync
       - name: Run go generate
-        run: eval "$(go list -m -f '(cd {{printf "%q" .Dir}} && go generate ./...)')"
+        run: GOWORK="$PWD/go.work.example" go generate work
       - name: Check git diff
         run: git add --all --intent-to-add && git diff --exit-code

@@ -7,6 +7,8 @@ on:
 jobs:
   test:
     runs-on: ${{ matrix.runner }}
+    env:
+      GOWORK: ${{ github.workspace }}/go.work.example
     strategy:
       fail-fast: false
       matrix:
@@ -20,4 +22,36 @@ jobs:
       - name: Set up Go
         uses: ./.github/actions/setup-go-with-cache
       - name: Run tests
-        run: go test -race go.pact.im/x/...
+        run: go test -race work
+
+  module-test:
+    runs-on: ubuntu-latest
+    needs: detect-modules
+    strategy:
+      fail-fast: false
+      matrix:
+        module: ${{ fromJSON(needs.detect-modules.outputs.modules) }}
+        exclude:
+          - module: ./_tools
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6.0.3
+      - name: Set up Go
+        uses: ./.github/actions/setup-go-with-cache
+      - name: Run module tests
+        env:
+          GOWORK: "off"
+        run: go -C "${{ matrix.module }}" test -race work
+
+  detect-modules:
+    runs-on: ubuntu-latest
+    outputs:
+      modules: ${{ steps.detect-modules.outputs.modules }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6.0.3
+      - name: Set up Go
+        uses: ./.github/actions/setup-go-with-cache
+      - name: Detect modules
+        id: detect-modules
+        uses: ./.github/actions/go-work-modules

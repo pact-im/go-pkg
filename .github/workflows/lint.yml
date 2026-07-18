@@ -12,6 +12,8 @@ jobs:
       fail-fast: false
       matrix:
         module: ${{ fromJSON(needs.detect-modules.outputs.modules) }}
+        exclude:
+          - module: ./_tools
     steps:
       - name: Checkout code
         uses: actions/checkout@v6.0.3
@@ -19,6 +21,8 @@ jobs:
         uses: ./.github/actions/setup-go-with-cache
       - name: Run golangci-lint for ${{ matrix.module }}
         uses: golangci/golangci-lint-action@v9.2.1
+        env:
+          GOWORK: "off"
         with:
           version: v2.12.2
           working-directory: ${{ matrix.module }}
@@ -26,19 +30,15 @@ jobs:
   detect-modules:
     runs-on: ubuntu-latest
     outputs:
-      modules: ${{ steps.list-modules.outputs.modules }}
+      modules: ${{ steps.detect-modules.outputs.modules }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v6.0.3
       - name: Set up Go
         uses: ./.github/actions/setup-go-with-cache
-      - name: List modules in Go workspace
-        id: list-modules
-        run: |-
-          modules=$(go work edit -json | jq -c -r '[.Use[].DiskPath]')
-          cat >>"$GITHUB_OUTPUT" <<EOF
-          modules=$modules
-          EOF
+      - name: Detect modules
+        id: detect-modules
+        uses: ./.github/actions/go-work-modules
 
   commitlint:
     runs-on: ubuntu-latest
