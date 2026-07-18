@@ -10,8 +10,20 @@ on:
     - cron: '0 6 * * 1'
   workflow_dispatch:
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
 jobs:
-  build:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     env:
       GOWORK: ${{ github.workspace }}/go.work.example
@@ -20,6 +32,8 @@ jobs:
         uses: actions/checkout@v6.0.3
       - name: Set up Go
         uses: ./.github/actions/setup-go-with-cache
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v6.0.0
       - name: Build pages
         run: |-
           go tool vangen -out build
@@ -38,14 +52,11 @@ jobs:
           <pre>404 page not found</pre>
           EOF
           echo go.pact.im >build/CNAME
-      - name: Push branch
-        working-directory: build
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |-
-          git init -q -b gh-pages
-          git config user.name actions-user
-          git config user.email actions@github.com
-          git add -A
-          git commit -q -m "${GITHUB_SHA}"
-          git push -f -u "https://${GITHUB_ACTOR}:${GITHUB_TOKEN}@${GITHUB_SERVER_URL#https://}/${GITHUB_REPOSITORY}.git" gh-pages
+      - name: Upload GitHub Pages artifact
+        uses: actions/upload-pages-artifact@v5.0.0
+        with:
+          path: build
+          include-hidden-files: true
+      - name: Deploy GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5.0.0
