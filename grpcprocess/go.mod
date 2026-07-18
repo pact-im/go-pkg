@@ -3,7 +3,7 @@ module go.pact.im/x/grpcprocess
 go 1.26.0
 
 require (
-	go.pact.im/x/netchan v0.0.22
+	go.pact.im/x/netchan v0.0.23
 	go.pact.im/x/process v0.0.22
 	google.golang.org/grpc v1.82.0
 )
