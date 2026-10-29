@@ -5,6 +5,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 // ErrNotConnected is an error that is returned if database handle is not
@@ -50,6 +51,10 @@ func (errRows) RawValues() [][]byte {
 }
 
 func (errRows) Conn() *pgx.Conn {
+	return nil
+}
+
+func (errRows) TypeMap() *pgtype.Map {
 	return nil
 }
 
