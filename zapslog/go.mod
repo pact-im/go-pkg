@@ -1,6 +1,6 @@
 module go.pact.im/x/zapslog
 
-go 1.26.0
+go 1.27.0
 
 require go.uber.org/zap v1.28.0
 

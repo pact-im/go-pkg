@@ -1,6 +1,6 @@
 module go.pact.im/x/_tools
 
-go 1.26.0
+go 1.27.0
 
 tool (
 	4d63.com/vangen
