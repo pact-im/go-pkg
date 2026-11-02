@@ -68,6 +68,9 @@ func (s *subster) subst(t types.Type) types.Type {
 			embeds = append(embeds, s.subst(etyp))
 		}
 		ni := types.NewInterfaceType(methods, embeds)
+		if u.IsImplicit() {
+			ni.MarkImplicit()
+		}
 		ni.Complete()
 		return ni
 	case *types.Signature:

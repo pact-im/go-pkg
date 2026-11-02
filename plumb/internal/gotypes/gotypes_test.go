@@ -465,6 +465,23 @@ func TestSubst(t *testing.T) {
 			t.Fatalf("Subst(*A, A->*T) = %v; want **T", got)
 		}
 	})
+	t.Run("preserves interface form", func(t *testing.T) {
+		want := types.NewSlice(types.Typ[types.Int])
+		for _, implicit := range []bool{false, true} {
+			constraint := types.NewInterfaceType(nil, []types.Type{types.NewSlice(A)})
+			if implicit {
+				constraint.MarkImplicit()
+			}
+			constraint.Complete()
+			got := gotypes.Subst(ctxt, constraint, map[*types.TypeParam]types.Type{A: types.Typ[types.Int]}).(*types.Interface)
+			if got.IsImplicit() != implicit {
+				t.Errorf("IsImplicit() = %t; want %t", got.IsImplicit(), implicit)
+			}
+			if !types.Identical(got.EmbeddedType(0), want) {
+				t.Errorf("embedded type = %v; want %v", got.EmbeddedType(0), want)
+			}
+		}
+	})
 }
 
 // TestNamedAliasHelpersPanicOnOtherShapes pins the invariant enforced by
