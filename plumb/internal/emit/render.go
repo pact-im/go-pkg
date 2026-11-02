@@ -31,6 +31,7 @@ func renderInstance(in *solve.Instance, q *qualifier, args []string) string {
 		b.WriteString(asReceiver(args[0]))
 		b.WriteByte('.')
 		b.WriteString(p.Fn.Name())
+		writeTypeArgs(&b, q, in.Targs)
 		b.WriteByte('(')
 		writeArgs(&b, args[1:], p.Fn.Type().(*types.Signature).Variadic())
 		b.WriteByte(')')

@@ -16,7 +16,7 @@ func (s *solver) checkReachability(pl *Plan) *diag.Error {
 		p := in.Prov
 		// A type plumb must render that does not type-check is fatal (distinct
 		// from a tolerated stale-output type error, which never reaches here).
-		for _, ta := range in.Targs {
+		for ta := range in.typeArgs {
 			if gotypes.ContainsInvalid(ta) {
 				return diag.Errorf(p.Pos, diag.ErrInvalidType, "provider %s is instantiated at %s", p.Name, gotypes.TypeName(ta))
 			}
@@ -34,18 +34,11 @@ func (s *solver) checkReachability(pl *Plan) *diag.Error {
 				return diag.Errorf(p.Pos, diag.ErrUnexportedProvider, "provider %s referenced from package %q; export it or generate into its own package", p.Name, s.destPath)
 			}
 		}
-		// Type arguments are written in the body only for the kinds whose render
-		// names them: a function call (Provider[Targ](...)) and a struct literal
-		// (Declared[Targ]{...}). A method or field renders against an already-typed
-		// receiver value (cache.Get(), foo.Bar) and writes no type arguments, so a
-		// method/field type argument that never surfaces in the injector signature
-		// is never named; one that does surface is caught by the signature walk
-		// below. Checking it here regardless would reject valid programs.
-		if p.Kind == discover.KindFunc || p.Kind == discover.KindStruct {
-			for _, ta := range in.Targs {
-				if obj, bad := findUnreachable(ta, s.destPath); bad {
-					return diag.Errorf(p.Pos, diag.ErrUnreachableType, "type argument %s of provider %s, from package %q (%s is unexported)", gotypes.TypeName(ta), p.Name, obj.Pkg().Path(), obj.Name())
-				}
+		// Check the same arguments rendering names. Receiver arguments carried
+		// only by local values remain exempt; signature types are checked below.
+		for _, ta := range in.Targs {
+			if obj, bad := findUnreachable(ta, s.destPath); bad {
+				return diag.Errorf(p.Pos, diag.ErrUnreachableType, "type argument %s of provider %s, from package %q (%s is unexported)", gotypes.TypeName(ta), p.Name, obj.Pkg().Path(), obj.Name())
 			}
 		}
 		// The conversion’s target type is written in the body.

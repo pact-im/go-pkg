@@ -1,0 +1,25 @@
+The generated function must import foreign to call
+factory.Make[foreign.Item](). Its parameters and return values do not mention
+foreign.Item, so that call is the only reason to include the import.
+-- config --
+import-path: example.com/app
+package-name: app
+output: plumb_gen.go
+-- example.com/foreign/item.go --
+package foreign
+
+type Item struct{}
+-- example.com/x/x.go --
+package x
+
+import "example.com/foreign"
+
+type Factory struct{}
+type Box[T any] struct{}
+type Out struct{}
+
+//plumb:build
+func (Factory) Make[T any]() Box[T] { return Box[T]{} }
+
+//plumb:build
+func Use(b Box[foreign.Item]) *Out { return &Out{} }

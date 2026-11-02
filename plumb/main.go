@@ -208,8 +208,8 @@
 // requires a Reporter and provides a *Summary. The generated code calls the method on
 // the receiver value (db.Store(), reporter.Report()), so the receiver is never
 // package-qualified, but a method must be exported when the generated file lives in a
-// different package. Methods on generic receivers are supported (see “Generic
-// providers”, below).
+// different package. Methods may use a generic receiver, declare their own type
+// parameters, or both (see “Generic providers”, below).
 //
 // # Generic providers
 //
@@ -257,6 +257,14 @@
 //		//plumb:build
 //		Bar Baz[T]
 //	}
+//
+// A method with its own type parameters is a template, equivalent to
+// func Make[T any](Factory) Box[T], with the receiver as its first input:
+//
+//	//plumb:build
+//	func (f Factory) Make[T any]() Box[T] { ... }
+//
+// If another provider needs Box[User], plumb calls factory.Make[User]().
 //
 // A method on a generic basic interface (its type set is exactly its methods) is also
 // a template, equivalent to func(Source[T]) Result[T], with the interface as the input:
@@ -533,9 +541,9 @@
 // distinct type.
 //
 // Method providers on generic constraint interfaces are not supported either, since a
-// constraint type cannot be a value. Functions, generic-receiver methods, generic
-// struct fields, and generic basic interfaces are all supported (see “Generic
-// providers”, above).
+// constraint type cannot be a value. Generic functions, methods (including methods
+// that declare their own type parameters), struct fields, and basic interfaces are
+// all supported (see “Generic providers”, above).
 //
 // # Example
 //

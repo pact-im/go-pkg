@@ -48,11 +48,23 @@ type InputSlot struct {
 // pinning.
 type Instance struct {
 	Prov    *discover.Provider // the source provider this instantiates
-	Targs   []types.Type       // type arguments, aligned with Prov.Tparams; nil if concrete
+	Rargs   []types.Type       // receiver type arguments, aligned with Prov.Rparams
+	Targs   []types.Type       // explicit type arguments, aligned with Prov.Tparams
 	Inputs  []InputSlot        // consumed types, in call order
 	Results []ResultSlot       // classified results, in result order
 
 	pos token.Position
+}
+
+// typeArgs yields receiver arguments followed by declaration arguments.
+func (in *Instance) typeArgs(yield func(types.Type) bool) {
+	for _, args := range [][]types.Type{in.Rargs, in.Targs} {
+		for _, arg := range args {
+			if !yield(arg) {
+				return
+			}
+		}
+	}
 }
 
 // valueOuts returns the value-output types of the instance, in result order.
@@ -76,34 +88,33 @@ func (in *Instance) InputTypes() []types.Type {
 }
 
 // instantiate produces the concrete instance of p for the given type arguments
-// (empty for a concrete provider): it classifies the provider’s inputs and
-// results, with no rendering: emit decides how each kind is written. It returns
+// (receiver arguments followed by declaration arguments, empty for a concrete
+// provider): it classifies the provider’s inputs and results, with no rendering:
+// emit decides how each kind is written. It returns
 // a located error (*diag.Error) for user-visible problems (e.g. multiple error
 // results), and a non-nil miss error (the type-checker’s own *types.ArgumentError)
-// when the instantiation is infeasible because targs violate a type-parameter
+// when the instantiation is infeasible because arguments violate a type-parameter
 // constraint, which the solver treats as a near-miss non-match. Both nil means a
 // matched instance. The per-kind helpers panic on a post-instantiation structural
 // failure (a method/field that vanished), which is unreachable for valid input.
-func instantiate(p *discover.Provider, ctxt *types.Context, targs []types.Type) (in *Instance, err *diag.Error, miss error) {
-	in = &Instance{Prov: p, Targs: targs, pos: p.Pos}
+func instantiate(p *discover.Provider, ctxt *types.Context, args []types.Type) (in *Instance, err *diag.Error, miss error) {
+	rargs, targs := args[:p.Rparams.Len()], args[p.Rparams.Len():]
+	in = &Instance{Prov: p, Rargs: rargs, Targs: targs, pos: p.Pos}
 	switch p.Kind {
-	case discover.KindFunc:
-		sig, e := instSignature(ctxt, p.Fn.Type().(*types.Signature), targs)
+	case discover.KindFunc, discover.KindMethod:
+		var sig *types.Signature
+		var e error
+		if p.Kind == discover.KindMethod {
+			var receiver types.Type
+			receiver, sig, e = methodSignature(p, ctxt, rargs, targs)
+			in.Inputs = append(in.Inputs, InputSlot{typ: receiver})
+		} else {
+			sig, e = instSignature(ctxt, p.Fn.Type().(*types.Signature), targs)
+		}
 		if e != nil {
 			return nil, nil, e
 		}
-		classifyParams(in, sig, 0)
-		if err := classifyResults(p, in, sig); err != nil {
-			return nil, err, nil
-		}
-	case discover.KindMethod:
-		recvType, sig, e := methodSignature(p, ctxt, targs)
-		if e != nil {
-			return nil, nil, e
-		}
-		// receiver is the first input.
-		in.Inputs = append(in.Inputs, InputSlot{typ: recvType})
-		classifyParams(in, sig, 0)
+		classifyParams(in, sig)
 		if err := classifyResults(p, in, sig); err != nil {
 			return nil, err, nil
 		}
@@ -113,7 +124,7 @@ func instantiate(p *discover.Provider, ctxt *types.Context, targs []types.Type) 
 		in.Inputs = []InputSlot{{typ: p.ConvertFrom}}
 		in.Results = []ResultSlot{{Kind: ResultKindValue, Typ: p.ConvertTo}}
 	case discover.KindField:
-		fieldType, recvBase, e := fieldTypes(p, ctxt, targs)
+		fieldType, recvBase, e := fieldTypes(p, ctxt, rargs)
 		if e != nil {
 			return nil, nil, e
 		}
@@ -147,45 +158,47 @@ func instSignature(ctxt *types.Context, sig *types.Signature, targs []types.Type
 	return t.(*types.Signature), nil
 }
 
-// methodSignature returns the receiver input type and the (possibly
-// instantiated) signature of a method provider, whether the receiver is a
-// concrete named type or an interface. For a concrete receiver the input is the
-// method’s own (value- or pointer-) receiver type; for an interface it is the
-// interface named type itself, instantiated at targs. A non-nil error is the
-// constraint near-miss reason.
-func methodSignature(p *discover.Provider, ctxt *types.Context, targs []types.Type) (recvType types.Type, sig *types.Signature, _ error) {
+// methodSignature instantiates the receiver, then the method on that receiver.
+// Go substitutes receiver arguments into the method’s constraints before checking
+// its own arguments. Interface methods use the declared owner as their input,
+// preserving aliases to anonymous interfaces.
+func methodSignature(p *discover.Provider, ctxt *types.Context, rargs, targs []types.Type) (types.Type, *types.Signature, error) {
 	owner := p.Owner
-	if len(targs) > 0 {
-		t, e := types.Instantiate(ctxt, gotypes.GenericOrigin(p.Owner), targs, true)
-		if e != nil {
-			return nil, nil, e
+	if len(rargs) > 0 {
+		var err error
+		owner, err = types.Instantiate(ctxt, gotypes.GenericOrigin(owner), rargs, true)
+		if err != nil {
+			return nil, nil, err
 		}
-		owner = t
 	}
 	if iface, ok := owner.Underlying().(*types.Interface); ok {
-		for m := range iface.Methods() {
-			if m.Name() == p.Fn.Name() {
-				return owner, m.Type().(*types.Signature), nil
+		for method := range iface.Methods() {
+			if method.Name() == p.Fn.Name() {
+				return owner, method.Type().(*types.Signature), nil
 			}
 		}
-		panic(fmt.Sprintf("plumb: method %s of provider %s vanished after instantiation", p.Fn.Name(), p.Name))
+	} else {
+		for method := range owner.(*types.Named).Methods() {
+			if method.Name() == p.Fn.Name() {
+				sig, err := instSignature(ctxt, method.Type().(*types.Signature), targs)
+				if err != nil {
+					return nil, nil, err
+				}
+				return sig.Recv().Type(), sig, nil
+			}
+		}
 	}
-	m := lookupMethod(owner.(*types.Named), p.Fn.Name())
-	if m == nil {
-		panic(fmt.Sprintf("plumb: method %s of provider %s vanished after instantiation", p.Fn.Name(), p.Name))
-	}
-	msig := m.Type().(*types.Signature)
-	return msig.Recv().Type(), msig, nil
+	panic(fmt.Sprintf("plumb: method %s of provider %s vanished after instantiation", p.Fn.Name(), p.Name))
 }
 
 // fieldTypes returns the field’s type and the (possibly instantiated) receiver
 // type for a field provider: a *types.Named, or a *types.Alias when the field is
 // on an alias to an anonymous struct. A non-nil error is the constraint near-miss
 // reason.
-func fieldTypes(p *discover.Provider, ctxt *types.Context, targs []types.Type) (types.Type, types.Type, error) {
+func fieldTypes(p *discover.Provider, ctxt *types.Context, rargs []types.Type) (types.Type, types.Type, error) {
 	recv := p.Owner
-	if len(targs) > 0 {
-		t, e := types.Instantiate(ctxt, gotypes.GenericOrigin(p.Owner), targs, true)
+	if len(rargs) > 0 {
+		t, e := types.Instantiate(ctxt, gotypes.GenericOrigin(p.Owner), rargs, true)
 		if e != nil {
 			return nil, nil, e
 		}
@@ -229,13 +242,11 @@ func structFields(p *discover.Provider, ctxt *types.Context, targs []types.Type)
 	return declared, fields, nil
 }
 
-// classifyParams appends the signature parameters (starting at index start) as
-// inputs. A variadic parameter needs nothing special here: the tuple already
-// types it as its slice ([]T), and the call-site spread (x...) is emit’s job.
-func classifyParams(in *Instance, sig *types.Signature, start int) {
-	params := sig.Params()
-	for i := start; i < params.Len(); i++ {
-		v := params.At(i)
+// classifyParams appends the signature parameters as inputs. A variadic parameter
+// needs nothing special here: the tuple already types it as its slice ([]T), and
+// the call-site spread (x...) is emit’s job.
+func classifyParams(in *Instance, sig *types.Signature) {
+	for v := range sig.Params().Variables() {
 		in.Inputs = append(in.Inputs, InputSlot{typ: v.Type(), Name: v.Name()})
 	}
 }
@@ -260,15 +271,6 @@ func classifyResults(p *discover.Provider, in *Instance, sig *types.Signature) *
 			in.Results = append(in.Results, ResultSlot{Kind: ResultKindCleanup, Failable: true})
 		default:
 			in.Results = append(in.Results, ResultSlot{Kind: ResultKindValue, Typ: t})
-		}
-	}
-	return nil
-}
-
-func lookupMethod(named *types.Named, name string) *types.Func {
-	for m := range named.Methods() {
-		if m.Name() == name {
-			return m
 		}
 	}
 	return nil

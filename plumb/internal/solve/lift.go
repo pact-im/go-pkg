@@ -13,38 +13,29 @@ import (
 	"go.pact.im/x/plumb/internal/gotypes"
 )
 
-// liftAll lifts every type parameter of an anchor template, returning the fresh
-// parameters as type arguments.
-func (s *solver) liftAll(p *discover.Provider) []types.Type {
-	targs := make([]types.Type, p.Tparams.Len())
-	fresh := make([]int, p.Tparams.Len())
-	for i := range p.Tparams.Len() {
-		targs[i] = s.liftOne(p.Tparams.At(i), p)
-		fresh[i] = i
+// liftTypeParams uses supplied bindings and lifts the remaining parameters.
+// Constraints are rewritten after all bindings are known.
+func (s *solver) liftTypeParams(p *discover.Provider, bind map[*types.TypeParam]types.Type) []types.Type {
+	count := p.Rparams.Len() + p.Tparams.Len()
+	targs := make([]types.Type, 0, count)
+	resolved := make(map[*types.TypeParam]types.Type, count)
+	var fresh []*types.TypeParam
+	for param := range p.TypeParams {
+		arg, bound := bind[param]
+		if !bound {
+			arg = s.liftOne(param, p)
+			fresh = append(fresh, param)
+		}
+		resolved[param] = arg
+		targs = append(targs, arg)
 	}
-	s.setLiftedConstraints(p, targs, fresh)
-	return targs
-}
-
-// setLiftedConstraints rewrites the constraint of each freshly lifted parameter
-// (the indices in fresh) so that references to the template’s other parameters
-// point at their resolved targets: concrete types for pinned parameters, the
-// co-lifted fresh parameters for the rest. The original template parameters are
-// not in scope in the generated header, so an inter-parameter constraint such as
-// U interface{ ~[]T } must travel as ~[]<pin or lifted T>, not the verbatim T.
-// Leaving it verbatim renders a dangling identifier (uncompilable) and makes
-// types.Instantiate’s validation reject the lift.
-func (s *solver) setLiftedConstraints(p *discover.Provider, targs []types.Type, fresh []int) {
-	m := make(map[*types.TypeParam]types.Type, p.Tparams.Len())
-	for i := range p.Tparams.Len() {
-		m[p.Tparams.At(i)] = targs[i]
-	}
-	for _, i := range fresh {
-		lifted := targs[i].(*types.TypeParam)
-		if c := p.Tparams.At(i).Constraint(); c != nil {
-			lifted.SetConstraint(gotypes.Subst(s.ctxt, c, m))
+	for _, param := range fresh {
+		lifted := resolved[param].(*types.TypeParam)
+		if c := param.Constraint(); c != nil {
+			lifted.SetConstraint(gotypes.Subst(s.ctxt, c, resolved))
 		}
 	}
+	return targs
 }
 
 // liftOne creates a fresh injector type parameter standing in for an unpinned
@@ -67,7 +58,7 @@ func (s *solver) liftOne(orig *types.TypeParam, p *discover.Provider) *types.Typ
 	tp := types.NewTypeParam(tn, nil)
 	tp.SetConstraint(orig.Constraint())
 	s.liftedNames[name] = true
-	s.liftedMeta = append(s.liftedMeta, liftedParam{tp: tp, pos: p.Pos, idx: orig.Index()})
+	s.liftedMeta = append(s.liftedMeta, liftedParam{tp: tp, origin: orig, pos: p.Pos})
 	return tp
 }
 
@@ -97,10 +88,13 @@ func (s *solver) freshLiftedName(base string) string {
 }
 
 // orderedLifted returns the lifted parameters in deterministic header order:
-// by the source position of their origin template, then parameter index.
+// by provider position, then parameter declaration position.
 func (s *solver) orderedLifted() []*types.TypeParam {
 	meta := slices.SortedStableFunc(slices.Values(s.liftedMeta), func(a, b liftedParam) int {
-		return cmp.Or(diag.CmpPos(a.pos, b.pos), cmp.Compare(a.idx, b.idx))
+		return cmp.Or(
+			diag.CmpPos(a.pos, b.pos),
+			cmp.Compare(a.origin.Obj().Pos(), b.origin.Obj().Pos()),
+		)
 	})
 	out := make([]*types.TypeParam, len(meta))
 	for i, m := range meta {

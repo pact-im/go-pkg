@@ -1,0 +1,24 @@
+Take the address of the provided Factory value and call Make[int](values...)
+with the supplied slice. Preserve its error and cleanup results, including
+running the cleanup if Use fails. The cleanup can also return an error.
+-- config --
+import-path: example.com/app
+package-name: app
+output: plumb_gen.go
+-- example.com/app/app.go --
+package app
+
+type Factory struct{}
+type Box[T any] struct{}
+type Out struct{}
+
+//plumb:build
+var DefaultFactory = Factory{}
+
+//plumb:build
+func (f *Factory) Make[T any](values ...T) (Box[T], func() error, error) {
+	return Box[T]{}, func() error { return nil }, nil
+}
+
+//plumb:build
+func Use(b Box[int]) (*Out, error) { return &Out{}, nil }

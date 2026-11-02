@@ -502,7 +502,8 @@ type Reporter interface {
 // requires a Reporter, provides a *Summary; emitted as reporter.Report()
 ```
 
-Methods on **generic** receivers are supported (see [§5](#generic-methods-fields-and-interfaces)).
+Methods may use a **generic receiver**, declare their **own type parameters**, or both
+(see [§5](#generic-methods-fields-and-interfaces)).
 
 ## Variable providers
 
@@ -1075,9 +1076,36 @@ own type error: invalid input is outside the compilable-output guarantee.
 
 ## Generic methods, fields, and interfaces
 
-- **Generic-receiver methods** are supported. The receiver value already carries its type
+- **Methods on generic receivers** are supported. The receiver value already carries its type
   arguments, so the call needs none: `func (c *Cache[T]) Snapshot() *Snapshot[T]` emits
   `cache.Snapshot()`.
+- **Methods that declare type parameters** are supported. For wiring, the receiver is an
+  ordinary first input, and parameters from the receiver type and the method form one
+  list, in that order:
+
+  ```go
+  type Factory[R any] struct{}
+  type Box[R, S any] struct{}
+
+  //plumb:build
+  func (f Factory[R]) Make[S ~[]R]() Box[R, S] { ... }
+  ```
+
+  This has the same dependencies as `func Make[R any, S ~[]R](Factory[R]) Box[R, S]`.
+  A consumer of `Box[int, []int]` determines both arguments: the receiver is
+  `Factory[int]`, and the generated call is `factory.Make[[]int]()`. Only the method’s
+  own arguments are written after the selector. The receiver value carries the rest.
+
+  The usual rules for generic providers apply to the combined list: consumers determine
+  arguments, parameters that remain free move to the generated function, and constraints
+  referring to other parameters follow their substitutions. A parameter absent from the
+  method’s inputs and results also moves to the generated function, so the method call
+  can pass it explicitly. Unused templates, ambiguous providers, and bare `T` or `*T`
+  results receive the same diagnostics as generic functions.
+
+  Every explicit method argument must be reachable from the generated package, even if
+  it is used only inside the generated body. A receiver argument carried only by local
+  values need not be named and remains exempt from that check.
 - **Fields on generic structs** are templates, equivalent to `func(Foo[T]) Baz[T]`, with the
   struct as input (taken by value or pointer like any field provider):
 
@@ -1736,6 +1764,10 @@ boundary has to be exported and reachable:
 - **Unexported provider** referenced from the generated package: rejected.
 - **Unexported type in the inferred signature** (an input/output type, or a type argument
   of a generic instantiation that surfaces in the signature): rejected.
+- **Unexported type in an explicit type argument** to a function, method, or struct
+  provider: rejected even if it appears only in the generated body. A receiver’s type
+  arguments are not written at a method call, so they are checked only when they appear
+  in the inferred signature or another expression that names them.
 - **Unexported constraint** on a lifted free type parameter (a named constraint, or a
   literal interface/union mentioning an unexported type): rejected, since the constraint
   appears in the generated header.

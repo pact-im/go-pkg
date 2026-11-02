@@ -1,0 +1,21 @@
+Make’s constraint accepts int but rejects string. Call Make[int]() to supply
+UseGood, and accept Box[string] as a parameter of the generated function to
+supply UseInput.
+-- config --
+import-path: example.com/app
+package-name: app
+output: plumb_gen.go
+-- example.com/app/app.go --
+package app
+
+type Factory struct{}
+type Box[T any] struct{}
+
+//plumb:build
+func (Factory) Make[T ~int]() Box[T] { return Box[T]{} }
+
+//plumb:build
+func UseGood(b Box[int]) bool { return true }
+
+//plumb:build
+func UseInput(b Box[string]) string { return "" }

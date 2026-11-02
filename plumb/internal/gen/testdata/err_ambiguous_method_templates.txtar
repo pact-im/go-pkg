@@ -1,0 +1,20 @@
+A generic method and a generic function can both produce the Box[int] needed by
+Use. Reject the ambiguity rather than choosing one provider based on its kind.
+-- config --
+import-path: example.com/app
+package-name: app
+error-is: ErrAmbiguousTemplates
+-- example.com/app/app.go --
+package app
+
+type Factory struct{}
+type Box[T any] struct{}
+
+//plumb:build
+func (Factory) Make[T any]() Box[T] { return Box[T]{} }
+
+//plumb:build
+func MakeOther[T any]() Box[T] { return Box[T]{} }
+
+//plumb:build
+func Use(b Box[int]) bool { return true }

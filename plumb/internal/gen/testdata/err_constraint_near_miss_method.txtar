@@ -1,0 +1,18 @@
+Use needs Box[string], but Make requires its type argument to satisfy ~int.
+Reject the unused method and explain why string does not satisfy its
+constraint.
+-- config --
+import-path: example.com/app
+package-name: app
+error-is: ErrUnusedTemplate
+-- example.com/app/app.go --
+package app
+
+type Factory struct{}
+type Box[T any] struct{}
+
+//plumb:build
+func (Factory) Make[T ~int]() Box[T] { return Box[T]{} }
+
+//plumb:build
+func Use(b Box[string]) bool { return true }

@@ -127,6 +127,22 @@ const DefaultPort Port = 8080`},
 func NewPool[T any]() *Pool[T] { return &Pool[T]{} }
 //plumb:build
 func PoolSize[T any](p *Pool[T]) int { return 0 }`},
+	{a: `type Factory[A comparable, B ~[]A] struct{}
+type Box[A, B any] struct{}
+//plumb:build
+func (Factory[R, Q]) Make[S ~map[R]Q]() Box[R, S] { return Box[R, S]{} }
+//plumb:build
+func Use(b Box[int, map[int][]int]) bool { return true }`},
+	{
+		a: `type hidden[T any] struct{}
+type Public[T any] = hidden[T]
+type Factory struct{}
+//plumb:build
+func (Factory) Make[T any]() Public[T] { return Public[T]{} }`,
+		b: `import "example.com/a"
+//plumb:build
+func Use(value a.Public[int]) bool { return true }`,
+	},
 	{a: `type Server struct {
 	//plumb:build
 	Addr string

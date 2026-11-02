@@ -194,9 +194,9 @@ type solver struct {
 // liftedParam records a lifted free type parameter and where it came from, for
 // deterministic header ordering.
 type liftedParam struct {
-	tp  *types.TypeParam
-	pos token.Position
-	idx int // index within its origin provider’s type parameters
+	tp     *types.TypeParam
+	origin *types.TypeParam
+	pos    token.Position // provider position
 }
 
 // Set resolves one set into a plan. destPath is the destination import path
@@ -318,7 +318,7 @@ func (s *solver) seed() *diag.Error {
 		}
 	}
 	for _, p := range s.anchors {
-		targs := s.liftAll(p)
+		targs := s.liftTypeParams(p, nil)
 		in, err, miss := instantiate(p, s.ctxt, targs)
 		if err != nil {
 			return err
@@ -485,18 +485,7 @@ func compatibleBind(a, b map[*types.TypeParam]types.Type) bool {
 // either for the pin’s own cluster.
 func (s *solver) bindInstantiates(p *discover.Provider, bind map[*types.TypeParam]types.Type) bool {
 	mark := len(s.liftedMeta)
-	targs := make([]types.Type, p.Tparams.Len())
-	var fresh []int
-	for i := range p.Tparams.Len() {
-		tp := p.Tparams.At(i)
-		if v, ok := bind[tp]; ok {
-			targs[i] = v
-		} else {
-			targs[i] = s.liftOne(tp, p)
-			fresh = append(fresh, i)
-		}
-	}
-	s.setLiftedConstraints(p, targs, fresh)
+	targs := s.liftTypeParams(p, bind)
 	_, err, miss := instantiate(p, s.ctxt, targs)
 	s.rollbackLifts(mark)
 	return err == nil && miss == nil
@@ -521,18 +510,7 @@ func (s *solver) instantiateTemplate(p *discover.Provider, bind map[*types.TypeP
 		return false, nil
 	}
 	mark := len(s.liftedMeta)
-	targs := make([]types.Type, p.Tparams.Len())
-	var fresh []int
-	for i := range p.Tparams.Len() {
-		tp := p.Tparams.At(i)
-		if v, ok := bind[tp]; ok {
-			targs[i] = v
-		} else {
-			targs[i] = s.liftOne(tp, p)
-			fresh = append(fresh, i)
-		}
-	}
-	s.setLiftedConstraints(p, targs, fresh)
+	targs := s.liftTypeParams(p, bind)
 	if s.instanceDone(p, targs) {
 		s.rollbackLifts(mark) // already instantiated; undo speculative lifts
 		return false, nil
@@ -834,19 +812,16 @@ func ownParams(p *discover.Provider) []types.Type {
 	if !p.Generic() {
 		return nil
 	}
-	out := make([]types.Type, p.Tparams.Len())
-	for i := range p.Tparams.Len() {
-		out[i] = p.Tparams.At(i)
+	out := make([]types.Type, 0, p.Rparams.Len()+p.Tparams.Len())
+	for param := range p.TypeParams {
+		out = append(out, param)
 	}
 	return out
 }
 
 func paramSet(p *discover.Provider) map[*types.TypeParam]bool {
 	m := map[*types.TypeParam]bool{}
-	if p.Tparams == nil {
-		return m
-	}
-	for tparam := range p.Tparams.TypeParams() {
+	for tparam := range p.TypeParams {
 		m[tparam] = true
 	}
 	return m

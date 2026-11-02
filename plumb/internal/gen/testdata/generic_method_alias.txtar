@@ -1,0 +1,20 @@
+Make returns an exported alias to an unexported type. Keep that alias when
+instantiating the method, and substitute the argument of Unused even though its
+target does not depend on that argument.
+-- config --
+import-path: example.com/app
+package-name: app
+output: plumb_gen.go
+-- example.com/x/x.go --
+package x
+
+type hidden[T any] struct{}
+type Public[T any] = hidden[T]
+type Unused[T any] = int
+type Factory struct{}
+
+//plumb:build
+func (Factory) Make[T any](values []*Unused[T]) Public[T] { return Public[T]{} }
+
+//plumb:build
+func Use(value Public[string]) bool { return true }

@@ -77,17 +77,27 @@ type Provider struct {
 	// Origin objects, by kind. Only the fields relevant to Kind are set.
 	Fn          *types.Func  // KindFunc, KindMethod
 	Sym         types.Object // KindSymbol (a var or typed const), KindField (the field)
-	Owner       types.Type   // KindMethod (receiver), KindField (struct): a *Named, or a *Alias when the member is on an alias to an anonymous composite
+	Owner       types.Type   // KindMethod, KindField: *Named, or *Alias for a member of an alias to an anonymous composite
 	Declared    types.Type   // KindStruct: the directive’s declared type (a *Named or *Alias), rendered as written
 	ConvertTo   types.Type   // KindConvert: the target type produced
 	ConvertFrom types.Type   // KindConvert: the source type consumed
 
-	// Tparams are the provider’s type parameters (from the function or the owner
-	// type). nil/empty means the provider is concrete.
-	Tparams *types.TypeParamList
+	Rparams *types.TypeParamList // receiver type parameters (methods and fields)
+	Tparams *types.TypeParamList // function, method, or struct type parameters
+}
+
+// TypeParams yields receiver parameters followed by declaration parameters.
+func (p *Provider) TypeParams(yield func(*types.TypeParam) bool) {
+	for _, params := range []*types.TypeParamList{p.Rparams, p.Tparams} {
+		for param := range params.TypeParams() {
+			if !yield(param) {
+				return
+			}
+		}
+	}
 }
 
 // Generic reports whether the provider is a template.
 func (p *Provider) Generic() bool {
-	return p.Tparams != nil && p.Tparams.Len() > 0
+	return p.Rparams.Len() > 0 || p.Tparams.Len() > 0
 }

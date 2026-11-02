@@ -1,0 +1,20 @@
+UseInt and UseString need different instances of Box. Call Make[int]() and
+Make[string]() on the same Factory value to supply both providers.
+-- config --
+import-path: example.com/app
+package-name: app
+output: plumb_gen.go
+-- example.com/app/app.go --
+package app
+
+type Factory struct{}
+type Box[T any] struct{}
+
+//plumb:build
+func (Factory) Make[T any]() Box[T] { return Box[T]{} }
+
+//plumb:build
+func UseInt(b Box[int]) int { return 0 }
+
+//plumb:build
+func UseString(b Box[string]) string { return "" }

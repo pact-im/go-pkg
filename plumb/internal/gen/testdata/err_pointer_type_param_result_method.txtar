@@ -1,0 +1,15 @@
+A method that declares T and returns *T could produce a pointer to any
+requested type. Since plumb can also dereference that pointer, the method could
+satisfy any request for a value. Reject it as for a generic function that
+returns *T.
+-- config --
+import-path: example.com/app
+package-name: app
+error-is: ErrBareTypeParamResult
+-- example.com/app/app.go --
+package app
+
+type Factory struct{}
+
+//plumb:build
+func (Factory) Make[T any]() *T { return new(T) }

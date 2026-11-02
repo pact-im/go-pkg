@@ -146,7 +146,7 @@ func scanFile(pkg *Package, file *ast.File) ([]*Provider, *diag.Error) {
 		var err *diag.Error
 		switch d := decl.(type) {
 		case *ast.FuncDecl:
-			ps, err = scanFunc(pkg, d)
+			ps, err = scanFuncDecl(pkg, d)
 		case *ast.GenDecl:
 			ps, err = scanGenDecl(pkg, d)
 		default:
@@ -255,70 +255,79 @@ func specDirectiveNames(gd *ast.GenDecl, specDoc *ast.CommentGroup, fset *token.
 	return appendDirectiveNames(names, specDoc, fset)
 }
 
-func scanFunc(pkg *Package, fd *ast.FuncDecl) ([]*Provider, *diag.Error) {
+func scanFuncDecl(pkg *Package, fd *ast.FuncDecl) ([]*Provider, *diag.Error) {
 	names, err := directiveNames(fd.Doc, pkg.Fset)
 	if err != nil || len(names) == 0 {
 		return nil, err
 	}
-	obj, _ := pkg.Info.Defs[fd.Name].(*types.Func)
-	if obj == nil {
+	fn, _ := pkg.Info.Defs[fd.Name].(*types.Func)
+	if fn == nil {
 		// A declared name with no object did not type-check: a redeclaration
 		// loses its Defs entry. The loader already reports the real cause; a
 		// recognized directive must still fail loudly, never silently vanish.
 		return nil, diag.Errorf(diag.PosIn(pkg.Fset, fd.Name.Pos()), diag.ErrInvalidType, "declaration of %s did not type-check; cannot wire it", fd.Name.Name)
 	}
-	sig := obj.Type().(*types.Signature)
-	pos := diag.PosIn(pkg.Fset, fd.Name.Pos())
-	// go/types records an object for a blank name too, so a directive on func _()
-	// or a blank method reaches here. A blank identifier cannot be referenced (and
-	// a blank method is absent from its type’s method set, so it would later panic),
-	// so reject it rather than emit an unusable "_" call.
-	if obj.Name() == "_" {
-		what := "function"
-		if sig.Recv() != nil {
-			what = "method"
-		}
-		return nil, diag.Errorf(pos, diag.ErrBlankProvider, "give the %s a name; a blank identifier declares nothing to wire", what)
+	if sig := fn.Type().(*types.Signature); sig.Recv() != nil {
+		return scanMethod(pkg, fn, names)
+	}
+	return scanFunc(pkg, fn, names)
+}
+
+func scanFunc(pkg *Package, fn *types.Func, names []string) ([]*Provider, *diag.Error) {
+	sig := fn.Type().(*types.Signature)
+	pos := diag.PosIn(pkg.Fset, fn.Pos())
+	// go/types records an object for _, but generated code cannot reference it.
+	if fn.Name() == "_" {
+		return nil, diag.Errorf(pos, diag.ErrBlankProvider, "give the function a name; a blank identifier declares nothing to wire")
 	}
 	// init is the same trap with a different spelling: Go forbids referring to it
 	// from anywhere, so an emitted init() call can never compile, and a package
-	// may declare several. A method named init is an ordinary selector and stays
-	// allowed. (A set named init is unrelated and supported.)
-	if obj.Name() == "init" && sig.Recv() == nil {
+	// may declare several. (A set named init is unrelated and supported.)
+	if fn.Name() == "init" {
 		return nil, diag.Errorf(pos, diag.ErrInitProvider, "init cannot be referenced, so it cannot provide; rename the function")
 	}
 	var out []*Provider
 	for _, name := range names {
-		p := &Provider{
+		out = append(out, &Provider{
 			SetName: name,
+			Kind:    KindFunc,
 			Pos:     pos,
-			Name:    obj.Name(),
+			Name:    fn.Name(),
 			Pkg:     pkg.Types,
-			Fn:      obj,
-		}
-		if recv := sig.Recv(); recv != nil {
-			// A method. Resolve the receiver’s named type and its type params. A
-			// concrete and an interface receiver share one kind; solve resolves the
-			// receiver input type from the owner at instantiation time.
-			named := receiverNamed(recv.Type())
-			if named == nil {
-				// The receiver type did not type-check: a typo’d or undefined
-				// receiver in tolerated-invalid input. The loader already reports the
-				// real cause, so surface a located error rather than crashing.
-				return nil, diag.Errorf(pos, diag.ErrInvalidType, "method %s has an unresolvable receiver type", obj.Name())
-			}
-			p.Kind = KindMethod
-			p.Owner = named
-			p.Tparams = named.TypeParams()
-			// Diagnostics and the report name a method as Owner.Method, matching
-			// the interface-method path: two same-named methods on different
-			// receivers stay distinguishable without leaning on positions.
-			p.Name = named.Obj().Name() + "." + obj.Name()
-		} else {
-			p.Kind = KindFunc
-			p.Tparams = sig.TypeParams()
-		}
-		out = append(out, p)
+			Fn:      fn,
+			Tparams: sig.TypeParams(),
+		})
+	}
+	return out, nil
+}
+
+func scanMethod(pkg *Package, fn *types.Func, names []string) ([]*Provider, *diag.Error) {
+	sig := fn.Type().(*types.Signature)
+	pos := diag.PosIn(pkg.Fset, fn.Pos())
+	if fn.Name() == "_" {
+		return nil, diag.Errorf(pos, diag.ErrBlankProvider, "give the method a name; a blank identifier declares nothing to wire")
+	}
+	named := receiverNamed(sig.Recv().Type())
+	if named == nil {
+		// The loader tolerates type errors, so an unresolved receiver can reach
+		// discovery. Report it here rather than letting instantiation panic.
+		return nil, diag.Errorf(pos, diag.ErrInvalidType, "method %s has an unresolvable receiver type", fn.Name())
+	}
+	// Include the owner so methods with the same name remain distinguishable in
+	// diagnostics and reports, as for interface methods.
+	var out []*Provider
+	for _, name := range names {
+		out = append(out, &Provider{
+			SetName: name,
+			Kind:    KindMethod,
+			Pos:     pos,
+			Name:    named.Obj().Name() + "." + fn.Name(),
+			Pkg:     pkg.Types,
+			Fn:      fn,
+			Owner:   named,
+			Rparams: sig.RecvTypeParams(),
+			Tparams: sig.TypeParams(),
+		})
 	}
 	return out, nil
 }
@@ -416,7 +425,7 @@ func scanVar(pkg *Package, s *ast.ValueSpec, names []string) ([]*Provider, *diag
 		}
 		obj, _ := pkg.Info.Defs[ident].(*types.Var)
 		if obj == nil {
-			// Redeclared names lose their Defs entry; fail loudly, as scanFunc does.
+			// Redeclared names lose their Defs entry; fail loudly, as scanFuncDecl does.
 			return nil, diag.Errorf(diag.PosIn(pkg.Fset, ident.Pos()), diag.ErrInvalidType, "declaration of %s did not type-check; cannot wire it", ident.Name)
 		}
 		pos := diag.PosIn(pkg.Fset, ident.Pos())
@@ -511,7 +520,7 @@ func scanConst(pkg *Package, s *ast.ValueSpec, names []string) ([]*Provider, *di
 		}
 		obj, _ := pkg.Info.Defs[ident].(*types.Const)
 		if obj == nil {
-			// Redeclared names lose their Defs entry; fail loudly, as scanFunc does.
+			// Redeclared names lose their Defs entry; fail loudly, as scanFuncDecl does.
 			return nil, diag.Errorf(diag.PosIn(pkg.Fset, ident.Pos()), diag.ErrInvalidType, "declaration of %s did not type-check; cannot wire it", ident.Name)
 		}
 		pos := diag.PosIn(pkg.Fset, ident.Pos())
@@ -682,7 +691,7 @@ func scanStructFields(pkg *Package, st *ast.StructType, owner types.Type) ([]*Pr
 			}
 			obj, _ := pkg.Info.Defs[ident].(*types.Var)
 			if obj == nil {
-				// Redeclared fields lose their Defs entry; fail loudly, as scanFunc
+				// Redeclared fields lose their Defs entry; fail loudly, as scanFuncDecl
 				// does, rather than silently drop the directive on the losing field.
 				return nil, diag.Errorf(diag.PosIn(pkg.Fset, ident.Pos()), diag.ErrInvalidType, "declaration of %s did not type-check; cannot wire it", ident.Name)
 			}
@@ -695,7 +704,7 @@ func scanStructFields(pkg *Package, st *ast.StructType, owner types.Type) ([]*Pr
 					Pkg:     pkg.Types,
 					Sym:     obj,
 					Owner:   gotypes.GenericOrigin(owner),
-					Tparams: gotypes.TypeParamsOf(owner),
+					Rparams: gotypes.TypeParamsOf(owner),
 				})
 			}
 		}
@@ -741,7 +750,7 @@ func scanInterfaceMethods(pkg *Package, it *ast.InterfaceType, owner types.Type)
 				Pkg:     pkg.Types,
 				Fn:      obj,
 				Owner:   gotypes.GenericOrigin(owner),
-				Tparams: gotypes.TypeParamsOf(owner),
+				Rparams: gotypes.TypeParamsOf(owner),
 			})
 		}
 	}

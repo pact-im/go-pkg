@@ -181,12 +181,12 @@ var jointUnpinned types.Type = types.NewNamed(
 	types.NewStruct(nil, nil), nil)
 
 func jointBindKey(p *discover.Provider, bind map[*types.TypeParam]types.Type) *types.Tuple {
-	ts := make([]types.Type, p.Tparams.Len())
-	for i := range ts {
-		if v, ok := bind[p.Tparams.At(i)]; ok {
-			ts[i] = v
+	ts := make([]types.Type, 0, p.Rparams.Len()+p.Tparams.Len())
+	for param := range p.TypeParams {
+		if v, ok := bind[param]; ok {
+			ts = append(ts, v)
 		} else {
-			ts[i] = jointUnpinned
+			ts = append(ts, jointUnpinned)
 		}
 	}
 	return gotypes.ListKey(ts)
