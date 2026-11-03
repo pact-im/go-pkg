@@ -335,6 +335,7 @@ func scanMethod(pkg *Package, fn *types.Func, names []string) ([]*Provider, *dia
 // receiverNamed unwraps a method receiver type to its origin named type, or nil
 // if the receiver is not a defined (named) type.
 func receiverNamed(t types.Type) *types.Named {
+	t = types.Unalias(t)
 	if ptr, ok := t.(*types.Pointer); ok {
 		t = ptr.Elem()
 	}

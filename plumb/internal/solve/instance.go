@@ -166,7 +166,7 @@ func methodSignature(p *discover.Provider, ctxt *types.Context, rargs, targs []t
 	owner := p.Owner
 	if len(rargs) > 0 {
 		var err error
-		owner, err = types.Instantiate(ctxt, gotypes.GenericOrigin(owner), rargs, true)
+		owner, err = types.Instantiate(ctxt, owner, rargs, true)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -198,7 +198,7 @@ func methodSignature(p *discover.Provider, ctxt *types.Context, rargs, targs []t
 func fieldTypes(p *discover.Provider, ctxt *types.Context, rargs []types.Type) (types.Type, types.Type, error) {
 	recv := p.Owner
 	if len(rargs) > 0 {
-		t, e := types.Instantiate(ctxt, gotypes.GenericOrigin(p.Owner), rargs, true)
+		t, e := types.Instantiate(ctxt, recv, rargs, true)
 		if e != nil {
 			return nil, nil, e
 		}

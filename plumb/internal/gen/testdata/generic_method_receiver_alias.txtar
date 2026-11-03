@@ -1,0 +1,25 @@
+A generic method declared through a pointer alias belongs to the unexported
+base type. Preserve the exported alias as a free receiver input, and allow a
+provider returning the base pointer to supply it within the generated function.
+-- config --
+import-path: example.com/app
+package-name: app
+output: plumb_gen.go
+-- example.com/x/x.go --
+package x
+
+type factory struct{}
+type pointer = *factory
+type Factory = pointer
+type Box[T any] struct{}
+
+//plumb:build
+//plumb:provided
+func (Factory) Make[T any]() Box[T] { return Box[T]{} }
+
+//plumb:build
+//plumb:provided
+func Use(value Box[string]) bool { return true }
+
+//plumb:provided
+func NewFactory() *factory { return &factory{} }

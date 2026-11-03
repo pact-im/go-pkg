@@ -1,0 +1,33 @@
+Resolve aliases before and after removing a receiver pointer. Preserve the
+declared receiver spelling, and allow value and pointer providers to supply it.
+-- config --
+import-path: example.com/app
+package-name: app
+output: plumb_gen.go
+-- example.com/app/app.go --
+package app
+
+type Config struct{}
+type Value = Config
+type Pointer = *Value
+type Alias = Pointer
+
+//plumb:value
+func (Value) Value() bool { return true }
+
+//plumb:pointer
+func (*Value) Pointer() bool { return true }
+
+//plumb:direct
+//plumb:supplied
+func (Pointer) Direct() bool { return true }
+
+//plumb:chain
+//plumb:address
+func (Alias) Chain() bool { return true }
+
+//plumb:address
+func NewConfig() Config { return Config{} }
+
+//plumb:supplied
+func NewConfigPointer() *Config { return &Config{} }
