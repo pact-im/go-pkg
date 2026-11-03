@@ -313,6 +313,16 @@ func scanMethod(pkg *Package, fn *types.Func, names []string) ([]*Provider, *dia
 		// discovery. Report it here rather than letting instantiation panic.
 		return nil, diag.Errorf(pos, diag.ErrInvalidType, "method %s has an unresolvable receiver type", fn.Name())
 	}
+	// go/types keeps methods declared on interface receivers, even though
+	// those declarations cannot add members to the interface.
+	if types.IsInterface(named) {
+		return nil, diag.Errorf(pos, diag.ErrInvalidType, "method %s cannot be declared on interface type %s", fn.Name(), named.Obj().Name())
+	}
+	// An invalid method declaration keeps its Defs entry. Check that lookup
+	// resolves to the tagged declaration.
+	if method, _, _ := types.LookupFieldOrMethod(named, true, pkg.Types, fn.Name()); method != fn {
+		return nil, diag.Errorf(pos, diag.ErrInvalidType, "declaration of method %s.%s did not type-check; cannot wire it", named.Obj().Name(), fn.Name())
+	}
 	// Include the owner so methods with the same name remain distinguishable in
 	// diagnostics and reports, as for interface methods.
 	var out []*Provider

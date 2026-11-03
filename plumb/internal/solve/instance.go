@@ -173,13 +173,13 @@ func methodSignature(p *discover.Provider, ctxt *types.Context, rargs, targs []t
 	}
 	if iface, ok := owner.Underlying().(*types.Interface); ok {
 		for method := range iface.Methods() {
-			if method.Name() == p.Fn.Name() {
+			if method.Origin() == p.Fn.Origin() {
 				return owner, method.Type().(*types.Signature), nil
 			}
 		}
 	} else {
 		for method := range owner.(*types.Named).Methods() {
-			if method.Name() == p.Fn.Name() {
+			if method.Origin() == p.Fn.Origin() {
 				sig, err := instSignature(ctxt, method.Type().(*types.Signature), targs)
 				if err != nil {
 					return nil, nil, err

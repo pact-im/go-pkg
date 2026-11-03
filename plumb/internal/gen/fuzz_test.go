@@ -223,11 +223,24 @@ func NewDB() *DB { return &DB{} }`,
 	},
 
 	// --- tolerated type-error input: must be reported, never crash -------------
-	// A method with an undefined receiver and a lifted parameter with an undefined
-	// constraint are type errors the loader tolerates; each must surface as a
-	// located diagnostic, never a panic. Seeds so the fuzzer explores this space.
+	// Seed invalid method declarations and undefined constraints to exercise
+	// generation on objects retained after type errors.
 	{a: `//plumb:build
 func (r *Missing) New() int { return 0 }`},
+	{a: `type Factory interface{}
+//plumb:build
+func (Factory) Make() int { return 0 }`},
+	{
+		a: `type Factory struct{}
+func (Factory) Make() int { return 0 }`,
+		b: `import "example.com/a"
+//plumb:build
+func (a.Factory) Make() int { return 0 }`,
+	},
+	{a: `type Factory struct{}
+func (Factory) Make() int { return 0 }
+//plumb:build
+func (Factory) Make[T any](value T) string { return "" }`},
 	{a: `type Key[T any] struct{}
 type Value[U any] struct{}
 //plumb:build
