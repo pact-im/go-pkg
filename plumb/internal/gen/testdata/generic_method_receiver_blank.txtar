@@ -1,0 +1,21 @@
+A blank receiver parameter still needs an argument and retains its constraint.
+Give it a usable name in the generated function, both for a method with no type
+parameters of its own and when a consumer determines the method’s argument.
+-- config --
+import-path: example.com/app
+package-name: app
+output: plumb_gen.go
+-- example.com/app/app.go --
+package app
+
+type Factory[T comparable] struct{}
+type Box[T any] struct{}
+
+//plumb:plain
+func (Factory[_]) Ready() bool { return true }
+
+//plumb:build
+func (Factory[_]) Make[T any]() Box[T] { return Box[T]{} }
+
+//plumb:build
+func Use(value Box[string]) string { return "" }

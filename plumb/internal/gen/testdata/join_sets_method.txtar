@@ -1,0 +1,22 @@
+A generic method joins two sets whose consumers determine different receiver
+and method arguments. Resolve each set independently, calling Make[string]() on
+Factory[int] and Make[float64]() on Factory[bool].
+-- config --
+import-path: example.com/app
+package-name: app
+output: plumb_gen.go
+-- example.com/app/app.go --
+package app
+
+type Factory[R any] struct{}
+type Box[R, T any] struct{}
+
+//plumb:build
+//plumb:test
+func (Factory[R]) Make[T any]() Box[R, T] { return Box[R, T]{} }
+
+//plumb:build
+func UseString(value Box[int, string]) string { return "" }
+
+//plumb:test
+func UseFloat(value Box[bool, float64]) float64 { return 0 }
