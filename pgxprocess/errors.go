@@ -75,3 +75,7 @@ func (errBatchResults) QueryRow() pgx.Row {
 func (errBatchResults) Close() error {
 	return ErrNotConnected
 }
+
+func (errBatchResults) Tx() pgx.Tx {
+	return nil
+}
