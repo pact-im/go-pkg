@@ -4,7 +4,7 @@ go 1.27.0
 
 require (
 	github.com/kr/text v0.2.0
-	golang.org/x/exp v0.0.0-20261014143641-f0251eb4aa3e
+	golang.org/x/exp v0.0.0-20261106112924-d498a4c2cc9a
 	golang.org/x/tools v0.52.0
 )
 
