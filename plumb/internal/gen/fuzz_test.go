@@ -133,6 +133,16 @@ type Box[A, B any] struct{}
 func (Factory[R, Q]) Make[S ~map[R]Q]() Box[R, S] { return Box[R, S]{} }
 //plumb:build
 func Use(b Box[int, map[int][]int]) bool { return true }`},
+	{a: `type Unused[P ~int] = int
+type T struct{}
+type Factory struct{}
+//plumb:build
+func (Factory) Make[T ~int, S ~[]Unused[T]](value S) bool { return true }`},
+	{a: `type hidden[T any] []T
+type Public[T any] = hidden[T]
+type Factory struct{}
+//plumb:build
+func (Factory) Make[T any, S Public[T]](value S) bool { return true }`},
 	{
 		a: `type hidden[T any] struct{}
 type Public[T any] = hidden[T]

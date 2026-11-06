@@ -1,0 +1,17 @@
+Make’s T conflicts with a package type, so name the free parameter T2. Update
+the arguments of Unused throughout the constraints, even though its target is int.
+-- config --
+import-path: example.com/app
+package-name: app
+output: plumb_gen.go
+-- example.com/app/app.go --
+package app
+
+type Unused[P ~int] = int
+type T struct{}
+type Factory struct{}
+
+//plumb:build
+func (Factory) Make[T ~int, S Unused[T], V ~[]Unused[T], W interface{ Use([]int, []Unused[T]) }](value S, values V, user W) bool {
+	return true
+}

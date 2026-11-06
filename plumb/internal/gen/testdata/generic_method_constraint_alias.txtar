@@ -1,0 +1,19 @@
+Make’s constraints use exported aliases to unexported types. Keep those alias
+names when declaring the free parameters in another package.
+-- config --
+import-path: example.com/app
+package-name: app
+output: plumb_gen.go
+-- example.com/x/x.go --
+package x
+
+type hidden[T any] []T
+type Public[T any] = hidden[T]
+type getter[T any] interface{ Get() T }
+type Getter[T any] = getter[T]
+type Factory struct{}
+
+//plumb:build
+func (Factory) Make[T any, S Public[T], G Getter[T]](value S, getter G) bool {
+	return true
+}
