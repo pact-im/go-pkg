@@ -221,7 +221,7 @@ func collectProviderDocs(file *ast.File) map[*ast.CommentGroup]bool {
 					mark(s.Doc)
 				case *ast.TypeSpec:
 					mark(s.Doc)
-					switch t := s.Type.(type) {
+					switch t := ast.Unparen(s.Type).(type) {
 					case *ast.StructType:
 						for _, f := range t.Fields.List {
 							mark(f.Doc)
@@ -593,7 +593,7 @@ func scanTypeSpec(pkg *Package, gd *ast.GenDecl, s *ast.TypeSpec) ([]*Provider, 
 	if tn != nil {
 		owner := tn.Type()
 		var members []*Provider
-		switch st := s.Type.(type) {
+		switch st := ast.Unparen(s.Type).(type) {
 		case *ast.StructType:
 			members, err = scanStructFields(pkg, st, owner)
 		case *ast.InterfaceType:
@@ -621,7 +621,7 @@ func scanTypeSpec(pkg *Package, gd *ast.GenDecl, s *ast.TypeSpec) ([]*Provider, 
 // member of a struct or interface literal, or nil.
 func memberDirective(typ ast.Expr) *ast.Comment {
 	var fields []*ast.Field
-	switch t := typ.(type) {
+	switch t := ast.Unparen(typ).(type) {
 	case *ast.StructType:
 		fields = t.Fields.List
 	case *ast.InterfaceType:
