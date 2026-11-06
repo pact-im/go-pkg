@@ -227,6 +227,12 @@ func NewDB() *DB { return &DB{} }`,
 	// generation on objects retained after type errors.
 	{a: `//plumb:build
 func (r *Missing) New() int { return 0 }`},
+	{a: `type Factory[A, B any] struct{}
+//plumb:build
+func (Factory[T]) Make() int { return 0 }`},
+	{a: `type Factory[A any] struct{}
+//plumb:build
+func (Factory[T, U]) Make() int { return 0 }`},
 	{a: `type Factory interface{}
 //plumb:build
 func (Factory) Make() int { return 0 }`},

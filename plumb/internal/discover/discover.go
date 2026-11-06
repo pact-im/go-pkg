@@ -313,6 +313,9 @@ func scanMethod(pkg *Package, fn *types.Func, names []string) ([]*Provider, *dia
 		// discovery. Report it here rather than letting instantiation panic.
 		return nil, diag.Errorf(pos, diag.ErrInvalidType, "method %s has an unresolvable receiver type", fn.Name())
 	}
+	if got, want := sig.RecvTypeParams().Len(), named.TypeParams().Len(); got != want {
+		return nil, diag.Errorf(pos, diag.ErrInvalidType, "receiver type parameter count for method %s.%s is %d; expected %d", named.Obj().Name(), fn.Name(), got, want)
+	}
 	// go/types keeps methods declared on interface receivers, even though
 	// those declarations cannot add members to the interface.
 	if types.IsInterface(named) {
