@@ -11,6 +11,8 @@ import (
 	"go/token"
 )
 
+var _ error = ErrorKind("")
+
 // ErrorKind is a sentinel diagnostic kind: a constant string that implements
 // error. Making it a named string type lets the sentinels below be true compile-
 // time constants while still being wrappable and matchable with errors.Is (a
