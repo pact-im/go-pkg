@@ -35,7 +35,6 @@ type Result struct {
 // File turns the resolved plans into the gofmt-canonical generated file and the
 // -v report.
 func File(importPath, packageName string, pkgs []*discover.Package, plans []*solve.Plan, dest *solve.DestInfo) *Result {
-	needErrors := slices.ContainsFunc(plans, planNeedsErrors)
 	allLifted := liftedNamesOf(plans)
 
 	// Pass 1: collect the packages every function references by rendering each
@@ -47,7 +46,7 @@ func File(importPath, packageName string, pkgs []*discover.Package, plans []*sol
 	}
 	pkgList := rec.recordedPackages()
 
-	// Assign import aliases and (if needed) the errors qualifier. Imports live in
+	// Assign import aliases. Imports live in
 	// file scope and must avoid the generated function (set) names, which are
 	// package-scope declarations in the same file: an import qualifier equal to a
 	// set name would be a redeclaration.
@@ -55,13 +54,13 @@ func File(importPath, packageName string, pkgs []*discover.Package, plans []*sol
 	for _, pl := range plans {
 		setNames[pl.Name] = true
 	}
-	aliasByPath, errorsAlias, importLines := assignAliases(pkgList, needErrors, importPath, allLifted, setNames, dest)
+	aliasByPath, importLines := assignAliases(pkgList, allLifted, setNames, dest)
 
 	// Pass 2: render each function.
 	q := newFinal(importPath, aliasByPath)
 	var funcs []string
 	for _, pl := range plans {
-		funcs = append(funcs, renderPlan(pl, q, errorsAlias, dest, allLifted))
+		funcs = append(funcs, renderPlan(pl, q, dest, allLifted))
 	}
 
 	src := assembleFile(packageName, importLines, funcs)
@@ -82,11 +81,8 @@ func File(importPath, packageName string, pkgs []*discover.Package, plans []*sol
 // every qualified reference (signature, lifted constraints, and each instance’s
 // producing expression), so recording through it means the import block cannot
 // drift from the emitted body: there is no second enumeration to keep in step.
-// The errors qualifier is irrelevant while recording (whether errors is imported
-// is decided separately by planNeedsErrors, and it is written as a literal alias,
-// never through q), so it is left empty.
 func recordPlanPackages(pl *solve.Plan, q *qualifier, dest *solve.DestInfo, lifted map[string]bool) {
-	_ = renderPlan(pl, q, "", dest, lifted)
+	_ = renderPlan(pl, q, dest, lifted)
 }
 
 func liftedNamesOf(plans []*solve.Plan) map[string]bool {
@@ -99,40 +95,17 @@ func liftedNamesOf(plans []*solve.Plan) map[string]bool {
 	return names
 }
 
-// assignAliases assigns a deterministic qualifier to each imported package,
-// aliasing on collision with destination identifiers, lifted parameter names,
-// or another import.
-func assignAliases(pkgs []*types.Package, needErrors bool, destPath string, lifted, setNames map[string]bool, dest *solve.DestInfo) (map[string]string, string, []string) {
+// assignAliases assigns import names, avoiding destination identifiers, lifted
+// parameters, set names, and other imports. pkgs is ordered by import path.
+func assignAliases(pkgs []*types.Package, lifted, setNames map[string]bool, dest *solve.DestInfo) (map[string]string, []string) {
 	taken := reservedIdents(dest, lifted)
-	for n := range setNames {
-		taken[n] = true
+	for name := range setNames {
+		taken[name] = true
 	}
-
-	type imp struct {
-		path  string
-		name  string
-		alias string
-	}
-	var imps []imp
-	seen := map[string]bool{}
-	add := func(path, name string) {
-		if path == destPath || seen[path] {
-			return
-		}
-		seen[path] = true
-		imps = append(imps, imp{path: path, name: name})
-	}
-	for _, p := range pkgs {
-		add(p.Path(), p.Name())
-	}
-	if needErrors {
-		add("errors", "errors")
-	}
-	slices.SortFunc(imps, func(a, b imp) int { return strings.Compare(a.path, b.path) })
-
 	aliasByPath := map[string]string{}
-	for i := range imps {
-		base := imps[i].name
+	var lines []string
+	for _, pkg := range pkgs {
+		base := pkg.Name()
 		if base == "" {
 			base = "pkg"
 		}
@@ -141,27 +114,18 @@ func assignAliases(pkgs []*types.Package, needErrors bool, destPath string, lift
 			name = base + strconv.Itoa(n)
 		}
 		taken[name] = true
-		imps[i].alias = name
-		aliasByPath[imps[i].path] = name
-	}
-
-	var lines []string
-	for _, m := range imps {
-		if m.alias == m.name {
-			lines = append(lines, fmt.Sprintf("%q", m.path))
+		aliasByPath[pkg.Path()] = name
+		if name == pkg.Name() {
+			lines = append(lines, fmt.Sprintf("%q", pkg.Path()))
 		} else {
-			lines = append(lines, fmt.Sprintf("%s %q", m.alias, m.path))
+			lines = append(lines, fmt.Sprintf("%s %q", name, pkg.Path()))
 		}
 	}
-	errorsAlias := ""
-	if needErrors {
-		errorsAlias = aliasByPath["errors"]
-	}
-	return aliasByPath, errorsAlias, lines
+	return aliasByPath, lines
 }
 
 // renderPlan renders one set’s injector function.
-func renderPlan(pl *solve.Plan, q *qualifier, errorsAlias string, dest *solve.DestInfo, lifted map[string]bool) string {
+func renderPlan(pl *solve.Plan, q *qualifier, dest *solve.DestInfo, lifted map[string]bool) string {
 	alloc := newAllocator(dest, q, lifted)
 	// localOf maps a value type (by identity) to the local/param/result name
 	// holding it. local() reads it; the name is always present by the time it is
@@ -265,7 +229,7 @@ func renderPlan(pl *solve.Plan, q *qualifier, errorsAlias string, dest *solve.De
 
 		if hasErr {
 			errDeclared = true
-			stmts, errExpr := renderUnwind(acquired, errLocal, pl, errorsAlias, alloc)
+			stmts, errExpr := renderUnwind(acquired, errLocal, pl, q, alloc)
 			block := []string{"if " + errLocal + " != nil {"}
 			block = append(block, stmts...)
 			block = append(block, errName+" = "+errExpr, "return", "}")
@@ -279,7 +243,7 @@ func renderPlan(pl *solve.Plan, q *qualifier, errorsAlias string, dest *solve.De
 		body = append(body, outNames[i]+" = "+local(o))
 	}
 	if pl.AnyCleanup {
-		body = append(body, cleanupName+" = "+renderAggregate(acquired, pl, errorsAlias, alloc))
+		body = append(body, cleanupName+" = "+renderAggregate(acquired, pl, q, alloc))
 	}
 	// A naked return is required to surface the named results; a result-less,
 	// side-effect-only injector (an init/main-style set) has none, so the trailing
@@ -316,7 +280,7 @@ type cleanupRef struct {
 
 // renderUnwind renders the teardown of already-acquired cleanups on a mid-build
 // error: newest first, with the build error joined in when cleanups are failable.
-func renderUnwind(acquired []cleanupRef, errLocal string, pl *solve.Plan, errorsAlias string, alloc *allocator) (stmts []string, errExpr string) {
+func renderUnwind(acquired []cleanupRef, errLocal string, pl *solve.Plan, q *qualifier, alloc *allocator) (stmts []string, errExpr string) {
 	rev := reverseCleanups(acquired)
 	// Without any failable cleanup to unwind, the error flows through directly:
 	// non-failable cleanups run as plain statements and err = e.
@@ -327,7 +291,7 @@ func renderUnwind(acquired []cleanupRef, errLocal string, pl *solve.Plan, errors
 		return stmts, errLocal
 	}
 	cs, errLocals := cleanupStmts(rev, alloc)
-	return cs, joinErrs(errorsAlias, append([]string{errLocal}, errLocals...))
+	return cs, joinErrs(q, append([]string{errLocal}, errLocals...))
 }
 
 func anyFailable(cs []cleanupRef) bool {
@@ -340,7 +304,7 @@ func anyFailable(cs []cleanupRef) bool {
 }
 
 // renderAggregate renders the single aggregated cleanup returned on success.
-func renderAggregate(acquired []cleanupRef, pl *solve.Plan, errorsAlias string, alloc *allocator) string {
+func renderAggregate(acquired []cleanupRef, pl *solve.Plan, q *qualifier, alloc *allocator) string {
 	rev := reverseCleanups(acquired)
 	if !pl.CleanupFailable {
 		var b strings.Builder
@@ -360,7 +324,7 @@ func renderAggregate(acquired []cleanupRef, pl *solve.Plan, errorsAlias string, 
 		b.WriteByte('\n')
 	}
 	b.WriteString("return ")
-	b.WriteString(joinErrs(errorsAlias, errLocals))
+	b.WriteString(joinErrs(q, errLocals))
 	b.WriteString("\n}")
 	return b.String()
 }
@@ -384,62 +348,16 @@ func cleanupStmts(rev []cleanupRef, alloc *allocator) (stmts, errLocals []string
 	return stmts, errLocals
 }
 
+// errorsPackage supplies the path and name used when rendering errors.Join.
+var errorsPackage = types.NewPackage("errors", "errors")
+
 // joinErrs returns the lone error expression when there is one, or an
 // errors.Join over all of them when there are several.
-func joinErrs(errorsAlias string, errs []string) string {
+func joinErrs(q *qualifier, errs []string) string {
 	if len(errs) == 1 {
 		return errs[0]
 	}
-	return errorsAlias + ".Join(" + strings.Join(errs, ", ") + ")"
-}
-
-// planNeedsErrors reports whether the plan’s generated code emits errors.Join,
-// and so must import the errors package. It mirrors the two join sites exactly,
-// since claiming the import without an emitted Join (or vice versa) breaks the
-// generated build:
-//
-//   - renderAggregate joins on the success path when two or more cleanups are
-//     failable (a single failable cleanup is returned directly);
-//   - renderUnwind joins the build error with the failable cleanups acquired so
-//     far when a fallible provider fails after at least one was acquired.
-func planNeedsErrors(pl *solve.Plan) bool {
-	if !pl.CleanupFailable {
-		return false
-	}
-	failable := 0
-	for _, in := range pl.Order {
-		for _, r := range in.Results {
-			if r.Kind == solve.ResultKindCleanup && r.Failable {
-				failable++
-			}
-		}
-	}
-	if failable >= 2 {
-		return true
-	}
-	// A single failable cleanup still forces a Join if a later provider can fail
-	// after it was acquired, because the unwind joins the build error with it.
-	acquired := 0
-	for _, in := range pl.Order {
-		if acquired >= 1 && instanceFallible(in) {
-			return true
-		}
-		for _, r := range in.Results {
-			if r.Kind == solve.ResultKindCleanup && r.Failable {
-				acquired++
-			}
-		}
-	}
-	return false
-}
-
-func instanceFallible(in *solve.Instance) bool {
-	for _, r := range in.Results {
-		if r.Kind == solve.ResultKindError {
-			return true
-		}
-	}
-	return false
+	return q.symbol(errorsPackage, "Join") + "(" + strings.Join(errs, ", ") + ")"
 }
 
 func reverseCleanups(in []cleanupRef) []cleanupRef {

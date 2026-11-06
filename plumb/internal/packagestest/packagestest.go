@@ -120,6 +120,9 @@ func LoadShuffled(files map[string]string, shuffle ShuffleFunc) (*Loaded, error)
 	// neither type-checked eagerly nor returned in l.Packages. Seeded after the
 	// module files so module source positions are unaffected by this map’s order.
 	for ip, src := range fakeStd {
+		if _, ok := parsed[ip]; ok {
+			continue
+		}
 		f, err := parser.ParseFile(fset, ip+"/std.go", src, parser.SkipObjectResolution)
 		if err != nil {
 			panic(fmt.Sprintf("packagestest: fakeStd[%q] does not parse: %v", ip, err))

@@ -1,0 +1,19 @@
+A provider fails after a failable cleanup was acquired. Join the errors during
+unwind using the destination package’s own Join function.
+-- config --
+import-path: errors
+package-name: errors
+output: plumb_gen.go
+-- errors/errors.go --
+package errors
+
+type A struct{}
+type B struct{}
+
+//plumb:build
+func OpenA() (A, func() error) { return A{}, func() error { return nil } }
+
+//plumb:build
+func OpenB(value A) (B, error) { return B{}, nil }
+
+func Join(errs ...error) error { return nil }

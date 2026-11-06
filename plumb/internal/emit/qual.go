@@ -80,9 +80,14 @@ func (q *qualifier) aliasNames() []string {
 // objQual renders a package-level object reference (function, variable,
 // constant), qualified if it lives outside the destination.
 func (q *qualifier) objQual(obj types.Object) string {
-	pre := q.qualify(obj.Pkg())
-	if pre == "" {
-		return obj.Name()
+	return q.symbol(obj.Pkg(), obj.Name())
+}
+
+// symbol renders a package member, recording its import when needed.
+func (q *qualifier) symbol(pkg *types.Package, name string) string {
+	qualifier := q.qualify(pkg)
+	if qualifier == "" {
+		return name
 	}
-	return pre + "." + obj.Name()
+	return qualifier + "." + name
 }
