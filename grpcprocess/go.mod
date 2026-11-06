@@ -9,7 +9,7 @@ require (
 )
 
 require (
-	go.pact.im/x/task v0.0.23 // indirect
+	go.pact.im/x/task v0.0.24 // indirect
 	golang.org/x/net v0.62.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
 	golang.org/x/text v0.43.0 // indirect
