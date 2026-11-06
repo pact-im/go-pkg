@@ -1,0 +1,24 @@
+The result has a shallow slice before a deeper slice with the same element
+type. Measure the longest path through both fields and reject the instantiated
+result at the depth bound.
+-- config --
+import-path: example.com/app
+package-name: app
+error-is: ErrNonTerminating
+-- example.com/app/app.go --
+package app
+
+type Shallow = [][][][][][][][][][][][][][][][][][][][]int
+type Deep = [][][][][][][][][][][][][][][][][][][][]Shallow
+type Box[T any] struct{}
+type Payload[T any] = struct {
+	A Shallow
+	B Deep
+	Value Box[T]
+}
+
+//plumb:build
+func Make[T any]() Payload[T] { return Payload[T]{} }
+
+//plumb:build
+func Use(value Payload[int]) bool { return true }

@@ -1378,8 +1378,9 @@ instances, whose types the user wrote out literally, count toward neither): the 
 retained instantiations per set (currently 5000), and the structural depth of any value
 type an instantiation produces (currently 40; checked before the count), measured through
 every compound form (type arguments, pointers, slices, arrays, maps, channels, and
-function, struct, and interface types alike). Every pass of steps 3–5 either retains an
-instance or ends the fixpoint, so the bounds imply termination. Pinning revision adds
+function, struct, and interface types alike). Depth is the longest path: sharing a
+subtype between fields or arguments does not shorten it. Every pass of steps 3–5 either
+adds an instance or ends the fixpoint, so the bounds imply termination. Pinning revision adds
 restarts, and each restart either extends a committed pinning in place (bounded by the
 template’s parameter count) or adds a commitment for a distinct instantiation family
 (bounded by the instantiation count), so restarts are bounded too; an implementation

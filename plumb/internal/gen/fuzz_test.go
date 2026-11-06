@@ -100,6 +100,12 @@ type fuzzSeed struct{ a, b, dest string }
 var fuzzSeeds = []fuzzSeed{
 	// --- single-package shapes (b/dest empty): provider kinds and generics ----
 	{a: `//plumb:build
+func Make[T any]() struct{ A []T; B [][][]T } {
+	return struct{ A []T; B [][][]T }{}
+}
+//plumb:build
+func Use(value struct{ A []int; B [][][]int }) bool { return true }`},
+	{a: `//plumb:build
 func New() struct{ hidden int } { return struct{ hidden int }{} }`},
 	{a: `//plumb:build
 func New() struct{ _ int } { return struct{ _ int }{} }`},

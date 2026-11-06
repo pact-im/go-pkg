@@ -149,34 +149,40 @@ func IsPointerToBareTypeParam(t types.Type, params map[*types.TypeParam]bool) bo
 	return ok && IsBareTypeParam(p.Elem(), params)
 }
 
-// TypeDepth returns a structural nesting depth used to bound non-terminating
-// generic instantiation.
+// TypeDepth returns the maximum structural nesting depth used to bound
+// non-terminating generic instantiation.
 func TypeDepth(t types.Type) int {
-	return typeDepthRec(t, hashed.NewSet(types.Hasher{}))
+	return typeDepthRec(t, map[types.Type]int{})
 }
 
-func typeDepthRec(t types.Type, seen *hashed.Set[types.Type]) int {
+func typeDepthRec(t types.Type, depths map[types.Type]int) int {
 	t = types.Unalias(t)
-	if !seen.Insert(t) {
-		return 0
+	if depth, ok := depths[t]; ok {
+		return depth
 	}
+	// A zero entry breaks cycles while this node is being evaluated.
+	depths[t] = 0
+	depth := typeDepth(t, depths)
+	depths[t] = depth
+	return depth
+}
+
+func typeDepth(t types.Type, depths map[types.Type]int) int {
 	switch u := t.(type) {
 	case *types.Pointer:
-		return 1 + typeDepthRec(u.Elem(), seen)
+		return 1 + typeDepthRec(u.Elem(), depths)
 	case *types.Slice:
-		return 1 + typeDepthRec(u.Elem(), seen)
+		return 1 + typeDepthRec(u.Elem(), depths)
 	case *types.Array:
-		return 1 + typeDepthRec(u.Elem(), seen)
+		return 1 + typeDepthRec(u.Elem(), depths)
 	case *types.Chan:
-		return 1 + typeDepthRec(u.Elem(), seen)
+		return 1 + typeDepthRec(u.Elem(), depths)
 	case *types.Map:
-		return 1 + max(typeDepthRec(u.Key(), seen), typeDepthRec(u.Elem(), seen))
+		return 1 + max(typeDepthRec(u.Key(), depths), typeDepthRec(u.Elem(), depths))
 	case *types.Named:
 		d := 0
-		if args := u.TypeArgs(); args != nil {
-			for t := range args.Types() {
-				d = max(d, typeDepthRec(t, seen))
-			}
+		for arg := range u.TypeArgs().Types() {
+			d = max(d, typeDepthRec(arg, depths))
 		}
 		return 1 + d
 	case *types.Signature:
@@ -184,25 +190,25 @@ func typeDepthRec(t types.Type, seen *hashed.Set[types.Type]) int {
 		// the bound must see through signatures, not treat them as flat leaves.
 		d := 0
 		for v := range u.Params().Variables() {
-			d = max(d, typeDepthRec(v.Type(), seen))
+			d = max(d, typeDepthRec(v.Type(), depths))
 		}
 		for v := range u.Results().Variables() {
-			d = max(d, typeDepthRec(v.Type(), seen))
+			d = max(d, typeDepthRec(v.Type(), depths))
 		}
 		return 1 + d
 	case *types.Struct:
 		d := 0
 		for f := range u.Fields() {
-			d = max(d, typeDepthRec(f.Type(), seen))
+			d = max(d, typeDepthRec(f.Type(), depths))
 		}
 		return 1 + d
 	case *types.Interface:
 		d := 0
 		for m := range u.ExplicitMethods() {
-			d = max(d, typeDepthRec(m.Type(), seen))
+			d = max(d, typeDepthRec(m.Type(), depths))
 		}
 		for e := range u.EmbeddedTypes() {
-			d = max(d, typeDepthRec(e, seen))
+			d = max(d, typeDepthRec(e, depths))
 		}
 		return 1 + d
 	}

@@ -16,29 +16,49 @@ const fixture = `
 type T struct{}
 type Box[A any] struct{ V A }
 type Pair[A, B any] struct{ X A; Y B }
+type Getter[A any] interface{ Get() int }
 
 // shapes exposes a spread of type forms as parameter types to read back.
 func shapes(
-	i int,
-	pt *T,
-	sl []int,
-	bi Box[int],
-	bb Box[Box[int]],
-	mp map[int]*T,
-	pp **T,
+	integer int,
+	pointer *T,
+	slice []int,
+	integerBox Box[int],
+	nestedBox Box[Box[int]],
+	pointerMap map[int]*T,
+	doublePointer **T,
+	sharedStruct struct {
+		A []int
+		B [][][]int
+	},
+	reversedStruct struct {
+		B [][][]int
+		A []int
+	},
+	sharedPointerMap map[*T]***T,
+	sharedArguments Pair[*T, ***T],
+	sharedSignature func(*T) ***T,
+	sharedInterface interface {
+		A() *T
+		B() ***T
+	},
+	equivalentInterfaces struct {
+		A interface{ Get() int }
+		B interface{ Getter[[][]int] }
+	},
 ) {}
 
 // genBox is generic so its signature carries a type parameter A and the pattern
 // type Box[A]; concBox fixes A to int.
-func genBox[A any](x Box[A]) {}
-func concBox(x Box[int])     {}
+func genBox[A any](box Box[A]) {}
+func concBox(box Box[int])     {}
 
 // genPair / concPair give a two-parameter pattern and its concretion.
-func genPair[A, B any](x *Pair[A, B]) {}
-func concPair(x *Pair[int, string])   {}
+func genPair[A, B any](pair *Pair[A, B]) {}
+func concPair(pair *Pair[int, string])   {}
 
 // repeat pins the same parameter twice, for the conflicting-bind case.
-func repeat[A any](x Pair[A, A]) {}
+func repeat[A any](pair Pair[A, A]) {}
 `
 
 func load(t *testing.T) *types.Package {
@@ -142,6 +162,13 @@ func TestTypeDepth(t *testing.T) {
 		{4, 3, "Box[Box[int]]"},
 		{5, 3, "map[int]*T"}, // 1 + max(depth int=1, depth *T=2)
 		{6, 3, "**T"},
+		{7, 5, "struct{ A []int; B [][][]int }"},
+		{8, 5, "struct{ B [][][]int; A []int }"},
+		{9, 5, "map[*T]***T"},
+		{10, 5, "Pair[*T, ***T]"},
+		{11, 5, "func(*T) ***T"},
+		{12, 6, "interface{ A() *T; B() ***T }"},
+		{13, 6, "struct{ A interface{ Get() int }; B interface{ Getter[[][]int] } }"},
 	}
 
 	for _, c := range cases {
