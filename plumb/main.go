@@ -440,7 +440,8 @@
 //   - A provider in the same package as the generated file is called unqualified
 //     and not imported.
 //   - A provider in any other package is imported and qualified (pkg.NewX), so it must
-//     be exported, as must any type that appears in the generated signature.
+//     be exported. Type expressions written in the generated file must denote the
+//     same types in the destination package.
 //
 // plumb keys on the generated file’s import path, not its output location: two packages
 // can share a name at different paths, and -output may even be stdout. It takes that

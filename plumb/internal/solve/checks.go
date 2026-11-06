@@ -9,8 +9,8 @@ import (
 	"go.pact.im/x/plumb/internal/gotypes"
 )
 
-// checkReachability enforces that everything the generated code must name across
-// a package boundary is exported and reachable.
+// checkReachability checks the names written in generated signatures and
+// expressions. They must be accessible without changing the type’s identities.
 func (s *solver) checkReachability(pl *Plan) *diag.Error {
 	for _, in := range s.instances {
 		p := in.Prov
@@ -37,13 +37,13 @@ func (s *solver) checkReachability(pl *Plan) *diag.Error {
 		// Check the same arguments rendering names. Receiver arguments carried
 		// only by local values remain exempt; signature types are checked below.
 		for _, ta := range in.Targs {
-			if obj, bad := findUnreachable(ta, s.destPath); bad {
+			if obj := findUnreachable(ta, s.destPath); obj != nil {
 				return diag.Errorf(p.Pos, diag.ErrUnreachableType, "type argument %s of provider %s, from package %q (%s is unexported)", gotypes.TypeName(ta), p.Name, obj.Pkg().Path(), obj.Name())
 			}
 		}
 		// The conversion’s target type is written in the body.
 		if p.Kind == discover.KindConvert {
-			if obj, bad := findUnreachable(p.ConvertTo, s.destPath); bad {
+			if obj := findUnreachable(p.ConvertTo, s.destPath); obj != nil {
 				return diag.Errorf(p.Pos, diag.ErrUnreachableType, "conversion target type %s from package %q (%s is unexported)", gotypes.TypeName(p.ConvertTo), obj.Pkg().Path(), obj.Name())
 			}
 		}
@@ -54,7 +54,7 @@ func (s *solver) checkReachability(pl *Plan) *diag.Error {
 		if gotypes.ContainsInvalid(t) {
 			return diag.Errorf(pl.pos, diag.ErrInvalidType, "injector input type %s", gotypes.TypeName(t))
 		}
-		if obj, bad := findUnreachable(t, s.destPath); bad {
+		if obj := findUnreachable(t, s.destPath); obj != nil {
 			return diag.Errorf(pl.pos, diag.ErrUnreachableType, "injector input type %s, from package %q (%s is unexported)", gotypes.TypeName(t), obj.Pkg().Path(), obj.Name())
 		}
 	}
@@ -62,7 +62,7 @@ func (s *solver) checkReachability(pl *Plan) *diag.Error {
 		if gotypes.ContainsInvalid(t) {
 			return diag.Errorf(pl.pos, diag.ErrInvalidType, "injector output type %s", gotypes.TypeName(t))
 		}
-		if obj, bad := findUnreachable(t, s.destPath); bad {
+		if obj := findUnreachable(t, s.destPath); obj != nil {
 			return diag.Errorf(pl.pos, diag.ErrUnreachableType, "injector output type %s, from package %q (%s is unexported)", gotypes.TypeName(t), obj.Pkg().Path(), obj.Name())
 		}
 	}
@@ -79,7 +79,7 @@ func (s *solver) checkReachability(pl *Plan) *diag.Error {
 		if gotypes.ContainsInvalid(tp.Constraint()) {
 			return diag.Errorf(pl.pos, diag.ErrInvalidType, "lifted type parameter %s has a constraint that does not type-check", tp.Obj().Name())
 		}
-		if obj, bad := findUnreachable(tp.Constraint(), s.destPath); bad {
+		if obj := findUnreachable(tp.Constraint(), s.destPath); obj != nil {
 			return diag.Errorf(pl.pos, diag.ErrUnreachableType, "lifted type parameter %s has a constraint from package %q (%s is unexported)", tp.Obj().Name(), obj.Pkg().Path(), obj.Name())
 		}
 	}
@@ -104,27 +104,22 @@ func crossBoundarySymbol(p *discover.Provider) types.Object {
 	panic(fmt.Sprintf("plumb: unhandled provider kind %d", p.Kind))
 }
 
-// findUnreachable walks t and returns the first named type from a non-destination
-// package that is unexported (and therefore cannot be named from the destination).
-// The offending type lives in the returned TypeName’s own package, so diagnostics
-// name obj.Pkg().Path(), not destPath, the one package it is guaranteed not in.
-// Its Pkg() is never nil: the match requires a non-nil package below.
-func findUnreachable(t types.Type, destPath string) (*types.TypeName, bool) {
-	var found *types.TypeName
-	gotypes.WalkNamed(t, func(tn *types.TypeName) bool {
+// findUnreachable returns the first foreign, unexported object written in t’s
+// source representation, or nil. Repeating a member name from another package
+// would change its identity.
+func findUnreachable(t types.Type, destPath string) types.Object {
+	var found types.Object
+	gotypes.WalkObjects(t, func(obj types.Object) bool {
 		if found != nil {
 			return false
 		}
-		if pkg := tn.Pkg(); pkg != nil && pkg.Path() != destPath && !tn.Exported() {
-			found = tn
+		if pkg := obj.Pkg(); pkg != nil && pkg.Path() != destPath && !obj.Exported() {
+			found = obj
 			return false
 		}
 		return true
 	})
-	if found != nil {
-		return found, true
-	}
-	return nil, false
+	return found
 }
 
 // checkReservedAndCollision enforces the reserved-name and set-name collision

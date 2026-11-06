@@ -429,9 +429,9 @@ Two cross-cutting rules apply to every kind:
   [§4](#value-and-pointer)).
 - **Cross-package export.** When the generated file lives in a different package from a
   provider (separate-package mode, see [§6](#6-packaging-qualification-and-output-safety)),
-  every symbol and type the generated code must name across that boundary has to be
-  exported. An unexported provider, signature type, or type argument that cannot be named
-  from the destination is an error.
+  provider references must be exported, and type expressions written in the generated
+  file must denote the same types in the destination package. See
+  [§7](#cross-package-reachability) for the names this checks.
 
 ## Function providers
 
@@ -1757,23 +1757,32 @@ Consequences to keep in mind:
 
 ## Cross-package reachability
 
-When the generated file is in a different package from a provider (separate-package, or a
-destination that is not the providers’ own package), everything it must name across the
-boundary has to be exported and reachable:
+plumb checks the names written in provider references, signature types, explicit type
+arguments, conversion targets, and lifted constraints. Provider references must resolve
+to the intended declarations, and type expressions must denote the same types in the
+destination package.
 
-- **Unexported provider** referenced from the generated package: rejected.
-- **Unexported type in the inferred signature** (an input/output type, or a type argument
-  of a generic instantiation that surfaces in the signature): rejected.
-- **Unexported type in an explicit type argument** to a function, method, or struct
-  provider: rejected even if it appears only in the generated body. A receiver’s type
-  arguments are not written at a method call, so they are checked only when they appear
-  in the inferred signature or another expression that names them.
-- **Unexported constraint** on a lifted free type parameter (a named constraint, or a
-  literal interface/union mentioning an unexported type): rejected, since the constraint
-  appears in the generated header.
+- **Foreign unexported provider names** are rejected.
+- **Foreign unexported type names** are rejected wherever they are written in the
+  generated file, including inside type arguments and constraints.
+- **Foreign unexported field or method names written in type literals** are rejected.
+  Repeating them in the destination package would change their identity. This includes
+  blank struct fields. See Go’s rules for [identifier identity](https://go.dev/ref/spec#Uniqueness_of_identifiers)
+  and [type identity](https://go.dev/ref/spec#Type_identity).
 
-plumb checks that cross-boundary names are **exported**, but not that the destination can
-actually **import** their package, so two cases produce uncompilable output reported by the
+An exported type name or alias can denote a type with unexported members. An anonymous
+interface such as `interface{x.Sealed}` is also allowed when `Sealed` is exported: the
+embedded type supplies the original identities of its methods.
+
+Types passed only through inferred local values need no written declaration. Receiver
+type arguments are checked when they appear in a signature or another expression that
+names them; the method call itself does not write those arguments.
+
+These checks use the existing type names and aliases. plumb does not search for other
+aliases or equivalent type expressions to make an otherwise unusable spelling work.
+
+plumb checks names and type identity, but not whether the destination can actually
+**import** their package, so two cases produce uncompilable output reported by the
 Go compiler rather than by plumb: a provider or type in a `.../internal/...` package whose
 destination is outside that internal subtree (`use of internal package not allowed`), and a
 provider or type in a `package main` (`import "…" is a program, not an importable package`).

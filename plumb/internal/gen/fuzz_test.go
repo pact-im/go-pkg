@@ -99,6 +99,12 @@ type fuzzSeed struct{ a, b, dest string }
 
 var fuzzSeeds = []fuzzSeed{
 	// --- single-package shapes (b/dest empty): provider kinds and generics ----
+	{a: `//plumb:build
+func New() struct{ hidden int } { return struct{ hidden int }{} }`},
+	{a: `//plumb:build
+func New() struct{ _ int } { return struct{ _ int }{} }`},
+	{a: `//plumb:build
+func New() interface{ hidden() } { return nil }`},
 	{a: `type Config (struct {
 //plumb:build
 Port int

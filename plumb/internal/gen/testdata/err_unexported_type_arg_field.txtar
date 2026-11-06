@@ -1,0 +1,16 @@
+A consumer pins T to an anonymous struct with an unexported field. The call to
+New must write that type argument, so reject it across the package boundary.
+-- config --
+import-path: example.com/app
+package-name: app
+error-is: ErrUnreachableType
+-- example.com/x/x.go --
+package x
+
+type Box[T any] struct{}
+
+//plumb:build
+func New[T any]() Box[T] { return Box[T]{} }
+
+//plumb:build
+func Use(value Box[struct{ hidden int }]) bool { return true }

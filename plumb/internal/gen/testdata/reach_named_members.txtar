@@ -1,0 +1,40 @@
+Exported names can denote types with unexported members. Use those names in the
+generated signature, including interfaces that embed Source.
+-- config --
+import-path: example.com/app
+package-name: app
+output: plumb_gen.go
+-- example.com/x/x.go --
+package x
+
+type Record struct{ hidden int }
+type Source interface{ hidden() }
+type RecordAlias = struct{ hidden int }
+type SourceAlias = interface{ hidden() }
+
+//plumb:record
+func NewRecord() Record { return Record{} }
+
+//plumb:source
+func NewSource() Source { return nil }
+
+//plumb:recordalias
+func NewRecordAlias() RecordAlias { return RecordAlias{} }
+
+//plumb:sourcealias
+func NewSourceAlias() SourceAlias { return nil }
+
+//plumb:embedded
+func NewEmbedded() interface{ Source } { return nil }
+
+//plumb:extended
+func NewExtended() interface {
+	Source
+	Visible()
+} { return nil }
+
+//plumb:embeddedinput
+func UseEmbedded(value interface{ Source }) bool { return true }
+
+//plumb:embeddedconstraint
+func UseConstraint[T interface{ Source }](value T) bool { return true }

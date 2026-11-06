@@ -5,92 +5,82 @@ import (
 	"go/types"
 )
 
-// WalkNamed visits every named type reachable from t, invoking visit for each type
-// name. It does not descend into a type parameter’s constraint; a caller that needs
-// the constraint walks it separately. When visit returns false for a name, the walk does
-// not descend into that name’s type arguments (it prunes below the node); it
-// still visits the rest of the tree, so this controls descent, not whole-walk
-// termination. A caller that wants to stop entirely self-guards inside visit.
-func WalkNamed(t types.Type, visit func(*types.TypeName) bool) {
-	walkNamed(t, &Set[types.Type]{}, visit)
+// WalkObjects visits the objects named in t’s source representation: type names,
+// struct fields, and explicit interface methods. It follows type arguments but
+// not the definitions of named types or aliases. Type parameter constraints are
+// walked separately. Returning false skips an object’s children; other branches
+// are still visited.
+func WalkObjects(t types.Type, visit func(types.Object) bool) {
+	walkObjects(t, map[types.Type]bool{}, visit)
 }
 
-// walkNamed is WalkNamed’s recursion, threading the cycle-guard seen set that the
-// exported entry point seeds fresh.
-func walkNamed(t types.Type, seen *Set[types.Type], visit func(*types.TypeName) bool) {
-	// Rendering names an alias, not its expansion, so the alias’s own name is
-	// what reachability must judge, and it is judged before the seen check:
-	// the seen set keys on types.Identical, under which an alias equals its
-	// target, so whichever spelling were walked first would swallow the other
-	// (an exported alias hiding its unexported target, or vice versa). Aliases
-	// bypass the dedup entirely; they cannot cycle (the type checker rejects
-	// alias cycles), so the walk still covers only the finite spelling tree.
-	// Only the rendered type arguments are walked, never Unalias(u).
-	if u, ok := t.(*types.Alias); ok {
-		if !visit(u.Obj()) {
-			return
-		}
-		if args := u.TypeArgs(); args != nil {
-			for t := range args.Types() {
-				walkNamed(t, seen, visit)
-			}
-		}
+// walkObjects distinguishes type nodes even when types.Identical considers them
+// equal, since their source representations can name different objects.
+func walkObjects(t types.Type, seen map[types.Type]bool, visit func(types.Object) bool) {
+	if seen[t] {
 		return
 	}
-	if !seen.Add(t) {
-		return
-	}
+	seen[t] = true
 	switch u := t.(type) {
 	case *types.Named:
 		if !visit(u.Obj()) {
 			return
 		}
-		if args := u.TypeArgs(); args != nil {
-			for t := range args.Types() {
-				walkNamed(t, seen, visit)
-			}
+		for arg := range u.TypeArgs().Types() {
+			walkObjects(arg, seen, visit)
+		}
+	case *types.Alias:
+		if !visit(u.Obj()) {
+			return
+		}
+		for arg := range u.TypeArgs().Types() {
+			walkObjects(arg, seen, visit)
 		}
 	case *types.Pointer:
-		walkNamed(u.Elem(), seen, visit)
+		walkObjects(u.Elem(), seen, visit)
 	case *types.Slice:
-		walkNamed(u.Elem(), seen, visit)
+		walkObjects(u.Elem(), seen, visit)
 	case *types.Array:
-		walkNamed(u.Elem(), seen, visit)
+		walkObjects(u.Elem(), seen, visit)
 	case *types.Chan:
-		walkNamed(u.Elem(), seen, visit)
+		walkObjects(u.Elem(), seen, visit)
 	case *types.Map:
-		walkNamed(u.Key(), seen, visit)
-		walkNamed(u.Elem(), seen, visit)
+		walkObjects(u.Key(), seen, visit)
+		walkObjects(u.Elem(), seen, visit)
 	case *types.Signature:
 		walkTuple(u.Params(), seen, visit)
 		walkTuple(u.Results(), seen, visit)
 	case *types.Struct:
 		for field := range u.Fields() {
-			walkNamed(field.Type(), seen, visit)
+			if !visit(field) {
+				continue
+			}
+			walkObjects(field.Type(), seen, visit)
 		}
 	case *types.Interface:
 		for etyp := range u.EmbeddedTypes() {
-			walkNamed(etyp, seen, visit)
+			walkObjects(etyp, seen, visit)
 		}
 		for method := range u.ExplicitMethods() {
-			walkNamed(method.Type(), seen, visit)
+			if !visit(method) {
+				continue
+			}
+			walkObjects(method.Type(), seen, visit)
 		}
 	case *types.Union:
 		for term := range u.Terms() {
-			walkNamed(term.Type(), seen, visit)
+			walkObjects(term.Type(), seen, visit)
 		}
-	case *types.Basic:
-		// A predeclared or basic type names no type; nothing to visit or descend.
-	case *types.TypeParam:
-		// constraints are handled separately for lifted params
+	case *types.Basic, *types.TypeParam:
+		// Basic types name no objects; type parameter constraints are handled separately.
 	default:
-		panic(fmt.Sprintf("plumb: WalkNamed: unhandled type kind %T", t))
+		panic(fmt.Sprintf("plumb: WalkObjects: unhandled type kind %T", t))
 	}
 }
 
-func walkTuple(tup *types.Tuple, seen *Set[types.Type], visit func(*types.TypeName) bool) {
+func walkTuple(tup *types.Tuple, seen map[types.Type]bool, visit func(types.Object) bool) {
 	for v := range tup.Variables() {
-		walkNamed(v.Type(), seen, visit)
+		walkObjects(v.Type(), seen, visit)
 	}
 }
 

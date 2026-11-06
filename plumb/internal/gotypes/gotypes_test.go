@@ -271,7 +271,7 @@ func pairConcValue(t *testing.T, pkg *types.Package) types.Type {
 	return ptr.Elem()
 }
 
-func TestWalkNamed(t *testing.T) {
+func TestWalkObjects(t *testing.T) {
 	pkg := load(t)
 	// Box[T] nests the named type T as Box’s sole type argument, so T is reachable
 	// only by descending below Box, the signal that distinguishes “descended” from
@@ -283,9 +283,9 @@ func TestWalkNamed(t *testing.T) {
 
 	walk := func(prune string) []string {
 		var got []string
-		gotypes.WalkNamed(boxT, func(tn *types.TypeName) bool {
-			got = append(got, tn.Name())
-			return tn.Name() != prune
+		gotypes.WalkObjects(boxT, func(obj types.Object) bool {
+			got = append(got, obj.Name())
+			return obj.Name() != prune
 		})
 		return got
 	}
