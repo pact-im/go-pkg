@@ -192,14 +192,7 @@ func tupleContains(tup *types.Tuple, seen *Set[types.Type], pred func(types.Type
 	return false
 }
 
-// universeNames is the set of predeclared identifiers, backing IsUniverseName.
-var universeNames = func() map[string]bool {
-	m := map[string]bool{}
-	for _, n := range types.Universe.Names() {
-		m[n] = true
-	}
-	return m
-}()
-
 // IsUniverseName reports whether name is a predeclared identifier.
-func IsUniverseName(name string) bool { return universeNames[name] }
+func IsUniverseName(name string) bool {
+	return types.Universe.Lookup(name) != nil
+}
