@@ -15,6 +15,8 @@ import (
 	"strconv"
 	"strings"
 
+	"golang.org/x/exp/collection/hashed"
+
 	"go.pact.im/x/plumb/internal/discover"
 	"go.pact.im/x/plumb/internal/gotypes"
 	"go.pact.im/x/plumb/internal/solve"
@@ -164,10 +166,10 @@ func renderPlan(pl *solve.Plan, q *qualifier, errorsAlias string, dest *solve.De
 	// localOf maps a value type (by identity) to the local/param/result name
 	// holding it. local() reads it; the name is always present by the time it is
 	// read, so a missing entry is an internal-invariant violation.
-	var localOf gotypes.Map[types.Type, string]
+	localOf := hashed.NewMap[types.Type, string](types.Hasher{})
 	setLocal := func(t types.Type, name string) { localOf.Set(t, name) }
 	local := func(t types.Type) string {
-		n, ok := localOf.At(t)
+		n, ok := localOf.Lookup(t)
 		if !ok {
 			panic(fmt.Sprintf("plumb: emit: no local bound for %s", gotypes.TypeName(t)))
 		}

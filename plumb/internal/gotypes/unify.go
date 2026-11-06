@@ -1,6 +1,10 @@
 package gotypes
 
-import "go/types"
+import (
+	"go/types"
+
+	"golang.org/x/exp/collection/hashed"
+)
 
 // Unify matches a pattern type (which may mention the template’s type
 // parameters) against a concrete demand type, recording the type-parameter
@@ -114,7 +118,7 @@ func unifyTuple(p, c *types.Tuple, params map[*types.TypeParam]bool, bind map[*t
 // go/types kind rather than silently reporting false), testing membership in
 // params at each type-parameter leaf.
 func MentionsParams(t types.Type, params map[*types.TypeParam]bool) bool {
-	return typeContains(t, &Set[types.Type]{}, func(x types.Type) bool {
+	return typeContains(t, hashed.NewSet(types.Hasher{}), func(x types.Type) bool {
 		tp, ok := x.(*types.TypeParam)
 		return ok && params[tp]
 	})
@@ -124,7 +128,7 @@ func MentionsParams(t types.Type, params map[*types.TypeParam]bool) bool {
 // the singular form of MentionsParams over the same typeContains walk, for
 // callers testing one parameter at a time without building a one-element set.
 func MentionsParam(t types.Type, tp *types.TypeParam) bool {
-	return typeContains(t, &Set[types.Type]{}, func(x types.Type) bool {
+	return typeContains(t, hashed.NewSet(types.Hasher{}), func(x types.Type) bool {
 		p, ok := x.(*types.TypeParam)
 		return ok && p == tp
 	})
@@ -148,12 +152,12 @@ func IsPointerToBareTypeParam(t types.Type, params map[*types.TypeParam]bool) bo
 // TypeDepth returns a structural nesting depth used to bound non-terminating
 // generic instantiation.
 func TypeDepth(t types.Type) int {
-	return typeDepthRec(t, &Set[types.Type]{})
+	return typeDepthRec(t, hashed.NewSet(types.Hasher{}))
 }
 
-func typeDepthRec(t types.Type, seen *Set[types.Type]) int {
+func typeDepthRec(t types.Type, seen *hashed.Set[types.Type]) int {
 	t = types.Unalias(t)
-	if !seen.Add(t) {
+	if !seen.Insert(t) {
 		return 0
 	}
 	switch u := t.(type) {

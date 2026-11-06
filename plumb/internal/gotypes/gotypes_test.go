@@ -303,135 +303,21 @@ func TestWalkObjects(t *testing.T) {
 	})
 }
 
-// identical returns two distinct *types.Pointer values that denote the same
-// type: a plain Go map keys them apart, a type-identity map collapses them. This
-// is the property Map and Set exist to provide, so every keying assertion below
-// uses the second value to probe an entry stored under the first.
-func identical(t *testing.T) (k1, k2 types.Type) {
-	t.Helper()
-	T := named(t, load(t), "T")
-	k1, k2 = types.NewPointer(T), types.NewPointer(T)
-	if k1 == k2 {
-		t.Fatal("want distinct pointer values for the identity test")
-	}
-	return k1, k2
-}
-
-func TestMap(t *testing.T) {
-	k1, k2 := identical(t)
-
-	var m gotypes.Map[types.Type, int]
-	if got, ok := m.At(k1); ok {
-		t.Errorf("At on empty map = %d, %v; want 0, false", got, ok)
-	}
-	m.Set(k1, 1)
-	if got, ok := m.At(k1); !ok || got != 1 {
-		t.Errorf("At(k1) = %d, %v; want 1, true", got, ok)
-	}
-	// k2 is a different pointer denoting the same type: it hits k1’s entry.
-	if got, ok := m.At(k2); !ok || got != 1 {
-		t.Errorf("At(k2) = %d, %v; want 1, true (identity keying)", got, ok)
-	}
-	m.Set(k2, 2) // overwrites the same entry, does not add a second
-	if got, _ := m.At(k1); got != 2 {
-		t.Errorf("At(k1) after Set(k2, 2) = %d; want 2", got)
-	}
-	if m.Len() != 1 {
-		t.Errorf("Len = %d; want 1 (k1 and k2 are the same key)", m.Len())
-	}
-}
-
-func TestMapAllBreak(t *testing.T) {
-	pkg := load(t)
-	var m gotypes.Map[types.Type, int]
-	m.Set(named(t, pkg, "T"), 0)
-	m.Set(named(t, pkg, "Box"), 1)
-	m.Set(named(t, pkg, "Pair"), 2)
-
-	// All emulates early termination over typeutil.Map.Iterate, which cannot stop
-	// early itself; breaking after the first entry must visit exactly one.
-	n := 0
-	for range m.All {
-		n++
-		break
-	}
-	if n != 1 {
-		t.Errorf("All visited %d entries after break; want 1", n)
-	}
-	if got := m.Len(); got != 3 {
-		t.Errorf("Len = %d; want 3 (break must not drop entries)", got)
-	}
-}
-
-func TestSet(t *testing.T) {
-	k1, k2 := identical(t)
-
-	var s gotypes.Set[types.Type]
-	if s.Contains(k1) {
-		t.Error("empty set Contains(k1) = true; want false")
-	}
-	if !s.Add(k1) {
-		t.Error("Add(k1) on empty set = false; want true (newly added)")
-	}
-	if s.Add(k1) {
-		t.Error("Add(k1) repeat = true; want false (already present)")
-	}
-	// k2 denotes the same type, so it is already present.
-	if s.Add(k2) {
-		t.Error("Add(k2) = true; want false (identity keying)")
-	}
-	if !s.Contains(k2) {
-		t.Error("Contains(k2) = false; want true (identity keying)")
-	}
-}
-
-func TestSetElements(t *testing.T) {
-	pkg := load(t)
-	var s gotypes.Set[types.Type]
-	for _, n := range []string{"T", "Box", "Pair"} {
-		s.Add(named(t, pkg, n))
-	}
-
-	// Break after the first: Elements must stop, visiting exactly one.
-	n := 0
-	for range s.Elements {
-		n++
-		break
-	}
-	if n != 1 {
-		t.Errorf("Elements visited %d after break; want 1", n)
-	}
-	// A full pass sees every member.
-	full := 0
-	for range s.Elements {
-		full++
-	}
-	if full != 3 {
-		t.Errorf("Elements visited %d; want 3", full)
-	}
-}
-
-// TestSetTupleKeys exercises the Set[*types.Tuple] instantiation the solver keys
-// its per-provider done-sets by, where ListKey packs a type list into the tuple
-// key: two lists that are element-wise identical collapse, a reordered one does
+// TestListKey exercises the tuple keys used by the solver’s per-provider done
+// sets: two lists that are element-wise identical collapse, a reordered one does
 // not.
-func TestSetTupleKeys(t *testing.T) {
+func TestListKey(t *testing.T) {
 	pkg := load(t)
 	T := named(t, pkg, "T")
 	intT := types.Typ[types.Int]
 	k1 := gotypes.ListKey([]types.Type{T, intT})
 	k2 := gotypes.ListKey([]types.Type{T, intT}) // distinct tuple, identical contents
 	k3 := gotypes.ListKey([]types.Type{intT, T}) // reordered: a different key
-
-	var s gotypes.Set[*types.Tuple]
-	if !s.Add(k1) {
-		t.Error("Add(k1) = false; want true")
+	if !types.Identical(k1, k2) {
+		t.Error("identical type lists have different keys")
 	}
-	if s.Add(k2) {
-		t.Error("Add(k2) = true; want false (element-wise tuple identity)")
-	}
-	if !s.Add(k3) {
-		t.Error("Add(k3 reordered) = false; want true (distinct tuple)")
+	if types.Identical(k1, k3) {
+		t.Error("reordered type lists have identical keys")
 	}
 }
 

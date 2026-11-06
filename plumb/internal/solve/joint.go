@@ -5,6 +5,8 @@ import (
 	"go/types"
 	"maps"
 
+	"golang.org/x/exp/collection/hashed"
+
 	"go.pact.im/x/plumb/internal/diag"
 	"go.pact.im/x/plumb/internal/discover"
 	"go.pact.im/x/plumb/internal/gotypes"
@@ -167,10 +169,10 @@ func (s *solver) jointClusterDone(p *discover.Provider, bind map[*types.TypePara
 func (s *solver) markJointClusterDone(p *discover.Provider, bind map[*types.TypeParam]types.Type) {
 	m := s.jointDone[p]
 	if m == nil {
-		m = new(gotypes.Set[*types.Tuple])
+		m = hashed.NewSet(types.Hasher{})
 		s.jointDone[p] = m
 	}
-	m.Add(jointBindKey(p, bind))
+	m.Insert(jointBindKey(p, bind))
 }
 
 // jointUnpinned is a unique sentinel type standing for a cluster parameter no

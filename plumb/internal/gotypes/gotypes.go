@@ -9,82 +9,12 @@ import (
 	"fmt"
 	"go/token"
 	"go/types"
-
-	"golang.org/x/tools/go/types/typeutil"
 )
 
-// Map and Set are keyed by type identity (types.Identical), not the pointer or ==
-// identity a plain Go map uses, because go/types does not canonicalize types: two
-// distinct *types.Named values can denote the same type. Both wrap typeutil.Map,
-// giving typed keys and values so callers avoid the any-casts a bare typeutil.Map
-// forces. Once Go ships a types.Hash (go.dev/issues/69559) both can become plain
-// generic maps; see typeutil.Map’s own TODO.
-
-// Map is a type-keyed map with typed values. The zero value is an empty map ready
-// to use.
-type Map[K types.Type, V any] struct{ m typeutil.Map }
-
-// At returns the value stored for key and whether it was present.
-func (m *Map[K, V]) At(key K) (V, bool) {
-	if v := m.m.At(key); v != nil {
-		return v.(V), true
-	}
-	var zero V
-	return zero, false
-}
-
-// Set stores value for key, replacing any previous value.
-func (m *Map[K, V]) Set(key K, value V) { m.m.Set(key, value) }
-
-// Len returns the number of entries.
-func (m *Map[K, V]) Len() int { return m.m.Len() }
-
-// All iterates the entries in unspecified order; it satisfies iter.Seq2[K, V].
-func (m *Map[K, V]) All(yield func(K, V) bool) {
-	stop := false
-	m.m.Iterate(func(k types.Type, v any) {
-		if !stop && !yield(k.(K), v.(V)) {
-			stop = true
-		}
-	})
-}
-
-// Set is a type-keyed set. The zero value is an empty set ready to use; it is the
-// visited-set for cyclic-type-safe graph walks and the presence-set the solver
-// keeps of demanded, consumed, and already-instantiated types.
-type Set[T types.Type] struct{ m typeutil.Map }
-
-// Add records t and reports whether it was newly added: false if t was already
-// present. A cyclic-type walk guards recursion with `if !seen.Add(t) { return }`,
-// which stops on a revisit.
-func (s *Set[T]) Add(t T) bool {
-	if s.m.At(t) != nil {
-		return false
-	}
-	s.m.Set(t, true)
-	return true
-}
-
-// Contains reports whether t is in the set.
-func (s *Set[T]) Contains(t T) bool {
-	return s.m.At(t) != nil
-}
-
-// Elements iterates the members in unspecified order; it satisfies iter.Seq[T].
-// Callers that need a deterministic order sort what they collect.
-func (s *Set[T]) Elements(yield func(T) bool) {
-	stop := false
-	s.m.Iterate(func(k types.Type, _ any) {
-		if !stop && !yield(k.(T)) {
-			stop = true
-		}
-	})
-}
-
-// ListKey packs a type list into a tuple usable as a typeutil.Map key:
-// types.Identical compares tuples element-wise (ignoring the synthetic names), so
-// two identical lists collapse to one entry. It backs the (provider, type-args)
-// instantiation keys, where the provider supplies the outer map dimension.
+// ListKey packs a type list into a tuple: [types.Identical] compares tuples
+// element-wise (ignoring the synthetic names), so two identical lists collapse
+// to one entry. It backs the (provider, type-args) instantiation keys, where
+// the provider supplies the outer map dimension.
 func ListKey(ts []types.Type) *types.Tuple {
 	vars := make([]*types.Var, len(ts))
 	for i, t := range ts {

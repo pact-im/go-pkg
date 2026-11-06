@@ -6,6 +6,8 @@ import (
 	"go/types"
 	"slices"
 
+	"golang.org/x/exp/collection/hashed"
+
 	"go.pact.im/x/plumb/internal/diag"
 	"go.pact.im/x/plumb/internal/gotypes"
 )
@@ -28,8 +30,8 @@ func (s *solver) finalize() (*Plan, *diag.Error) {
 		ProviderCount: len(s.provs),
 	}
 
-	var consumed gotypes.Set[types.Type]                  // value types some instance consumes
-	var inputInfo gotypes.Map[types.Type, *injectorInput] // injector input type → its dedup record
+	consumed := hashed.NewSet(types.Hasher{})                              // value types some instance consumes
+	inputInfo := hashed.NewMap[types.Type, *injectorInput](types.Hasher{}) // injector input type → its dedup record
 
 	for _, in := range s.instances {
 		refs := make([]ArgRef, len(in.Inputs))
@@ -40,14 +42,14 @@ func (s *solver) finalize() (*Plan, *diag.Error) {
 			}
 			refs[i] = ref
 			if ref.isParam {
-				if cur, ok := inputInfo.At(ref.SrcType); !ok {
+				if cur, ok := inputInfo.Lookup(ref.SrcType); !ok {
 					inputInfo.Set(ref.SrcType, &injectorInput{typ: ref.SrcType, pos: in.pos, name: inp.Name})
 				} else if diag.CmpPos(in.pos, cur.pos) < 0 {
 					cur.pos = in.pos
 					cur.name = inp.Name
 				}
 			} else {
-				consumed.Add(ref.SrcType)
+				consumed.Insert(ref.SrcType)
 			}
 		}
 		pl.Args[in] = refs
@@ -62,12 +64,12 @@ func (s *solver) finalize() (*Plan, *diag.Error) {
 			}
 		}
 	}
-	sortTypesByProducer(outs, &s.supply)
+	sortTypesByProducer(outs, s.supply)
 	pl.Outputs = outs
 
 	// Inputs: deduped, ordered by earliest consumer then type.
 	inputs := make([]*injectorInput, 0, inputInfo.Len())
-	for _, v := range inputInfo.All {
+	for v := range inputInfo.Values() {
 		inputs = append(inputs, v)
 	}
 	slices.SortFunc(inputs, func(a, b *injectorInput) int {
@@ -117,25 +119,21 @@ func (s *solver) resolveInput(in *Instance, inp InputSlot) (ArgRef, *diag.Error)
 	if err := s.checkInputType(in, d); err != nil {
 		return ArgRef{}, err
 	}
-	if _, ok := s.supply.At(d); ok {
+	if s.supply.Contains(d) {
 		return ArgRef{SrcType: d, Coerce: CoerceNone}, nil
 	}
 	if dt, ok := gotypes.DualType(d); ok {
-		if _, ok := s.supply.At(dt); ok {
+		if s.supply.Contains(dt) {
 			return ArgRef{SrcType: dt, Coerce: bridgeDir(d)}, nil
 		}
 	}
 	return ArgRef{isParam: true, SrcType: d}, nil
 }
 
-func sortTypesByProducer(ts []types.Type, supply *gotypes.Map[types.Type, *Instance]) {
-	producer := func(t types.Type) *Instance {
-		in, _ := supply.At(t)
-		return in
-	}
+func sortTypesByProducer(ts []types.Type, supply *hashed.Map[types.Type, *Instance]) {
 	slices.SortStableFunc(ts, func(a, b types.Type) int {
-		pa := producer(a)
-		pb := producer(b)
+		pa := supply.Get(a)
+		pb := supply.Get(b)
 		if pa != nil && pb != nil {
 			if c := diag.CmpPos(pa.pos, pb.pos); c != 0 {
 				return c

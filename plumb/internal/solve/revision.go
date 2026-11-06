@@ -5,6 +5,8 @@ import (
 	"maps"
 	"slices"
 
+	"golang.org/x/exp/collection/hashed"
+
 	"go.pact.im/x/plumb/internal/diag"
 	"go.pact.im/x/plumb/internal/discover"
 	"go.pact.im/x/plumb/internal/gotypes"
@@ -112,8 +114,8 @@ func (s *solver) unionRefused(p *discover.Provider, union map[*types.TypeParam]t
 func (s *solver) markUnionRefused(p *discover.Provider, union map[*types.TypeParam]types.Type) {
 	m := s.refusedUnions[p]
 	if m == nil {
-		m = new(gotypes.Set[*types.Tuple])
+		m = hashed.NewSet(types.Hasher{})
 		s.refusedUnions[p] = m
 	}
-	m.Add(jointBindKey(p, union))
+	m.Insert(jointBindKey(p, union))
 }

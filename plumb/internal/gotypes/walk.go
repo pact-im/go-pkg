@@ -3,6 +3,8 @@ package gotypes
 import (
 	"fmt"
 	"go/types"
+
+	"golang.org/x/exp/collection/hashed"
 )
 
 // WalkObjects visits the objects named in t’s source representation: type names,
@@ -87,7 +89,7 @@ func walkTuple(tup *types.Tuple, seen map[types.Type]bool, visit func(types.Obje
 // ContainsInvalid reports whether t mentions the invalid type anywhere, meaning
 // it failed to type-check and plumb must not render it.
 func ContainsInvalid(t types.Type) bool {
-	return typeContains(t, &Set[types.Type]{}, func(x types.Type) bool {
+	return typeContains(t, hashed.NewSet(types.Hasher{}), func(x types.Type) bool {
 		b, ok := x.(*types.Basic)
 		return ok && b.Kind() == types.Invalid
 	})
@@ -97,7 +99,7 @@ func ContainsInvalid(t types.Type) bool {
 // the test for a pinning that cannot survive a resolution restart, since lifted
 // parameters are per-run objects.
 func ContainsTypeParam(t types.Type) bool {
-	return typeContains(t, &Set[types.Type]{}, func(x types.Type) bool {
+	return typeContains(t, hashed.NewSet(types.Hasher{}), func(x types.Type) bool {
 		_, ok := x.(*types.TypeParam)
 		return ok
 	})
@@ -108,9 +110,9 @@ func ContainsTypeParam(t types.Type) bool {
 // terminate explicitly and any unhandled kind panics, never silently reports
 // false. A silent false here is precisely how an unrendered invalid type would
 // slip past ContainsInvalid and reach the emitter.
-func typeContains(t types.Type, seen *Set[types.Type], pred func(types.Type) bool) bool {
+func typeContains(t types.Type, seen *hashed.Set[types.Type], pred func(types.Type) bool) bool {
 	t = types.Unalias(t)
-	if !seen.Add(t) {
+	if !seen.Insert(t) {
 		return false
 	}
 	if pred(t) {
@@ -173,7 +175,7 @@ func typeContains(t types.Type, seen *Set[types.Type], pred func(types.Type) boo
 	}
 }
 
-func tupleContains(tup *types.Tuple, seen *Set[types.Type], pred func(types.Type) bool) bool {
+func tupleContains(tup *types.Tuple, seen *hashed.Set[types.Type], pred func(types.Type) bool) bool {
 	for v := range tup.Variables() {
 		if typeContains(v.Type(), seen, pred) {
 			return true

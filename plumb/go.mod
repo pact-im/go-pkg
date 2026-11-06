@@ -3,6 +3,7 @@ module go.pact.im/x/plumb
 go 1.27.0
 
 require (
+	golang.org/x/exp/collection v0.0.0-20261106112924-d498a4c2cc9a
 	golang.org/x/mod v0.42.0
 	golang.org/x/tools v0.52.0
 )

@@ -8,13 +8,13 @@ import (
 )
 
 // CmpType is a deterministic, environment-independent order over types, used to
-// sort type slices into a stable order, never for identity (that goes through
-// typeutil.Map) and never for output (that goes through a qualifier). Named types
-// are ordered by package path + name rather than pointer, and every level is
-// unaliased before comparison, so the order never depends on pointer addresses,
-// load order, or whether a type was first seen through an alias. It is the
-// ordering authority for types, so gotypes never has to serialize a type to a
-// string except when rendering output or diagnostics.
+// sort type slices into a stable order, never for identity (that uses [types.Identical])
+// and never for output (that goes through a qualifier). Named types are ordered
+// by package path + name rather than pointer, and every level is unaliased
+// before comparison, so the order never depends on pointer addresses, load
+// order, or whether a type was first seen through an alias. It is the ordering
+// authority for types, so gotypes never has to serialize a type to a string
+// except when rendering output or diagnostics.
 //
 // It is a WEAK order, not a structural total order: types that are not
 // types.Identical can still compare equal. Named types are keyed on package

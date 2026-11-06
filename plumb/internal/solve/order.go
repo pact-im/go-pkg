@@ -35,7 +35,7 @@ func (s *solver) topoOrder(pl *Plan) ([]*Instance, *diag.Error) {
 			}
 			// A self-edge (a provider consuming a type it produces, directly or
 			// via the value/pointer bridge) is a single-node cycle, so it is kept.
-			if prod, ok := s.supply.At(ref.SrcType); ok {
+			if prod, ok := s.supply.Lookup(ref.SrcType); ok {
 				deps[in][prod] = true
 			}
 		}
@@ -164,7 +164,7 @@ func (s *solver) edgeType(pl *Plan, consumer, producer *Instance) (types.Type, b
 		if ref.isParam {
 			continue
 		}
-		if prod, ok := s.supply.At(ref.SrcType); ok && prod == producer {
+		if prod, ok := s.supply.Lookup(ref.SrcType); ok && prod == producer {
 			return consumer.Inputs[i].typ, ref.Coerce != CoerceNone
 		}
 	}

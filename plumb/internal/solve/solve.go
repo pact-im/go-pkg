@@ -49,6 +49,8 @@ import (
 	"maps"
 	"slices"
 
+	"golang.org/x/exp/collection/hashed"
+
 	"go.pact.im/x/plumb/internal/diag"
 	"go.pact.im/x/plumb/internal/discover"
 	"go.pact.im/x/plumb/internal/gotypes"
@@ -161,13 +163,13 @@ type solver struct {
 	resGen   []*discover.Provider
 
 	instances []*Instance
-	supply    gotypes.Map[types.Type, *Instance] // type → producing instance (exact), by type identity
+	supply    *hashed.Map[types.Type, *Instance] // type → producing instance (exact), by type identity
 
-	demand       gotypes.Set[types.Type]                           // demanded types, by type identity
-	done         map[*discover.Provider]*gotypes.Set[*types.Tuple] // provider → set of instantiated type-arg lists (keyed by ListKey)
-	jointDone    map[*discover.Provider]*gotypes.Set[*types.Tuple] // provider → set of joint-cluster pinnings (keyed by jointBindKey)
-	nearMissDone map[*discover.Provider]*gotypes.Set[*types.Tuple] // provider → set of bindings that failed to instantiate (constraint near-miss)
-	skel         map[*discover.Provider]*Instance                  // provider → memoized own-params skeleton
+	demand       *hashed.Set[types.Type]                        // demanded types, by type identity
+	done         map[*discover.Provider]*hashed.Set[types.Type] // provider → set of instantiated type-arg lists (keyed by ListKey)
+	jointDone    map[*discover.Provider]*hashed.Set[types.Type] // provider → set of joint-cluster pinnings (keyed by jointBindKey)
+	nearMissDone map[*discover.Provider]*hashed.Set[types.Type] // provider → set of bindings that failed to instantiate (constraint near-miss)
+	skel         map[*discover.Provider]*Instance               // provider → memoized own-params skeleton
 	resGenUsed   map[*discover.Provider]bool
 	nearMiss     map[*discover.Provider]error // template → the type-checker error a structural match failed to instantiate with
 
@@ -182,7 +184,7 @@ type solver struct {
 	// compatible bindings at instantiation time; refusedUnions memoizes unions
 	// found non-viable or lift-entangled, so a refused merge never re-triggers.
 	commitments   map[*discover.Provider][]map[*types.TypeParam]types.Type
-	refusedUnions map[*discover.Provider]*gotypes.Set[*types.Tuple]
+	refusedUnions map[*discover.Provider]*hashed.Set[types.Type]
 
 	// pinnings records each template instance’s pinned slots as instantiated
 	// (after commitment merging), so the revision trigger can tell an
@@ -212,7 +214,7 @@ func Set(name string, provs []*discover.Provider, destPath, outputBase string, d
 	// commitments), and a replay is the ordinary fixpoint, not a mutation of
 	// the aborted one. Only the commitments and refusals survive a restart.
 	commitments := map[*discover.Provider][]map[*types.TypeParam]types.Type{}
-	refused := map[*discover.Provider]*gotypes.Set[*types.Tuple]{}
+	refused := map[*discover.Provider]*hashed.Set[types.Type]{}
 	for range maxRestarts {
 		s := &solver{
 			name:          name,
@@ -221,9 +223,11 @@ func Set(name string, provs []*discover.Provider, destPath, outputBase string, d
 			outputBase:    outputBase,
 			dest:          dest,
 			ctxt:          ctxt,
-			done:          map[*discover.Provider]*gotypes.Set[*types.Tuple]{},
-			jointDone:     map[*discover.Provider]*gotypes.Set[*types.Tuple]{},
-			nearMissDone:  map[*discover.Provider]*gotypes.Set[*types.Tuple]{},
+			supply:        hashed.NewMap[types.Type, *Instance](types.Hasher{}),
+			demand:        hashed.NewSet(types.Hasher{}),
+			done:          map[*discover.Provider]*hashed.Set[types.Type]{},
+			jointDone:     map[*discover.Provider]*hashed.Set[types.Type]{},
+			nearMissDone:  map[*discover.Provider]*hashed.Set[types.Type]{},
 			skel:          map[*discover.Provider]*Instance{},
 			resGenUsed:    map[*discover.Provider]bool{},
 			nearMiss:      map[*discover.Provider]error{},
@@ -371,7 +375,7 @@ func (s *solver) solveDemands() *diag.Error {
 // pendingDemands returns the still-unsatisfied demanded types, sorted.
 func (s *solver) pendingDemands() []types.Type {
 	var out []types.Type
-	for t := range s.demand.Elements {
+	for t := range s.demand.All() {
 		if !s.satisfied(t) {
 			out = append(out, t)
 		}
@@ -383,11 +387,11 @@ func (s *solver) pendingDemands() []types.Type {
 // satisfied reports whether demand t is met by an exact or value/pointer-dual
 // supply.
 func (s *solver) satisfied(t types.Type) bool {
-	if _, ok := s.supply.At(t); ok {
+	if s.supply.Contains(t) {
 		return true
 	}
 	if d, ok := gotypes.DualType(t); ok {
-		if _, ok := s.supply.At(d); ok {
+		if s.supply.Contains(d) {
 			return true
 		}
 	}
@@ -561,10 +565,10 @@ func (s *solver) nearMissDoneAt(p *discover.Provider, bind map[*types.TypeParam]
 func (s *solver) markNearMissDone(p *discover.Provider, bind map[*types.TypeParam]types.Type) {
 	m := s.nearMissDone[p]
 	if m == nil {
-		m = new(gotypes.Set[*types.Tuple])
+		m = hashed.NewSet(types.Hasher{})
 		s.nearMissDone[p] = m
 	}
-	m.Add(jointBindKey(p, bind))
+	m.Insert(jointBindKey(p, bind))
 }
 
 // instanceDone reports whether p has already been instantiated at this exact
@@ -579,16 +583,16 @@ func (s *solver) instanceDone(p *discover.Provider, targs []types.Type) bool {
 func (s *solver) markInstanceDone(p *discover.Provider, targs []types.Type) {
 	m := s.done[p]
 	if m == nil {
-		m = new(gotypes.Set[*types.Tuple])
+		m = hashed.NewSet(types.Hasher{})
 		s.done[p] = m
 	}
-	m.Add(gotypes.ListKey(targs))
+	m.Insert(gotypes.ListKey(targs))
 }
 
 // addInstance registers an instance’s outputs and queues its inputs.
 func (s *solver) addInstance(in *Instance) *diag.Error {
 	for _, vo := range in.valueOuts() {
-		if prev, ok := s.supply.At(vo); ok {
+		if prev, ok := s.supply.Lookup(vo); ok {
 			if prev == in {
 				// One provider returns two values of the same type; name it once
 				// rather than reporting it as colliding “with itself”.
@@ -611,7 +615,7 @@ func (s *solver) addInstance(in *Instance) *diag.Error {
 		if inp.flexRecv {
 			t = inp.flexBase // demand the value form; the dual bridge covers *S
 		}
-		s.demand.Add(t)
+		s.demand.Insert(t)
 	}
 	s.instances = append(s.instances, in)
 	return nil
@@ -652,7 +656,7 @@ func (s *solver) checkUnusedTemplates() *diag.Error {
 func (s *solver) shadowedDemand(p *discover.Provider) (types.Type, *Instance, types.Type) {
 	params := paramSet(p)
 	skel := s.skeleton(p)
-	demands := slices.SortedStableFunc(s.demand.Elements, gotypes.CmpType)
+	demands := slices.SortedStableFunc(s.demand.All(), gotypes.CmpType)
 	for _, d := range demands {
 		if !s.templateServes(p, skel, params, d) {
 			continue
@@ -660,11 +664,11 @@ func (s *solver) shadowedDemand(p *discover.Provider) (types.Type, *Instance, ty
 		// The template would have served d; find the producer that already does:
 		// directly, or through the value/pointer bridge over a producer of d’s dual
 		// (a *Node[int] demand covered by a Node[int] producer, or vice versa).
-		if in, ok := s.supply.At(d); ok && in.Prov != p {
+		if in, ok := s.supply.Lookup(d); ok && in.Prov != p {
 			return d, in, nil
 		}
 		if dt, ok := gotypes.DualType(d); ok {
-			if in, ok := s.supply.At(dt); ok && in.Prov != p {
+			if in, ok := s.supply.Lookup(dt); ok && in.Prov != p {
 				return d, in, dt
 			}
 		}
@@ -697,14 +701,14 @@ func (s *solver) templateServes(p *discover.Provider, skel *Instance, params map
 func (s *solver) resolveFlexReceivers() {
 	// Collect the exact types the set uses for non-flexible inputs and all
 	// outputs.
-	var used gotypes.Set[types.Type]
+	used := hashed.NewSet(types.Hasher{})
 	for _, in := range s.instances {
 		for _, vo := range in.valueOuts() {
-			used.Add(vo)
+			used.Insert(vo)
 		}
 		for _, inp := range in.Inputs {
 			if !inp.flexRecv {
-				used.Add(inp.typ)
+				used.Insert(inp.typ)
 			}
 		}
 	}
