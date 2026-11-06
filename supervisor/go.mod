@@ -3,7 +3,7 @@ module go.pact.im/x/supervisor
 go 1.27.0
 
 require (
-	go.pact.im/x/flaky v0.0.23
+	go.pact.im/x/flaky v0.0.24
 	go.pact.im/x/option v0.0.24
 	go.pact.im/x/process v0.0.23
 )
