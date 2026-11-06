@@ -4,7 +4,7 @@ go 1.27.0
 
 require (
 	github.com/jackc/pgx/v5 v5.12.0
-	go.pact.im/x/process v0.0.23
+	go.pact.im/x/process v0.0.24
 )
 
 require (
