@@ -4,14 +4,12 @@ go 1.27.0
 
 require (
 	github.com/rogpeppe/ioseq v0.0.0-20250408075941-a06b97ca7a06
-	go.pact.im/x/httpclient v0.0.23
+	go.pact.im/x/httpclient v0.0.24
 	go.uber.org/mock v0.6.0
 	golang.org/x/net v0.62.0
 )
 
 require (
-	github.com/stretchr/testify v1.12.1 // indirect
-	go.yaml.in/yaml/v3 v3.0.6 // indirect
 	golang.org/x/mod v0.42.0 // indirect
 	golang.org/x/sync v0.24.0 // indirect
 	golang.org/x/text v0.43.0 // indirect
